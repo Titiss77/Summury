@@ -4,9 +4,9 @@
     "description": "CodeIgniter 4 Starter Application",
     "license": "MIT",
     "require": {
-        "php": "^8.2",
-        "codeigniter4/framework": "^4.5",
-        "codeigniter4/shield": "^1.4"
+        "php": "*",
+        "codeigniter4/framework": "*",
+        "codeigniter4/shield": "*"
     },
     "autoload": {
         "psr-4": {
