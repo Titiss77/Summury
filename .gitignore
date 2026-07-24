@@ -2,9 +2,11 @@
 /htdocs/writable/session
 /htdocs/.env
 
-#/htdocs/vendor/
-#!/htdocs/vendor/autoload.php
-#!/htdocs/vendor/codeigniter4
-#!/htdocs/vendor/composer
-#!/htdocs/vendor/laminas
-#!/htdocs/vendor/psr
+/htdocs/vendor/
+!/htdocs/vendor/autoload.php
+!/htdocs/vendor/codeigniter4
+!/htdocs/vendor/composer
+!/htdocs/vendor/laminas
+!/htdocs/vendor/psr
+
+/htdocs/vendortest
