@@ -2,7 +2,7 @@
 /htdocs/writable/session
 /htdocs/.env
 
-/htdocs/vendor/
+#/htdocs/vendor/
 #!/htdocs/vendor/autoload.php
 #!/htdocs/vendor/codeigniter4
 #!/htdocs/vendor/composer
