@@ -1,0 +1,59 @@
+:root {
+    /* Palette de couleurs "Premium Frost" (Lumineux, épuré et luxueux) */
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: rgba(79, 70, 229, 0.1);
+
+    --bg-body: #fcfcfd;
+    --bg-card: #ffffff;
+
+    --text-main: #09090b;
+    --text-muted: #71717a;
+    --border-color: #e4e4e7;
+
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.1);
+    --success-text: #047857;
+
+    --info: #3b82f6;
+    --info-bg: rgba(59, 130, 246, 0.1);
+    --info-text: #1d4ed8;
+
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --danger-bg: rgba(239, 68, 68, 0.1);
+    --danger-text: #b91c1c;
+
+    --warning: #f59e0b;
+    --warning-hover: #d97706;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.08), 0 10px 20px rgba(79, 70, 229, 0.06);
+
+    --radius-md: 0.75rem;
+    --radius-lg: 1.25rem;
+    --radius-xl: 1.75rem;
+
+    --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* =========================================
+   THÈME SOMBRE (DARK MODE)
+   ========================================= */
+[data-theme="dark"] {
+    --bg-body: #18181b;
+    --bg-card: #1d1d21;
+
+    --text-main: #fcfcfd;
+    --text-muted: #a1a1aa;
+    --border-color: #27272a;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.6), 0 10px 20px rgba(79, 70, 229, 0.1);
+
+    --success-text: #34d399;
+    --info-text: #60a5fa;
+    --danger-text: #f87171;
+}

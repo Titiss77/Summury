@@ -1,0 +1,205 @@
+/* =========================================
+   BASE & RESET
+   ========================================= */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Améliore le rendu sur macOS */
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--primary-hover);
+}
+
+.container {
+    display: grid;
+    justify-content: center;
+}
+
+/* =========================================
+   CARTES
+   ========================================= */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--border-color);
+    /* Optionnel : garder la bordure neutre mais augmenter l'ombre */
+}
+
+.card-body {
+    padding: 2rem;
+    /* Légèrement augmenté pour laisser respirer le contenu */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-title {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-main);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.015em;
+    /* Typographie plus moderne */
+}
+
+/* =========================================
+   BOUTONS
+   ========================================= */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid transparent;
+    /* Prévient les sauts de layout */
+    font-family: inherit;
+    outline: none;
+}
+
+.btn:active {
+    transform: scale(0.98);
+    /* Feedback tactile */
+}
+
+.btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.btn-primary,
+.btn-success {
+    background-color: var(--primary);
+    color: #ffffff;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover,
+.btn-success:hover {
+    background-color: var(--primary-hover);
+    box-shadow: var(--shadow-md);
+}
+
+/* =========================================
+   FORMULAIRES (Login / Register)
+   ========================================= */
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-family: inherit;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    transition: var(--transition);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: var(--bg-card);
+    box-shadow: 0 0 0 4px var(--primary-light);
+    /* Halo doux */
+}
+
+/* CodeIgniter Shield Login Form fixes */
+.form-floating.mb-3 {
+    margin-bottom: 1.5rem;
+}
+
+.form-check {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-check-input {
+    accent-color: var(--primary);
+    /* Personnalise la couleur de la checkbox native */
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+}
+
+.form-check-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+    /* Évite la sélection du texte au double clic */
+}
+
+.d-grid button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* =========================================
+   MESSAGES & ALERTS
+   ========================================= */
+.alert {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid transparent;
+    /* Prépare la bordure d'accentuation */
+}
+
+.alert-danger {
+    background-color: var(--danger-bg);
+    border-color: #fecaca;
+    border-left-color: var(--danger-border);
+    color: var(--danger-text);
+}
+
+.alert-success {
+    background-color: var(--success-bg);
+    border-color: #bbf7d0;
+    border-left-color: var(--success-border);
+    color: var(--success-text);
+}
