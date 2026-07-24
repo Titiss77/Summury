@@ -150,14 +150,25 @@ class ItemController extends BaseController
                     ;
                     $audit->logAction('Nettoyage Draft', "Passage en privé de la carte ID {$id} : Suppression automatique des drafts en attente.");
                 }
-            } else {
-                $item = new Item($data);
-                $this->model->save($item);
-                $newId = $this->model->getInsertID();
-
-                $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
-                $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
-            }
+                } else {
+                    // --- NOUVEAU : Calculer la dernière position pour cette division ---
+                    $maxPosition = $this->model
+                        ->where('id_division', $data['id_division'])
+                        ->where('id_user', $data['id_user']) // ou selon votre logique d'isolation par utilisateur
+                        ->selectMax('position')
+                        ->get()
+                        ->getRow()
+                        ->position;
+    
+                    $data['position'] = ($maxPosition !== null) ? ((int) $maxPosition + 1) : 0;
+                    // -----------------------------------------------------------------
+    
+                    $item = new Item($data);
+                    $this->model->save($item);
+                    $newId = $this->model->getInsertID();
+                    $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
+                    $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
+                }
 
             return redirect()->to($backUrl.$separator.'open='.$data['id_division'].'#div-'.$data['id_division']);
         }
