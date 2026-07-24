@@ -2,10 +2,7 @@
 /htdocs/writable/session
 /htdocs/.env
 
-# 1. Ignorer tout le contenu à l'intérieur du dossier vendor
 /htdocs/vendor/
-
-# 2. Réautoriser / réinclure uniquement les dossiers 1, 2 et 4 souhaités
 !/htdocs/vendor/autoload.php
 !/htdocs/vendor/codeigniter4
 !/htdocs/vendor/composer
