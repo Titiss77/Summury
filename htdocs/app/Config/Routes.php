@@ -81,6 +81,5 @@ $routes->group('reports', ['namespace' => 'App\Controllers\Admin', 'filter' => '
 // Routes par défaut de Shield (Login, Register, etc.)
 // --------------------------------------------------------------------
 if (class_exists(\CodeIgniter\Shield\Config\Auth::class)) {
-    service('auth')->routes($routes, ['except' => ['login', 'register']]); // Optionnel si vous personnalisez, ou simplement :
-    // service('auth')->routes($routes);
+    service('auth')->routes($routes);
 }
