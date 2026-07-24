@@ -8,6 +8,12 @@ use App\Models\ItemModel;
 
 class HomeController extends BaseController
 {
+    public function __construct()
+    {
+        // Charge explicitement le helper auth de Shield pour que la fonction auth() soit reconnue
+        helper('auth');
+    }
+    
     public function index()
     {
         $model = new ItemModel();
