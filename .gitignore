@@ -1,14 +1,6 @@
-/htdocs/vendor/phpunit
-/htdocs/vendor/fakerphp
-/htdocs/vendor/vendor/symfony
-/htdocs/vendor/vendor/mockery
+/htdocs/vendor
 /htdocs/writable/debugbar
 /htdocs/writable/session
 /htdocs/.env
 
-
-/htdocs/vendor/phpunit.xml.dist
-/htdocs/vendor/spark
-/htdocs/vendor/composer.json
-/htdocs/vendor/composer.lock
-
+/htdocs/vendortest
