@@ -62,7 +62,6 @@ class ItemModel extends Model
             ->orderBy('h.id', 'ASC')
             ->orderBy('d.id', 'ASC')
             ->orderBy('i.position', 'ASC')
-            ->orderBy('i.titre', 'ASC')
         ;
 
         // On utilise la classe absolue ici aussi

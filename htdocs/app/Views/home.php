@@ -135,7 +135,7 @@
 
                         <?php if ($isFuture) { ?>
                         <p class="card-date" style="<?php echo $textColor; ?>">
-                            ⏳ Suivant le : <?php echo $dateSortieFormatted; ?>
+                            ⏳ Sortie le : <?php echo $dateSortieFormatted; ?>
                         </p>
                         <?php } ?>
 
