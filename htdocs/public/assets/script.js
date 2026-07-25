@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     } catch (err) {
                         console.error("Erreur Drag&Drop:", err);
-                        if (typeof showToast === 'function') showToast("Erreur lors de la sauvegarde de l'ordre", "danger");
+                        //if (typeof showToast === 'function') showToast("Erreur lors de la sauvegarde de l'ordre", "danger");
                     }
                 }
             });
