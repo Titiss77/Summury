@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -100,8 +98,7 @@ class ItemController extends BaseController
                     $existingRevision = $revisionModel
                         ->where('original_item_id', $id)
                         ->where('revision_status', 'pending')
-                        ->first()
-                    ;
+                        ->first();
 
                     $revisionData = [
                         'original_item_id' => $id,
@@ -131,9 +128,8 @@ class ItemController extends BaseController
                     $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
 
                     return redirect()
-                        ->to($backUrl.$separator.'open='.$existing->id_division.'#div-'.$existing->id_division)
-                        ->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.')
-                    ;
+                        ->to($backUrl . $separator . 'open=' . $existing->id_division . '#div-' . $existing->id_division)
+                        ->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
                 }
                 $item = new Item($data);
                 $this->model->save($item);
@@ -146,31 +142,31 @@ class ItemController extends BaseController
                     $revisionModel
                         ->where('original_item_id', $id)
                         ->where('revision_status', 'pending')
-                        ->delete()
-                    ;
+                        ->delete();
                     $audit->logAction('Nettoyage Draft', "Passage en privé de la carte ID {$id} : Suppression automatique des drafts en attente.");
                 }
-                } else {
-                    // --- NOUVEAU : Calculer la dernière position pour cette division ---
-                    $maxPosition = $this->model
-                        ->where('id_division', $data['id_division'])
-                        ->where('id_user', $data['id_user']) // ou selon votre logique d'isolation par utilisateur
-                        ->selectMax('position')
-                        ->get()
-                        ->getRow()
-                        ->position;
-    
-                    $data['position'] = ($maxPosition !== null) ? ((int) $maxPosition + 1) : 0;
-                    // -----------------------------------------------------------------
-    
-                    $item = new Item($data);
-                    $this->model->save($item);
-                    $newId = $this->model->getInsertID();
-                    $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
-                    $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
-                }
+            } else {
+                // --- NOUVEAU : Calculer la dernière position pour cette division ---
+                $maxPosition = $this
+                    ->model
+                    ->where('id_division', $data['id_division'])
+                    ->where('id_user', $data['id_user'])  // ou selon votre logique d'isolation par utilisateur
+                    ->selectMax('position')
+                    ->get()
+                    ->getRow()
+                    ->position;
 
-            return redirect()->to($backUrl.$separator.'open='.$data['id_division'].'#div-'.$data['id_division']);
+                $data['position'] = ($maxPosition !== null) ? ((int) $maxPosition + 1) : 0;
+                // -----------------------------------------------------------------
+
+                $item = new Item($data);
+                $this->model->save($item);
+                $newId = $this->model->getInsertID();
+                $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
+                $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
+            }
+
+            return redirect()->to($backUrl . $separator . 'open=' . $data['id_division'] . '#div-' . $data['id_division']);
         }
     }
 
@@ -192,7 +188,7 @@ class ItemController extends BaseController
                 $backUrl = $this->request->getUserAgent()->getReferrer() ?: site_url('/');
                 $separator = (str_contains($backUrl, '?')) ? '&' : '?';
 
-                return redirect()->to($backUrl.$separator.'open='.$id_div.'#div-'.$id_div);
+                return redirect()->to($backUrl . $separator . 'open=' . $id_div . '#div-' . $id_div);
             }
         }
 
@@ -246,7 +242,7 @@ class ItemController extends BaseController
 
             // Gestion de la recherche littéraire et d'animation via Jikan API
             if ('manga' === $type || 'anime' === $type) {
-                $url = "https://api.jikan.moe/v4/{$type}?q=".urlencode($query).'&limit=5';
+                $url = "https://api.jikan.moe/v4/{$type}?q=" . urlencode($query) . '&limit=5';
                 $response = $client->get($url);
 
                 return $this->response->setJSON(json_decode($response->getBody()));
@@ -254,7 +250,7 @@ class ItemController extends BaseController
 
             // Fallback par défaut : TMDB pour le cinéma, les séries ou recherches globales
             $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
-            $url = 'https://api.themoviedb.org/3/search/multi?query='.urlencode($query)."&api_key={$apiKey}&language=fr-FR";
+            $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
             $response = $client->get($url);
 
             return $this->response->setJSON(json_decode($response->getBody()));
@@ -291,17 +287,25 @@ class ItemController extends BaseController
 
     public function updateOrder()
     {
-        if ($this->request->isAJAX()) {
+        // 1. Remplacement de isAJAX() par is('ajax')
+        if ($this->request->is('ajax')) {
             $json = $this->request->getJSON();
 
             if (isset($json->order) && is_array($json->order)) {
+                // 2. Vérification CRITIQUE de la session avant d'interroger l'utilisateur
+                if (!auth()->loggedIn()) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'error' => 'Session expirée. Veuillez recharger la page.'
+                    ]);
+                }
+
                 $userId = auth()->id();
                 $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
                 $count = 0;
 
                 foreach ($json->order as $index => $itemId) {
                     $item = $this->model->find($itemId);
-
                     if ($item && ((int) $item->id_user === (int) $userId || $isAdmin)) {
                         $this->model->update($itemId, ['position' => $index]);
                         ++$count;
@@ -310,14 +314,17 @@ class ItemController extends BaseController
 
                 if ($count > 0) {
                     $audit = new AuditLogModel();
-                    $audit->logAction('Réorganisation', "L'utilisateur a modifié l'ordre d'affichage de {$count} carte(s).");
+                    $audit->logAction('Reorganisation', "L'utilisateur a modifie l'ordre d'affichage de {$count} carte(s).");
                 }
 
-                return $this->response->setJSON([
+                // On prépare le JSON, on l'ENVOIE immédiatement, puis on coupe PHP.
+                $this->response->setJSON([
                     'success' => true,
-                    'message' => 'Ordre sauvegardé',
+                    'message' => 'Ordre mis à jour avec succès',
                     'csrf_token' => csrf_hash(),
-                ]);
+                ])->send();
+
+                exit();  // Cette ligne magique bloque l'exécution du shutdownHandler buggé
             }
         }
 
