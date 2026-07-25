@@ -383,30 +383,31 @@ class ItemController extends BaseController
         return $data;
     }
 
-    /**
-     * Vérifie si un épisode est disponible en analysant le code HTML de la page.
-     */
     public function checkDispo()
     {
+        // 1. Libérer immédiatement la session pour éviter le crash (Session Locking)
+        session_write_close();
+
         if (!$this->request->is('post')) {
             return $this->response->setStatusCode(405)->setBody('Méthode non autorisée');
         }
 
         $urlCible = $this->request->getPost('urlCible');
-
+        
         if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
-        // Extraction du numéro d'épisode depuis l'URL (ex: "16" depuis "-16-vostfr")
         preg_match('/-(\d+)-vostfr/i', $urlCible, $matches);
         $episodeExtrait = $matches[1] ?? null;
 
         $client = \Config\Services::curlrequest([
-            'timeout' => 10,
+            'timeout'         => 8,
+            'connect_timeout' => 5,
+            'http_errors'     => false, // 2. Évite que cURL fasse crasher PHP si VoirAnime renvoie une 404/503
             'allow_redirects' => true,
-            'verify' => false,
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+            'verify'          => false,
+            'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
         ]);
 
         try {
@@ -416,40 +417,40 @@ class ItemController extends BaseController
             // 1. Détection de la fiche anime
             $estSurFicheAnime = (stripos($html, 'Premier EP') !== false) || (stripos($html, 'Dernier EP') !== false);
 
-            // 2. Vérification du titre
+            // 2. Vérification du titre (conversion UTF-8 pour éviter de corrompre le JSON)
             preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleMatches);
-            $titrePage = $titleMatches[1] ?? '';
+            $titrePage = isset($titleMatches[1]) ? mb_convert_encoding(trim($titleMatches[1]), 'UTF-8', 'auto') : '';
             $titreContientEpisode = false;
-
+            
             if ($episodeExtrait) {
-                $epNum = (int) $episodeExtrait;
+                $epNum = (int)$episodeExtrait;
                 $titreContientEpisode = (strpos($titrePage, $episodeExtrait) !== false) || (stripos($titrePage, "Episode {$epNum}") !== false);
             }
 
             // 3. Présence d'un lecteur vidéo
-            // On cherche la classe css "lecteur", une balise iframe, ou le mot générique
-            $lecteurPresent = (stripos($html, 'class="lecteur"') !== false) ||
-                (stripos($html, '<iframe') !== false) ||
-                (stripos($html, 'Lecteur') !== false);
+            $lecteurPresent = (stripos($html, 'class="lecteur"') !== false) || 
+                              (stripos($html, '<iframe') !== false) || 
+                              (stripos($html, 'Lecteur') !== false);
 
             // Logique de validation
             $estDisponible = !$estSurFicheAnime && ($titreContientEpisode || $lecteurPresent);
 
             return $this->response->setJSON([
-                'success' => true,
+                'success'    => true,
                 'disponible' => $estDisponible,
-                'details' => [
+                'details'    => [
                     'estSurFicheAnime' => $estSurFicheAnime,
-                    'titrePage' => trim($titrePage),
-                    'lecteurPresent' => $lecteurPresent,
-                    'episodeDetecte' => $episodeExtrait
+                    'titrePage'        => $titrePage,
+                    'lecteurPresent'   => $lecteurPresent,
+                    'episodeDetecte'   => $episodeExtrait
                 ],
                 'csrf_token' => csrf_hash()
             ]);
+
         } catch (\Throwable $e) {
             return $this->response->setJSON([
-                'success' => false,
-                'error' => 'Impossible de joindre le site distant.',
+                'success' => false, 
+                'error'   => 'Impossible de joindre le site distant.',
                 'csrf_token' => csrf_hash()
             ]);
         }

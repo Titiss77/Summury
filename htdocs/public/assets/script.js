@@ -488,4 +488,75 @@ window.openReportModal = async function(button) {
     }
 };
 
+// ==========================================
+// 11. VÉRIFICATION DE DISPONIBILITÉ EN DIRECT
+// ==========================================
+window.addEventListener('load', async function() {
+    // On ne sélectionne que les cartes qui ne sont pas "Terminé"
+    const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
+    
+    // On utilise une boucle for...of pour exécuter les requêtes une par une (séquentiel)
+    for (const card of cardsToCheck) {
+        const itemId = card.getAttribute('data-id');
+        const url = card.getAttribute('data-url');
+        const statusDiv = document.getElementById(`live-status-${itemId}`);
+        const dateContainer = document.getElementById(`date-container-${itemId}`);
+
+        // Sécurité : On ne vérifie que si l'URL est renseignée et cible voir-anime
+        if (!url || !url.includes('voir-anime.to')) {
+            if (statusDiv) statusDiv.style.display = 'none';
+            continue;
+        }
+
+        try {
+            const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+            const response = await fetch(baseUrl + 'item/check-dispo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    [amfsConfig.csrfHeader]: amfsConfig.csrfToken
+                },
+                body: new URLSearchParams({ urlCible: url })
+            });
+            
+            // Sécurité : On arrête immédiatement si PHP a planté (ex: 500) pour ne pas lire de HTML
+            if (!response.ok) {
+                throw new Error(`Erreur serveur HTTP: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Renouvellement du token CSRF
+            if (data.csrf_token) amfsConfig.csrfToken = data.csrf_token;
+
+            if (data.success && data.disponible) {
+                statusDiv.innerHTML = `<span style="color: var(--success);">✅ Épisode en ligne !</span>`;
+                if (dateContainer) dateContainer.style.display = 'none'; 
+                
+            } else {
+                statusDiv.innerHTML = `<span style="color: var(--danger);">❌ Indisponible</span>`;
+                if (dateContainer) {
+                    dateContainer.style.display = 'block';
+                    if (dateContainer.innerHTML.trim() === '') {
+                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Sortie le : À venir</p>`;
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("Erreur de vérification pour la carte " + itemId, err);
+            if (statusDiv) statusDiv.style.display = 'none';
+        }
+        
+        // IMPORTANT : Augmenter la pause à 1000ms (1 seconde) entre chaque requête
+        // Cela laisse le temps à Apache/XAMPP de traiter les requêtes sans saturer la file d'attente
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // IMPORTANT : Pause de 600ms entre chaque requête.
+        // Cela évite que ton serveur ne lance 50 requêtes simultanées à VoirAnime, 
+        // ce qui te ferait bannir temporairement (Erreur 429 Too Many Requests).
+        await new Promise(resolve => setTimeout(resolve, 600));
+    }
+});
+
 });

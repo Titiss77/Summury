@@ -75,7 +75,7 @@
 <?php
     // Lecture de l'URL au lieu de la session (Infaillible)
     $openDivision = $_GET['open'] ?? null;
-    ?>
+?>
 
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
@@ -84,10 +84,10 @@
     </h2>
 
     <?php
-        foreach ($divisions as $divisionName => $items) {
-            $currentDivisionId = !empty($items) ? $items[0]->id_division : null;
-            $isOpen = ($openDivision && $openDivision == $currentDivisionId) ? 'open' : '';
-            ?>
+    foreach ($divisions as $divisionName => $items) {
+        $currentDivisionId = !empty($items) ? $items[0]->id_division : null;
+        $isOpen = ($openDivision && $openDivision == $currentDivisionId) ? 'open' : '';
+        ?>
     <details class="division-section" id="div-<?php echo $currentDivisionId; ?>" <?php echo $isOpen; ?>>
         <summary class="division-title">
             <span class="toggle-icon">&#x25B6;</span> <?php echo htmlspecialchars($divisionName); ?>
@@ -95,8 +95,9 @@
 
         <div class="cards-grid sortable-grid">
             <?php foreach ($items as $item) { ?>
-            <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ''; ?>"
-                data-id="<?php echo esc($item->id); ?>">
+            <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : 'needs-dispo-check'; ?>"
+                data-id="<?php echo esc($item->id); ?>"
+                data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
 
                 <div class="drag-handle"
                     style="cursor: grab; text-align: center; color: #ccc; padding: 5px; touch-action: none;"
@@ -109,48 +110,57 @@
                     <div class="card-body">
 
                         <?php
-                            $isFuture = false;
-                $dateSortieFormatted = '';
-                $textColor = '';
+                        $isFuture = false;
+                        $dateSortieFormatted = '';
+                        $textColor = '';
 
-                if (!empty($item->date_sortie)) {
-                    // On définit le fuseau horaire sur Paris
-                    $timezone = new DateTimeZone('Europe/Paris');
+                        if (!empty($item->date_sortie)) {
+                            // On définit le fuseau horaire sur Paris
+                            $timezone = new DateTimeZone('Europe/Paris');
 
-                    // On applique ce fuseau aux deux dates
-                    $dateSortie = new DateTime($item->date_sortie, $timezone);
-                    $now = new DateTime('now', $timezone);
+                            // On applique ce fuseau aux deux dates
+                            $dateSortie = new DateTime($item->date_sortie, $timezone);
+                            $now = new DateTime('now', $timezone);
 
-                    if ($dateSortie > $now) {
-                        $isFuture = true;
-                        $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
-                        $textColor = 'color: var(--danger);';  // Utilisation d'une variable CSS plutôt que "red" brut
-                    }
-                }
-                ?>
+                            if ($dateSortie > $now) {
+                                $isFuture = true;
+                                $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
+                                $textColor = 'color: var(--danger);';  // Utilisation d'une variable CSS plutôt que "red" brut
+                            }
+                        }
+                        ?>
 
                         <h4 class="card-title search-target-title" style="<?php echo $textColor; ?>">
                             <?php echo htmlspecialchars($item->titre); ?>
                         </h4>
 
-                        <?php if ($isFuture) { ?>
-                        <p class="card-date" style="<?php echo $textColor; ?>">
-                            ⏳ Sortie le : <?php echo $dateSortieFormatted; ?>
-                        </p>
+                        <div class="date-container" id="date-container-<?php echo $item->id; ?>">
+                            <?php if ($isFuture) { ?>
+                            <p class="card-date" style="<?php echo $textColor; ?>">
+                                Sortie le : <?php echo $dateSortieFormatted; ?>
+                            </p>
+                            <?php } ?>
+                        </div>
+
+                        <?php if ('Terminé' !== $item->status && str_contains($item->getFinalLink(), 'voir-anime.to')) { ?>
+                        <div class="live-status" id="live-status-<?php echo $item->id; ?>"
+                            style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
+                            ⏳ Vérification...
+                        </div>
                         <?php } ?>
 
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
                             <?php echo htmlspecialchars($item->status); ?>
                         </p>
                         <?php
-                // Condition 1 : La carte est nouvelle et en attente d'inspection
-                $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+                        // Condition 1 : La carte est nouvelle et en attente d'inspection
+                        $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
 
-                // Condition 2 : La carte est déjà publique mais a une modification en attente
-                $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
+                        // Condition 2 : La carte est déjà publique mais a une modification en attente
+                        $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
 
-                if ($isPendingNew || $hasPendingRevision) {
-                    ?>
+                        if ($isPendingNew || $hasPendingRevision) {
+                            ?>
                         <div
                             style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                             <?php if ($isPendingNew) { ?>
@@ -205,8 +215,9 @@
 
                 <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                 <div class="card-actions-bottom">
-                    <a href="<?php echo base_url('item/form/'.$item->id); ?>" class="btn-icon btn-edit-sm">Modifier</a>
-                    <a href="<?php echo base_url('item/delete/'.$item->id); ?>"
+                    <a href="<?php echo base_url('item/form/' . $item->id); ?>"
+                        class="btn-icon btn-edit-sm">Modifier</a>
+                    <a href="<?php echo base_url('item/delete/' . $item->id); ?>"
                         onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');"
                         class="btn-icon btn-delete-sm">Supprimer</a>
                 </div>
