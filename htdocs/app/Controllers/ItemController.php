@@ -382,4 +382,76 @@ class ItemController extends BaseController
 
         return $data;
     }
+
+    /**
+     * Vérifie si un épisode est disponible en analysant le code HTML de la page.
+     */
+    public function checkDispo()
+    {
+        if (!$this->request->is('post')) {
+            return $this->response->setStatusCode(405)->setBody('Méthode non autorisée');
+        }
+
+        $urlCible = $this->request->getPost('urlCible');
+
+        if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
+            return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
+        }
+
+        // Extraction du numéro d'épisode depuis l'URL (ex: "16" depuis "-16-vostfr")
+        preg_match('/-(\d+)-vostfr/i', $urlCible, $matches);
+        $episodeExtrait = $matches[1] ?? null;
+
+        $client = \Config\Services::curlrequest([
+            'timeout' => 10,
+            'allow_redirects' => true,
+            'verify' => false,
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        ]);
+
+        try {
+            $response = $client->get($urlCible);
+            $html = (string) $response->getBody();
+
+            // 1. Détection de la fiche anime
+            $estSurFicheAnime = (stripos($html, 'Premier EP') !== false) || (stripos($html, 'Dernier EP') !== false);
+
+            // 2. Vérification du titre
+            preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleMatches);
+            $titrePage = $titleMatches[1] ?? '';
+            $titreContientEpisode = false;
+
+            if ($episodeExtrait) {
+                $epNum = (int) $episodeExtrait;
+                $titreContientEpisode = (strpos($titrePage, $episodeExtrait) !== false) || (stripos($titrePage, "Episode {$epNum}") !== false);
+            }
+
+            // 3. Présence d'un lecteur vidéo
+            // On cherche la classe css "lecteur", une balise iframe, ou le mot générique
+            $lecteurPresent = (stripos($html, 'class="lecteur"') !== false) ||
+                (stripos($html, '<iframe') !== false) ||
+                (stripos($html, 'Lecteur') !== false);
+
+            // Logique de validation
+            $estDisponible = !$estSurFicheAnime && ($titreContientEpisode || $lecteurPresent);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'disponible' => $estDisponible,
+                'details' => [
+                    'estSurFicheAnime' => $estSurFicheAnime,
+                    'titrePage' => trim($titrePage),
+                    'lecteurPresent' => $lecteurPresent,
+                    'episodeDetecte' => $episodeExtrait
+                ],
+                'csrf_token' => csrf_hash()
+            ]);
+        } catch (\Throwable $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => 'Impossible de joindre le site distant.',
+                'csrf_token' => csrf_hash()
+            ]);
+        }
+    }
 }

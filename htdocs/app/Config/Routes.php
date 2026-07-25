@@ -33,6 +33,10 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/search', 'ItemController::search');
 
     $routes->post('report/submit', 'ReportController::submit');
+
+    $routes->post('item/check-dispo', 'ItemController::checkDispo');
+
+    $routes->get('checker', function() { return view('checker'); });
 });
 
 // --------------------------------------------------------------------
