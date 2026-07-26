@@ -13,7 +13,6 @@ class CronController extends BaseController
 {
     public function run()
     {
-        session_write_close();
         ini_set('max_execution_time', '0');
 
         $cronModel = new CronLogModel();

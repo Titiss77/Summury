@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use CodeIgniter\Router\RouteCollection;
 
@@ -31,13 +33,6 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/search', 'ItemController::search');
 
     $routes->post('report/submit', 'ReportController::submit');
-
-    // Remplace $routes->post(...) par :
-    $routes->get('item/check-dispo', 'ItemController::checkDispo');
-
-    $routes->get('checker', function () {
-        return view('checker');
-    });
 });
 
 // --------------------------------------------------------------------
