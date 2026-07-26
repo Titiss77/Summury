@@ -287,16 +287,15 @@ class ItemController extends BaseController
 
     public function updateOrder()
     {
-        // 1. Remplacement de isAJAX() par is('ajax')
         if ($this->request->is('ajax')) {
             $json = $this->request->getJSON();
 
             if (isset($json->order) && is_array($json->order)) {
-                // 2. Vérification CRITIQUE de la session avant d'interroger l'utilisateur
+                // Vérification de la session
                 if (!auth()->loggedIn()) {
                     return $this->response->setJSON([
                         'success' => false,
-                        'error' => 'Session expirée. Veuillez recharger la page.'
+                        'error'   => 'Session expirée. Veuillez recharger la page.'
                     ]);
                 }
 
@@ -314,23 +313,21 @@ class ItemController extends BaseController
 
                 if ($count > 0) {
                     $audit = new AuditLogModel();
-                    $audit->logAction('Reorganisation', "L'utilisateur a modifie l'ordre d'affichage de {$count} carte(s).");
+                    $audit->logAction('Reorganisation', "L'utilisateur a modifié l'ordre d'affichage de {$count} carte(s).");
                 }
 
-                // On prépare le JSON, on l'ENVOIE immédiatement, puis on coupe PHP.
-                $this->response->setJSON([
-                    'success' => true,
-                    'message' => 'Ordre mis à jour avec succès',
+                // Retour propre CI4 (sans send ni exit)
+                return $this->response->setJSON([
+                    'success'    => true,
+                    'message'    => 'Ordre mis à jour avec succès',
                     'csrf_token' => csrf_hash(),
-                ])->send();
-
-                exit();  // Cette ligne magique bloque l'exécution du shutdownHandler buggé
+                ]);
             }
         }
 
         return $this->response->setJSON([
             'success' => false,
-            'error' => 'Requête invalide ou données manquantes.',
+            'error'   => 'Requête invalide ou données manquantes.',
         ]);
     }
 
@@ -385,15 +382,10 @@ class ItemController extends BaseController
 
     public function checkDispo()
     {
-        // 1. Libère la session
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
-
         $urlCible = $this->request->getGet('urlCible');
         
-        if (empty($urlCible)) {
-            return $this->response->setJSON(['success' => false, 'error' => 'URL vide.']);
+        if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
+            return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
         preg_match('/-(\d+)-vostfr/i', $urlCible, $matches);
@@ -405,7 +397,8 @@ class ItemController extends BaseController
                 'connect_timeout' => 5,
                 'http_errors'     => false,
                 'allow_redirects' => true,
-                'verify'          => false
+                'verify'          => false,
+                'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker'
             ]);
 
             $response = $client->get($urlCible);
@@ -414,7 +407,6 @@ class ItemController extends BaseController
             $estSurFicheAnime = (stripos($html, 'Premier EP') !== false) || (stripos($html, 'Dernier EP') !== false);
 
             preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleMatches);
-            // On utilise un simple trim(), sans mb_convert_encoding qui peut faire crasher XAMPP
             $titrePage = isset($titleMatches[1]) ? trim($titleMatches[1]) : ''; 
             
             $titreContientEpisode = false;
@@ -429,6 +421,7 @@ class ItemController extends BaseController
 
             $estDisponible = !$estSurFicheAnime && ($titreContientEpisode || $lecteurPresent);
 
+            // Retour natif CI4 de l'objet Response
             return $this->response->setJSON([
                 'success'    => true,
                 'disponible' => $estDisponible,
@@ -440,7 +433,8 @@ class ItemController extends BaseController
                 ]
             ]);
 
-        } catch (\Exception $e) {
+        // On utilise Throwable pour capturer n'importe quelle anomalie fatale de l'API distante
+        } catch (\Throwable $e) {
             return $this->response->setJSON([
                 'success' => false, 
                 'error'   => 'Erreur Interne : ' . $e->getMessage()
