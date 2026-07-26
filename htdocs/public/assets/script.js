@@ -242,8 +242,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (data.csrf_token) {
                             amfsConfig.csrfToken = data.csrf_token;
                         }
+                        
                         if (typeof showToast === 'function') showToast("Ordre mis à jour !", 'success');
-
                     } catch (err) {
                         console.error("Erreur Drag&Drop:", err);
                         if (typeof showToast === 'function') showToast("Erreur lors de la sauvegarde de l'ordre", "danger");
