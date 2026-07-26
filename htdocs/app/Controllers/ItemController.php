@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Entities\Item;
-use App\Models\AuditLogModel;  // Ajout du modèle d'audit
+use App\Models\AuditLogModel;
 use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
 use Config\Services;
@@ -55,7 +55,7 @@ class ItemController extends BaseController
             $id = $this->request->getPost('id');
             $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
             $isSuperAdmin = auth()->user()->inGroup('superadmin');
-            $audit = new AuditLogModel();  // Initialisation de l'audit
+            $audit = new AuditLogModel();
 
             $wantsPublic = $this->request->getPost('is_public');
             if ($wantsPublic) {
@@ -87,14 +87,12 @@ class ItemController extends BaseController
 
                 if (!$canEdit) {
                     $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
-
                     return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
                 }
 
                 if (1 == $existing->is_public && 0 != $data['is_public'] && !$isSuperAdmin) {
                     $revisionModel = new ItemRevisionModel();
 
-                    // 1. On cherche si une révision en attente existe déjà pour cette carte
                     $existingRevision = $revisionModel
                         ->where('original_item_id', $id)
                         ->where('revision_status', 'pending')
@@ -115,15 +113,12 @@ class ItemController extends BaseController
                         'revision_status' => 'pending',
                     ];
 
-                    // 2. Si elle existe, on ajoute son ID au tableau de données.
-                    // Ainsi, CodeIgniter fera un UPDATE au lieu d'un INSERT.
                     if ($existingRevision) {
                         $revisionData['id'] = $existingRevision['id'];
                     }
 
                     $revisionModel->save($revisionData);
 
-                    // Optionnel : adapter le message de log si c'est une mise à jour
                     $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
                     $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
 
@@ -146,18 +141,16 @@ class ItemController extends BaseController
                     $audit->logAction('Nettoyage Draft', "Passage en privé de la carte ID {$id} : Suppression automatique des drafts en attente.");
                 }
             } else {
-                // --- NOUVEAU : Calculer la dernière position pour cette division ---
                 $maxPosition = $this
                     ->model
                     ->where('id_division', $data['id_division'])
-                    ->where('id_user', $data['id_user'])  // ou selon votre logique d'isolation par utilisateur
+                    ->where('id_user', $data['id_user'])
                     ->selectMax('position')
                     ->get()
                     ->getRow()
                     ->position;
 
                 $data['position'] = ($maxPosition !== null) ? ((int) $maxPosition + 1) : 0;
-                // -----------------------------------------------------------------
 
                 $item = new Item($data);
                 $this->model->save($item);
@@ -178,7 +171,7 @@ class ItemController extends BaseController
 
             if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
                 $id_div = $item->id_division;
-                $titre = $item->titre;  // Sauvegarde le titre avant suppression
+                $titre = $item->titre;
 
                 $this->model->delete($id);
 
@@ -218,13 +211,10 @@ class ItemController extends BaseController
         return redirect()->back();
     }
 
-    /**
-     * Recherche unifiée Multi-API (TMDB, Jikan & Open Graph Scraper).
-     */
     public function search()
     {
         $query = $this->request->getGet('q');
-        $type = $this->request->getGet('type');  // Attendus : 'film', 'serie', 'anime', 'manga', 'lien'
+        $type = $this->request->getGet('type');
 
         if (empty($query)) {
             return $this->response->setJSON([]);
@@ -233,22 +223,17 @@ class ItemController extends BaseController
         $client = Services::curlrequest();
 
         try {
-            // Détection et traitement automatique si la saisie est une URL directe
             if (filter_var($query, FILTER_VALIDATE_URL)) {
                 $metaData = $this->scrapeOpenGraph($query);
-
                 return $this->response->setJSON($metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.']);
             }
 
-            // Gestion de la recherche littéraire et d'animation via Jikan API
             if ('manga' === $type || 'anime' === $type) {
                 $url = "https://api.jikan.moe/v4/{$type}?q=" . urlencode($query) . '&limit=5';
                 $response = $client->get($url);
-
                 return $this->response->setJSON(json_decode($response->getBody()));
             }
 
-            // Fallback par défaut : TMDB pour le cinéma, les séries ou recherches globales
             $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
             $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
             $response = $client->get($url);
@@ -287,16 +272,14 @@ class ItemController extends BaseController
 
     public function updateOrder()
     {
-        // 1. Remplacement de isAJAX() par is('ajax')
         if ($this->request->is('ajax')) {
             $json = $this->request->getJSON();
 
             if (isset($json->order) && is_array($json->order)) {
-                // 2. Vérification CRITIQUE de la session avant d'interroger l'utilisateur
                 if (!auth()->loggedIn()) {
                     return $this->response->setJSON([
                         'success' => false,
-                        'error' => 'Session expirée. Veuillez recharger la page.'
+                        'error'   => 'Session expirée. Veuillez recharger la page.'
                     ]);
                 }
 
@@ -314,29 +297,23 @@ class ItemController extends BaseController
 
                 if ($count > 0) {
                     $audit = new AuditLogModel();
-                    $audit->logAction('Reorganisation', "L'utilisateur a modifie l'ordre d'affichage de {$count} carte(s).");
+                    $audit->logAction('Reorganisation', "L'utilisateur a modifié l'ordre d'affichage de {$count} carte(s).");
                 }
 
-                // On prépare le JSON, on l'ENVOIE immédiatement, puis on coupe PHP.
-                $this->response->setJSON([
-                    'success' => true,
-                    'message' => 'Ordre mis à jour avec succès',
+                return $this->response->setJSON([
+                    'success'    => true,
+                    'message'    => 'Ordre mis à jour avec succès',
                     'csrf_token' => csrf_hash(),
-                ])->send();
-
-                exit();  // Cette ligne magique bloque l'exécution du shutdownHandler buggé
+                ]);
             }
         }
 
         return $this->response->setJSON([
             'success' => false,
-            'error' => 'Requête invalide ou données manquantes.',
+            'error'   => 'Requête invalide ou données manquantes.',
         ]);
     }
 
-    /**
-     * Extrait les balises Open Graph d'un site web externe pour l'auto-remplissage des liens.
-     */
     private function scrapeOpenGraph(string $url): ?array
     {
         $html = @file_get_contents($url);
@@ -345,7 +322,6 @@ class ItemController extends BaseController
         }
 
         $doc = new \DOMDocument();
-        // Utilisation des entités HTML pour prévenir les anomalies d'encodage de caractères exotiques
         @$doc->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
         $tags = $doc->getElementsByTagName('meta');
 
@@ -372,7 +348,6 @@ class ItemController extends BaseController
             }
         }
 
-        // Stratégie de repli si le protocole Open Graph est absent de la cible
         if (empty($data['titre'])) {
             $titles = $doc->getElementsByTagName('title');
             if ($titles->length > 0) {
@@ -381,5 +356,65 @@ class ItemController extends BaseController
         }
 
         return $data;
+    }
+
+    public function checkDispo()
+    {
+        $urlCible = $this->request->getGet('urlCible');
+        
+        if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
+            return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
+        }
+
+        preg_match('/-(\d+)-vostfr/i', $urlCible, $matches);
+        $episodeExtrait = $matches[1] ?? null;
+
+        try {
+            $client = \Config\Services::curlrequest([
+                'timeout'         => 8,
+                'connect_timeout' => 5,
+                'http_errors'     => false,
+                'allow_redirects' => true,
+                'verify'          => false,
+                'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker'
+            ]);
+
+            $response = $client->get($urlCible);
+            $html = (string) $response->getBody();
+
+            $estSurFicheAnime = (stripos($html, 'Premier EP') !== false) || (stripos($html, 'Dernier EP') !== false);
+
+            preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleMatches);
+            $titrePage = isset($titleMatches[1]) ? trim($titleMatches[1]) : ''; 
+            
+            $titreContientEpisode = false;
+            if ($episodeExtrait) {
+                $epNum = (int)$episodeExtrait;
+                $titreContientEpisode = (strpos($titrePage, $episodeExtrait) !== false) || (stripos($titrePage, "Episode {$epNum}") !== false);
+            }
+
+            $lecteurPresent = (stripos($html, 'class="lecteur"') !== false) || 
+                              (stripos($html, '<iframe') !== false) || 
+                              (stripos($html, 'Lecteur') !== false);
+
+            $estDisponible = !$estSurFicheAnime && ($titreContientEpisode || $lecteurPresent);
+
+            return $this->response->setJSON([
+                'success'    => true,
+                'disponible' => $estDisponible,
+                'details'    => [
+                    'estSurFicheAnime' => $estSurFicheAnime,
+                    'titrePage'        => $titrePage,
+                    'lecteurPresent'   => $lecteurPresent,
+                    'episodeDetecte'   => $episodeExtrait
+                ]
+            ]);
+
+        } catch (\Throwable $e) {
+            return $this->response->setJSON([
+                'success' => false, 
+                'error'   => 'Erreur Interne : ' . $e->getMessage()
+            ]);
+        }
     }
 }

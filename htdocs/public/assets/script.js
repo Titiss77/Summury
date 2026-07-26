@@ -243,10 +243,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             amfsConfig.csrfToken = data.csrf_token;
                         }
 
-                        if (typeof showToast === 'function') showToast("Ordre mis à jour !", 'success');
                     } catch (err) {
                         console.error("Erreur Drag&Drop:", err);
-                        if (typeof showToast === 'function') showToast("Erreur lors de la sauvegarde de l'ordre", "danger");
                     }
                 }
             });
@@ -435,58 +433,117 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-// SYSTEME DE SIGNALEMENT DE PROBLEME
-// ==========================================
-window.openReportModal = async function(button) {
-    const itemId = button.getAttribute('data-id');
-    
-    // Demander le type de problème
-    const type = prompt("Que souhaitez-vous signaler ?\nTapez 1 pour : Lien mort\nTapez 2 pour : Autre problème");
-    
-    if (!type) return; // Annulation
-    
-    let issueType = 'autre';
-    if (type === '1') issueType = 'lien_mort';
-    if (type === '2') issueType = 'bug';
-    
-    // Demander une description précise
-    const description = prompt("Pouvez-vous préciser le problème ? (Optionnel mais recommandé)");
-    
-    if (description === null) return; // Annulation
-
-    const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
-    const url = baseUrl + 'report/submit';
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                [amfsConfig.csrfHeader]: amfsConfig.csrfToken
-            },
-            body: JSON.stringify({
-                item_id: itemId,
-                type: issueType,
-                description: description.trim()
-            })
-        });
-
-        const data = await response.json();
+    // SYSTEME DE SIGNALEMENT DE PROBLEME
+    // ==========================================
+    window.openReportModal = async function(button) {
+        const itemId = button.getAttribute('data-id');
         
-        if (data.csrf_token) {
-            amfsConfig.csrfToken = data.csrf_token;
+        const type = prompt("Que souhaitez-vous signaler ?\nTapez 1 pour : Lien mort\nTapez 2 pour : Autre problème");
+        
+        if (!type) return; 
+        
+        let issueType = 'autre';
+        if (type === '1') issueType = 'lien_mort';
+        if (type === '2') issueType = 'bug';
+        
+        const description = prompt("Pouvez-vous préciser le problème ? (Optionnel mais recommandé)");
+        
+        if (description === null) return; 
+
+        const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+        const url = baseUrl + 'report/submit';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    [amfsConfig.csrfHeader]: amfsConfig.csrfToken
+                },
+                body: JSON.stringify({
+                    item_id: itemId,
+                    type: issueType,
+                    description: description.trim()
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.csrf_token) {
+                amfsConfig.csrfToken = data.csrf_token;
+            }
+
+            if (data.success) {
+                if (typeof showToast === 'function') showToast(data.message, 'success');
+            } else {
+                if (typeof showToast === 'function') showToast(data.error || 'Erreur lors de l\'envoi.', 'danger');
+            }
+        } catch (error) {
+            console.error("Erreur d'envoi du signalement:", error);
+            if (typeof showToast === 'function') showToast("Une erreur réseau est survenue.", "danger");
+        }
+    };
+
+}); // Fin DOMContentLoaded
+
+// ==========================================
+// 11. VÉRIFICATION DE DISPONIBILITÉ EN DIRECT
+// ==========================================
+window.addEventListener('load', async function() {
+    const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
+    
+    for (const card of cardsToCheck) {
+        const itemId = card.getAttribute('data-id');
+        const url = card.getAttribute('data-url');
+        const statusDiv = document.getElementById(`live-status-${itemId}`);
+        const dateContainer = document.getElementById(`date-container-${itemId}`);
+
+        if (!url || !url.includes('voir-anime.to')) {
+            if (statusDiv) statusDiv.style.display = 'none';
+            continue;
         }
 
-        if (data.success) {
-            if (typeof showToast === 'function') showToast(data.message, 'success');
-        } else {
-            if (typeof showToast === 'function') showToast(data.error || 'Erreur lors de l\'envoi.', 'danger');
+        try {
+            const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+            
+            const response = await fetch(`${baseUrl}item/check-dispo?urlCible=${encodeURIComponent(url)}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Erreur serveur HTTP: ${response.status} (Surcharge Apache ou Timeout)`);
+            }
+            
+            const data = await response.json();
+
+            if (!data.success) {
+                console.error(`Erreur PHP pour la carte ${itemId} :`, data.error);
+                if (statusDiv) statusDiv.innerHTML = `<span style="color: var(--warning);">⚠️ Erreur d'analyse</span>`;
+                continue; 
+            }
+
+            if (data.disponible) {
+                statusDiv.innerHTML = `<span style="color: var(--success);">✅ Épisode en ligne !</span>`;
+                if (dateContainer) dateContainer.style.display = 'none'; 
+                
+            } else {
+                statusDiv.innerHTML = `<span style="color: var(--danger);">❌ Indisponible</span>`;
+                if (dateContainer) {
+                    dateContainer.style.display = 'block';
+                    if (dateContainer.innerHTML.trim() === '') {
+                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Sortie le : À venir</p>`;
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("Erreur réseau/Fetch pour la carte " + itemId, err);
+            if (statusDiv) statusDiv.innerHTML = `<span style="color: var(--danger);">⚠️ Échec du test</span>`;
         }
-    } catch (error) {
-        console.error("Erreur d'envoi du signalement:", error);
-        if (typeof showToast === 'function') showToast("Une erreur réseau est survenue.", "danger");
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
-};
-
 });

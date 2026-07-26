@@ -12,13 +12,11 @@
 </div>
 <?php } else { ?>
 <div class="actions-container">
-
     <?php if (auth()->user()->inGroup('superadmin')) { ?>
     <a href="<?php echo base_url('users'); ?>" class="btn btn-warning" style="margin-right: 15px;">Gérer les
         utilisateurs</a>
     <?php } ?>
     <?php
-    // Calcul du total des éléments en attente pour les admins
     $pendingTotal = 0;
     if (auth()->loggedIn() && auth()->user()->inGroup('admin', 'superadmin')) {
         $pendingItemsCount = model('App\Models\ItemModel')->where('is_public', 2)->countAllResults();
@@ -27,7 +25,6 @@
     }
     ?>
     <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
-
     <a href="<?php echo base_url('items/pending'); ?>" class="btn btn-info" style="margin-right: 15px;">
         Cartes en attente
         <?php if (isset($pendingTotal) && $pendingTotal > 0) { ?>
@@ -37,7 +34,6 @@
         </span>
         <?php } ?>
     </a>
-
     <a href="<?php echo base_url('items/check-to-global'); ?>" class="btn btn-warning"
         style="margin-right: 15px;">Autres publiques
         <?php if (isset($toAdminCount) && $toAdminCount > 0) { ?>
@@ -64,7 +60,6 @@
     <p>Aucune donnée disponible.</p>
 </div>
 <?php } ?>
-
 <?php } else { ?>
 
 <div class="search-container" style="margin-bottom: 2rem;">
@@ -72,17 +67,13 @@
         autocomplete="off">
 </div>
 
-<?php
-    // Lecture de l'URL au lieu de la session (Infaillible)
-    $openDivision = $_GET['open'] ?? null;
-    ?>
+<?php $openDivision = $_GET['open'] ?? null; ?>
 
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
     <h2 class="header-title">
         <?php echo htmlspecialchars($headerName); ?>
     </h2>
-
     <?php
         foreach ($divisions as $divisionName => $items) {
             $currentDivisionId = !empty($items) ? $items[0]->id_division : null;
@@ -92,71 +83,69 @@
         <summary class="division-title">
             <span class="toggle-icon">&#x25B6;</span> <?php echo htmlspecialchars($divisionName); ?>
         </summary>
-
         <div class="cards-grid sortable-grid">
             <?php foreach ($items as $item) { ?>
-            <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ''; ?>"
-                data-id="<?php echo esc($item->id); ?>">
-
+            <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : 'needs-dispo-check'; ?>"
+                data-id="<?php echo esc($item->id); ?>"
+                data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
                 <div class="drag-handle"
                     style="cursor: grab; text-align: center; color: #ccc; padding: 5px; touch-action: none;"
                     title="Déplacer cette carte">
                     &#x2630;
                 </div>
-
                 <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank"
                     class="card-link-block">
                     <div class="card-body">
-
                         <?php
                             $isFuture = false;
-                $dateSortieFormatted = '';
-                $textColor = '';
+                            $dateSortieFormatted = '';
+                            $textColor = '';
+                            if (!empty($item->date_sortie)) {
+                                $timezone = new DateTimeZone('Europe/Paris');
+                                $dateSortie = new DateTime($item->date_sortie, $timezone);
+                                $now = new DateTime('now', $timezone);
+                                if ($dateSortie > $now) {
+                                    $isFuture = true;
+                                    $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
+                                    $textColor = 'color: var(--danger);';
+                                }
+                            }
+                        ?>
 
-                if (!empty($item->date_sortie)) {
-                    // On définit le fuseau horaire sur Paris
-                    $timezone = new DateTimeZone('Europe/Paris');
+                        <div class="date-container" id="date-container-<?php echo $item->id; ?>">
+                            <?php if ($isFuture) { ?>
+                            <p class="card-date" style="<?php echo $textColor; ?>">
+                                Sortie le : <?php echo $dateSortieFormatted; ?>
+                            </p>
+                            <?php } ?>
+                        </div>
 
-                    // On applique ce fuseau aux deux dates
-                    $dateSortie = new DateTime($item->date_sortie, $timezone);
-                    $now = new DateTime('now', $timezone);
-
-                    if ($dateSortie > $now) {
-                        $isFuture = true;
-                        $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
-                        $textColor = 'color: var(--danger);';  // Utilisation d'une variable CSS plutôt que "red" brut
-                    }
-                }
-                ?>
+                        <?php if ('Terminé' !== $item->status && str_contains($item->getFinalLink(), 'voir-anime.to')) { ?>
+                        <div class="live-status" id="live-status-<?php echo $item->id; ?>"
+                            style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
+                            ⏳ Vérification...
+                        </div>
+                        <?php } ?>
 
                         <h4 class="card-title search-target-title" style="<?php echo $textColor; ?>">
                             <?php echo htmlspecialchars($item->titre); ?>
                         </h4>
 
-                        <?php if ($isFuture) { ?>
-                        <p class="card-date" style="<?php echo $textColor; ?>">
-                            ⏳ Sortie le : <?php echo $dateSortieFormatted; ?>
-                        </p>
-                        <?php } ?>
-
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
                             <?php echo htmlspecialchars($item->status); ?>
                         </p>
+
                         <?php
-                // Condition 1 : La carte est nouvelle et en attente d'inspection
-                $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-
-                // Condition 2 : La carte est déjà publique mais a une modification en attente
-                $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
-
-                if ($isPendingNew || $hasPendingRevision) {
-                    ?>
+                        $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+                        $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
+                        if ($isPendingNew || $hasPendingRevision) {
+                        ?>
                         <div
                             style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                             <?php if ($isPendingNew) { ?>
-                            ⏳ En cours d'inspection (Non public)
+                            En cours d'inspection (Non public)
                             <?php } else { ?>
-                            ⏳ Modification en attente de validation
+                            Modification en attente de validation
                             <?php } ?>
                         </div>
                         <?php } ?>
@@ -172,7 +161,6 @@
                             <span class="badge badge-season">Saison
                                 <?php echo htmlspecialchars($item->saison); ?></span>
                             <?php } ?>
-
                             <?php if (!empty($item->episode)) { ?>
                             <span class="badge badge-episode">
                                 Ép. <span
@@ -192,6 +180,7 @@
                         <?php } ?>
                     </div>
                 </a>
+
                 <?php if (1 == $item->is_public) { ?>
                 <button type="button" class="btn-report-sm" data-id="<?php echo esc($item->id); ?>"
                     onclick="openReportModal(this)">
@@ -219,6 +208,5 @@
 </section>
 <?php } ?>
 <?php } ?>
-
 
 <?php echo $this->endSection(); ?>
