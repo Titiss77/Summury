@@ -510,25 +510,20 @@ window.addEventListener('load', async function() {
 
         try {
             const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
-            const response = await fetch(baseUrl + 'item/check-dispo', {
-                method: 'POST',
+            
+            // Requête en GET simple (pas de blocage CSRF)
+            const response = await fetch(`${baseUrl}item/check-dispo?urlCible=${encodeURIComponent(url)}`, {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    [amfsConfig.csrfHeader]: amfsConfig.csrfToken
-                },
-                body: new URLSearchParams({ urlCible: url })
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
             
-            // Sécurité : On arrête immédiatement si PHP a planté (ex: 500) pour ne pas lire de HTML
             if (!response.ok) {
                 throw new Error(`Erreur serveur HTTP: ${response.status}`);
             }
             
             const data = await response.json();
-            
-            // Renouvellement du token CSRF
-            if (data.csrf_token) amfsConfig.csrfToken = data.csrf_token;
 
             if (data.success && data.disponible) {
                 statusDiv.innerHTML = `<span style="color: var(--success);">✅ Épisode en ligne !</span>`;
@@ -548,14 +543,7 @@ window.addEventListener('load', async function() {
             if (statusDiv) statusDiv.style.display = 'none';
         }
         
-        // IMPORTANT : Augmenter la pause à 1000ms (1 seconde) entre chaque requête
-        // Cela laisse le temps à Apache/XAMPP de traiter les requêtes sans saturer la file d'attente
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // IMPORTANT : Pause de 600ms entre chaque requête.
-        // Cela évite que ton serveur ne lance 50 requêtes simultanées à VoirAnime, 
-        // ce qui te ferait bannir temporairement (Erreur 429 Too Many Requests).
-        await new Promise(resolve => setTimeout(resolve, 600));
     }
 });
 

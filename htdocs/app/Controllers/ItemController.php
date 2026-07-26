@@ -385,14 +385,11 @@ class ItemController extends BaseController
 
     public function checkDispo()
     {
-        // 1. Libérer immédiatement la session pour éviter le crash (Session Locking)
+        // 1. Libère la session pour ne pas bloquer les autres requêtes
         session_write_close();
 
-        if (!$this->request->is('post')) {
-            return $this->response->setStatusCode(405)->setBody('Méthode non autorisée');
-        }
-
-        $urlCible = $this->request->getPost('urlCible');
+        // 2. On récupère la donnée en GET
+        $urlCible = $this->request->getGet('urlCible');
         
         if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
@@ -404,7 +401,7 @@ class ItemController extends BaseController
         $client = \Config\Services::curlrequest([
             'timeout'         => 8,
             'connect_timeout' => 5,
-            'http_errors'     => false, // 2. Évite que cURL fasse crasher PHP si VoirAnime renvoie une 404/503
+            'http_errors'     => false,
             'allow_redirects' => true,
             'verify'          => false,
             'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
@@ -414,10 +411,8 @@ class ItemController extends BaseController
             $response = $client->get($urlCible);
             $html = (string) $response->getBody();
 
-            // 1. Détection de la fiche anime
             $estSurFicheAnime = (stripos($html, 'Premier EP') !== false) || (stripos($html, 'Dernier EP') !== false);
 
-            // 2. Vérification du titre (conversion UTF-8 pour éviter de corrompre le JSON)
             preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleMatches);
             $titrePage = isset($titleMatches[1]) ? mb_convert_encoding(trim($titleMatches[1]), 'UTF-8', 'auto') : '';
             $titreContientEpisode = false;
@@ -427,14 +422,13 @@ class ItemController extends BaseController
                 $titreContientEpisode = (strpos($titrePage, $episodeExtrait) !== false) || (stripos($titrePage, "Episode {$epNum}") !== false);
             }
 
-            // 3. Présence d'un lecteur vidéo
             $lecteurPresent = (stripos($html, 'class="lecteur"') !== false) || 
                               (stripos($html, '<iframe') !== false) || 
                               (stripos($html, 'Lecteur') !== false);
 
-            // Logique de validation
             $estDisponible = !$estSurFicheAnime && ($titreContientEpisode || $lecteurPresent);
 
+            // Plus besoin de renvoyer le csrf_token
             return $this->response->setJSON([
                 'success'    => true,
                 'disponible' => $estDisponible,
@@ -443,15 +437,13 @@ class ItemController extends BaseController
                     'titrePage'        => $titrePage,
                     'lecteurPresent'   => $lecteurPresent,
                     'episodeDetecte'   => $episodeExtrait
-                ],
-                'csrf_token' => csrf_hash()
+                ]
             ]);
 
         } catch (\Throwable $e) {
             return $this->response->setJSON([
                 'success' => false, 
-                'error'   => 'Impossible de joindre le site distant.',
-                'csrf_token' => csrf_hash()
+                'error'   => 'Impossible de joindre le site distant.'
             ]);
         }
     }
