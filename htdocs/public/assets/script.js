@@ -541,7 +541,7 @@ window.addEventListener('load', async function() {
                     dateContainer.style.display = 'block';
                     // S'il n'y avait pas de date prévue, on injecte "À venir"
                     if (dateContainer.innerHTML.trim() === '') {
-                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Sortie le : À venir</p>`;
+                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Episode non disponible.</p>`;
                     }
                 }
             }
