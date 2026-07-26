@@ -539,9 +539,9 @@ window.addEventListener('load', async function() {
                 // Si indisponible : on affiche le bloc de date
                 if (dateContainer) {
                     dateContainer.style.display = 'block';
-                    // S'il n'y avait pas de date prévue, on injecte "À venir"
+                    // S'il n'y avait pas de date prévue, on injecte "À venir" avec l'infobulle
                     if (dateContainer.innerHTML.trim() === '') {
-                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Episode non disponible.</p>`;
+                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger); cursor: help;" title="L'épisode n'est pas encore mis en ligne ou la saison s'est terminée.">Episode non disponible.</p>`;
                     }
                 }
             }
