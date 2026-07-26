@@ -520,20 +520,26 @@ window.addEventListener('load', async function() {
             
             const data = await response.json();
 
-            if (!data.success) {
-                console.error(`Erreur PHP pour la carte ${itemId} :`, data.error);
-                if (statusDiv) statusDiv.innerHTML = `<span style="color: var(--warning);">⚠️ Erreur d'analyse</span>`;
-                continue; 
+            // Quel que soit le résultat (succès ou erreur PHP), on fait disparaître le texte "⏳ Vérification..."
+            if (statusDiv) {
+                statusDiv.style.display = 'none';
             }
 
+            if (!data.success) {
+                console.error(`Erreur PHP pour la carte ${itemId} :`, data.error);
+                continue; // On passe à la requête suivante
+            }
+
+            // Gestion de l'affichage de la date
             if (data.disponible) {
-                statusDiv.innerHTML = `<span style="color: var(--success);">✅ Épisode en ligne !</span>`;
+                // Si dispo : on cache juste la date de sortie (plus de message superflu)
                 if (dateContainer) dateContainer.style.display = 'none'; 
                 
             } else {
-                statusDiv.innerHTML = `<span style="color: var(--danger);">❌ Indisponible</span>`;
+                // Si indisponible : on affiche le bloc de date
                 if (dateContainer) {
                     dateContainer.style.display = 'block';
+                    // S'il n'y avait pas de date prévue, on injecte "À venir"
                     if (dateContainer.innerHTML.trim() === '') {
                         dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Sortie le : À venir</p>`;
                     }
@@ -541,7 +547,8 @@ window.addEventListener('load', async function() {
             }
         } catch (err) {
             console.error("Erreur réseau/Fetch pour la carte " + itemId, err);
-            if (statusDiv) statusDiv.innerHTML = `<span style="color: var(--danger);">⚠️ Échec du test</span>`;
+            // En cas de crash réseau, on nettoie aussi le message de vérification
+            if (statusDiv) statusDiv.style.display = 'none';
         }
         
         await new Promise(resolve => setTimeout(resolve, 1000));
