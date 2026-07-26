@@ -385,29 +385,33 @@ class ItemController extends BaseController
 
     public function checkDispo()
     {
-        // 1. Libère la session pour ne pas bloquer les autres requêtes
-        session_write_close();
-
-        // 2. On récupère la donnée en GET
-        $urlCible = $this->request->getGet('urlCible');
-        
-        if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
-            return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
-        }
-
-        preg_match('/-(\d+)-vostfr/i', $urlCible, $matches);
-        $episodeExtrait = $matches[1] ?? null;
-
-        $client = \Config\Services::curlrequest([
-            'timeout'         => 8,
-            'connect_timeout' => 5,
-            'http_errors'     => false,
-            'allow_redirects' => true,
-            'verify'          => false,
-            'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-        ]);
+        // 1. Empêche le script PHP de planter pour "Time out" si plusieurs requêtes s'enchaînent
+        set_time_limit(0);
 
         try {
+            // 2. Vérifie si la session existe avant de la fermer (évite une erreur PHP)
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+
+            $urlCible = $this->request->getGet('urlCible');
+            
+            if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
+                return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
+            }
+
+            preg_match('/-(\d+)-vostfr/i', $urlCible, $matches);
+            $episodeExtrait = $matches[1] ?? null;
+
+            $client = \Config\Services::curlrequest([
+                'timeout'         => 8,
+                'connect_timeout' => 5,
+                'http_errors'     => false,
+                'allow_redirects' => true,
+                'verify'          => false,
+                'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+            ]);
+
             $response = $client->get($urlCible);
             $html = (string) $response->getBody();
 
@@ -428,7 +432,6 @@ class ItemController extends BaseController
 
             $estDisponible = !$estSurFicheAnime && ($titreContientEpisode || $lecteurPresent);
 
-            // Plus besoin de renvoyer le csrf_token
             return $this->response->setJSON([
                 'success'    => true,
                 'disponible' => $estDisponible,
@@ -441,9 +444,11 @@ class ItemController extends BaseController
             ]);
 
         } catch (\Throwable $e) {
+            // 3. CAPTURE TOUT : Si une erreur PHP ou réseau survient, on renvoie un JSON valide (Code 200)
+            // Cela permet au JavaScript de lire l'erreur exacte plutôt que de crasher sur une page HTML 500
             return $this->response->setJSON([
                 'success' => false, 
-                'error'   => 'Impossible de joindre le site distant.'
+                'error'   => 'Erreur PHP interceptée : ' . $e->getMessage() . ' (Ligne ' . $e->getLine() . ')'
             ]);
         }
     }

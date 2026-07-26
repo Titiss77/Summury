@@ -511,7 +511,6 @@ window.addEventListener('load', async function() {
         try {
             const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
             
-            // Requête en GET simple (pas de blocage CSRF)
             const response = await fetch(`${baseUrl}item/check-dispo?urlCible=${encodeURIComponent(url)}`, {
                 method: 'GET',
                 headers: {
@@ -520,12 +519,20 @@ window.addEventListener('load', async function() {
             });
             
             if (!response.ok) {
-                throw new Error(`Erreur serveur HTTP: ${response.status}`);
+                throw new Error(`Erreur serveur HTTP: ${response.status} (Surcharge Apache ou Timeout)`);
             }
             
             const data = await response.json();
 
-            if (data.success && data.disponible) {
+            // Gestion d'une erreur capturée par PHP
+            if (!data.success) {
+                console.error(`Erreur PHP pour la carte ${itemId} :`, data.error);
+                if (statusDiv) statusDiv.innerHTML = `<span style="color: var(--warning);">⚠️ Erreur d'analyse</span>`;
+                continue; // On passe à la requête suivante
+            }
+
+            // Affichage normal du résultat
+            if (data.disponible) {
                 statusDiv.innerHTML = `<span style="color: var(--success);">✅ Épisode en ligne !</span>`;
                 if (dateContainer) dateContainer.style.display = 'none'; 
                 
@@ -539,8 +546,9 @@ window.addEventListener('load', async function() {
                 }
             }
         } catch (err) {
-            console.error("Erreur de vérification pour la carte " + itemId, err);
-            if (statusDiv) statusDiv.style.display = 'none';
+            console.error("Erreur réseau/Fetch pour la carte " + itemId, err);
+            // On affiche clairement que le test a échoué au lieu de masquer le texte
+            if (statusDiv) statusDiv.innerHTML = `<span style="color: var(--danger);">⚠️ Échec du test</span>`;
         }
         
         await new Promise(resolve => setTimeout(resolve, 1000));
