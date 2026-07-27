@@ -492,10 +492,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==========================================
 // 11. VÉRIFICATION DE DISPONIBILITÉ EN DIRECT
 // ==========================================
-window.addEventListener('load', async function() {
+window.addEventListener('load', function() {
     const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
     
-    for (const card of cardsToCheck) {
+    // Le forEach n'attend pas la fin de la promesse pour passer à l'itération suivante
+    cardsToCheck.forEach(async function(card) {
         const itemId = card.getAttribute('data-id');
         const url = card.getAttribute('data-url');
         const statusDiv = document.getElementById(`live-status-${itemId}`);
@@ -503,7 +504,7 @@ window.addEventListener('load', async function() {
 
         if (!url || !url.includes('voir-anime.to')) {
             if (statusDiv) statusDiv.style.display = 'none';
-            continue;
+            return; // Remplace le 'continue' de la boucle for
         }
 
         try {
@@ -522,26 +523,22 @@ window.addEventListener('load', async function() {
             
             const data = await response.json();
 
-            // Quel que soit le résultat (succès ou erreur PHP), on fait disparaître le texte "⏳ Vérification..."
+            // Quel que soit le résultat, on fait disparaître le texte "⏳ Vérification..."
             if (statusDiv) {
                 statusDiv.style.display = 'none';
             }
 
             if (!data.success) {
                 console.error(`Erreur PHP pour la carte ${itemId} :`, data.error);
-                continue; // On passe à la requête suivante
+                return; // On arrête le traitement de cette carte
             }
 
             // Gestion de l'affichage de la date
             if (data.disponible) {
-                // Si dispo : on cache juste la date de sortie (plus de message superflu)
                 if (dateContainer) dateContainer.style.display = 'none'; 
-                
             } else {
-                // Si indisponible : on affiche le bloc de date
                 if (dateContainer) {
                     dateContainer.style.display = 'block';
-                    // S'il n'y avait pas de date prévue, on injecte "À venir" avec l'infobulle
                     if (dateContainer.innerHTML.trim() === '') {
                         dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger); cursor: help;" title="L'épisode n'est pas encore mis en ligne ou la saison s'est terminée.">Episode non disponible.</p>`;
                     }
@@ -549,10 +546,8 @@ window.addEventListener('load', async function() {
             }
         } catch (err) {
             console.error("Erreur réseau/Fetch pour la carte " + itemId, err);
-            // En cas de crash réseau, on nettoie aussi le message de vérification
             if (statusDiv) statusDiv.style.display = 'none';
         }
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
+    });
 });
