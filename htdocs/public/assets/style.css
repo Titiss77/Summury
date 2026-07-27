@@ -24,7 +24,7 @@ a {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1440px;
     margin: 0 auto;
     padding: 0 24px;
 }
@@ -237,7 +237,7 @@ details[open].division-section .cards-grid {
    ========================================= */
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     min-height: 50px;
     /* Pour SortableJS */
@@ -265,7 +265,7 @@ details[open].division-section .cards-grid {
 }
 
 .card-body {
-    padding: 1.5rem;
+    padding: 1.25rem;
     padding-right: 1rem;
     flex-grow: 1;
     display: flex;
@@ -713,7 +713,7 @@ select.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-right: 1.5rem;
+    padding-right: 1rem;
     flex-shrink: 0;
 }
 
