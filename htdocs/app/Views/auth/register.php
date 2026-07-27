@@ -68,7 +68,7 @@
                         class="btn btn-primary btn-block"><?php echo lang('Auth.register'); ?></button>
                 </div>
 
-                <p class="text-center"><?php echo lang('Auth.haveAccount'); ?> <a
+                <p class="text-center" style="text-align: center;"><?php echo lang('Auth.haveAccount'); ?> <a
                         href="<?php echo url_to('login'); ?>"><?php echo lang('Auth.login'); ?></a></p>
 
             </form>

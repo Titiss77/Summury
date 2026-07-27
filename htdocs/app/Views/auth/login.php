@@ -44,8 +44,7 @@
                 <?php if (setting('Auth.sessionConfig')['allowRemembering']) { ?>
                 <div class="form-check">
                     <label class="form-check-label">
-                        <input type="checkbox" name="remember" class="form-check-input"
-                            <?php if (old('remember', true)) {
+                        <input type="checkbox" name="remember" class="form-check-input" <?php if (old('remember', true)) {
                                 echo 'checked';
                             } ?>>
                         <?php echo lang('Auth.rememberMe'); ?>
@@ -58,7 +57,7 @@
                 </div>
 
                 <?php if (setting('Auth.allowRegistration')) { ?>
-                <p class="text-center"><?php echo lang('Auth.needAccount'); ?> <a
+                <p class="text-center" style="text-align: center;"><?php echo lang('Auth.needAccount'); ?> <a
                         href="<?php echo url_to('register'); ?>"><?php echo lang('Auth.register'); ?></a></p>
                 <?php } ?>
 
