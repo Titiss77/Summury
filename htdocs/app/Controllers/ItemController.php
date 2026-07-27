@@ -220,7 +220,13 @@ class ItemController extends BaseController
             return $this->response->setJSON([]);
         }
 
-        $client = Services::curlrequest();
+        $client = Services::curlrequest([
+            'timeout'         => 10,
+            'connect_timeout' => 5,
+            'http_errors'     => false, // Essentiel pour lire les erreurs de l'API
+            'verify'          => false,
+            'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        ]);
 
         try {
             if (filter_var($query, FILTER_VALIDATE_URL)) {
@@ -228,19 +234,36 @@ class ItemController extends BaseController
                 return $this->response->setJSON($metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.']);
             }
 
+            // --- RECHERCHE JIKAN (Mangas / Animés) ---
             if ('manga' === $type || 'anime' === $type) {
                 $url = "https://api.jikan.moe/v4/{$type}?q=" . urlencode($query) . '&limit=5';
                 $response = $client->get($url);
-                return $this->response->setJSON(json_decode($response->getBody()));
+                $body = json_decode($response->getBody(), true);
+
+                // Si l'API renvoie autre chose qu'un succès (ex: 400 Bad Request pour un titre trop court)
+                if ($response->getStatusCode() !== 200) {
+                    $erreur = $body['message'] ?? $body['error'] ?? "Erreur API Jikan ({$response->getStatusCode()})";
+                    return $this->response->setJSON(['error' => $erreur]);
+                }
+
+                return $this->response->setJSON($body);
             }
 
+            // --- RECHERCHE TMDB (Films / Séries) ---
             $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
             $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
             $response = $client->get($url);
+            $body = json_decode($response->getBody(), true);
 
-            return $this->response->setJSON(json_decode($response->getBody()));
+            if ($response->getStatusCode() !== 200) {
+                 $erreur = $body['status_message'] ?? "Erreur API TMDB ({$response->getStatusCode()})";
+                 return $this->response->setJSON(['error' => $erreur]);
+            }
+
+            return $this->response->setJSON($body);
+
         } catch (\Exception $e) {
-            return $this->response->setJSON(['error' => 'Erreur lors du traitement de la recherche unifiée.']);
+            return $this->response->setJSON(['error' => 'Erreur de recherche : ' . $e->getMessage()]);
         }
     }
 
