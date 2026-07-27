@@ -150,7 +150,7 @@ a {
 
 .division-title {
     color: var(--text-main);
-    font-size: var(--card-desc-font-size);
+    font-size: var(--card-title-font-size);
     font-weight: 600;
     margin-bottom: 0;
     display: flex;
@@ -394,7 +394,7 @@ details[open].division-section .cards-grid {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: var(--card-desc-font-size);
+    font-size: var(--icon-font-size);
     font-weight: 500;
     color: var(--text-muted);
     transition: var(--transition);
