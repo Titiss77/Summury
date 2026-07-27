@@ -56,7 +56,7 @@ a {
 .main-header h1 {
     color: var(--text-main);
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: var(--card-title-font-size);
     margin: 0;
     letter-spacing: -0.02em;
 }
@@ -70,7 +70,7 @@ a {
 .welcome-text {
     font-weight: 500;
     color: var(--text-muted);
-    font-size: 0.95rem;
+    font-size: var(--card-desc-font-size);
 }
 
 /* Bouton Dark Mode */
@@ -81,7 +81,7 @@ a {
     padding: 6px 12px;
     border-radius: 20px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: var(--card-desc-font-size);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -113,7 +113,7 @@ a {
     background: transparent;
     color: var(--text-muted);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: var(--card-desc-font-size);
     border-radius: 9999px;
     transition: var(--transition);
     white-space: nowrap;
@@ -150,7 +150,7 @@ a {
 
 .division-title {
     color: var(--text-main);
-    font-size: 1.05rem;
+    font-size: var(--card-desc-font-size);
     font-weight: 600;
     margin-bottom: 0;
     display: flex;
@@ -177,7 +177,7 @@ a {
     justify-content: center;
     width: 28px;
     height: 28px;
-    font-size: 0.75rem;
+    font-size: var(--icon-font-size);
     color: var(--text-muted);
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -273,7 +273,7 @@ details[open].division-section .cards-grid {
 }
 
 .card-date {
-    font-size: 0.85rem;
+    font-size: var(--icon-font-size);
     font-weight: bold;
     margin-bottom: 5px;
     position: absolute;
@@ -292,7 +292,7 @@ details[open].division-section .cards-grid {
     margin: 0 0 0.5rem 0;
     max-width: 70%;
     color: var(--text-main);
-    font-size: 1.15rem;
+    font-size: var(--card-title-font-size);
     font-weight: 600;
     line-height: 1.3;
     transition: color 0.2s;
@@ -303,7 +303,7 @@ details[open].division-section .cards-grid {
 }
 
 .card-desc {
-    font-size: 0.9rem;
+    font-size: var(--card-desc-font-size);
     color: var(--text-muted);
     line-height: 1.6;
     margin: 0;
@@ -349,7 +349,7 @@ details[open].division-section .cards-grid {
 .char-counter {
     display: block;
     text-align: right;
-    font-size: 0.8rem;
+    font-size: var(--card-desc-font-size);
     color: var(--text-muted);
     margin-top: 6px;
     font-weight: 500;
@@ -359,7 +359,7 @@ details[open].division-section .cards-grid {
 .badge {
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: var(--icon-font-size);
     font-weight: 600;
     letter-spacing: 0.02em;
     cursor: default;
@@ -394,7 +394,7 @@ details[open].division-section .cards-grid {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.85rem;
+    font-size: var(--card-desc-font-size);
     font-weight: 500;
     color: var(--text-muted);
     transition: var(--transition);
@@ -418,7 +418,7 @@ details[open].division-section .cards-grid {
     padding: 0.625rem 1.25rem;
     border-radius: var(--radius-md);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: var(--card-desc-font-size);
     text-decoration: none !important;
     cursor: pointer;
     transition: var(--transition);
@@ -544,7 +544,7 @@ details[open].division-section .cards-grid {
     border-bottom: none;
     padding-bottom: 0;
     text-align: center;
-    font-size: 1.5rem;
+    font-size: var(--card-title-font-size);
     color: var(--text-main);
 }
 
@@ -566,7 +566,7 @@ details[open].division-section .cards-grid {
     margin-bottom: 0.5rem;
     font-weight: 500;
     color: var(--text-main);
-    font-size: 0.95rem;
+    font-size: var(--card-desc-font-size);
 }
 
 .form-control {
@@ -574,7 +574,7 @@ details[open].division-section .cards-grid {
     padding: 0.75rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    font-size: var(--card-title-font-size);
     font-family: inherit;
     background-color: var(--bg-body);
     color: var(--text-main);
@@ -655,7 +655,7 @@ select.form-control {
 }
 
 .form-check-label {
-    font-size: 0.95rem;
+    font-size: var(--card-desc-font-size);
     color: var(--text-muted);
     cursor: pointer;
 }
@@ -663,7 +663,7 @@ select.form-control {
 .d-grid button {
     width: 100%;
     padding: 0.75rem;
-    font-size: 1rem;
+    font-size: var(--card-title-font-size);
 }
 
 /* =========================================
@@ -693,7 +693,7 @@ select.form-control {
     padding: 1rem 1.25rem;
     border-radius: var(--radius-md);
     margin-bottom: 1.5rem;
-    font-size: 0.95rem;
+    font-size: var(--card-desc-font-size);
     font-weight: 500;
 }
 
@@ -744,7 +744,7 @@ select.form-control {
 
 .admin-table th {
     padding: 1.25rem 1.5rem;
-    font-size: 0.85rem;
+    font-size: var(--card-desc-font-size);
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -787,7 +787,7 @@ select.form-control {
     display: inline-block;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: var(--icon-font-size);
     font-weight: 600;
     letter-spacing: 0.02em;
 }
@@ -811,7 +811,7 @@ select.form-control {
 .btn-action {
     padding: 0.4rem 0.8rem;
     border-radius: var(--radius-md);
-    font-size: 0.85rem;
+    font-size: var(--card-desc-font-size);
     font-weight: 500;
     transition: var(--transition);
     text-decoration: none;
@@ -871,7 +871,7 @@ select.form-control {
     height: 36px;
     padding: 0 0.5rem;
     border-radius: var(--radius-md);
-    font-size: 0.9rem;
+    font-size: var(--card-desc-font-size);
     font-weight: 500;
     color: var(--text-main);
     background: var(--bg-card);
@@ -914,7 +914,7 @@ select.form-control {
     color: var(--text-main);
     box-shadow: var(--shadow-hover);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: var(--card-desc-font-size);
     transition: opacity 0.4s ease, transform 0.4s ease;
     border-left: 5px solid transparent;
     transform: translateX(120%);
@@ -1015,7 +1015,7 @@ select.form-control {
     }
 
     .nav-tab {
-        font-size: 0.85rem;
+        font-size: var(--card-desc-font-size);
         padding: 0.5rem 1rem;
     }
 
@@ -1030,7 +1030,7 @@ select.form-control {
     }
 
     .main-header h1 {
-        font-size: 1rem;
+        font-size: var(--card-title-font-size);
         display: flex;
         align-items: center;
         text-align: center;

@@ -36,6 +36,10 @@
     --radius-xl: 1.75rem;
 
     --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --card-title-font-size: 1.15rem;
+    --card-desc-font-size: 0.9 rem;
+    --icon-font-size: 0.75rem;
 }
 
 /* =========================================
