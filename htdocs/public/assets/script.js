@@ -501,7 +501,6 @@ window.addEventListener('load', function() {
     // --- On récupère dynamiquement les domaines supportés transmis par PHP ---
     const supportedDomains = window.amfsSupportedDomains || [];
     
-    // Le forEach n'attend pas la fin de la promesse pour passer à l'itération suivante
     cardsToCheck.forEach(async function(card) {
         const itemId = card.getAttribute('data-id');
         const url = card.getAttribute('data-url');
@@ -512,7 +511,27 @@ window.addEventListener('load', function() {
 
         if (!isSupported) {
             if (statusDiv) statusDiv.style.display = 'none';
-            return; // Remplace le 'continue' de la boucle for
+            return;
+        }
+
+        // ========================================================
+        // NOUVEAU : SYSTÈME DE CACHE (sessionStorage)
+        // La clé de cache inclut l'URL complète. 
+        // Si la carte est modifiée (ex: épisode +1), l'URL change, 
+        // le cache est invalidé et la carte est re-vérifiée !
+        // ========================================================
+        const cacheKey = `dispo_check_${itemId}_${url}`;
+        const cachedResult = sessionStorage.getItem(cacheKey);
+
+        // Si un résultat récent existe (moins de 30 minutes), on l'utilise sans requête HTTP
+        if (cachedResult) {
+            const cacheData = JSON.parse(cachedResult);
+            const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;
+            
+            if (ageInMinutes < 30) {
+                applyDispoResult(cacheData.disponible, statusDiv, dateContainer);
+                return; // On arrête l'exécution ici, la carte ne sera pas re-vérifiée
+            }
         }
 
         try {
@@ -526,36 +545,47 @@ window.addEventListener('load', function() {
             });
             
             if (!response.ok) {
-                throw new Error(`Erreur serveur HTTP: ${response.status} (Surcharge Apache ou Timeout)`);
+                throw new Error(`Erreur serveur HTTP: ${response.status}`);
             }
             
             const data = await response.json();
 
-            // Quel que soit le résultat, on fait disparaître le texte "Vérification..."
-            if (statusDiv) {
-                statusDiv.style.display = 'none';
-            }
-
             if (!data.success) {
                 console.error(`Erreur PHP pour la carte ${itemId} :`, data.error);
-                return; // On arrête le traitement de cette carte
+                if (statusDiv) statusDiv.style.display = 'none';
+                return;
             }
 
-            // Gestion de l'affichage de la date
-            if (data.disponible) {
-                if (dateContainer) dateContainer.style.display = 'none'; 
-            } else {
-                if (dateContainer) {
-                    dateContainer.style.display = 'block';
-                    if (dateContainer.innerHTML.trim() === '') {
-                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger); cursor: help;" title="L'épisode/chapitre n'est pas encore mis en ligne ou la saison s'est terminée.">Episode non disponible.</p>`;
-                    }
-                }
-            }
+            // --- SAUVEGARDE DU RÉSULTAT EN CACHE ---
+            sessionStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: Date.now(),
+                disponible: data.disponible
+            }));
+
+            // Mise à jour de l'interface
+            applyDispoResult(data.disponible, statusDiv, dateContainer);
+
         } catch (err) {
             console.error("Erreur réseau/Fetch pour la carte " + itemId, err);
             if (statusDiv) statusDiv.style.display = 'none';
         }
-        
     });
+
+    // Fonction utilitaire pour appliquer l'affichage (Mutualisée pour le cache et les requêtes)
+    function applyDispoResult(disponible, statusDiv, dateContainer) {
+        if (statusDiv) {
+            statusDiv.style.display = 'none';
+        }
+
+        if (disponible) {
+            if (dateContainer) dateContainer.style.display = 'none'; 
+        } else {
+            if (dateContainer) {
+                dateContainer.style.display = 'block';
+                if (dateContainer.innerHTML.trim() === '') {
+                    dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger); cursor: help;" title="L'épisode/chapitre n'est pas encore mis en ligne ou la saison s'est terminée.">Episode non disponible.</p>`;
+                }
+            }
+        }
+    }
 });
