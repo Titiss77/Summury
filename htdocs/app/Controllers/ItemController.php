@@ -379,10 +379,15 @@ class ItemController extends BaseController
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
-        // On utilise la configuration centralisée définie en haut de la classe
+        // ==========================================
+        // RÉCUPÉRATION DES RÈGLES DEPUIS LA BDD
+        // ==========================================
+        $siteConfigModel = new SiteConfigModel();
+        $sites = $siteConfigModel->where('is_active', 1)->findAll();
+
         $currentConfig = null;
-        foreach (self::SITES_CONFIG as $domain => $config) {
-            if (stripos($urlCible, $domain) !== false) {
+        foreach ($sites as $config) {
+            if (stripos($urlCible, $config['domain']) !== false) {
                 $currentConfig = $config;
                 break;
             }
@@ -398,6 +403,10 @@ class ItemController extends BaseController
         // Extraction de l'épisode / chapitre selon la regex du site ciblé
         preg_match($currentConfig['regex_episode'], $urlCible, $matches);
         $episodeExtrait = $matches[1] ?? null;
+
+        // Décodage des champs JSON de la base de données
+        $indicateursPageInvalide = json_decode($currentConfig['indicateurs_page_invalide'], true) ?? [];
+        $indicateursLecteur = json_decode($currentConfig['indicateurs_lecteur'], true) ?? [];
 
         try {
             $client = \Config\Services::curlrequest([
@@ -422,7 +431,7 @@ class ItemController extends BaseController
             $html = (string) $response->getBody();
 
             $estSurFicheAnime = false;
-            foreach ($currentConfig['indicateurs_page_invalide'] as $indicator) {
+            foreach ($indicateursPageInvalide as $indicator) {
                 if (stripos($html, $indicator) !== false) {
                     $estSurFicheAnime = true;
                     break;
@@ -441,7 +450,7 @@ class ItemController extends BaseController
             }
 
             $lecteurPresent = false;
-            foreach ($currentConfig['indicateurs_lecteur'] as $indicator) {
+            foreach ($indicateursLecteur as $indicator) {
                 if (stripos($html, $indicator) !== false) {
                     $lecteurPresent = true;
                     break;

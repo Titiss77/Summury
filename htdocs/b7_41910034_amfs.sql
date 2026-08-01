@@ -2,12 +2,6 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
-
 CREATE TABLE `audit_logs` (
   `id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED DEFAULT NULL,
@@ -168,6 +162,15 @@ CREATE TABLE `settings` (
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE `sites_config` (
+  `id` int NOT NULL,
+  `domain` varchar(255) NOT NULL,
+  `regex_episode` varchar(255) NOT NULL,
+  `indicateurs_page_invalide` json NOT NULL,
+  `indicateurs_lecteur` json NOT NULL,
+  `is_active` tinyint(1) DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE `users` (
   `id` int UNSIGNED NOT NULL,
   `username` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -244,6 +247,9 @@ ALTER TABLE `reports`
 ALTER TABLE `settings`
   ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `sites_config`
+  ADD PRIMARY KEY (`id`);
+
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`);
@@ -282,6 +288,9 @@ ALTER TABLE `item_revisions`
 ALTER TABLE `reports`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `sites_config`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `users`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
@@ -304,7 +313,3 @@ ALTER TABLE `reports`
   ADD CONSTRAINT `reports_item_fk` FOREIGN KEY (`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `reports_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
