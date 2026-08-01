@@ -498,8 +498,8 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('load', function() {
     const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
     
-    // --- Configuration des domaines valides pour la vérification ---
-    const supportedDomains = ['voir-anime.to', 'scan-vf.net'];
+    // --- On récupère dynamiquement les domaines supportés transmis par PHP ---
+    const supportedDomains = window.amfsSupportedDomains || [];
     
     // Le forEach n'attend pas la fin de la promesse pour passer à l'itération suivante
     cardsToCheck.forEach(async function(card) {

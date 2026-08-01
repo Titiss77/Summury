@@ -12,6 +12,23 @@ use Config\Services;
 
 class ItemController extends BaseController
 {
+    // ==========================================
+    // CONFIGURATION DES RÈGLES DE SITES
+    // ==========================================
+    // Centralisation des domaines supportés et de leurs règles d'extraction
+    public const SITES_CONFIG = [
+        'voir-anime.to' => [
+            'regex_episode' => '/-(\d+)-vostfr/i',
+            'indicateurs_page_invalide' => ['Premier EP', 'Dernier EP'],
+            'indicateurs_lecteur' => ['class="lecteur"', '<iframe', 'Lecteur'],
+        ],
+        'scan-vf.net' => [
+            'regex_episode' => '/chapitre-(\d+)/i',
+            'indicateurs_page_invalide' => ['Liste des chapitres', 'Manga en cours'],
+            'indicateurs_lecteur' => ['img-responsive', 'img-fluid', 'pages_container'],
+        ]
+    ];
+
     private $model;
 
     public function __construct()
@@ -378,25 +395,9 @@ class ItemController extends BaseController
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
-        // ==========================================
-        // CONFIGURATION DES RÈGLES DE SITES
-        // ==========================================
-        // Variables configurables à la main pour le parsing des sites supportés
-        $sitesConfig = [
-            'voir-anime.to' => [
-                'regex_episode' => '/-(\d+)-vostfr/i',
-                'indicateurs_page_invalide' => ['Premier EP', 'Dernier EP'],
-                'indicateurs_lecteur' => ['class="lecteur"', '<iframe', 'Lecteur'],
-            ],
-            'scan-vf.net' => [
-                'regex_episode' => '/chapitre-(\d+)/i',
-                'indicateurs_page_invalide' => ['Liste des chapitres', 'Manga en cours'],
-                'indicateurs_lecteur' => ['img-responsive', 'img-fluid', 'pages_container'],
-            ]
-        ];
-
+        // On utilise la configuration centralisée définie en haut de la classe
         $currentConfig = null;
-        foreach ($sitesConfig as $domain => $config) {
+        foreach (self::SITES_CONFIG as $domain => $config) {
             if (stripos($urlCible, $domain) !== false) {
                 $currentConfig = $config;
                 break;
@@ -426,7 +427,6 @@ class ItemController extends BaseController
 
             $response = $client->get($urlCible);
             
-            // Si la requête retourne une erreur 404 (typiquement si le chapitre/épisode n'existe pas encore)
             if ($response->getStatusCode() === 404) {
                 return $this->response->setJSON([
                     'success'    => true,
@@ -437,7 +437,6 @@ class ItemController extends BaseController
 
             $html = (string) $response->getBody();
 
-            // Vérifier si l'on est sur une page générique (comme la fiche) au lieu de l'épisode
             $estSurFicheAnime = false;
             foreach ($currentConfig['indicateurs_page_invalide'] as $indicator) {
                 if (stripos($html, $indicator) !== false) {

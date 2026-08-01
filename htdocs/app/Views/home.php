@@ -115,8 +115,9 @@
                         </div>
 
                         <?php 
-                        // Liste des domaines supportés par le système de vérification
-                        $supportedDomains = ['voir-anime.to', 'scan-vf.net'];
+                        // On récupère dynamiquement les domaines depuis la constante du contrôleur
+                        $supportedDomains = array_keys(\App\Controllers\ItemController::SITES_CONFIG);
+                        
                         $isCheckable = false;
                         foreach ($supportedDomains as $domain) {
                             if (str_contains($item->getFinalLink(), $domain)) {
@@ -208,4 +209,10 @@
 </section>
 <?php } ?>
 <?php } ?>
+
+<!-- Injection des domaines supportés vers le JavaScript -->
+<script>
+window.amfsSupportedDomains = <?php echo json_encode(array_keys(\App\Controllers\ItemController::SITES_CONFIG)); ?>;
+</script>
+
 <?php echo $this->endSection(); ?>
