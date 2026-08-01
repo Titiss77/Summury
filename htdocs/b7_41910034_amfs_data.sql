@@ -4,246 +4,290 @@ START TRANSACTION;
 SET time_zone = "+00:00";
 
 TRUNCATE TABLE `audit_logs`;
-INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `created_at`) VALUES
-(1, 1, 'Modification Profil', 'Mise à jour du compte ID 4. Pseudo: \'test\' -> \'User de test\'. Nouveau groupe de sécurité assigné: [user].', '5.49.246.18', '2026-05-29 22:31:14'),
-(2, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-05-29 22:34:23'),
-(3, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 46 (\'L\'Atelier des Sorciers\') : Épisode passé à 10.', '5.49.246.18', '2026-05-29 23:09:50'),
-(4, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-05-29 23:10:04'),
-(5, 2, 'Suppression Carte', 'Suppression de la carte ID 48 (\'Nemesis\').', '5.49.246.18', '2026-05-29 23:10:30'),
-(6, 2, 'Création Carte', 'Création de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-05-30 01:02:54'),
-(7, 2, 'Mise à jour Carte', 'Modification de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-05-30 01:03:25'),
-(8, 2, 'Mise à jour Carte', 'Modification de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-05-30 01:05:10'),
-(9, 2, 'Mise à jour Carte', 'Modification de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-05-30 01:05:29'),
-(10, 2, 'Mise à jour Carte', 'Modification de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-05-30 01:05:48'),
-(11, 2, 'Sanction : Bannissement', 'Le compte ID 4 (\'User de test\') a été suspendu de la plateforme.', '5.49.246.18', '2026-05-30 01:06:02'),
-(12, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\') : Épisode passé à 10.', '5.49.246.18', '2026-05-31 22:10:49'),
-(13, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-05-31 22:11:02'),
-(14, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 00:16:55'),
-(15, 2, 'Suppression Carte', 'Suppression de la carte ID 49 (\'Shadow and Bone : La saga Grisha\').', '5.49.246.18', '2026-06-03 17:15:33'),
-(16, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 21:42:48'),
-(17, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 21:42:56'),
-(18, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 22:14:54'),
-(19, 2, 'Création Carte', 'Création de la carte ID 50 (\'Shadow and Bone : La saga Grisha\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-06-03 22:55:09'),
-(20, 2, 'Mise à jour Carte', 'Modification de la carte ID 50 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 22:55:48'),
-(21, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 23:00:45'),
-(22, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 11.', '5.49.246.18', '2026-06-03 23:48:23'),
-(23, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 12.', '5.49.246.18', '2026-06-03 23:48:24'),
-(24, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 23:48:31'),
-(25, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 23:48:40'),
-(26, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 12.', '5.49.246.18', '2026-06-04 00:18:03'),
-(27, 2, 'Suppression Carte', 'Suppression de la carte ID 50 (\'Shadow and Bone : La saga Grisha\').', '5.49.246.18', '2026-06-04 23:54:13'),
-(28, 2, 'Création Carte', 'Création de la carte ID 51 (\'Locke & Key\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-06-04 23:54:50'),
-(29, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 18:16:00'),
-(30, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1184.', '5.49.246.18', '2026-06-07 18:16:10'),
-(31, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1185.', '5.49.246.18', '2026-06-07 18:24:03'),
-(32, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 18:24:20'),
-(33, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 18:25:01'),
-(34, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 18:25:20'),
-(35, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 20:21:59'),
-(36, 2, 'Maintenance : Remplacement en masse', 'Migration du domaine \'flemmix.zip\' vers \'go-fle.site\' appliquée sur 1 carte(s).', '5.49.246.18', '2026-06-07 23:17:48'),
-(37, 2, 'Mise à jour Carte', 'Modification de la carte ID 51 (\'Locke & Key\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 23:21:31'),
-(38, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 13.', '5.49.246.18', '2026-06-07 23:37:39'),
-(39, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-06-08 22:44:50'),
-(40, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-09 22:31:39'),
-(41, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 2.', '5.49.246.18', '2026-06-10 00:06:18'),
-(42, 1, 'Mise à jour Carte', 'Modification de la carte ID 28 (\'ClipDrop\'). Visibilité: Publique.', '5.49.246.18', '2026-06-10 16:18:23'),
-(43, 1, 'Mise à jour Carte', 'Modification de la carte ID 28 (\'ClipDrop\'). Visibilité: Publique.', '5.49.246.18', '2026-06-10 16:18:49'),
-(44, 2, 'Mise à jour Carte', 'Modification de la carte ID 51 (\'Locke & Key\'). Visibilité: Privée.', '5.49.246.18', '2026-06-10 23:15:54'),
-(45, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '104.28.42.21', '2026-06-16 11:18:03'),
-(46, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-06-17 23:02:56'),
-(47, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-06-17 23:40:51'),
-(48, 2, 'Création Carte', 'Création de la carte ID 52 (\'Black Clover\'). Visibilité initiale: Privée.', '104.28.42.23', '2026-06-18 12:11:37'),
-(49, 2, 'Modification Profil', 'Mise à jour du compte ID 5. Pseudo: \'ambre\' -> \'Ambre\'. Nouveau groupe de sécurité assigné: [user].', '5.49.246.18', '2026-06-18 17:12:15'),
-(50, 2, 'Suppression Carte', 'Suppression de la carte ID 51 (\'Locke & Key\').', '5.49.246.18', '2026-06-18 17:12:39'),
-(51, 2, 'Mise à jour Carte', 'Modification de la carte ID 41 (\'LivesPalmes\'). Visibilité: Privée.', '140.248.41.24', '2026-06-20 00:25:22'),
-(52, 2, 'Mise à jour Carte', 'Modification de la carte ID 41 (\'LivesPalmes\'). Visibilité: Privée.', '5.49.246.18', '2026-06-20 22:01:25'),
-(53, 2, 'Mise à jour Carte', 'Modification de la carte ID 41 (\'LivesPalmes\'). Visibilité: Privée.', '5.49.246.18', '2026-06-20 22:01:43'),
-(54, 2, 'Modération : Approbation Carte', 'Le SuperAdmin a validé la nouvelle publication de la carte ID 41 (\'LivesPalmes\').', '5.49.246.18', '2026-06-20 22:01:50'),
-(55, 2, 'Soumission Draft', 'L\'utilisateur a proposé une modification pour la carte publique ID 41 (\'LivesPalmes\').', '5.49.246.18', '2026-06-20 22:13:57'),
-(56, 2, 'Soumission Draft', 'L\'utilisateur a proposé une modification pour la carte publique ID 41 (\'LivesPalmes\').', '5.49.246.18', '2026-06-20 22:14:46'),
-(57, 2, 'Modération : Refus Draft', 'Rejet du Draft ID 1 pour la carte ID 41. La version publique n\'a pas été affectée.', '5.49.246.18', '2026-06-20 22:15:02'),
-(58, 2, 'Modération : Approbation Draft', 'Validation du Draft ID 2. Les données de la carte publique ID 41 (\'LivesPalmes\') ont été écrasées avec succès.', '5.49.246.18', '2026-06-20 22:15:08'),
-(59, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 22 domaines uniques testés pour 39 cartes. 1 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:34:08'),
-(60, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 22 domaines uniques testés pour 39 cartes. 1 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:44:16'),
-(61, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 22 domaines uniques testés pour 39 cartes. 1 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:45:32'),
-(62, 2, 'Modération : Suppression Carte', 'Suppression définitive de la carte ID 18 (\'Mangamoins\') par l\'administration depuis le rapport des erreurs 404.', '5.49.246.18', '2026-06-20 22:45:40'),
-(63, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 21 domaines uniques testés pour 38 cartes. 3 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:50:19'),
-(64, 2, 'Modération : Suppression Carte', 'Suppression définitive de la carte ID 11 (\'Chainsaw Man\') par l\'administration depuis le rapport des erreurs 404.', '5.49.246.18', '2026-06-20 22:51:34'),
-(65, 2, 'Maintenance : Remplacement en masse', 'Migration du domaine \'papadustream.marketing\' vers \'papadustream.email\' appliquée sur 1 carte(s).', '5.49.246.18', '2026-06-20 22:52:10'),
-(66, 2, 'Maintenance : Remplacement en masse', 'Migration du domaine \'sushiscan.net\' vers \'sushiscan.net\' appliquée sur 1 carte(s).', '5.49.246.18', '2026-06-20 22:52:29'),
-(67, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 21 domaines uniques testés pour 37 cartes. 2 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:52:44'),
-(68, 2, 'Mise à jour Carte', 'Modification de la carte ID 47 (\'Liens très privés\'). Visibilité: Privée.', '5.49.246.18', '2026-06-22 15:03:06'),
-(69, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-06-22 22:30:24'),
-(70, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-06-22 22:52:26'),
-(71, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 3.', '5.49.246.18', '2026-06-22 23:25:55'),
-(72, 2, 'Sanction : Bannissement', 'Le compte ID 5 (\'Ambre\') a été suspendu de la plateforme.', '5.49.246.18', '2026-06-25 12:06:37'),
-(73, 2, 'Réhabilitation Compte', 'Le bannissement du compte ID 5 (\'Ambre\') a été levé.', '5.49.246.18', '2026-06-25 12:09:08'),
-(74, 1, 'Modification Profil', 'Mise à jour du compte ID 5. Mot de passe réinitialisé par le SuperAdmin. Nouveau groupe de sécurité assigné: [user].', '5.49.246.18', '2026-06-25 12:21:55'),
-(75, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-01 23:53:38'),
-(76, 2, 'Suppression Carte', 'Suppression de la carte ID 46 (\'L\'Atelier des Sorciers\').', '5.49.246.18', '2026-07-01 23:54:11'),
-(77, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 3 carte(s).', '5.49.246.18', '2026-07-01 23:54:29'),
-(78, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 4.', '5.49.246.18', '2026-07-01 23:57:39'),
-(79, 2, 'Création Carte', 'Création de la carte ID 53 (\'Nakastream\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-03 13:44:58'),
-(80, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 4 carte(s).', '5.49.246.18', '2026-07-03 13:45:13'),
-(81, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 4 carte(s).', '5.49.246.18', '2026-07-03 13:45:18'),
-(82, 2, 'Mise à jour Carte', 'Modification de la carte ID 53 (\'Nakastream\'). Visibilité: Privée.', '104.28.42.18', '2026-07-03 13:47:23'),
-(83, 2, 'Modération : Approbation Carte', 'Le SuperAdmin a validé la nouvelle publication de la carte ID 53 (\'Nakastream\').', '104.28.42.18', '2026-07-03 13:47:37'),
-(84, 2, 'Création Carte', 'Création de la carte ID 54 (\'Site de troll\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-03 17:00:01'),
-(85, 2, 'Mise à jour Carte', 'Modification de la carte ID 54 (\'Site de troll\'). Visibilité: Privée.', '104.28.42.16', '2026-07-03 17:11:50'),
-(86, 2, 'Mise à jour Carte', 'Modification de la carte ID 54 (\'Site de troll\'). Visibilité: Privée.', '104.28.42.16', '2026-07-03 17:11:52'),
-(87, 2, 'Mise à jour Carte', 'Modification de la carte ID 54 (\'Site de troll\'). Visibilité: Privée.', '5.49.246.18', '2026-07-03 17:24:00'),
-(88, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-04 22:44:20'),
-(89, 2, 'Création Carte', 'Création de la carte ID 55 (\'BLACK TORCH\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-06 18:03:06'),
-(90, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 12 carte(s).', '5.49.246.18', '2026-07-06 18:03:12'),
-(91, 2, 'Création Carte', 'Création de la carte ID 56 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-06 18:05:07'),
-(92, 2, 'Création Carte', 'Création de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-06 18:05:08'),
-(93, 2, 'Suppression Carte', 'Suppression de la carte ID 56 (\'Mushoku Tensei: Jobless Reincarnation\').', '5.49.246.18', '2026-07-06 19:26:36'),
-(94, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 19:27:06'),
-(95, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 20:57:23'),
-(96, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 20:57:36'),
-(97, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 22:13:16'),
-(98, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 22:13:30'),
-(99, 2, 'Transfert Carte', 'La carte ID 53 (\'Nakastream\') a été transférée à l\'admin.', '5.49.246.18', '2026-07-07 14:38:51'),
-(100, 1, 'Réhabilitation Compte', 'Le bannissement du compte ID 4 (\'User de test\') a été levé.', '5.49.246.18', '2026-07-07 14:51:18'),
-(101, 1, 'Sanction : Bannissement', 'Le compte ID 4 (\'User de test\') a été suspendu de la plateforme.', '5.49.246.18', '2026-07-07 15:33:52'),
-(102, 1, 'Modification Profil', 'Mise à jour du compte ID 2. Mot de passe réinitialisé par le SuperAdmin. Nouveau groupe de sécurité assigné: [admin].', '5.49.246.18', '2026-07-07 15:36:17'),
-(103, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 5.', '5.49.246.18', '2026-07-07 19:15:44'),
-(104, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 6.', '5.49.246.18', '2026-07-07 19:15:46'),
-(105, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:22:46'),
-(106, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:23:19'),
-(107, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:29:09'),
-(108, 2, 'Création Carte', 'Création de la carte ID 58 (\'Game of Thrones\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-07 19:31:19'),
-(109, 2, 'Mise à jour Carte', 'Modification de la carte ID 58 (\'Game of Thrones\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:32:01'),
-(110, 2, 'Mise à jour Carte', 'Modification de la carte ID 58 (\'Game of Thrones\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:32:15'),
-(111, 2, 'Suppression Carte', 'Suppression de la carte ID 58 (\'Game of Thrones\').', '5.49.246.18', '2026-07-07 19:32:21'),
-(112, 2, 'Création Carte', 'Création de la carte ID 59 (\'Vampire Diaries\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-07 19:33:46'),
-(113, 2, 'Création Carte', 'Création de la carte ID 60 (\'The Originals\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-07 19:35:06'),
-(114, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:37:06'),
-(115, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:37:39'),
-(116, 2, 'Création Carte', 'Création de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-07 19:44:52'),
-(117, 2, 'Création Carte', 'Création de la carte ID 62 (\'Canal +\'). Visibilité initiale: En attente.', '5.49.246.18', '2026-07-07 19:47:56'),
-(118, 2, 'Modération : Approbation Carte', 'Le SuperAdmin a validé la nouvelle publication de la carte ID 62 (\'Canal +\').', '5.49.246.18', '2026-07-07 19:48:05'),
-(119, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 5 carte(s).', '5.49.246.18', '2026-07-07 19:48:20'),
-(120, 2, 'Transfert Carte', 'La carte ID 62 (\'Canal +\') a été transférée à l\'admin.', '5.49.246.18', '2026-07-07 19:48:24'),
-(121, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 20:08:13'),
-(122, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 5.', '5.49.246.18', '2026-07-07 21:06:45'),
-(123, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 21:55:39'),
-(124, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 22:03:01'),
-(125, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 6.', '5.49.246.18', '2026-07-07 23:11:55'),
-(126, 1, 'Modification Profil', 'Mise à jour du compte ID 2. Mot de passe réinitialisé par le SuperAdmin. Nouveau groupe de sécurité assigné: [admin].', '104.28.42.14', '2026-07-08 11:17:44'),
-(127, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 6.', '104.28.40.24', '2026-07-08 12:06:23'),
-(128, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '104.28.40.24', '2026-07-08 12:07:15'),
-(129, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 7.', '5.49.246.18', '2026-07-08 21:59:21'),
-(130, 2, 'Création Carte', 'Création de la carte ID 63 (\'The Protector\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-09 21:18:46'),
-(131, 2, 'Suppression Carte', 'Suppression de la carte ID 63 (\'The Protector\').', '5.49.246.18', '2026-07-09 21:22:53');
-INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `created_at`) VALUES
-(132, 2, 'Création Carte', 'Création de la carte ID 64 (\'Enola Holmes\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-09 21:23:44'),
-(133, 2, 'Mise à jour Carte', 'Modification de la carte ID 64 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:10:17'),
-(134, 2, 'Mise à jour Carte', 'Modification de la carte ID 64 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:12:33'),
-(135, 2, 'Mise à jour Carte', 'Modification de la carte ID 64 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:18:37'),
-(136, 2, 'Suppression Carte', 'Suppression de la carte ID 64 (\'Enola Holmes 3\').', '5.49.246.18', '2026-07-09 22:18:56'),
-(137, 2, 'Création Carte', 'Création de la carte ID 65 (\'Enola Holmes 3\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-09 22:19:14'),
-(138, 2, 'Mise à jour Carte', 'Modification de la carte ID 65 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:24:23'),
-(139, 2, 'Mise à jour Carte', 'Modification de la carte ID 65 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:24:32'),
-(140, 2, 'Mise à jour Carte', 'Modification de la carte ID 65 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:24:39'),
-(141, 2, 'Maintenance : Remplacement en masse', 'Migration du domaine \'papadustream.email\' vers \'papadustream.rentals\' appliquée sur 1 carte(s).', '5.49.246.18', '2026-07-09 22:26:04'),
-(142, 2, 'Création Carte', 'Création de la carte ID 66 (\'Le Protecteur d\'Istanbul\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-09 22:29:20'),
-(143, 2, 'Mise à jour Carte', 'Modification de la carte ID 66 (\'Le Protecteur d\'Istanbul\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:30:07'),
-(144, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 66 (\'Le Protecteur d\'Istanbul\') : Épisode passé à 3.', '5.49.246.18', '2026-07-09 22:31:08'),
-(145, 2, 'Mise à jour Carte', 'Modification de la carte ID 66 (\'Le Protecteur d\'Istanbul\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:31:14'),
-(146, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 4 carte(s).', '5.49.246.18', '2026-07-09 22:44:18'),
-(147, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Youkoso Jitsuryoku Shijou Shugi no Kyoushitsu e 4th Season: 2-nensei-hen 1 Gakki\'). Visibilité: Privée.', '5.49.246.18', '2026-07-10 18:48:41'),
-(148, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-10 18:48:47'),
-(149, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite \'). Visibilité: Privée.', '5.49.246.18', '2026-07-10 18:49:22'),
-(150, 2, 'Mise à jour Carte', 'Modification de la carte ID 6 (\'Wind Breaker\'). Visibilité: Privée.', '5.49.246.18', '2026-07-10 18:49:52'),
-(151, 2, 'Création Carte', 'Création de la carte ID 67 (\'The Witcher\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-11 14:18:32'),
-(152, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 5 carte(s).', '5.49.246.18', '2026-07-11 14:19:15'),
-(153, 2, 'Mise à jour Carte', 'Modification de la carte ID 67 (\'The Witcher\'). Visibilité: Privée.', '5.49.246.18', '2026-07-11 14:19:31'),
-(154, 2, 'Mise à jour Carte', 'Modification de la carte ID 66 (\'Le Protecteur d\'Istanbul\'). Visibilité: Privée.', '5.49.246.18', '2026-07-11 17:46:40'),
-(155, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1187.', '146.75.166.48', '2026-07-11 22:17:48'),
-(156, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1188.', '146.75.166.48', '2026-07-11 22:17:50'),
-(157, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1189.', '146.75.166.48', '2026-07-11 22:17:51'),
-(158, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '146.75.166.48', '2026-07-11 22:19:13'),
-(159, 2, 'Suppression Carte', 'Suppression de la carte ID 65 (\'Enola Holmes 3\').', '5.49.246.18', '2026-07-11 22:29:21'),
-(160, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 7.', '5.49.246.18', '2026-07-11 23:12:09'),
-(161, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 8.', '5.49.246.18', '2026-07-12 15:58:18'),
-(162, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 16:10:05'),
-(163, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 16:10:15'),
-(164, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 16:10:32'),
-(165, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 16:10:54'),
-(166, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 21:42:24'),
-(167, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 22:03:55'),
-(168, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 22:04:42'),
-(169, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 8.', '5.49.246.18', '2026-07-12 22:48:09'),
-(170, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 9.', '5.49.246.18', '2026-07-12 22:48:21'),
-(171, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 22:48:29'),
-(172, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 9.', '5.49.246.18', '2026-07-12 23:30:23'),
-(173, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 9.', '5.49.246.18', '2026-07-13 00:26:58'),
-(174, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 10.', '5.49.246.18', '2026-07-14 19:27:06'),
-(175, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 10.', '5.49.246.18', '2026-07-15 00:13:31'),
-(176, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 11.', '5.49.246.18', '2026-07-15 12:16:11'),
-(177, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '104.28.42.28', '2026-07-15 12:37:56'),
-(178, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\') : Épisode passé à 3.', '5.49.246.18', '2026-07-15 14:15:57'),
-(179, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\') : Épisode passé à 4.', '5.49.246.18', '2026-07-15 14:38:14'),
-(180, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-15 14:38:23'),
-(181, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 6 (\'Wind Breaker\') : Épisode passé à 10.', '5.49.246.18', '2026-07-15 15:29:29'),
-(182, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 6 (\'Wind Breaker\') : Épisode passé à 11.', '5.49.246.18', '2026-07-15 15:29:31'),
-(183, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 11.', '5.49.246.18', '2026-07-15 20:58:45'),
-(184, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-15 20:59:00'),
-(185, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 12.', '5.49.246.18', '2026-07-15 21:45:12'),
-(186, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 12.', '5.49.246.18', '2026-07-16 11:13:43'),
-(187, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 13.', '5.49.246.18', '2026-07-16 12:06:38'),
-(188, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 6 (\'Wind Breaker\') : Épisode passé à 12.', '5.49.246.18', '2026-07-16 15:54:46'),
-(189, 2, 'Suppression Carte', 'Suppression de la carte ID 6 (\'Wind Breaker\').', '5.49.246.18', '2026-07-16 19:28:34'),
-(190, 2, 'Mise à jour Carte', 'Modification de la carte ID 7 (\'To Your Eternity\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:28:58'),
-(191, 2, 'Mise à jour Carte', 'Modification de la carte ID 7 (\'To Your Eternity\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:29:10'),
-(192, 2, 'Création Carte', 'Création de la carte ID 68 (\'Arifureta\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-16 19:31:41'),
-(193, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:31:46'),
-(194, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:31:48'),
-(195, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:32:05'),
-(196, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:32:13'),
-(197, 2, 'Mise à jour Carte', 'Modification de la carte ID 24 (\'Noble Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:32:26'),
-(198, 2, 'Mise à jour Carte', 'Modification de la carte ID 37 (\'Dr. STONE\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:32:39'),
-(199, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:32:52'),
-(200, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:32:54'),
-(201, 2, 'Création Carte', 'Création de la carte ID 69 (\'A Playthrough of a Certain Dude\'s VRMMO Life\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-16 19:33:59'),
-(202, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:05'),
-(203, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:14'),
-(204, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:16'),
-(205, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:25'),
-(206, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:31'),
-(207, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:36'),
-(208, 2, 'Création Carte', 'Création de la carte ID 70 (\'Villainess Level 99\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-16 19:35:41'),
-(209, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 15 carte(s).', '5.49.246.18', '2026-07-16 19:35:46'),
-(210, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 15 carte(s).', '5.49.246.18', '2026-07-16 19:35:49'),
-(211, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 15 carte(s).', '5.49.246.18', '2026-07-16 19:35:53'),
-(212, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 15 carte(s).', '5.49.246.18', '2026-07-16 19:35:55'),
-(213, 2, 'Mise à jour Carte', 'Modification de la carte ID 37 (\'Dr. STONE\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:36:29'),
-(214, 2, 'Création Carte', 'Création de la carte ID 71 (\'Goblin Slayer\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-16 19:37:51'),
-(215, 2, 'Mise à jour Carte', 'Modification de la carte ID 71 (\'Goblin Slayer\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:38:24'),
-(216, 2, 'Mise à jour Carte', 'Modification de la carte ID 71 (\'Goblin Slayer\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:39:00'),
-(217, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:09'),
-(218, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:11'),
-(219, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:15'),
-(220, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:18'),
-(221, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:21'),
-(222, 2, 'Mise à jour Carte', 'Modification de la carte ID 70 (\'Villainess Level 99\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:39:39'),
-(223, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:47'),
-(224, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 13.', '5.49.246.18', '2026-07-16 23:53:17'),
-(225, 2, 'Création Carte', 'Création de la carte ID 72 (\'Claude Code\'). Visibilité initiale: En attente.', '5.49.246.18', '2026-07-19 12:23:28'),
-(226, 2, 'Modération : Approbation Carte', 'Le SuperAdmin a validé la nouvelle publication de la carte ID 72 (\'Claude Code\').', '5.49.246.18', '2026-07-19 12:23:32'),
-(227, 2, 'Transfert Carte', 'La carte ID 72 (\'Claude Code\') a été transférée à l\'admin.', '5.49.246.18', '2026-07-19 12:23:40'),
-(228, 2, 'Création Carte', 'Création de la carte ID 73 (\'Intranap du pec\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-19 16:26:59'),
-(229, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '146.75.166.49', '2026-07-20 00:08:22'),
-(230, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '104.28.42.14', '2026-07-20 16:01:56'),
-(231, 2, 'Création Carte', 'Création de la carte ID 74 (\'Fit Analitics\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-20 22:33:03'),
-(232, 2, 'Suppression Carte', 'Suppression de la carte ID 66 (\'Le Protecteur d\'Istanbul\').', '5.49.246.18', '2026-07-20 22:38:08'),
-(233, 2, 'Mise à jour Carte', 'Modification de la carte ID 67 (\'The Witcher\'). Visibilité: Privée.', '5.49.246.18', '2026-07-21 17:46:20'),
-(234, 2, 'Création Carte', 'Création de la carte ID 75 (\'Calculateur MG&M\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-24 15:25:22'),
-(235, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-24 16:39:50'),
-(236, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-24 16:43:42'),
-(237, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-24 16:44:16'),
-(238, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-24 16:44:29');
+INSERT INTO `audit_logs` VALUES(1, 1, 'Modification Profil', 'Mise à jour du compte ID 4. Pseudo: \'test\' -> \'User de test\'. Nouveau groupe de sécurité assigné: [user].', '5.49.246.18', '2026-05-29 22:31:14');
+INSERT INTO `audit_logs` VALUES(2, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-05-29 22:34:23');
+INSERT INTO `audit_logs` VALUES(3, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 46 (\'L\'Atelier des Sorciers\') : Épisode passé à 10.', '5.49.246.18', '2026-05-29 23:09:50');
+INSERT INTO `audit_logs` VALUES(4, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-05-29 23:10:04');
+INSERT INTO `audit_logs` VALUES(5, 2, 'Suppression Carte', 'Suppression de la carte ID 48 (\'Nemesis\').', '5.49.246.18', '2026-05-29 23:10:30');
+INSERT INTO `audit_logs` VALUES(6, 2, 'Création Carte', 'Création de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-05-30 01:02:54');
+INSERT INTO `audit_logs` VALUES(7, 2, 'Mise à jour Carte', 'Modification de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-05-30 01:03:25');
+INSERT INTO `audit_logs` VALUES(8, 2, 'Mise à jour Carte', 'Modification de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-05-30 01:05:10');
+INSERT INTO `audit_logs` VALUES(9, 2, 'Mise à jour Carte', 'Modification de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-05-30 01:05:29');
+INSERT INTO `audit_logs` VALUES(10, 2, 'Mise à jour Carte', 'Modification de la carte ID 49 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-05-30 01:05:48');
+INSERT INTO `audit_logs` VALUES(11, 2, 'Sanction : Bannissement', 'Le compte ID 4 (\'User de test\') a été suspendu de la plateforme.', '5.49.246.18', '2026-05-30 01:06:02');
+INSERT INTO `audit_logs` VALUES(12, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\') : Épisode passé à 10.', '5.49.246.18', '2026-05-31 22:10:49');
+INSERT INTO `audit_logs` VALUES(13, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-05-31 22:11:02');
+INSERT INTO `audit_logs` VALUES(14, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 00:16:55');
+INSERT INTO `audit_logs` VALUES(15, 2, 'Suppression Carte', 'Suppression de la carte ID 49 (\'Shadow and Bone : La saga Grisha\').', '5.49.246.18', '2026-06-03 17:15:33');
+INSERT INTO `audit_logs` VALUES(16, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 21:42:48');
+INSERT INTO `audit_logs` VALUES(17, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 21:42:56');
+INSERT INTO `audit_logs` VALUES(18, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 22:14:54');
+INSERT INTO `audit_logs` VALUES(19, 2, 'Création Carte', 'Création de la carte ID 50 (\'Shadow and Bone : La saga Grisha\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-06-03 22:55:09');
+INSERT INTO `audit_logs` VALUES(20, 2, 'Mise à jour Carte', 'Modification de la carte ID 50 (\'Shadow and Bone : La saga Grisha\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 22:55:48');
+INSERT INTO `audit_logs` VALUES(21, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 23:00:45');
+INSERT INTO `audit_logs` VALUES(22, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 11.', '5.49.246.18', '2026-06-03 23:48:23');
+INSERT INTO `audit_logs` VALUES(23, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 12.', '5.49.246.18', '2026-06-03 23:48:24');
+INSERT INTO `audit_logs` VALUES(24, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 23:48:31');
+INSERT INTO `audit_logs` VALUES(25, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-03 23:48:40');
+INSERT INTO `audit_logs` VALUES(26, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 12.', '5.49.246.18', '2026-06-04 00:18:03');
+INSERT INTO `audit_logs` VALUES(27, 2, 'Suppression Carte', 'Suppression de la carte ID 50 (\'Shadow and Bone : La saga Grisha\').', '5.49.246.18', '2026-06-04 23:54:13');
+INSERT INTO `audit_logs` VALUES(28, 2, 'Création Carte', 'Création de la carte ID 51 (\'Locke & Key\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-06-04 23:54:50');
+INSERT INTO `audit_logs` VALUES(29, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 18:16:00');
+INSERT INTO `audit_logs` VALUES(30, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1184.', '5.49.246.18', '2026-06-07 18:16:10');
+INSERT INTO `audit_logs` VALUES(31, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1185.', '5.49.246.18', '2026-06-07 18:24:03');
+INSERT INTO `audit_logs` VALUES(32, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 18:24:20');
+INSERT INTO `audit_logs` VALUES(33, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 18:25:01');
+INSERT INTO `audit_logs` VALUES(34, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 18:25:20');
+INSERT INTO `audit_logs` VALUES(35, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 20:21:59');
+INSERT INTO `audit_logs` VALUES(36, 2, 'Maintenance : Remplacement en masse', 'Migration du domaine \'flemmix.zip\' vers \'go-fle.site\' appliquée sur 1 carte(s).', '5.49.246.18', '2026-06-07 23:17:48');
+INSERT INTO `audit_logs` VALUES(37, 2, 'Mise à jour Carte', 'Modification de la carte ID 51 (\'Locke & Key\'). Visibilité: Privée.', '5.49.246.18', '2026-06-07 23:21:31');
+INSERT INTO `audit_logs` VALUES(38, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 13.', '5.49.246.18', '2026-06-07 23:37:39');
+INSERT INTO `audit_logs` VALUES(39, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-06-08 22:44:50');
+INSERT INTO `audit_logs` VALUES(40, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-06-09 22:31:39');
+INSERT INTO `audit_logs` VALUES(41, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 2.', '5.49.246.18', '2026-06-10 00:06:18');
+INSERT INTO `audit_logs` VALUES(42, 1, 'Mise à jour Carte', 'Modification de la carte ID 28 (\'ClipDrop\'). Visibilité: Publique.', '5.49.246.18', '2026-06-10 16:18:23');
+INSERT INTO `audit_logs` VALUES(43, 1, 'Mise à jour Carte', 'Modification de la carte ID 28 (\'ClipDrop\'). Visibilité: Publique.', '5.49.246.18', '2026-06-10 16:18:49');
+INSERT INTO `audit_logs` VALUES(44, 2, 'Mise à jour Carte', 'Modification de la carte ID 51 (\'Locke & Key\'). Visibilité: Privée.', '5.49.246.18', '2026-06-10 23:15:54');
+INSERT INTO `audit_logs` VALUES(45, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '104.28.42.21', '2026-06-16 11:18:03');
+INSERT INTO `audit_logs` VALUES(46, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-06-17 23:02:56');
+INSERT INTO `audit_logs` VALUES(47, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-06-17 23:40:51');
+INSERT INTO `audit_logs` VALUES(48, 2, 'Création Carte', 'Création de la carte ID 52 (\'Black Clover\'). Visibilité initiale: Privée.', '104.28.42.23', '2026-06-18 12:11:37');
+INSERT INTO `audit_logs` VALUES(49, 2, 'Modification Profil', 'Mise à jour du compte ID 5. Pseudo: \'ambre\' -> \'Ambre\'. Nouveau groupe de sécurité assigné: [user].', '5.49.246.18', '2026-06-18 17:12:15');
+INSERT INTO `audit_logs` VALUES(50, 2, 'Suppression Carte', 'Suppression de la carte ID 51 (\'Locke & Key\').', '5.49.246.18', '2026-06-18 17:12:39');
+INSERT INTO `audit_logs` VALUES(51, 2, 'Mise à jour Carte', 'Modification de la carte ID 41 (\'LivesPalmes\'). Visibilité: Privée.', '140.248.41.24', '2026-06-20 00:25:22');
+INSERT INTO `audit_logs` VALUES(52, 2, 'Mise à jour Carte', 'Modification de la carte ID 41 (\'LivesPalmes\'). Visibilité: Privée.', '5.49.246.18', '2026-06-20 22:01:25');
+INSERT INTO `audit_logs` VALUES(53, 2, 'Mise à jour Carte', 'Modification de la carte ID 41 (\'LivesPalmes\'). Visibilité: Privée.', '5.49.246.18', '2026-06-20 22:01:43');
+INSERT INTO `audit_logs` VALUES(54, 2, 'Modération : Approbation Carte', 'Le SuperAdmin a validé la nouvelle publication de la carte ID 41 (\'LivesPalmes\').', '5.49.246.18', '2026-06-20 22:01:50');
+INSERT INTO `audit_logs` VALUES(55, 2, 'Soumission Draft', 'L\'utilisateur a proposé une modification pour la carte publique ID 41 (\'LivesPalmes\').', '5.49.246.18', '2026-06-20 22:13:57');
+INSERT INTO `audit_logs` VALUES(56, 2, 'Soumission Draft', 'L\'utilisateur a proposé une modification pour la carte publique ID 41 (\'LivesPalmes\').', '5.49.246.18', '2026-06-20 22:14:46');
+INSERT INTO `audit_logs` VALUES(57, 2, 'Modération : Refus Draft', 'Rejet du Draft ID 1 pour la carte ID 41. La version publique n\'a pas été affectée.', '5.49.246.18', '2026-06-20 22:15:02');
+INSERT INTO `audit_logs` VALUES(58, 2, 'Modération : Approbation Draft', 'Validation du Draft ID 2. Les données de la carte publique ID 41 (\'LivesPalmes\') ont été écrasées avec succès.', '5.49.246.18', '2026-06-20 22:15:08');
+INSERT INTO `audit_logs` VALUES(59, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 22 domaines uniques testés pour 39 cartes. 1 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:34:08');
+INSERT INTO `audit_logs` VALUES(60, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 22 domaines uniques testés pour 39 cartes. 1 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:44:16');
+INSERT INTO `audit_logs` VALUES(61, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 22 domaines uniques testés pour 39 cartes. 1 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:45:32');
+INSERT INTO `audit_logs` VALUES(62, 2, 'Modération : Suppression Carte', 'Suppression définitive de la carte ID 18 (\'Mangamoins\') par l\'administration depuis le rapport des erreurs 404.', '5.49.246.18', '2026-06-20 22:45:40');
+INSERT INTO `audit_logs` VALUES(63, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 21 domaines uniques testés pour 38 cartes. 3 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:50:19');
+INSERT INTO `audit_logs` VALUES(64, 2, 'Modération : Suppression Carte', 'Suppression définitive de la carte ID 11 (\'Chainsaw Man\') par l\'administration depuis le rapport des erreurs 404.', '5.49.246.18', '2026-06-20 22:51:34');
+INSERT INTO `audit_logs` VALUES(65, 2, 'Maintenance : Remplacement en masse', 'Migration du domaine \'papadustream.marketing\' vers \'papadustream.email\' appliquée sur 1 carte(s).', '5.49.246.18', '2026-06-20 22:52:10');
+INSERT INTO `audit_logs` VALUES(66, 2, 'Maintenance : Remplacement en masse', 'Migration du domaine \'sushiscan.net\' vers \'sushiscan.net\' appliquée sur 1 carte(s).', '5.49.246.18', '2026-06-20 22:52:29');
+INSERT INTO `audit_logs` VALUES(67, 2, 'Maintenance Système', 'Scan FORCÉ de liens : 21 domaines uniques testés pour 37 cartes. 2 carte(s) impactée(s).', '5.49.246.18', '2026-06-20 22:52:44');
+INSERT INTO `audit_logs` VALUES(68, 2, 'Mise à jour Carte', 'Modification de la carte ID 47 (\'Liens très privés\'). Visibilité: Privée.', '5.49.246.18', '2026-06-22 15:03:06');
+INSERT INTO `audit_logs` VALUES(69, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-06-22 22:30:24');
+INSERT INTO `audit_logs` VALUES(70, 2, 'Mise à jour Carte', 'Modification de la carte ID 46 (\'L\'Atelier des Sorciers\'). Visibilité: Privée.', '5.49.246.18', '2026-06-22 22:52:26');
+INSERT INTO `audit_logs` VALUES(71, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 3.', '5.49.246.18', '2026-06-22 23:25:55');
+INSERT INTO `audit_logs` VALUES(72, 2, 'Sanction : Bannissement', 'Le compte ID 5 (\'Ambre\') a été suspendu de la plateforme.', '5.49.246.18', '2026-06-25 12:06:37');
+INSERT INTO `audit_logs` VALUES(73, 2, 'Réhabilitation Compte', 'Le bannissement du compte ID 5 (\'Ambre\') a été levé.', '5.49.246.18', '2026-06-25 12:09:08');
+INSERT INTO `audit_logs` VALUES(74, 1, 'Modification Profil', 'Mise à jour du compte ID 5. Mot de passe réinitialisé par le SuperAdmin. Nouveau groupe de sécurité assigné: [user].', '5.49.246.18', '2026-06-25 12:21:55');
+INSERT INTO `audit_logs` VALUES(75, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-01 23:53:38');
+INSERT INTO `audit_logs` VALUES(76, 2, 'Suppression Carte', 'Suppression de la carte ID 46 (\'L\'Atelier des Sorciers\').', '5.49.246.18', '2026-07-01 23:54:11');
+INSERT INTO `audit_logs` VALUES(77, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 3 carte(s).', '5.49.246.18', '2026-07-01 23:54:29');
+INSERT INTO `audit_logs` VALUES(78, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 4.', '5.49.246.18', '2026-07-01 23:57:39');
+INSERT INTO `audit_logs` VALUES(79, 2, 'Création Carte', 'Création de la carte ID 53 (\'Nakastream\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-03 13:44:58');
+INSERT INTO `audit_logs` VALUES(80, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 4 carte(s).', '5.49.246.18', '2026-07-03 13:45:13');
+INSERT INTO `audit_logs` VALUES(81, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 4 carte(s).', '5.49.246.18', '2026-07-03 13:45:18');
+INSERT INTO `audit_logs` VALUES(82, 2, 'Mise à jour Carte', 'Modification de la carte ID 53 (\'Nakastream\'). Visibilité: Privée.', '104.28.42.18', '2026-07-03 13:47:23');
+INSERT INTO `audit_logs` VALUES(83, 2, 'Modération : Approbation Carte', 'Le SuperAdmin a validé la nouvelle publication de la carte ID 53 (\'Nakastream\').', '104.28.42.18', '2026-07-03 13:47:37');
+INSERT INTO `audit_logs` VALUES(84, 2, 'Création Carte', 'Création de la carte ID 54 (\'Site de troll\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-03 17:00:01');
+INSERT INTO `audit_logs` VALUES(85, 2, 'Mise à jour Carte', 'Modification de la carte ID 54 (\'Site de troll\'). Visibilité: Privée.', '104.28.42.16', '2026-07-03 17:11:50');
+INSERT INTO `audit_logs` VALUES(86, 2, 'Mise à jour Carte', 'Modification de la carte ID 54 (\'Site de troll\'). Visibilité: Privée.', '104.28.42.16', '2026-07-03 17:11:52');
+INSERT INTO `audit_logs` VALUES(87, 2, 'Mise à jour Carte', 'Modification de la carte ID 54 (\'Site de troll\'). Visibilité: Privée.', '5.49.246.18', '2026-07-03 17:24:00');
+INSERT INTO `audit_logs` VALUES(88, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-04 22:44:20');
+INSERT INTO `audit_logs` VALUES(89, 2, 'Création Carte', 'Création de la carte ID 55 (\'BLACK TORCH\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-06 18:03:06');
+INSERT INTO `audit_logs` VALUES(90, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 12 carte(s).', '5.49.246.18', '2026-07-06 18:03:12');
+INSERT INTO `audit_logs` VALUES(91, 2, 'Création Carte', 'Création de la carte ID 56 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-06 18:05:07');
+INSERT INTO `audit_logs` VALUES(92, 2, 'Création Carte', 'Création de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-06 18:05:08');
+INSERT INTO `audit_logs` VALUES(93, 2, 'Suppression Carte', 'Suppression de la carte ID 56 (\'Mushoku Tensei: Jobless Reincarnation\').', '5.49.246.18', '2026-07-06 19:26:36');
+INSERT INTO `audit_logs` VALUES(94, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 19:27:06');
+INSERT INTO `audit_logs` VALUES(95, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 20:57:23');
+INSERT INTO `audit_logs` VALUES(96, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 20:57:36');
+INSERT INTO `audit_logs` VALUES(97, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 22:13:16');
+INSERT INTO `audit_logs` VALUES(98, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-06 22:13:30');
+INSERT INTO `audit_logs` VALUES(99, 2, 'Transfert Carte', 'La carte ID 53 (\'Nakastream\') a été transférée à l\'admin.', '5.49.246.18', '2026-07-07 14:38:51');
+INSERT INTO `audit_logs` VALUES(100, 1, 'Réhabilitation Compte', 'Le bannissement du compte ID 4 (\'User de test\') a été levé.', '5.49.246.18', '2026-07-07 14:51:18');
+INSERT INTO `audit_logs` VALUES(101, 1, 'Sanction : Bannissement', 'Le compte ID 4 (\'User de test\') a été suspendu de la plateforme.', '5.49.246.18', '2026-07-07 15:33:52');
+INSERT INTO `audit_logs` VALUES(102, 1, 'Modification Profil', 'Mise à jour du compte ID 2. Mot de passe réinitialisé par le SuperAdmin. Nouveau groupe de sécurité assigné: [admin].', '5.49.246.18', '2026-07-07 15:36:17');
+INSERT INTO `audit_logs` VALUES(103, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 5.', '5.49.246.18', '2026-07-07 19:15:44');
+INSERT INTO `audit_logs` VALUES(104, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite\') : Épisode passé à 6.', '5.49.246.18', '2026-07-07 19:15:46');
+INSERT INTO `audit_logs` VALUES(105, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:22:46');
+INSERT INTO `audit_logs` VALUES(106, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:23:19');
+INSERT INTO `audit_logs` VALUES(107, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:29:09');
+INSERT INTO `audit_logs` VALUES(108, 2, 'Création Carte', 'Création de la carte ID 58 (\'Game of Thrones\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-07 19:31:19');
+INSERT INTO `audit_logs` VALUES(109, 2, 'Mise à jour Carte', 'Modification de la carte ID 58 (\'Game of Thrones\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:32:01');
+INSERT INTO `audit_logs` VALUES(110, 2, 'Mise à jour Carte', 'Modification de la carte ID 58 (\'Game of Thrones\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:32:15');
+INSERT INTO `audit_logs` VALUES(111, 2, 'Suppression Carte', 'Suppression de la carte ID 58 (\'Game of Thrones\').', '5.49.246.18', '2026-07-07 19:32:21');
+INSERT INTO `audit_logs` VALUES(112, 2, 'Création Carte', 'Création de la carte ID 59 (\'Vampire Diaries\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-07 19:33:46');
+INSERT INTO `audit_logs` VALUES(113, 2, 'Création Carte', 'Création de la carte ID 60 (\'The Originals\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-07 19:35:06');
+INSERT INTO `audit_logs` VALUES(114, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:37:06');
+INSERT INTO `audit_logs` VALUES(115, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 19:37:39');
+INSERT INTO `audit_logs` VALUES(116, 2, 'Création Carte', 'Création de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-07 19:44:52');
+INSERT INTO `audit_logs` VALUES(117, 2, 'Création Carte', 'Création de la carte ID 62 (\'Canal +\'). Visibilité initiale: En attente.', '5.49.246.18', '2026-07-07 19:47:56');
+INSERT INTO `audit_logs` VALUES(118, 2, 'Modération : Approbation Carte', 'Le SuperAdmin a validé la nouvelle publication de la carte ID 62 (\'Canal +\').', '5.49.246.18', '2026-07-07 19:48:05');
+INSERT INTO `audit_logs` VALUES(119, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 5 carte(s).', '5.49.246.18', '2026-07-07 19:48:20');
+INSERT INTO `audit_logs` VALUES(120, 2, 'Transfert Carte', 'La carte ID 62 (\'Canal +\') a été transférée à l\'admin.', '5.49.246.18', '2026-07-07 19:48:24');
+INSERT INTO `audit_logs` VALUES(121, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 20:08:13');
+INSERT INTO `audit_logs` VALUES(122, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 5.', '5.49.246.18', '2026-07-07 21:06:45');
+INSERT INTO `audit_logs` VALUES(123, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 21:55:39');
+INSERT INTO `audit_logs` VALUES(124, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-07 22:03:01');
+INSERT INTO `audit_logs` VALUES(125, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 6.', '5.49.246.18', '2026-07-07 23:11:55');
+INSERT INTO `audit_logs` VALUES(126, 1, 'Modification Profil', 'Mise à jour du compte ID 2. Mot de passe réinitialisé par le SuperAdmin. Nouveau groupe de sécurité assigné: [admin].', '104.28.42.14', '2026-07-08 11:17:44');
+INSERT INTO `audit_logs` VALUES(127, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 6.', '104.28.40.24', '2026-07-08 12:06:23');
+INSERT INTO `audit_logs` VALUES(128, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '104.28.40.24', '2026-07-08 12:07:15');
+INSERT INTO `audit_logs` VALUES(129, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 7.', '5.49.246.18', '2026-07-08 21:59:21');
+INSERT INTO `audit_logs` VALUES(130, 2, 'Création Carte', 'Création de la carte ID 63 (\'The Protector\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-09 21:18:46');
+INSERT INTO `audit_logs` VALUES(131, 2, 'Suppression Carte', 'Suppression de la carte ID 63 (\'The Protector\').', '5.49.246.18', '2026-07-09 21:22:53');
+INSERT INTO `audit_logs` VALUES(132, 2, 'Création Carte', 'Création de la carte ID 64 (\'Enola Holmes\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-09 21:23:44');
+INSERT INTO `audit_logs` VALUES(133, 2, 'Mise à jour Carte', 'Modification de la carte ID 64 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:10:17');
+INSERT INTO `audit_logs` VALUES(134, 2, 'Mise à jour Carte', 'Modification de la carte ID 64 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:12:33');
+INSERT INTO `audit_logs` VALUES(135, 2, 'Mise à jour Carte', 'Modification de la carte ID 64 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:18:37');
+INSERT INTO `audit_logs` VALUES(136, 2, 'Suppression Carte', 'Suppression de la carte ID 64 (\'Enola Holmes 3\').', '5.49.246.18', '2026-07-09 22:18:56');
+INSERT INTO `audit_logs` VALUES(137, 2, 'Création Carte', 'Création de la carte ID 65 (\'Enola Holmes 3\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-09 22:19:14');
+INSERT INTO `audit_logs` VALUES(138, 2, 'Mise à jour Carte', 'Modification de la carte ID 65 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:24:23');
+INSERT INTO `audit_logs` VALUES(139, 2, 'Mise à jour Carte', 'Modification de la carte ID 65 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:24:32');
+INSERT INTO `audit_logs` VALUES(140, 2, 'Mise à jour Carte', 'Modification de la carte ID 65 (\'Enola Holmes 3\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:24:39');
+INSERT INTO `audit_logs` VALUES(141, 2, 'Maintenance : Remplacement en masse', 'Migration du domaine \'papadustream.email\' vers \'papadustream.rentals\' appliquée sur 1 carte(s).', '5.49.246.18', '2026-07-09 22:26:04');
+INSERT INTO `audit_logs` VALUES(142, 2, 'Création Carte', 'Création de la carte ID 66 (\'Le Protecteur d\'Istanbul\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-09 22:29:20');
+INSERT INTO `audit_logs` VALUES(143, 2, 'Mise à jour Carte', 'Modification de la carte ID 66 (\'Le Protecteur d\'Istanbul\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:30:07');
+INSERT INTO `audit_logs` VALUES(144, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 66 (\'Le Protecteur d\'Istanbul\') : Épisode passé à 3.', '5.49.246.18', '2026-07-09 22:31:08');
+INSERT INTO `audit_logs` VALUES(145, 2, 'Mise à jour Carte', 'Modification de la carte ID 66 (\'Le Protecteur d\'Istanbul\'). Visibilité: Privée.', '5.49.246.18', '2026-07-09 22:31:14');
+INSERT INTO `audit_logs` VALUES(146, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 4 carte(s).', '5.49.246.18', '2026-07-09 22:44:18');
+INSERT INTO `audit_logs` VALUES(147, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Youkoso Jitsuryoku Shijou Shugi no Kyoushitsu e 4th Season: 2-nensei-hen 1 Gakki\'). Visibilité: Privée.', '5.49.246.18', '2026-07-10 18:48:41');
+INSERT INTO `audit_logs` VALUES(148, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-10 18:48:47');
+INSERT INTO `audit_logs` VALUES(149, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite \'). Visibilité: Privée.', '5.49.246.18', '2026-07-10 18:49:22');
+INSERT INTO `audit_logs` VALUES(150, 2, 'Mise à jour Carte', 'Modification de la carte ID 6 (\'Wind Breaker\'). Visibilité: Privée.', '5.49.246.18', '2026-07-10 18:49:52');
+INSERT INTO `audit_logs` VALUES(151, 2, 'Création Carte', 'Création de la carte ID 67 (\'The Witcher\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-11 14:18:32');
+INSERT INTO `audit_logs` VALUES(152, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 5 carte(s).', '5.49.246.18', '2026-07-11 14:19:15');
+INSERT INTO `audit_logs` VALUES(153, 2, 'Mise à jour Carte', 'Modification de la carte ID 67 (\'The Witcher\'). Visibilité: Privée.', '5.49.246.18', '2026-07-11 14:19:31');
+INSERT INTO `audit_logs` VALUES(154, 2, 'Mise à jour Carte', 'Modification de la carte ID 66 (\'Le Protecteur d\'Istanbul\'). Visibilité: Privée.', '5.49.246.18', '2026-07-11 17:46:40');
+INSERT INTO `audit_logs` VALUES(155, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1187.', '146.75.166.48', '2026-07-11 22:17:48');
+INSERT INTO `audit_logs` VALUES(156, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1188.', '146.75.166.48', '2026-07-11 22:17:50');
+INSERT INTO `audit_logs` VALUES(157, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 2 (\'One Piece\') : Épisode passé à 1189.', '146.75.166.48', '2026-07-11 22:17:51');
+INSERT INTO `audit_logs` VALUES(158, 2, 'Mise à jour Carte', 'Modification de la carte ID 2 (\'One Piece\'). Visibilité: Privée.', '146.75.166.48', '2026-07-11 22:19:13');
+INSERT INTO `audit_logs` VALUES(159, 2, 'Suppression Carte', 'Suppression de la carte ID 65 (\'Enola Holmes 3\').', '5.49.246.18', '2026-07-11 22:29:21');
+INSERT INTO `audit_logs` VALUES(160, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 7.', '5.49.246.18', '2026-07-11 23:12:09');
+INSERT INTO `audit_logs` VALUES(161, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 8.', '5.49.246.18', '2026-07-12 15:58:18');
+INSERT INTO `audit_logs` VALUES(162, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 16:10:05');
+INSERT INTO `audit_logs` VALUES(163, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 16:10:15');
+INSERT INTO `audit_logs` VALUES(164, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 16:10:32');
+INSERT INTO `audit_logs` VALUES(165, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 16:10:54');
+INSERT INTO `audit_logs` VALUES(166, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 21:42:24');
+INSERT INTO `audit_logs` VALUES(167, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 22:03:55');
+INSERT INTO `audit_logs` VALUES(168, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 22:04:42');
+INSERT INTO `audit_logs` VALUES(169, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 8.', '5.49.246.18', '2026-07-12 22:48:09');
+INSERT INTO `audit_logs` VALUES(170, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 9.', '5.49.246.18', '2026-07-12 22:48:21');
+INSERT INTO `audit_logs` VALUES(171, 2, 'Mise à jour Carte', 'Modification de la carte ID 59 (\'Vampire Diaries\'). Visibilité: Privée.', '5.49.246.18', '2026-07-12 22:48:29');
+INSERT INTO `audit_logs` VALUES(172, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 9.', '5.49.246.18', '2026-07-12 23:30:23');
+INSERT INTO `audit_logs` VALUES(173, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 9.', '5.49.246.18', '2026-07-13 00:26:58');
+INSERT INTO `audit_logs` VALUES(174, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 10.', '5.49.246.18', '2026-07-14 19:27:06');
+INSERT INTO `audit_logs` VALUES(175, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 10.', '5.49.246.18', '2026-07-15 00:13:31');
+INSERT INTO `audit_logs` VALUES(176, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 11.', '5.49.246.18', '2026-07-15 12:16:11');
+INSERT INTO `audit_logs` VALUES(177, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '104.28.42.28', '2026-07-15 12:37:56');
+INSERT INTO `audit_logs` VALUES(178, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\') : Épisode passé à 3.', '5.49.246.18', '2026-07-15 14:15:57');
+INSERT INTO `audit_logs` VALUES(179, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\') : Épisode passé à 4.', '5.49.246.18', '2026-07-15 14:38:14');
+INSERT INTO `audit_logs` VALUES(180, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-15 14:38:23');
+INSERT INTO `audit_logs` VALUES(181, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 6 (\'Wind Breaker\') : Épisode passé à 10.', '5.49.246.18', '2026-07-15 15:29:29');
+INSERT INTO `audit_logs` VALUES(182, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 6 (\'Wind Breaker\') : Épisode passé à 11.', '5.49.246.18', '2026-07-15 15:29:31');
+INSERT INTO `audit_logs` VALUES(183, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 11.', '5.49.246.18', '2026-07-15 20:58:45');
+INSERT INTO `audit_logs` VALUES(184, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-07-15 20:59:00');
+INSERT INTO `audit_logs` VALUES(185, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 12.', '5.49.246.18', '2026-07-15 21:45:12');
+INSERT INTO `audit_logs` VALUES(186, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 12.', '5.49.246.18', '2026-07-16 11:13:43');
+INSERT INTO `audit_logs` VALUES(187, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 13.', '5.49.246.18', '2026-07-16 12:06:38');
+INSERT INTO `audit_logs` VALUES(188, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 6 (\'Wind Breaker\') : Épisode passé à 12.', '5.49.246.18', '2026-07-16 15:54:46');
+INSERT INTO `audit_logs` VALUES(189, 2, 'Suppression Carte', 'Suppression de la carte ID 6 (\'Wind Breaker\').', '5.49.246.18', '2026-07-16 19:28:34');
+INSERT INTO `audit_logs` VALUES(190, 2, 'Mise à jour Carte', 'Modification de la carte ID 7 (\'To Your Eternity\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:28:58');
+INSERT INTO `audit_logs` VALUES(191, 2, 'Mise à jour Carte', 'Modification de la carte ID 7 (\'To Your Eternity\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:29:10');
+INSERT INTO `audit_logs` VALUES(192, 2, 'Création Carte', 'Création de la carte ID 68 (\'Arifureta\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-16 19:31:41');
+INSERT INTO `audit_logs` VALUES(193, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:31:46');
+INSERT INTO `audit_logs` VALUES(194, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:31:48');
+INSERT INTO `audit_logs` VALUES(195, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:32:05');
+INSERT INTO `audit_logs` VALUES(196, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:32:13');
+INSERT INTO `audit_logs` VALUES(197, 2, 'Mise à jour Carte', 'Modification de la carte ID 24 (\'Noble Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:32:26');
+INSERT INTO `audit_logs` VALUES(198, 2, 'Mise à jour Carte', 'Modification de la carte ID 37 (\'Dr. STONE\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:32:39');
+INSERT INTO `audit_logs` VALUES(199, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:32:52');
+INSERT INTO `audit_logs` VALUES(200, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 13 carte(s).', '5.49.246.18', '2026-07-16 19:32:54');
+INSERT INTO `audit_logs` VALUES(201, 2, 'Création Carte', 'Création de la carte ID 69 (\'A Playthrough of a Certain Dude\'s VRMMO Life\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-16 19:33:59');
+INSERT INTO `audit_logs` VALUES(202, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:05');
+INSERT INTO `audit_logs` VALUES(203, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:14');
+INSERT INTO `audit_logs` VALUES(204, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:16');
+INSERT INTO `audit_logs` VALUES(205, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:25');
+INSERT INTO `audit_logs` VALUES(206, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:31');
+INSERT INTO `audit_logs` VALUES(207, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 14 carte(s).', '5.49.246.18', '2026-07-16 19:34:36');
+INSERT INTO `audit_logs` VALUES(208, 2, 'Création Carte', 'Création de la carte ID 70 (\'Villainess Level 99\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-16 19:35:41');
+INSERT INTO `audit_logs` VALUES(209, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 15 carte(s).', '5.49.246.18', '2026-07-16 19:35:46');
+INSERT INTO `audit_logs` VALUES(210, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 15 carte(s).', '5.49.246.18', '2026-07-16 19:35:49');
+INSERT INTO `audit_logs` VALUES(211, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 15 carte(s).', '5.49.246.18', '2026-07-16 19:35:53');
+INSERT INTO `audit_logs` VALUES(212, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 15 carte(s).', '5.49.246.18', '2026-07-16 19:35:55');
+INSERT INTO `audit_logs` VALUES(213, 2, 'Mise à jour Carte', 'Modification de la carte ID 37 (\'Dr. STONE\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:36:29');
+INSERT INTO `audit_logs` VALUES(214, 2, 'Création Carte', 'Création de la carte ID 71 (\'Goblin Slayer\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-16 19:37:51');
+INSERT INTO `audit_logs` VALUES(215, 2, 'Mise à jour Carte', 'Modification de la carte ID 71 (\'Goblin Slayer\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:38:24');
+INSERT INTO `audit_logs` VALUES(216, 2, 'Mise à jour Carte', 'Modification de la carte ID 71 (\'Goblin Slayer\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:39:00');
+INSERT INTO `audit_logs` VALUES(217, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:09');
+INSERT INTO `audit_logs` VALUES(218, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:11');
+INSERT INTO `audit_logs` VALUES(219, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:15');
+INSERT INTO `audit_logs` VALUES(220, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:18');
+INSERT INTO `audit_logs` VALUES(221, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:21');
+INSERT INTO `audit_logs` VALUES(222, 2, 'Mise à jour Carte', 'Modification de la carte ID 70 (\'Villainess Level 99\'). Visibilité: Privée.', '5.49.246.18', '2026-07-16 19:39:39');
+INSERT INTO `audit_logs` VALUES(223, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-16 19:39:47');
+INSERT INTO `audit_logs` VALUES(224, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 13.', '5.49.246.18', '2026-07-16 23:53:17');
+INSERT INTO `audit_logs` VALUES(225, 2, 'Création Carte', 'Création de la carte ID 72 (\'Claude Code\'). Visibilité initiale: En attente.', '5.49.246.18', '2026-07-19 12:23:28');
+INSERT INTO `audit_logs` VALUES(226, 2, 'Modération : Approbation Carte', 'Le SuperAdmin a validé la nouvelle publication de la carte ID 72 (\'Claude Code\').', '5.49.246.18', '2026-07-19 12:23:32');
+INSERT INTO `audit_logs` VALUES(227, 2, 'Transfert Carte', 'La carte ID 72 (\'Claude Code\') a été transférée à l\'admin.', '5.49.246.18', '2026-07-19 12:23:40');
+INSERT INTO `audit_logs` VALUES(228, 2, 'Création Carte', 'Création de la carte ID 73 (\'Intranap du pec\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-19 16:26:59');
+INSERT INTO `audit_logs` VALUES(229, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '146.75.166.49', '2026-07-20 00:08:22');
+INSERT INTO `audit_logs` VALUES(230, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '104.28.42.14', '2026-07-20 16:01:56');
+INSERT INTO `audit_logs` VALUES(231, 2, 'Création Carte', 'Création de la carte ID 74 (\'Fit Analitics\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-20 22:33:03');
+INSERT INTO `audit_logs` VALUES(232, 2, 'Suppression Carte', 'Suppression de la carte ID 66 (\'Le Protecteur d\'Istanbul\').', '5.49.246.18', '2026-07-20 22:38:08');
+INSERT INTO `audit_logs` VALUES(233, 2, 'Mise à jour Carte', 'Modification de la carte ID 67 (\'The Witcher\'). Visibilité: Privée.', '5.49.246.18', '2026-07-21 17:46:20');
+INSERT INTO `audit_logs` VALUES(234, 2, 'Création Carte', 'Création de la carte ID 75 (\'Calculateur MG&M\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-24 15:25:22');
+INSERT INTO `audit_logs` VALUES(235, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-24 16:39:50');
+INSERT INTO `audit_logs` VALUES(236, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-24 16:43:42');
+INSERT INTO `audit_logs` VALUES(237, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-24 16:44:16');
+INSERT INTO `audit_logs` VALUES(238, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-24 16:44:29');
+INSERT INTO `audit_logs` VALUES(239, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 7 carte(s).', '5.49.246.18', '2026-07-25 12:51:21');
+INSERT INTO `audit_logs` VALUES(240, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 7 carte(s).', '5.49.246.18', '2026-07-25 12:51:29');
+INSERT INTO `audit_logs` VALUES(241, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 7 carte(s).', '5.49.246.18', '2026-07-25 12:51:36');
+INSERT INTO `audit_logs` VALUES(242, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-25 12:51:43');
+INSERT INTO `audit_logs` VALUES(243, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-25 13:08:49');
+INSERT INTO `audit_logs` VALUES(244, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-25 13:51:13');
+INSERT INTO `audit_logs` VALUES(245, 2, 'Réorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-25 13:51:15');
+INSERT INTO `audit_logs` VALUES(246, 2, 'Reorganisation', 'L\'utilisateur a modifie l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-25 14:15:15');
+INSERT INTO `audit_logs` VALUES(247, 2, 'Reorganisation', 'L\'utilisateur a modifie l\'ordre d\'affichage de 16 carte(s).', '5.49.246.18', '2026-07-25 14:15:16');
+INSERT INTO `audit_logs` VALUES(248, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-26 22:25:25');
+INSERT INTO `audit_logs` VALUES(249, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-26 22:49:58');
+INSERT INTO `audit_logs` VALUES(250, 2, 'Mise à jour Carte', 'Modification de la carte ID 34 (\'Tsugai - Daemons of the Shadow Realm\'). Visibilité: Privée.', '5.49.246.18', '2026-07-26 23:26:22');
+INSERT INTO `audit_logs` VALUES(251, 2, 'Création Carte', 'Création de la carte ID 76 (\'Ingoku Danchi\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-26 23:37:25');
+INSERT INTO `audit_logs` VALUES(252, 2, 'Mise à jour Carte', 'Modification de la carte ID 76 (\'Ingoku Danchi\'). Visibilité: Privée.', '5.49.246.18', '2026-07-26 23:37:52');
+INSERT INTO `audit_logs` VALUES(253, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-27 10:40:39');
+INSERT INTO `audit_logs` VALUES(254, 2, 'Mise à jour Carte', 'Modification de la carte ID 55 (\'BLACK TORCH\'). Visibilité: Privée.', '5.49.246.18', '2026-07-27 10:40:59');
+INSERT INTO `audit_logs` VALUES(255, 2, 'Reorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 17 carte(s).', '5.49.246.18', '2026-07-27 10:41:04');
+INSERT INTO `audit_logs` VALUES(256, 2, 'Reorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 17 carte(s).', '5.49.246.18', '2026-07-27 10:41:06');
+INSERT INTO `audit_logs` VALUES(257, 2, 'Création Carte', 'Création de la carte ID 77 (\'Ingoku Danchi : Deviant’s Apartment Complex\'). Visibilité initiale: Privée.', '5.49.246.18', '2026-07-27 10:44:23');
+INSERT INTO `audit_logs` VALUES(258, 2, 'Suppression Carte', 'Suppression de la carte ID 76 (\'Ingoku Danchi\').', '5.49.246.18', '2026-07-27 10:44:39');
+INSERT INTO `audit_logs` VALUES(259, 2, 'Mise à jour Carte', 'Modification de la carte ID 77 (\'Ingoku Danchi\'). Visibilité: Privée.', '5.49.246.18', '2026-07-27 10:44:58');
+INSERT INTO `audit_logs` VALUES(260, 2, 'Mise à jour Carte', 'Modification de la carte ID 69 (\'A Playthrough of a Certain Dude\'s VRMMO Life\'). Visibilité: Privée.', '5.49.246.18', '2026-07-27 10:45:53');
+INSERT INTO `audit_logs` VALUES(261, 2, 'Mise à jour Carte', 'Modification de la carte ID 68 (\'Arifureta\'). Visibilité: Privée.', '5.49.246.18', '2026-07-27 10:46:14');
+INSERT INTO `audit_logs` VALUES(262, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei: Jobless Reincarnation\'). Visibilité: Privée.', '5.49.246.18', '2026-07-27 14:01:17');
+INSERT INTO `audit_logs` VALUES(263, 2, 'Reorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 17 carte(s).', '5.49.246.18', '2026-07-27 14:01:41');
+INSERT INTO `audit_logs` VALUES(264, 2, 'Reorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 17 carte(s).', '5.49.246.18', '2026-07-27 14:01:45');
+INSERT INTO `audit_logs` VALUES(265, 2, 'Reorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 17 carte(s).', '5.49.246.18', '2026-07-27 14:01:47');
+INSERT INTO `audit_logs` VALUES(266, 2, 'Reorganisation', 'L\'utilisateur a modifié l\'ordre d\'affichage de 17 carte(s).', '5.49.246.18', '2026-07-27 14:01:50');
+INSERT INTO `audit_logs` VALUES(267, 2, 'Suppression Carte', 'Suppression de la carte ID 69 (\'A Playthrough of a Certain Dude\'s VRMMO Life\').', '5.49.246.18', '2026-07-27 14:42:53');
+INSERT INTO `audit_logs` VALUES(268, 2, 'Suppression Carte', 'Suppression de la carte ID 77 (\'Ingoku Danchi\').', '5.49.246.18', '2026-07-27 14:51:07');
+INSERT INTO `audit_logs` VALUES(269, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite \') : Épisode passé à 7.', '5.49.246.18', '2026-07-27 17:43:48');
+INSERT INTO `audit_logs` VALUES(270, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 35 (\'Classroom of the Elite \') : Épisode passé à 8.', '5.49.246.18', '2026-07-27 22:32:03');
+INSERT INTO `audit_logs` VALUES(271, 2, 'Mise à jour Carte', 'Modification de la carte ID 67 (\'The Witcher\'). Visibilité: Privée.', '5.49.246.18', '2026-07-28 00:22:01');
+INSERT INTO `audit_logs` VALUES(272, 2, 'Mise à jour Carte', 'Modification de la carte ID 67 (\'The Witcher\'). Visibilité: Privée.', '5.49.246.18', '2026-07-28 21:56:43');
+INSERT INTO `audit_logs` VALUES(273, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 14.', '5.49.246.18', '2026-07-28 22:46:27');
+INSERT INTO `audit_logs` VALUES(274, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 14.', '146.75.166.48', '2026-07-29 12:44:59');
+INSERT INTO `audit_logs` VALUES(275, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 15.', '5.49.246.18', '2026-07-30 12:41:31');
+INSERT INTO `audit_logs` VALUES(276, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 15.', '5.49.246.18', '2026-07-30 23:01:17');
+INSERT INTO `audit_logs` VALUES(277, 2, 'Maintenance Système', 'Scan de liens en arrière-plan : 30 domaines uniques testés pour 51 cartes. 1 carte(s) impactée(s).', '172.225.120.115', '2026-07-31 10:57:45');
+INSERT INTO `audit_logs` VALUES(278, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '172.225.120.115', '2026-07-31 10:58:16');
+INSERT INTO `audit_logs` VALUES(279, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 60 (\'The Originals\') : Épisode passé à 16.', '5.49.246.18', '2026-07-31 11:50:40');
+INSERT INTO `audit_logs` VALUES(280, 2, 'Incrémentation Rapide', 'Mise à jour de la carte ID 59 (\'Vampire Diaries\') : Épisode passé à 16.', '104.28.42.14', '2026-07-31 12:50:47');
+INSERT INTO `audit_logs` VALUES(281, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-08-01 17:32:35');
+INSERT INTO `audit_logs` VALUES(282, 2, 'Mise à jour Carte', 'Modification de la carte ID 60 (\'The Originals\'). Visibilité: Privée.', '5.49.246.18', '2026-08-01 17:33:19');
+INSERT INTO `audit_logs` VALUES(283, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '5.49.246.18', '2026-08-01 17:35:47');
+INSERT INTO `audit_logs` VALUES(284, 2, 'Mise à jour Carte', 'Modification de la carte ID 61 (\'Ordre de diffusion TVD & The originals\'). Visibilité: Privée.', '5.49.246.18', '2026-08-01 17:36:50');
 
 TRUNCATE TABLE `auth_groups_users`;
 INSERT INTO `auth_groups_users` VALUES(1, 1, 'superadmin', '2026-04-11 17:01:16');
@@ -253,74 +297,75 @@ INSERT INTO `auth_groups_users` VALUES(7, 4, 'user', '2026-05-29 22:30:45');
 INSERT INTO `auth_groups_users` VALUES(8, 5, 'user', '2026-06-17 20:17:27');
 
 TRUNCATE TABLE `auth_identities`;
-INSERT INTO `auth_identities` (`id`, `user_id`, `type`, `name`, `secret`, `secret2`, `expires`, `extra`, `force_reset`, `last_used_at`, `created_at`, `updated_at`) VALUES
-(1, 1, 'email_password', NULL, 'titisland@gmail.com', '$2y$12$fQQGOXUFz0cpRjQv6KEQKunD.NyN.foC2QF30zzcvm47qdRIHtW26', NULL, NULL, 0, '2026-07-08 11:18:31', '2026-04-11 17:01:16', '2026-07-08 11:18:31'),
-(2, 2, 'email_password', NULL, 'mathisfrances11@gmail.com', '$2y$12$MCy7X0OR/J0IAycNYTkrwOGAi2UygpbYVtakTyTZEOGJvE6b60BSa', NULL, NULL, 0, '2026-07-15 11:19:52', '2026-04-11 17:02:38', '2026-07-15 11:19:52'),
-(3, 2, 'magic-link', NULL, 'e3fc52dba64bd3b1958f', NULL, '2026-04-30 15:11:11', NULL, 0, NULL, '2026-04-30 14:11:11', '2026-04-30 14:11:11'),
-(4, 3, 'email_password', NULL, 'hugophilippe26@gmail.com', '$2y$12$9rKoqgP6n7E1vosN4EUWpu5L/lPLkyb9GrDKmIqJxQX9pzG/7drPG', NULL, NULL, 0, NULL, '2026-04-30 14:13:09', '2026-04-30 14:13:10'),
-(5, 4, 'email_password', NULL, 'mathisfrances111@gmail.com', '$2y$12$q4NTrCKkkMj3kINlncokHuDcbgPaDT2SDDooXI0R5asUjUwjK1pem', NULL, NULL, 0, '2026-07-07 14:51:37', '2026-05-29 22:30:44', '2026-07-07 14:51:37'),
-(6, 5, 'email_password', NULL, 'ambrefrances1@gmail.com', '$2y$12$AyjlWNvzet1MU5XhMJBDdeMjd9oGgFhKSGjIbtn3R25TWPeFUTfTG', NULL, NULL, 0, '2026-07-15 11:07:32', '2026-06-17 20:17:27', '2026-07-15 11:07:32');
+INSERT INTO `auth_identities` VALUES(1, 1, 'email_password', NULL, 'titisland@gmail.com', '$2y$12$fQQGOXUFz0cpRjQv6KEQKunD.NyN.foC2QF30zzcvm47qdRIHtW26', NULL, NULL, 0, '2026-07-08 11:18:31', '2026-04-11 17:01:16', '2026-07-08 11:18:31');
+INSERT INTO `auth_identities` VALUES(2, 2, 'email_password', NULL, 'mathisfrances11@gmail.com', '$2y$12$MCy7X0OR/J0IAycNYTkrwOGAi2UygpbYVtakTyTZEOGJvE6b60BSa', NULL, NULL, 0, '2026-07-30 23:00:33', '2026-04-11 17:02:38', '2026-07-30 23:00:33');
+INSERT INTO `auth_identities` VALUES(3, 2, 'magic-link', NULL, 'e3fc52dba64bd3b1958f', NULL, '2026-04-30 15:11:11', NULL, 0, NULL, '2026-04-30 14:11:11', '2026-04-30 14:11:11');
+INSERT INTO `auth_identities` VALUES(4, 3, 'email_password', NULL, 'hugophilippe26@gmail.com', '$2y$12$9rKoqgP6n7E1vosN4EUWpu5L/lPLkyb9GrDKmIqJxQX9pzG/7drPG', NULL, NULL, 0, NULL, '2026-04-30 14:13:09', '2026-04-30 14:13:10');
+INSERT INTO `auth_identities` VALUES(5, 4, 'email_password', NULL, 'mathisfrances111@gmail.com', '$2y$12$q4NTrCKkkMj3kINlncokHuDcbgPaDT2SDDooXI0R5asUjUwjK1pem', NULL, NULL, 0, '2026-07-07 14:51:37', '2026-05-29 22:30:44', '2026-07-07 14:51:37');
+INSERT INTO `auth_identities` VALUES(6, 5, 'email_password', NULL, 'ambrefrances1@gmail.com', '$2y$12$AyjlWNvzet1MU5XhMJBDdeMjd9oGgFhKSGjIbtn3R25TWPeFUTfTG', NULL, NULL, 0, '2026-07-15 11:07:32', '2026-06-17 20:17:27', '2026-07-15 11:07:32');
 
 TRUNCATE TABLE `auth_logins`;
-INSERT INTO `auth_logins` (`id`, `ip_address`, `user_agent`, `id_type`, `identifier`, `user_id`, `date`, `success`) VALUES
-(1, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-05-29 22:30:56', 1),
-(2, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances111@gmail.com', 4, '2026-05-29 22:31:26', 1),
-(3, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-05-29 22:33:06', 1),
-(4, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 22:14:48', 1),
-(5, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 23:00:29', 1),
-(6, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 23:14:49', 1),
-(7, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 23:41:18', 1),
-(8, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 23:45:27', 1),
-(9, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-07 18:01:20', 1),
-(10, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-06-10 16:17:47', 1),
-(11, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-10 21:34:24', 1),
-(12, '104.28.42.28', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-13 20:36:05', 1),
-(13, '140.248.41.24', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-20 00:24:44', 1),
-(14, '140.248.41.25', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-20 19:42:08', 1),
-(15, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-20 22:46:27', 1),
-(16, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-22 14:06:22', 1),
-(17, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-22 22:06:31', 1),
-(18, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-23 16:01:52', 1),
-(19, '172.225.120.110', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-25 12:05:03', 1),
-(20, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-25 12:05:12', 1),
-(21, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-06-25 12:19:36', 1),
-(22, '5.49.246.18', 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/30.0 Chrome/143.0.0.0 Mobile Safari/537.36', 'email_password', 'ambrefrances1@gmail.com', 5, '2026-06-25 12:23:05', 1),
-(23, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-25 12:26:30', 1),
-(24, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-01 23:46:27', 1),
-(25, '5.49.246.18', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1 OPT/6.6.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-02 17:36:12', 1),
-(26, '104.28.42.18', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-03 13:47:02', 1),
-(27, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-03 16:59:39', 1),
-(28, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-07-07 14:49:55', 1),
-(29, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances111@gmail.com', 4, '2026-07-07 14:51:37', 1),
-(30, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-07 14:52:04', 1),
-(31, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-07 15:33:30', 1),
-(32, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-07-07 15:33:41', 1),
-(33, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-07 15:36:40', 1),
-(34, '140.248.41.25', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:13:47', 0),
-(35, '140.248.41.25', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:13:57', 0),
-(36, '146.75.166.49', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:15:28', 0),
-(37, '146.75.166.49', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'titisland@gmail.com', 1, '2026-07-08 11:15:37', 1),
-(38, '146.75.166.49', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:17:55', 0),
-(39, '104.28.42.14', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:18:09', 0),
-(40, '146.75.166.49', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'titisland@gmail.com', 1, '2026-07-08 11:18:31', 1),
-(41, '104.28.42.27', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-08 11:19:52', 1),
-(42, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-10 22:39:53', 1),
-(43, '140.248.41.24', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-11 21:49:50', 1),
-(44, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-12 15:14:01', 1),
-(45, '5.49.246.18', 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/30.0 Chrome/143.0.0.0 Mobile Safari/537.36', 'email_password', 'ambrefrances1@gmail.com', 5, '2026-07-15 11:07:32', 1),
-(46, '5.49.246.18', 'Mozilla/5.0 (SMART-TV; Linux; Tizen 8.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/7.0 Chrome/120.0.6099.5 TV Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-15 11:19:52', 1);
+INSERT INTO `auth_logins` VALUES(1, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-05-29 22:30:56', 1);
+INSERT INTO `auth_logins` VALUES(2, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances111@gmail.com', 4, '2026-05-29 22:31:26', 1);
+INSERT INTO `auth_logins` VALUES(3, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-05-29 22:33:06', 1);
+INSERT INTO `auth_logins` VALUES(4, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 22:14:48', 1);
+INSERT INTO `auth_logins` VALUES(5, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 23:00:29', 1);
+INSERT INTO `auth_logins` VALUES(6, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 23:14:49', 1);
+INSERT INTO `auth_logins` VALUES(7, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 23:41:18', 1);
+INSERT INTO `auth_logins` VALUES(8, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-03 23:45:27', 1);
+INSERT INTO `auth_logins` VALUES(9, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-07 18:01:20', 1);
+INSERT INTO `auth_logins` VALUES(10, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-06-10 16:17:47', 1);
+INSERT INTO `auth_logins` VALUES(11, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-10 21:34:24', 1);
+INSERT INTO `auth_logins` VALUES(12, '104.28.42.28', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-13 20:36:05', 1);
+INSERT INTO `auth_logins` VALUES(13, '140.248.41.24', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-20 00:24:44', 1);
+INSERT INTO `auth_logins` VALUES(14, '140.248.41.25', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-20 19:42:08', 1);
+INSERT INTO `auth_logins` VALUES(15, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-20 22:46:27', 1);
+INSERT INTO `auth_logins` VALUES(16, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-22 14:06:22', 1);
+INSERT INTO `auth_logins` VALUES(17, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-22 22:06:31', 1);
+INSERT INTO `auth_logins` VALUES(18, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-23 16:01:52', 1);
+INSERT INTO `auth_logins` VALUES(19, '172.225.120.110', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-25 12:05:03', 1);
+INSERT INTO `auth_logins` VALUES(20, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-25 12:05:12', 1);
+INSERT INTO `auth_logins` VALUES(21, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-06-25 12:19:36', 1);
+INSERT INTO `auth_logins` VALUES(22, '5.49.246.18', 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/30.0 Chrome/143.0.0.0 Mobile Safari/537.36', 'email_password', 'ambrefrances1@gmail.com', 5, '2026-06-25 12:23:05', 1);
+INSERT INTO `auth_logins` VALUES(23, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-06-25 12:26:30', 1);
+INSERT INTO `auth_logins` VALUES(24, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-01 23:46:27', 1);
+INSERT INTO `auth_logins` VALUES(25, '5.49.246.18', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1 OPT/6.6.1', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-02 17:36:12', 1);
+INSERT INTO `auth_logins` VALUES(26, '104.28.42.18', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-03 13:47:02', 1);
+INSERT INTO `auth_logins` VALUES(27, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-03 16:59:39', 1);
+INSERT INTO `auth_logins` VALUES(28, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-07-07 14:49:55', 1);
+INSERT INTO `auth_logins` VALUES(29, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances111@gmail.com', 4, '2026-07-07 14:51:37', 1);
+INSERT INTO `auth_logins` VALUES(30, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-07 14:52:04', 1);
+INSERT INTO `auth_logins` VALUES(31, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-07 15:33:30', 1);
+INSERT INTO `auth_logins` VALUES(32, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'titisland@gmail.com', 1, '2026-07-07 15:33:41', 1);
+INSERT INTO `auth_logins` VALUES(33, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-07 15:36:40', 1);
+INSERT INTO `auth_logins` VALUES(34, '140.248.41.25', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:13:47', 0);
+INSERT INTO `auth_logins` VALUES(35, '140.248.41.25', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:13:57', 0);
+INSERT INTO `auth_logins` VALUES(36, '146.75.166.49', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:15:28', 0);
+INSERT INTO `auth_logins` VALUES(37, '146.75.166.49', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'titisland@gmail.com', 1, '2026-07-08 11:15:37', 1);
+INSERT INTO `auth_logins` VALUES(38, '146.75.166.49', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:17:55', 0);
+INSERT INTO `auth_logins` VALUES(39, '104.28.42.14', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', NULL, '2026-07-08 11:18:09', 0);
+INSERT INTO `auth_logins` VALUES(40, '146.75.166.49', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'titisland@gmail.com', 1, '2026-07-08 11:18:31', 1);
+INSERT INTO `auth_logins` VALUES(41, '104.28.42.27', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-08 11:19:52', 1);
+INSERT INTO `auth_logins` VALUES(42, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-10 22:39:53', 1);
+INSERT INTO `auth_logins` VALUES(43, '140.248.41.24', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-11 21:49:50', 1);
+INSERT INTO `auth_logins` VALUES(44, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-12 15:14:01', 1);
+INSERT INTO `auth_logins` VALUES(45, '5.49.246.18', 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/30.0 Chrome/143.0.0.0 Mobile Safari/537.36', 'email_password', 'ambrefrances1@gmail.com', 5, '2026-07-15 11:07:32', 1);
+INSERT INTO `auth_logins` VALUES(46, '5.49.246.18', 'Mozilla/5.0 (SMART-TV; Linux; Tizen 8.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/7.0 Chrome/120.0.6099.5 TV Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-15 11:19:52', 1);
+INSERT INTO `auth_logins` VALUES(47, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-24 20:03:41', 1);
+INSERT INTO `auth_logins` VALUES(48, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-07-30 23:00:33', 1);
 
 TRUNCATE TABLE `auth_permissions_users`;
 TRUNCATE TABLE `auth_remember_tokens`;
-INSERT INTO `auth_remember_tokens` (`id`, `selector`, `hashedValidator`, `user_id`, `expires`, `created_at`, `updated_at`) VALUES
-(28, '0c0a3d01723574cefa10d769', '85107563faa039ceec83fe361732ff72c9dbbc3ea47f2796dca37bd7ee1761b1', 5, '2026-08-05 15:40:16', '2026-06-25 12:23:05', '2026-07-06 15:40:16'),
-(39, '439288b52c564adfbf874b4e', 'd5b6ab505de52b7ef2c2c7fc5129220c9f4ad0d8e5dcf7b1ff59469a80b7d26e', 2, '2026-08-09 22:39:34', '2026-07-07 15:36:40', '2026-07-10 22:39:34'),
-(42, '9564a5488216a8efafd42146', '9dce6cb90deaeb25b83fef3595555010cfe531d87ef9da58debac61644ae3ce1', 2, '2026-08-08 15:02:14', '2026-07-08 11:19:52', '2026-07-09 15:02:14'),
-(43, '845107a4e405668222a9a3e3', 'c9115e367fe6968a1e2a30cd8f9fbbdd22db379eb99373ed07229164c58d5700', 2, '2026-08-10 22:29:21', '2026-07-10 22:39:53', '2026-07-11 22:29:21'),
-(44, 'cab24a24891c44add12b6b9e', 'a81a5f84b45dafb43d64f833d5a741d8e45edf0cf22860e025e7c03426bbd192', 2, '2026-08-19 16:01:39', '2026-07-11 21:49:50', '2026-07-20 16:01:39'),
-(45, '17c38167a289ed368a4cfa77', 'bec761b4d9a0df4d43596a4cdfe52791fa211303ad68ced0068b05dd6b2d1f41', 2, '2026-08-23 15:24:59', '2026-07-12 15:14:01', '2026-07-24 15:24:59'),
-(46, '935ebf6041b188069b2660a1', '83c1898c55118ac719671052785e62dd548c5a61c6dd5f01ba9faf38c338f037', 5, '2026-08-15 11:24:12', '2026-07-15 11:07:32', '2026-07-16 11:24:12'),
-(47, '803b87ca67c99d1a0e5cbc8d', 'e1741896b7d41ff600409982fb1346bd9e7b44bc697594199ef01f2503be309e', 2, '2026-08-15 10:26:12', '2026-07-15 11:19:52', '2026-07-16 10:26:12');
+INSERT INTO `auth_remember_tokens` VALUES(28, '0c0a3d01723574cefa10d769', '85107563faa039ceec83fe361732ff72c9dbbc3ea47f2796dca37bd7ee1761b1', 5, '2026-08-05 15:40:16', '2026-06-25 12:23:05', '2026-07-06 15:40:16');
+INSERT INTO `auth_remember_tokens` VALUES(39, '439288b52c564adfbf874b4e', 'd5b6ab505de52b7ef2c2c7fc5129220c9f4ad0d8e5dcf7b1ff59469a80b7d26e', 2, '2026-08-09 22:39:34', '2026-07-07 15:36:40', '2026-07-10 22:39:34');
+INSERT INTO `auth_remember_tokens` VALUES(42, '9564a5488216a8efafd42146', '9dce6cb90deaeb25b83fef3595555010cfe531d87ef9da58debac61644ae3ce1', 2, '2026-08-08 15:02:14', '2026-07-08 11:19:52', '2026-07-09 15:02:14');
+INSERT INTO `auth_remember_tokens` VALUES(43, '845107a4e405668222a9a3e3', 'c9115e367fe6968a1e2a30cd8f9fbbdd22db379eb99373ed07229164c58d5700', 2, '2026-08-10 22:29:21', '2026-07-10 22:39:53', '2026-07-11 22:29:21');
+INSERT INTO `auth_remember_tokens` VALUES(44, 'cab24a24891c44add12b6b9e', '925c1a2bf105d246ac524454a7d5828d33262f1ad69012b64264d5c2e18c3f1d', 2, '2026-08-30 10:57:21', '2026-07-11 21:49:50', '2026-07-31 10:57:21');
+INSERT INTO `auth_remember_tokens` VALUES(45, '17c38167a289ed368a4cfa77', 'bec761b4d9a0df4d43596a4cdfe52791fa211303ad68ced0068b05dd6b2d1f41', 2, '2026-08-23 15:24:59', '2026-07-12 15:14:01', '2026-07-24 15:24:59');
+INSERT INTO `auth_remember_tokens` VALUES(46, '935ebf6041b188069b2660a1', '183b014d3508b8cc597b7c7cc1bd73cc3b6ea83418b2daab640d4a5010b719c7', 5, '2026-08-31 15:10:25', '2026-07-15 11:07:32', '2026-08-01 15:10:25');
+INSERT INTO `auth_remember_tokens` VALUES(47, '803b87ca67c99d1a0e5cbc8d', '169bbbc54fb96da8c7b5c2154411500b2d749a4e7499bad93b5d3fa05384155e', 2, '2026-08-30 10:57:44', '2026-07-15 11:19:52', '2026-07-31 10:57:44');
+INSERT INTO `auth_remember_tokens` VALUES(48, '6ffc7a513024bc5e0372a4a1', 'cbd765fb012287a1f3ecce93f52c38bfcdb94f36c2ce0c005cec61f06ddd2313', 2, '2026-08-29 23:00:27', '2026-07-24 20:03:41', '2026-07-30 23:00:27');
+INSERT INTO `auth_remember_tokens` VALUES(49, 'c95f0001441335707ce12c85', 'a7fff061a729307110b78caeb89848c7cd8276fc097dfda8251cb645a3c36d94', 2, '2026-08-31 17:31:27', '2026-07-30 23:00:33', '2026-08-01 17:31:27');
 
 TRUNCATE TABLE `auth_token_logins`;
 TRUNCATE TABLE `cron_logs`;
