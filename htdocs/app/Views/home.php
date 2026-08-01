@@ -1,6 +1,5 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
-
 <?php if (!auth()->loggedIn()) { ?>
 <div class="empty-state shadow-card">
     <h2>Bienvenue sur AMFS Dashboard</h2>
@@ -46,7 +45,6 @@
     <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success">+ Ajouter une carte</a>
 </div>
 <?php } ?>
-
 <?php if (empty($groupedItems)) { ?>
 <?php if (auth()->loggedIn()) { ?>
 <div class="empty-state">
@@ -61,14 +59,11 @@
 </div>
 <?php } ?>
 <?php } else { ?>
-
 <div class="search-container" style="margin-bottom: 2rem;">
     <input type="text" id="liveSearch" class="form-control" placeholder="Rechercher une œuvre... (titre, description)"
         autocomplete="off">
 </div>
-
 <?php $openDivision = $_GET['open'] ?? null; ?>
-
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
     <h2 class="header-title">
@@ -111,7 +106,6 @@
                                 }
                             }
                         ?>
-
                         <div class="date-container" id="date-container-<?php echo $item->id; ?>">
                             <?php if ($isFuture) { ?>
                             <p class="card-date" style="<?php echo $textColor; ?>">
@@ -120,21 +114,31 @@
                             <?php } ?>
                         </div>
 
-                        <?php if ('Terminé' !== $item->status && str_contains($item->getFinalLink(), 'voir-anime.to')) { ?>
+                        <?php 
+                        // Liste des domaines supportés par le système de vérification
+                        $supportedDomains = ['voir-anime.to', 'scan-vf.net'];
+                        $isCheckable = false;
+                        foreach ($supportedDomains as $domain) {
+                            if (str_contains($item->getFinalLink(), $domain)) {
+                                $isCheckable = true;
+                                break;
+                            }
+                        }
+                        
+                        if ('Terminé' !== $item->status && $isCheckable) { 
+                        ?>
                         <div class="live-status" id="live-status-<?php echo $item->id; ?>"
                             style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
-                            ⏳ Vérification...
+                            Vérification...
                         </div>
                         <?php } ?>
 
                         <h4 class="card-title search-target-title" style="<?php echo $textColor; ?>">
                             <?php echo htmlspecialchars($item->titre); ?>
                         </h4>
-
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
                             <?php echo htmlspecialchars($item->status); ?>
                         </p>
-
                         <?php
                         $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
                         $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
@@ -149,13 +153,11 @@
                             <?php } ?>
                         </div>
                         <?php } ?>
-
                         <?php if (!empty($item->description)) { ?>
                         <p class="card-desc search-target-desc">
                             <?php echo htmlspecialchars($item->description); ?>
                         </p>
                         <?php } ?>
-
                         <div class="card-badges">
                             <?php if (!empty($item->saison)) { ?>
                             <span class="badge badge-season">Saison
@@ -180,7 +182,6 @@
                         <?php } ?>
                     </div>
                 </a>
-
                 <?php if (1 == $item->is_public) { ?>
                 <button type="button" class="btn-report-sm" data-id="<?php echo esc($item->id); ?>"
                     onclick="openReportModal(this)">
@@ -191,7 +192,6 @@
                     </svg>
                 </button>
                 <?php } ?>
-
                 <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                 <div class="card-actions-bottom">
                     <a href="<?php echo base_url('item/form/'.$item->id); ?>" class="btn-icon btn-edit-sm">Modifier</a>
@@ -208,5 +208,4 @@
 </section>
 <?php } ?>
 <?php } ?>
-
 <?php echo $this->endSection(); ?>

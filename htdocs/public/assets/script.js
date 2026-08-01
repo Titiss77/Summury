@@ -4,7 +4,6 @@
 window.showToast = function(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
-
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerText = message;
@@ -17,13 +16,12 @@ window.showToast = function(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
     }, 4000);
-};
+}
 
 // ==========================================
 // INITIALISATION DES ELEMENTS DU DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-
     function svgWithColor($color) {
         if ($color === 'Sombre') {
             return `
@@ -70,7 +68,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.setAttribute('data-theme', switchToTheme);
             document.documentElement.setAttribute('data-bs-theme', switchToTheme);
             localStorage.setItem('theme', switchToTheme);
+
             themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
+
             if(metaThemeColor) {
                 metaThemeColor.setAttribute('content', switchToTheme === 'dark' ? '#09090b' : '#fcfcfd');
             }
@@ -85,16 +85,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (textarea && charCount) {
         const maxLength = textarea.getAttribute('maxlength');
-
+        
         function updateCounter() {
             const currentLength = textarea.value.length;
             charCount.textContent = `${currentLength} / ${maxLength}`;
+            
             if (currentLength >= maxLength) {
                 charCount.style.color = 'var(--danger)';
             } else {
                 charCount.style.color = 'var(--text-muted)';
             }
         }
+        
         updateCounter();
         textarea.addEventListener('input', updateCounter);
     }
@@ -165,18 +167,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const svgEyeSlash = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>`;
 
     document.querySelectorAll('.password-toggle').forEach(btn => {
-        // Initialisation : on met l'oeil par défaut
         btn.innerHTML = svgEye;
-
         btn.addEventListener('click', function() {
             const wrapper = this.closest('.password-wrapper');
             const input = wrapper.querySelector('input');
+            
             if (input.type === 'password') {
                 input.type = 'text';
-                this.innerHTML = svgEyeSlash; // Injection du SVG
+                this.innerHTML = svgEyeSlash;
             } else {
                 input.type = 'password';
-                this.innerHTML = svgEye; // Injection du SVG
+                this.innerHTML = svgEye;
             }
         });
     });
@@ -185,11 +186,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // 7. RECHERCHE EN DIRECT (Live Search)
     // ==========================================
     const searchInput = document.getElementById('liveSearch');
+
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
             const term = e.target.value.toLowerCase();
-            const cards = document.querySelectorAll('.searchable-card, .card'); 
-
+            const cards = document.querySelectorAll('.searchable-card, .card');
+            
             cards.forEach(card => {
                 const title = card.querySelector('.card-title, .search-target-title')?.innerText.toLowerCase() || '';
                 const desc = card.querySelector('.card-desc, .search-target-desc')?.innerText.toLowerCase() || '';
@@ -213,14 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 handle: '.drag-handle',
-                delay: 200,             
+                delay: 200, 
                 delayOnTouchOnly: true, 
                 onEnd: async function(evt) {
-                    if (evt.oldIndex === evt.newIndex) return; 
-
+                    if (evt.oldIndex === evt.newIndex) return;
+                    
                     var itemEls = el.querySelectorAll('.card');
                     var newOrder = [];
-
+                    
                     itemEls.forEach(function(item) {
                         var id = item.getAttribute('data-id');
                         if (id) newOrder.push(id);
@@ -236,7 +238,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             },
                             body: JSON.stringify({ order: newOrder })
                         });
-
                         const data = await response.json();
                         
                         if (data.csrf_token) {
@@ -276,6 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const statusTxt = document.getElementById('api-status');
             statusTxt.style.display = 'inline';
             statusTxt.innerText = 'Recherche en cours...';
+            
             resultsContainer.innerHTML = '';
             resultsContainer.style.display = 'none';
 
@@ -391,6 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     statusTxt.innerText = 'Aucun resultat';
                     resultsContainer.style.display = 'none';
                 }
+
             } catch (e) {
                 console.error("Erreur Fetch API:", e);
                 statusTxt.innerText = 'Erreur serveur';
@@ -443,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const type = prompt("Que souhaitez-vous signaler ?\nTapez 1 pour : Lien mort\nTapez 2 pour : Autre problème");
         
         if (!type) return; 
-        
+
         let issueType = 'autre';
         if (type === '1') issueType = 'lien_mort';
         if (type === '2') issueType = 'bug';
@@ -486,14 +489,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof showToast === 'function') showToast("Une erreur réseau est survenue.", "danger");
         }
     };
-
 }); // Fin DOMContentLoaded
+
 
 // ==========================================
 // 11. VÉRIFICATION DE DISPONIBILITÉ EN DIRECT
 // ==========================================
 window.addEventListener('load', function() {
     const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
+    
+    // --- Configuration des domaines valides pour la vérification ---
+    const supportedDomains = ['voir-anime.to', 'scan-vf.net'];
     
     // Le forEach n'attend pas la fin de la promesse pour passer à l'itération suivante
     cardsToCheck.forEach(async function(card) {
@@ -502,7 +508,9 @@ window.addEventListener('load', function() {
         const statusDiv = document.getElementById(`live-status-${itemId}`);
         const dateContainer = document.getElementById(`date-container-${itemId}`);
 
-        if (!url || !url.includes('voir-anime.to')) {
+        const isSupported = url && supportedDomains.some(domain => url.includes(domain));
+
+        if (!isSupported) {
             if (statusDiv) statusDiv.style.display = 'none';
             return; // Remplace le 'continue' de la boucle for
         }
@@ -523,7 +531,7 @@ window.addEventListener('load', function() {
             
             const data = await response.json();
 
-            // Quel que soit le résultat, on fait disparaître le texte "⏳ Vérification..."
+            // Quel que soit le résultat, on fait disparaître le texte "Vérification..."
             if (statusDiv) {
                 statusDiv.style.display = 'none';
             }
@@ -540,7 +548,7 @@ window.addEventListener('load', function() {
                 if (dateContainer) {
                     dateContainer.style.display = 'block';
                     if (dateContainer.innerHTML.trim() === '') {
-                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger); cursor: help;" title="L'épisode n'est pas encore mis en ligne ou la saison s'est terminée.">Episode non disponible.</p>`;
+                        dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger); cursor: help;" title="L'épisode/chapitre n'est pas encore mis en ligne ou la saison s'est terminée.">Episode non disponible.</p>`;
                     }
                 }
             }
