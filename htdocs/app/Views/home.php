@@ -80,7 +80,8 @@
         </summary>
         <div class="cards-grid sortable-grid">
             <?php foreach ($items as $item) { ?>
-            <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : 'needs-dispo-check'; ?>"
+            <!-- NOUVEAU: on ajoute needs-dispo-check SEULEMENT si un épisode est défini -->
+            <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : (!empty($item->episode) ? 'needs-dispo-check' : ''); ?>"
                 data-id="<?php echo esc($item->id); ?>"
                 data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
                 <div class="drag-handle"
@@ -115,9 +116,9 @@
                         </div>
 
                         <?php 
-                        // Utilisation de la variable passée par le contrôleur depuis la BDD
                         $isCheckable = false;
-                        if (isset($supportedDomains) && is_array($supportedDomains)) {
+                        // NOUVEAU: On ne lance l'indicateur visuel que s'il y a un épisode
+                        if (!empty($item->episode) && isset($supportedDomains) && is_array($supportedDomains)) {
                             foreach ($supportedDomains as $domain) {
                                 if (str_contains($item->getFinalLink(), $domain)) {
                                     $isCheckable = true;

@@ -379,9 +379,6 @@ class ItemController extends BaseController
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
-        // ==========================================
-        // RÉCUPÉRATION DES RÈGLES DEPUIS LA BDD
-        // ==========================================
         $siteConfigModel = new SiteConfigModel();
         $sites = $siteConfigModel->where('is_active', 1)->findAll();
 
@@ -400,11 +397,9 @@ class ItemController extends BaseController
             ]);
         }
 
-        // Extraction de l'épisode / chapitre selon la regex du site ciblé
         preg_match($currentConfig['regex_episode'], $urlCible, $matches);
         $episodeExtrait = $matches[1] ?? null;
 
-        // Décodage des champs JSON de la base de données
         $indicateursPageInvalide = json_decode($currentConfig['indicateurs_page_invalide'], true) ?? [];
         $indicateursLecteur = json_decode($currentConfig['indicateurs_lecteur'], true) ?? [];
 
@@ -438,6 +433,14 @@ class ItemController extends BaseController
                 }
             }
 
+            // NOUVEAU: Si le scraper atterrit sur une fiche générique, on stoppe la vérification silencieusement.
+            if ($estSurFicheAnime) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'error'   => 'Page générique (fiche) détectée. Vérification ignorée.'
+                ]);
+            }
+
             preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleMatches);
             $titrePage = isset($titleMatches[1]) ? trim($titleMatches[1]) : '';
             
@@ -457,7 +460,7 @@ class ItemController extends BaseController
                 }
             }
             
-            $estDisponible = !$estSurFicheAnime && ($titreContientEpisode || $lecteurPresent);
+            $estDisponible = ($titreContientEpisode || $lecteurPresent);
 
             return $this->response->setJSON([
                 'success'    => true,
