@@ -115,14 +115,14 @@
                         </div>
 
                         <?php 
-                        // On récupère dynamiquement les domaines depuis la constante du contrôleur
-                        $supportedDomains = array_keys(\App\Controllers\ItemController::SITES_CONFIG);
-                        
+                        // Utilisation de la variable passée par le contrôleur depuis la BDD
                         $isCheckable = false;
-                        foreach ($supportedDomains as $domain) {
-                            if (str_contains($item->getFinalLink(), $domain)) {
-                                $isCheckable = true;
-                                break;
+                        if (isset($supportedDomains) && is_array($supportedDomains)) {
+                            foreach ($supportedDomains as $domain) {
+                                if (str_contains($item->getFinalLink(), $domain)) {
+                                    $isCheckable = true;
+                                    break;
+                                }
                             }
                         }
                         
@@ -212,7 +212,7 @@
 
 <!-- Injection des domaines supportés vers le JavaScript -->
 <script>
-window.amfsSupportedDomains = <?php echo json_encode(array_keys(\App\Controllers\ItemController::SITES_CONFIG)); ?>;
+window.amfsSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
 </script>
 
 <?php echo $this->endSection(); ?>

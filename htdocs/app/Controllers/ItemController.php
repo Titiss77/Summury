@@ -8,27 +8,11 @@ use App\Entities\Item;
 use App\Models\AuditLogModel;
 use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
+use App\Models\SiteConfigModel;
 use Config\Services;
 
 class ItemController extends BaseController
 {
-    // ==========================================
-    // CONFIGURATION DES RÈGLES DE SITES
-    // ==========================================
-    // Centralisation des domaines supportés et de leurs règles d'extraction
-    public const SITES_CONFIG = [
-        'voir-anime.to' => [
-            'regex_episode' => '/-(\d+)-vostfr/i',
-            'indicateurs_page_invalide' => ['Premier EP', 'Dernier EP'],
-            'indicateurs_lecteur' => ['class="lecteur"', '<iframe', 'Lecteur'],
-        ],
-        'scan-vf.net' => [
-            'regex_episode' => '/chapitre-(\d+)/i',
-            'indicateurs_page_invalide' => ['Liste des chapitres', 'Manga en cours'],
-            'indicateurs_lecteur' => ['img-responsive', 'img-fluid', 'pages_container'],
-        ]
-    ];
-
     private $model;
 
     public function __construct()
