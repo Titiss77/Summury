@@ -379,7 +379,7 @@ class ItemController extends BaseController
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
-        $siteConfigModel = new SiteConfigModel();
+        $siteConfigModel = new \App\Models\SiteConfigModel();
         $sites = $siteConfigModel->where('is_active', 1)->findAll();
 
         $currentConfig = null;
@@ -415,6 +415,7 @@ class ItemController extends BaseController
 
             $response = $client->get($urlCible);
             
+            // Si la page est en 404 (Introuvable)
             if ($response->getStatusCode() === 404) {
                 return $this->response->setJSON([
                     'success'    => true,
@@ -425,6 +426,7 @@ class ItemController extends BaseController
 
             $html = (string) $response->getBody();
 
+            // Vérification 1 : Est-on redirigé sur une fiche globale au lieu de l'épisode ?
             $estSurFicheAnime = false;
             foreach ($indicateursPageInvalide as $indicator) {
                 if (stripos($html, $indicator) !== false) {
@@ -433,41 +435,26 @@ class ItemController extends BaseController
                 }
             }
 
-            // NOUVEAU: Si le scraper atterrit sur une fiche générique, on stoppe la vérification silencieusement.
-            if ($estSurFicheAnime) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'error'   => 'Page générique (fiche) détectée. Vérification ignorée.'
-                ]);
-            }
-
-            preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleMatches);
-            $titrePage = isset($titleMatches[1]) ? trim($titleMatches[1]) : '';
-            
-            $titreContientEpisode = false;
-            if ($episodeExtrait) {
-                $epNum = (int)$episodeExtrait;
-                $titreContientEpisode = (stripos($titrePage, $episodeExtrait) !== false) || 
-                                        (stripos($titrePage, "Episode {$epNum}") !== false) ||
-                                        (stripos($titrePage, "Chapitre {$epNum}") !== false);
-            }
-
+            // Vérification 2 : Y a-t-il le lecteur vidéo (avec remplacement de {ep}) ?
             $lecteurPresent = false;
             foreach ($indicateursLecteur as $indicator) {
-                if (stripos($html, $indicator) !== false) {
+                $indicatorFinal = $episodeExtrait ? str_replace('{ep}', (string)$episodeExtrait, $indicator) : $indicator;
+
+                if (stripos($html, $indicatorFinal) !== false) {
                     $lecteurPresent = true;
                     break;
                 }
             }
             
-            $estDisponible = ($titreContientEpisode || $lecteurPresent);
+            // L'ÉQUATION FINALE CORRIGÉE : 
+            // C'est disponible uniquement si on n'est PAS sur une fiche ET que le lecteur est présent.
+            $estDisponible = !$estSurFicheAnime && $lecteurPresent;
 
             return $this->response->setJSON([
-                'success'    => true,
+                'success'    => true, // On renvoie "true" pour que le Javascript traite la réponse
                 'disponible' => $estDisponible,
                 'details'    => [
                     'estSurFicheAnime' => $estSurFicheAnime,
-                    'titrePage'        => $titrePage,
                     'lecteurPresent'   => $lecteurPresent,
                     'episodeDetecte'   => $episodeExtrait
                 ]
