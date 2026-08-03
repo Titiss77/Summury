@@ -145,6 +145,25 @@
         ),
       ),
     ),
+    'Language/fr/HTTP.php' => 
+    array (
+      'php' => 
+      array (
+        0 => 
+        array (
+        ),
+      ),
+    ),
+    'Language/en/HTTP.php' => 
+    array (
+      'php' => 
+      array (
+        0 => 
+        array (
+          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Language\\en\\HTTP.php',
+        ),
+      ),
+    ),
   ),
   'findQualifiedNameFromPath' => 
   array (
