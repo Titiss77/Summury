@@ -5,6 +5,35 @@ All notable changes to this library will be documented in this file:
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.28.5](https://github.com/NexusPHP/cs-config/compare/v3.28.4...v3.28.5) - 2026-05-16
+
+- Fix listing of `phpdoc_separation` based on feedback
+
+## [v3.28.4](https://github.com/NexusPHP/cs-config/compare/v3.28.3...v3.28.4) - 2026-05-15
+
+- Update listing in `phpdoc_separation`
+
+## [v3.28.3](https://github.com/NexusPHP/cs-config/compare/v3.28.2...v3.28.3) - 2026-04-17
+
+- Bump actions/cache from 5.0.4 to 5.0.5 (#13)
+- Make minimum number of promoted properties to 3 before multilining
+- Change option for `native_constant_invocation`
+- Disable `final_public_method_for_abstract_class`
+
+## [v3.28.2](https://github.com/NexusPHP/cs-config/compare/v3.28.1...v3.28.2) - 2026-04-12
+
+- Enforce security hardening for workflows
+- Bump shivammathur/setup-php from 2.36.0 to 2.37.0 (#12)
+- Bump actions/cache from 5.0.3 to 5.0.4 (#11)
+- Bump to php-cs-fixer v3.95
+- Fix deprecated fixer and option
+- Add `no_whitespace_in_empty_array` fixer
+- Add new options to fixers
+- Fix .gitattributes
+- Allow phpunit:^13.0
+- Fix workflows
+- Add `/generate-changelog` skill
+
 ## [v3.28.1](https://github.com/NexusPHP/cs-config/compare/v3.28.0...v3.28.1) - 2026-02-22
 
 - Use `null` value for `other` option of `phpdoc_line_span`

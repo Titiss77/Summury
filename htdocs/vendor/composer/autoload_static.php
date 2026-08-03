@@ -82,6 +82,7 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'E' => 
         array (
             'Evenement\\' => 10,
+            'Ergebnis\\AgentDetector\\' => 23,
         ),
         'D' => 
         array (
@@ -244,6 +245,10 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'Evenement\\' => 
         array (
             0 => __DIR__ . '/..' . '/evenement/evenement/src',
+        ),
+        'Ergebnis\\AgentDetector\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/ergebnis/agent-detector/src',
         ),
         'DeepCopy\\' => 
         array (
@@ -871,6 +876,7 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'DeepCopy\\TypeFilter\\TypeFilter' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/TypeFilter/TypeFilter.php',
         'DeepCopy\\TypeMatcher\\TypeMatcher' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/TypeMatcher/TypeMatcher.php',
         'Deprecated' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Deprecated.php',
+        'Ergebnis\\AgentDetector\\Detector' => __DIR__ . '/..' . '/ergebnis/agent-detector/src/Detector.php',
         'Evenement\\EventEmitter' => __DIR__ . '/..' . '/evenement/evenement/src/EventEmitter.php',
         'Evenement\\EventEmitterInterface' => __DIR__ . '/..' . '/evenement/evenement/src/EventEmitterInterface.php',
         'Evenement\\EventEmitterTrait' => __DIR__ . '/..' . '/evenement/evenement/src/EventEmitterTrait.php',
@@ -1909,8 +1915,6 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'PHPUnit\\Framework\\InvalidCoversTargetException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Exception/InvalidCoversTargetException.php',
         'PHPUnit\\Framework\\InvalidDataProviderException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Exception/InvalidDataProviderException.php',
         'PHPUnit\\Framework\\InvalidDependencyException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Exception/InvalidDependencyException.php',
-        'PHPUnit\\Framework\\IsolatedTestRunner' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/TestRunner/IsolatedTestRunner.php',
-        'PHPUnit\\Framework\\IsolatedTestRunnerRegistry' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/TestRunner/IsolatedTestRunnerRegistry.php',
         'PHPUnit\\Framework\\MockObject\\BadMethodCallException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Exception/BadMethodCallException.php',
         'PHPUnit\\Framework\\MockObject\\Builder\\Identity' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Runtime/Builder/Identity.php',
         'PHPUnit\\Framework\\MockObject\\Builder\\InvocationMocker' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Runtime/Builder/InvocationMocker.php',
@@ -2474,7 +2478,6 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'PHPUnit\\Util\\InvalidJsonException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Exception/InvalidJsonException.php',
         'PHPUnit\\Util\\InvalidVersionOperatorException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Exception/InvalidVersionOperatorException.php',
         'PHPUnit\\Util\\Json' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Json.php',
-        'PHPUnit\\Util\\PHP\\DefaultJobRunner' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/PHP/DefaultJobRunner.php',
         'PHPUnit\\Util\\PHP\\Job' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/PHP/Job.php',
         'PHPUnit\\Util\\PHP\\JobRunner' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/PHP/JobRunner.php',
         'PHPUnit\\Util\\PHP\\JobRunnerRegistry' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/PHP/JobRunnerRegistry.php',
@@ -2487,6 +2490,12 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'PHPUnit\\Util\\Xml' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Xml/Xml.php',
         'PHPUnit\\Util\\Xml\\Loader' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Xml/Loader.php',
         'PHPUnit\\Util\\Xml\\XmlException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Exception/XmlException.php',
+        'Pdo\\Dblib' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Pdo/Dblib.php',
+        'Pdo\\Firebird' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Pdo/Firebird.php',
+        'Pdo\\Mysql' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Pdo/Mysql.php',
+        'Pdo\\Odbc' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Pdo/Odbc.php',
+        'Pdo\\Pgsql' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Pdo/Pgsql.php',
+        'Pdo\\Sqlite' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Pdo/Sqlite.php',
         'PharIo\\Manifest\\Application' => __DIR__ . '/..' . '/phar-io/manifest/src/values/Application.php',
         'PharIo\\Manifest\\ApplicationName' => __DIR__ . '/..' . '/phar-io/manifest/src/values/ApplicationName.php',
         'PharIo\\Manifest\\Author' => __DIR__ . '/..' . '/phar-io/manifest/src/values/Author.php',
@@ -2598,6 +2607,7 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'PhpCsFixer\\Console\\Command\\HelpCommand' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Command/HelpCommand.php',
         'PhpCsFixer\\Console\\Command\\InitCommand' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Command/InitCommand.php',
         'PhpCsFixer\\Console\\Command\\ListFilesCommand' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Command/ListFilesCommand.php',
+        'PhpCsFixer\\Console\\Command\\ListRulesCommand' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Command/ListRulesCommand.php',
         'PhpCsFixer\\Console\\Command\\ListSetsCommand' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Command/ListSetsCommand.php',
         'PhpCsFixer\\Console\\Command\\SelfUpdateCommand' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Command/SelfUpdateCommand.php',
         'PhpCsFixer\\Console\\Command\\WorkerCommand' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Command/WorkerCommand.php',
@@ -2619,6 +2629,11 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'PhpCsFixer\\Console\\Report\\FixReport\\ReporterInterface' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/FixReport/ReporterInterface.php',
         'PhpCsFixer\\Console\\Report\\FixReport\\TextReporter' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/FixReport/TextReporter.php',
         'PhpCsFixer\\Console\\Report\\FixReport\\XmlReporter' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/FixReport/XmlReporter.php',
+        'PhpCsFixer\\Console\\Report\\ListRulesReport\\JsonReporter' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/ListRulesReport/JsonReporter.php',
+        'PhpCsFixer\\Console\\Report\\ListRulesReport\\ReportSummary' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/ListRulesReport/ReportSummary.php',
+        'PhpCsFixer\\Console\\Report\\ListRulesReport\\ReporterFactory' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/ListRulesReport/ReporterFactory.php',
+        'PhpCsFixer\\Console\\Report\\ListRulesReport\\ReporterInterface' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/ListRulesReport/ReporterInterface.php',
+        'PhpCsFixer\\Console\\Report\\ListRulesReport\\TextReporter' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/ListRulesReport/TextReporter.php',
         'PhpCsFixer\\Console\\Report\\ListSetsReport\\JsonReporter' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/ListSetsReport/JsonReporter.php',
         'PhpCsFixer\\Console\\Report\\ListSetsReport\\ReportSummary' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/ListSetsReport/ReportSummary.php',
         'PhpCsFixer\\Console\\Report\\ListSetsReport\\ReporterFactory' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Console/Report/ListSetsReport/ReporterFactory.php',
@@ -2702,6 +2717,7 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'PhpCsFixer\\Fixer\\ArrayNotation\\NoMultilineWhitespaceAroundDoubleArrowFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/ArrayNotation/NoMultilineWhitespaceAroundDoubleArrowFixer.php',
         'PhpCsFixer\\Fixer\\ArrayNotation\\NoTrailingCommaInSinglelineArrayFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/ArrayNotation/NoTrailingCommaInSinglelineArrayFixer.php',
         'PhpCsFixer\\Fixer\\ArrayNotation\\NoWhitespaceBeforeCommaInArrayFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/ArrayNotation/NoWhitespaceBeforeCommaInArrayFixer.php',
+        'PhpCsFixer\\Fixer\\ArrayNotation\\NoWhitespaceInEmptyArrayFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/ArrayNotation/NoWhitespaceInEmptyArrayFixer.php',
         'PhpCsFixer\\Fixer\\ArrayNotation\\NormalizeIndexBraceFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/ArrayNotation/NormalizeIndexBraceFixer.php',
         'PhpCsFixer\\Fixer\\ArrayNotation\\ReturnToYieldFromFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/ArrayNotation/ReturnToYieldFromFixer.php',
         'PhpCsFixer\\Fixer\\ArrayNotation\\TrimArraySpacesFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/ArrayNotation/TrimArraySpacesFixer.php',
@@ -2930,6 +2946,7 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'PhpCsFixer\\Fixer\\Phpdoc\\PhpdocListTypeFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/Phpdoc/PhpdocListTypeFixer.php',
         'PhpCsFixer\\Fixer\\Phpdoc\\PhpdocNoAccessFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/Phpdoc/PhpdocNoAccessFixer.php',
         'PhpCsFixer\\Fixer\\Phpdoc\\PhpdocNoAliasTagFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/Phpdoc/PhpdocNoAliasTagFixer.php',
+        'PhpCsFixer\\Fixer\\Phpdoc\\PhpdocNoDuplicateTypesFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/Phpdoc/PhpdocNoDuplicateTypesFixer.php',
         'PhpCsFixer\\Fixer\\Phpdoc\\PhpdocNoEmptyReturnFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/Phpdoc/PhpdocNoEmptyReturnFixer.php',
         'PhpCsFixer\\Fixer\\Phpdoc\\PhpdocNoPackageFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/Phpdoc/PhpdocNoPackageFixer.php',
         'PhpCsFixer\\Fixer\\Phpdoc\\PhpdocNoUselessInheritdocFixer' => __DIR__ . '/..' . '/friendsofphp/php-cs-fixer/src/Fixer/Phpdoc/PhpdocNoUselessInheritdocFixer.php',
@@ -3251,6 +3268,7 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'PhpParser\\Lexer\\TokenEmulator\\AttributeEmulator' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/AttributeEmulator.php',
         'PhpParser\\Lexer\\TokenEmulator\\EnumTokenEmulator' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/EnumTokenEmulator.php',
         'PhpParser\\Lexer\\TokenEmulator\\ExplicitOctalEmulator' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/ExplicitOctalEmulator.php',
+        'PhpParser\\Lexer\\TokenEmulator\\FnTokenEmulator' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/FnTokenEmulator.php',
         'PhpParser\\Lexer\\TokenEmulator\\KeywordEmulator' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/KeywordEmulator.php',
         'PhpParser\\Lexer\\TokenEmulator\\MatchTokenEmulator' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/MatchTokenEmulator.php',
         'PhpParser\\Lexer\\TokenEmulator\\NullsafeTokenEmulator' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/NullsafeTokenEmulator.php',
@@ -4126,6 +4144,7 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'React\\Stream\\WritableStreamInterface' => __DIR__ . '/..' . '/react/stream/src/WritableStreamInterface.php',
         'ReflectionConstant' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/ReflectionConstant.php',
         'ReturnTypeWillChange' => __DIR__ . '/..' . '/symfony/polyfill-php81/Resources/stubs/ReturnTypeWillChange.php',
+        'RoundingMode' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/RoundingMode.php',
         'SebastianBergmann\\CliParser\\AmbiguousOptionException' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/AmbiguousOptionException.php',
         'SebastianBergmann\\CliParser\\Exception' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/Exception.php',
         'SebastianBergmann\\CliParser\\OptionDoesNotAllowArgumentException' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/OptionDoesNotAllowArgumentException.php',
@@ -4566,6 +4585,8 @@ class ComposerStaticInitddb6b3572b12daa1996763486abac461
         'Symfony\\Contracts\\EventDispatcher\\EventDispatcherInterface' => __DIR__ . '/..' . '/symfony/event-dispatcher-contracts/EventDispatcherInterface.php',
         'Symfony\\Contracts\\Service\\Attribute\\Required' => __DIR__ . '/..' . '/symfony/service-contracts/Attribute/Required.php',
         'Symfony\\Contracts\\Service\\Attribute\\SubscribedService' => __DIR__ . '/..' . '/symfony/service-contracts/Attribute/SubscribedService.php',
+        'Symfony\\Contracts\\Service\\ContainerAwareInterface' => __DIR__ . '/..' . '/symfony/service-contracts/ContainerAwareInterface.php',
+        'Symfony\\Contracts\\Service\\ContainerProviderInterface' => __DIR__ . '/..' . '/symfony/service-contracts/ContainerProviderInterface.php',
         'Symfony\\Contracts\\Service\\ResetInterface' => __DIR__ . '/..' . '/symfony/service-contracts/ResetInterface.php',
         'Symfony\\Contracts\\Service\\ServiceCollectionInterface' => __DIR__ . '/..' . '/symfony/service-contracts/ServiceCollectionInterface.php',
         'Symfony\\Contracts\\Service\\ServiceLocatorTrait' => __DIR__ . '/..' . '/symfony/service-contracts/ServiceLocatorTrait.php',
