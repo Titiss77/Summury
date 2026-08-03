@@ -217,6 +217,20 @@ class ItemController extends BaseController
             return $this->response->setJSON([]);
         }
 
+        // ========================================================
+        // 1. INITIALISATION DU CACHE CÔTÉ SERVEUR
+        // ========================================================
+        $cache = \Config\Services::cache();
+        
+        // On crée une clé unique pour cette recherche précise
+        $cacheKey = 'api_search_' . md5($query . '_' . $type);
+
+        // Si le résultat de cette recherche est déjà dans le cache, on le renvoie immédiatement !
+        if ($cachedResult = $cache->get($cacheKey)) {
+            return $this->response->setJSON($cachedResult);
+        }
+        // ========================================================
+
         $client = Services::curlrequest([
             'timeout'         => 10,
             'connect_timeout' => 5,
@@ -226,11 +240,19 @@ class ItemController extends BaseController
         ]);
 
         try {
+            // --- Recherche par URL (Scraping OpenGraph) ---
             if (filter_var($query, FILTER_VALIDATE_URL)) {
                 $metaData = $this->scrapeOpenGraph($query);
-                return $this->response->setJSON($metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.']);
+                $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
+                
+                // On met en cache pendant 1 heure (3600 secondes) s'il n'y a pas d'erreur
+                if (!isset($body['error'])) {
+                    $cache->save($cacheKey, $body, 3600);
+                }
+                return $this->response->setJSON($body);
             }
 
+            // --- Recherche Jikan (Animes/Mangas) ---
             if ('manga' === $type || 'anime' === $type) {
                 $url = "https://api.jikan.moe/v4/{$type}?q=" . urlencode($query) . '&limit=5';
                 $response = $client->get($url);
@@ -241,9 +263,12 @@ class ItemController extends BaseController
                     return $this->response->setJSON(['error' => $erreur]);
                 }
 
+                // On sauvegarde le résultat de l'API en cache pendant 1 heure
+                $cache->save($cacheKey, $body, 3600);
                 return $this->response->setJSON($body);
             }
 
+            // --- Recherche TMDB (Films/Séries) ---
             $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
             $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
             $response = $client->get($url);
@@ -254,7 +279,10 @@ class ItemController extends BaseController
                  return $this->response->setJSON(['error' => $erreur]);
             }
 
+            // On sauvegarde le résultat de l'API en cache pendant 1 heure
+            $cache->save($cacheKey, $body, 3600);
             return $this->response->setJSON($body);
+
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erreur de recherche : ' . $e->getMessage()]);
         }
