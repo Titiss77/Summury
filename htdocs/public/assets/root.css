@@ -1,44 +1,44 @@
 :root {
-    /* Palette de couleurs "Premium Frost" (Lumineux, épuré et luxueux) */
+    /* Palette de couleurs "Premium Frost" (Lumineux, et luxueux) */
     --primary: #4f46e5;
     --primary-hover: #4338ca;
-    --primary-light: rgba(79, 70, 229, 0.1);
+    --primary-light: rgba(79, 70, 229, 0.15);
+    --bg-body: #f4f5f7;
+    /* Légèrement plus grisé pour faire ressortir le verre blanc */
 
     --bg-body: #fcfcfd;
-    --bg-card: #ffffff;
+    /* EFFET APPLE LIQUID GLASS - LIGHT */
+    --bg-card: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 
     --text-main: #09090b;
     --text-muted: #71717a;
     --border-color: #e4e4e7;
-
     --success: #10b981;
     --success-bg: rgba(16, 185, 129, 0.1);
     --success-text: #047857;
-
     --info: #3b82f6;
     --info-bg: rgba(59, 130, 246, 0.1);
     --info-text: #1d4ed8;
-
     --danger: #ef4444;
     --danger-hover: #dc2626;
     --danger-bg: rgba(239, 68, 68, 0.1);
     --danger-text: #b91c1c;
-
     --warning: #f59e0b;
     --warning-hover: #d97706;
 
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.08), 0 10px 20px rgba(79, 70, 229, 0.06);
+    --shadow-md: var(--glass-shadow);
+    --shadow-hover: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
 
-    --radius-md: 0.75rem;
-    --radius-lg: 1.25rem;
-    --radius-xl: 1.75rem;
-
-    --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
+    --radius-md: 1rem;
+    /* Bords légèrement plus arrondis façon iOS */
+    --radius-lg: 1.5rem;
+    --radius-xl: 2rem;
+    --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     --card-title-font-size: 1.15rem;
-    --card-desc-font-size: 0.9 rem;
+    --card-desc-font-size: 0.9rem;
     --icon-font-size: 0.75rem;
 }
 
@@ -47,16 +47,19 @@
    ========================================= */
 [data-theme="dark"] {
     --bg-body: #18181b;
-    --bg-card: #1d1d21;
+    /* Fond noir profond typique d'iOS Dark Mode */
+
+    /* EFFET APPLE LIQUID GLASS - DARK */
+    --bg-card: rgba(28, 28, 30, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 
     --text-main: #fcfcfd;
     --text-muted: #a1a1aa;
-    --border-color: #27272a;
-
+    --border-color: rgba(255, 255, 255, 0.1);
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.6), 0 10px 20px rgba(79, 70, 229, 0.1);
-
+    --shadow-md: var(--glass-shadow);
+    --shadow-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
     --success-text: #34d399;
     --info-text: #60a5fa;
     --danger-text: #f87171;

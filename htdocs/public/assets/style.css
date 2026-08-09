@@ -1,12 +1,11 @@
 /* =========================================
-   BASE & RESET
-   ========================================= */
+BASE & RESET=========================================*/
 * {
-    box-sizing: border-box;
+box-sizing: border-box;
 }
 
 body {
-    background-color: var(--bg-body);
+background-color: var(--bg-body);
     color: var(--text-main);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     line-height: 1.6;
@@ -18,43 +17,46 @@ body {
 }
 
 a {
-    color: var(--primary);
+color: var(--primary);
     text-decoration: none;
     transition: var(--transition);
 }
 
 .container {
-    max-width: 1440px;
+max-width: 1440px;
     margin: 0 auto;
     padding: 0 24px;
 }
 
 /* =========================================
-   HEADER (Navigation Globale)
-   ========================================= */
-.main-header {
+HEADER (Navigation Globale)=========================================*/ .main-header {
     display: flex;
     justify-content: space-between;
     background-color: var(--bg-card);
-    border-bottom: 1px solid var(--border-color);
-    padding: 16px 30px;
-    margin-bottom: 32px;
-    box-shadow: var(--shadow-sm);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
+    /* Utilise le fond transparent */
+    backdrop-filter: blur(7px) saturate(180%);
+        /* L'effet Liquid Glass */
+        -webkit-backdrop-filter: blur(7px) saturate(180%);
+        /* Support Safari/iOS */
+        border-bottom: 1px solid var(--glass-border);
+        padding: 16px 30px;
+        margin-bottom: 32px;
+        box-shadow: var(--shadow-sm);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
 
 .main-header .container {
-    display: flex;
+display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
 }
 
 .main-header h1 {
-    color: var(--text-main);
+color: var(--text-main);
     font-weight: 700;
     font-size: var(--card-title-font-size);
     margin: 0;
@@ -62,20 +64,20 @@ a {
 }
 
 .user-nav {
-    display: flex;
+display: flex;
     align-items: center;
     gap: 20px;
 }
 
 .welcome-text {
-    font-weight: 500;
+font-weight: 500;
     color: var(--text-muted);
     font-size: var(--card-desc-font-size);
 }
 
 /* Bouton Dark Mode */
 .btn-theme {
-    background: transparent;
+background: transparent;
     border: 1px solid var(--border-color);
     color: var(--text-main);
     padding: 6px 12px;
@@ -89,14 +91,13 @@ a {
 }
 
 .btn-theme:hover {
-    background: var(--border-color);
+background: var(--border-color);
 }
 
 /* =========================================
-   MENU DES CATÉGORIES (ONGLETS PILLS)
-   ========================================= */
+MENU DES CATÉGORIES (ONGLETS PILLS)=========================================*/
 .category-nav {
-    display: flex;
+display: flex;
     gap: 12px;
     margin-bottom: 40px;
     overflow-x: auto;
@@ -105,11 +106,11 @@ a {
 }
 
 .category-nav::-webkit-scrollbar {
-    display: none;
+display: none;
 }
 
 .nav-tab {
-    padding: 0.6rem 1.25rem;
+padding: 0.6rem 1.25rem;
     background: transparent;
     color: var(--text-muted);
     font-weight: 500;
@@ -120,36 +121,34 @@ a {
 }
 
 .nav-tab:hover {
-    background: var(--border-color);
+background: var(--border-color);
     color: var(--text-main);
 }
 
 .nav-tab.active {
-    background: var(--text-main);
+background: var(--text-main);
     color: var(--bg-body);
     box-shadow: var(--shadow-sm);
 }
 
 /* =========================================
-   ACTIONS CONTAINER
-   ========================================= */
+ACTIONS CONTAINER=========================================*/
 .actions-container {
-    display: flex;
+display: flex;
     justify-content: flex-end;
     margin-bottom: 2rem;
 }
 
 /* =========================================
-   MENUS DÉROULANTS (Divisions / Accordéon)
-   ========================================= */
+MENUS DÉROULANTS (Divisions / Accordéon)=========================================*/
 .division-section {
-    margin-bottom: 1.5rem;
+margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 1rem;
 }
 
 .division-title {
-    color: var(--text-main);
+color: var(--text-main);
     font-size: var(--card-title-font-size);
     font-weight: 600;
     margin-bottom: 0;
@@ -164,15 +163,15 @@ a {
 }
 
 .division-title:hover {
-    color: var(--primary);
+color: var(--primary);
 }
 
 .division-title::-webkit-details-marker {
-    display: none;
+display: none;
 }
 
 .toggle-icon {
-    display: inline-flex;
+display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 28px;
@@ -187,56 +186,54 @@ a {
 }
 
 .division-title:hover .toggle-icon {
-    color: var(--primary);
+color: var(--primary);
     border-color: var(--primary-light);
     box-shadow: var(--shadow-md);
 }
 
 details[open].division-section .toggle-icon {
-    transform: rotate(90deg);
+transform: rotate(90deg);
     background: var(--primary);
     color: #fff;
     border-color: var(--primary);
 }
 
 /* =========================================
-   ANIMATION DE DÉROULEMENT (Slide Down)
-   ========================================= */
+ANIMATION DE DÉROULEMENT (Slide Down)=========================================*/
 .division-section .cards-grid {
-    overflow: hidden;
+overflow: hidden;
     margin-top: 0;
     padding: 10px 10px 20px 10px;
     margin: -10px -10px 28px -10px;
 }
 
 details[open].division-section .cards-grid {
-    animation: slideDown 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+animation: slideDown 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     transform-origin: top center;
 }
 
 @keyframes slideDown {
-    0% {
+0% {
         opacity: 0;
         max-height: 0;
         transform: translateY(-10px) scaleY(0.95);
     }
 
-    50% {
-        opacity: 0.5;
-    }
+50% {
+    opacity: 0.5;
+}
 
-    100% {
-        opacity: 1;
-        max-height: 5000px;
-        transform: translateY(0) scaleY(1);
-    }
+100% {
+    opacity: 1;
+    max-height: 5000px;
+    transform: translateY(0) scaleY(1);
+}
 }
 
 /* =========================================
-   GRILLE & CARTES
-   ========================================= */
+GRILLE & CARTES=========================================*/
 .cards-grid {
-    display: grid;
+display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     min-height: 50px;
@@ -244,28 +241,70 @@ details[open].division-section .cards-grid {
 }
 
 .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
+background: var(--bg-card);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition);
-    display: flex;
-    flex-direction: column;
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 0 0px 0px rgba(255, 255, 255, 0);
+    position: relative;
     overflow: hidden;
 }
 
+.card::before {
+content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.8),
+            transparent);
+}
+
+.card::after {
+content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.8),
+            transparent,
+            rgba(255, 255, 255, 0.3));
+}
+
 .card:hover {
-    transform: translateY(-4px);
+transform: translateY(-4px);
     box-shadow: var(--shadow-hover);
-    border-color: var(--primary-light);
+    border-color: rgba(255, 255, 255, 0.8);
+    /* Bordure qui s'illumine au survol */
+    }
+    
+    /* L'intérieur des actions de la carte doit aussi être transparent pour ne pas casser l'effet */
+    .card-actions-bottom {
+        padding: 0.75rem 1.5rem;
+        background: transparent;
+        border-top: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        align-items: center;
 }
 
 .card:active {
-    cursor: grabbing;
+cursor: grabbing;
 }
 
 .card-body {
-    padding: 1.25rem;
+padding: 1.25rem;
     padding-right: 1rem;
     flex-grow: 1;
     display: flex;
@@ -273,7 +312,7 @@ details[open].division-section .cards-grid {
 }
 
 .card-date {
-    font-size: var(--icon-font-size);
+font-size: var(--icon-font-size);
     font-weight: bold;
     margin-bottom: 5px;
     position: absolute;
@@ -283,13 +322,13 @@ details[open].division-section .cards-grid {
 }
 
 .card-link-block {
-    display: flex;
+display: flex;
     color: inherit;
     flex-grow: 1;
 }
 
 .card-title {
-    margin: 0 0 0.5rem 0;
+margin: 0 0 0.5rem 0;
     max-width: 70%;
     color: var(--text-main);
     font-size: var(--card-title-font-size);
@@ -299,16 +338,16 @@ details[open].division-section .cards-grid {
 }
 
 .card-link-block:hover .card-title {
-    color: var(--primary);
+color: var(--primary);
 }
 
 .card-desc {
-    font-size: var(--card-desc-font-size);
+font-size: var(--card-desc-font-size);
     color: var(--text-muted);
     line-height: 1.6;
     margin: 0;
 
-    /* --- NOUVEAU : Limite de 4 lignes avec défilement --- */
+/* --- NOUVEAU : Limite de 4 lignes avec défilement --- */
     max-height: calc(1.6em * 3);
     /* line-height (1.6) x 4 lignes */
     overflow-y: auto;
@@ -321,25 +360,25 @@ details[open].division-section .cards-grid {
 
 /* --- OPTIONNEL MAIS RECOMMANDÉ : Styliser la scrollbar des descriptions --- */
 .card-desc::-webkit-scrollbar {
-    width: 4px;
+width: 4px;
     /* Scrollbar très fine */
 }
 
 .card-desc::-webkit-scrollbar-track {
-    background: transparent;
+background: transparent;
 }
 
 .card-desc::-webkit-scrollbar-thumb {
-    background-color: var(--border-color);
+background-color: var(--border-color);
     border-radius: 10px;
 }
 
 .card-desc::-webkit-scrollbar-thumb:hover {
-    background-color: var(--text-muted);
+background-color: var(--text-muted);
 }
 
 .card-badges {
-    display: flex;
+display: flex;
     gap: 8px;
     flex-wrap: wrap;
     margin-top: auto;
@@ -347,7 +386,7 @@ details[open].division-section .cards-grid {
 }
 
 .char-counter {
-    display: block;
+display: block;
     text-align: right;
     font-size: var(--card-desc-font-size);
     color: var(--text-muted);
@@ -357,7 +396,7 @@ details[open].division-section .cards-grid {
 }
 
 .badge {
-    padding: 0.25rem 0.75rem;
+padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: var(--icon-font-size);
     font-weight: 600;
@@ -366,32 +405,22 @@ details[open].division-section .cards-grid {
 }
 
 .badge-season {
-    background: var(--success-bg);
+background: var(--success-bg);
     color: var(--success-text);
 }
 
 .badge-episode {
-    background: var(--info-bg);
+background: var(--info-bg);
     color: var(--info-text);
 }
 
-.card-actions-bottom {
-    padding: 0.75rem 1.5rem;
-    background: var(--bg-body);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
-    gap: 16px;
-    align-items: center;
-}
-
 .status-completed {
-    opacity: 0.6;
+opacity: 0.6;
     filter: grayscale(50%);
 }
 
 .btn-icon {
-    display: inline-flex;
+display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: var(--icon-font-size);
@@ -401,18 +430,17 @@ details[open].division-section .cards-grid {
 }
 
 .btn-edit-sm:hover {
-    color: var(--warning);
+color: var(--warning);
 }
 
 .btn-delete-sm:hover {
-    color: var(--danger);
+color: var(--danger);
 }
 
 /* =========================================
-   BOUTONS GLOBAUX & ÉTATS DE CHARGEMENT
-   ========================================= */
+BOUTONS GLOBAUX & ÉTATS DE CHARGEMENT=========================================*/
 .btn {
-    display: inline-flex;
+display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0.625rem 1.25rem;
@@ -430,25 +458,25 @@ details[open].division-section .cards-grid {
 
 .btn-primary,
 .btn-success {
-    background-color: var(--primary);
+background-color: var(--primary);
     color: #fff;
     box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover,
 .btn-success:hover {
-    background-color: var(--primary-hover);
+background-color: var(--primary-hover);
     box-shadow: var(--shadow-md);
 }
 
 /* Loader sur bouton */
 .btn.loading {
-    color: transparent !important;
+color: transparent !important;
     pointer-events: none;
 }
 
 .btn.loading::after {
-    content: "";
+content: "";
     position: absolute;
     width: 18px;
     height: 18px;
@@ -464,17 +492,17 @@ details[open].division-section .cards-grid {
 }
 
 .btn-primary.loading::after {
-    border-top-color: #fff;
+border-top-color: #fff;
 }
 
 @keyframes spin {
-    100% {
+100% {
         transform: rotate(360deg);
     }
 }
 
 .btn-increment {
-    background: none;
+background: none;
     border: 1px solid var(--danger-text);
     color: var(--danger-text);
     cursor: pointer;
@@ -484,62 +512,74 @@ details[open].division-section .cards-grid {
 }
 
 .btn-login {
-    color: var(--text-main);
+color: var(--text-main);
     font-weight: 600;
 }
 
 .btn-login:hover {
-    color: var(--primary);
+color: var(--primary);
 }
 
 .btn-register {
-    background-color: var(--text-main);
+background-color: var(--text-main);
     color: var(--bg-body);
     padding: 0.5rem 1.25rem;
     border-radius: var(--radius-md);
 }
 
 .btn-register:hover {
-    background-color: var(--primary);
+background-color: var(--primary);
     color: #fff;
 }
 
 .btn-logout {
-    color: var(--danger);
+color: var(--danger);
     font-weight: 500;
     padding: 0.5rem 1rem;
 }
 
 .btn-logout:hover {
-    background-color: var(--danger-bg);
+background-color: var(--danger-bg);
     border-radius: var(--radius-md);
 }
 
 .btn-cancel {
-    background-color: var(--bg-body);
+background-color: var(--bg-body);
     color: var(--text-main);
     border: 1px solid var(--border-color);
 }
 
 .btn-cancel:hover {
-    background-color: var(--border-color);
+background-color: var(--border-color);
 }
 
 /* =========================================
-   FORMULAIRES & INPUT MOT DE PASSE
-   ========================================= */
-.form-container {
+FORMULAIRES & INPUT MOT DE PASSE=========================================*/ .form-container {
     max-width: 600px;
     margin: 3rem auto;
     padding: 2.5rem;
     background: var(--bg-card);
+    backdrop-filter: blur(25px) saturate(200%);
+    -webkit-backdrop-filter: blur(25px) saturate(200%);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--glass-border);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--bg-card);
+    backdrop-filter: blur(15px) saturate(150%);
+    -webkit-backdrop-filter: blur(15px) saturate(150%);
+    border-radius: var(--radius-xl);
+    border: 1px dashed var(--border-color);
+    color: var(--text-muted);
+    margin-top: 2rem;
 }
 
 .form-container .header-title {
-    margin-top: 0;
+margin-top: 0;
     margin-bottom: 2rem;
     border-bottom: none;
     padding-bottom: 0;
@@ -549,20 +589,20 @@ details[open].division-section .cards-grid {
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+margin-bottom: 1.5rem;
 }
 
 .form-group.row {
-    display: flex;
+display: flex;
     gap: 1.5rem;
 }
 
 .col-half {
-    flex: 1;
+flex: 1;
 }
 
 .form-label {
-    display: block;
+display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
     color: var(--text-main);
@@ -570,7 +610,7 @@ details[open].division-section .cards-grid {
 }
 
 .form-control {
-    width: 100%;
+width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -582,7 +622,7 @@ details[open].division-section .cards-grid {
 }
 
 .form-control:focus {
-    outline: none;
+outline: none;
     border-color: var(--primary);
     background-color: var(--bg-card);
     box-shadow: 0 0 0 4px var(--primary-light);
@@ -590,11 +630,11 @@ details[open].division-section .cards-grid {
 
 /* Input Mot de passe */
 .password-wrapper {
-    position: relative;
+position: relative;
 }
 
 .password-toggle {
-    position: absolute;
+position: absolute;
     right: 15px;
     top: 50%;
     transform: translateY(-50%);
@@ -608,27 +648,27 @@ details[open].division-section .cards-grid {
 }
 
 .password-toggle:hover {
-    color: var(--text-main);
+color: var(--text-main);
 }
 
 /* Fix pour les floating labels CodeIgniter Shield */
 .form-floating .password-toggle {
-    top: 40px;
+top: 40px;
     transform: none;
 }
 
 .form-floating2 .password-toggle2 {
-    top: 45px;
+top: 45px;
     transform: none;
 }
 
 textarea.form-control {
-    resize: vertical;
+resize: vertical;
     min-height: 120px;
 }
 
 select.form-control {
-    cursor: pointer;
+cursor: pointer;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -638,7 +678,7 @@ select.form-control {
 }
 
 .form-actions {
-    display: flex;
+display: flex;
     justify-content: flex-end;
     gap: 1rem;
     margin-top: 2.5rem;
@@ -647,50 +687,40 @@ select.form-control {
 }
 
 .form-floating.mb-3 {
-    margin-bottom: 1.5rem;
+margin-bottom: 1.5rem;
 }
 
 .form-check {
-    margin-bottom: 1.5rem;
+margin-bottom: 1.5rem;
 }
 
 .form-check-label {
-    font-size: var(--card-desc-font-size);
+font-size: var(--card-desc-font-size);
     color: var(--text-muted);
     cursor: pointer;
 }
 
 .d-grid button {
-    width: 100%;
+width: 100%;
     padding: 0.75rem;
     font-size: var(--card-title-font-size);
 }
 
 /* =========================================
-   MESSAGES & ÉTATS VIDES & ALERTS
-   ========================================= */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: var(--bg-card);
-    border-radius: var(--radius-xl);
-    border: 1px dashed var(--border-color);
-    color: var(--text-muted);
-    margin-top: 2rem;
-}
+MESSAGES & ÉTATS VIDES & ALERTS=========================================*/
 
 .empty-state h2 {
-    color: var(--text-main);
+color: var(--text-main);
     margin-bottom: 1rem;
 }
 
 .shadow-card {
-    border: 1px solid var(--border-color);
+border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
 }
 
 .alert {
-    padding: 1rem 1.25rem;
+padding: 1rem 1.25rem;
     border-radius: var(--radius-md);
     margin-bottom: 1.5rem;
     font-size: var(--card-desc-font-size);
@@ -698,19 +728,19 @@ select.form-control {
 }
 
 .alert-danger {
-    background-color: var(--danger-bg);
+background-color: var(--danger-bg);
     border: 1px solid rgba(239, 68, 68, 0.3);
     color: var(--danger-text);
 }
 
 .alert-success {
-    background-color: var(--success-bg);
+background-color: var(--success-bg);
     border: 1px solid rgba(16, 185, 129, 0.3);
     color: var(--success-text);
 }
 
 .card-image {
-    display: flex;
+display: flex;
     align-items: center;
     justify-content: center;
     padding-right: 1rem;
@@ -718,17 +748,17 @@ select.form-control {
 }
 
 .image-view {
-    width: 65px;
+width: 65px;
     aspect-ratio: 2 / 3;
     border-radius: var(--radius-md);
     object-fit: cover;
 }
 
 /* =========================================
-   TABLEAU D'ADMINISTRATION
-   ========================================= */
+TABLEAU D'ADMINISTRATION
+=========================================*/
 .admin-table-container {
-    background: var(--bg-card);
+background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
@@ -737,13 +767,13 @@ select.form-control {
 }
 
 .admin-table {
-    width: 100%;
+width: 100%;
     border-collapse: collapse;
     text-align: left;
 }
 
 .admin-table th {
-    padding: 1.25rem 1.5rem;
+padding: 1.25rem 1.5rem;
     font-size: var(--card-desc-font-size);
     font-weight: 600;
     color: var(--text-muted);
@@ -754,37 +784,36 @@ select.form-control {
 }
 
 .admin-table td {
-    padding: 1.25rem 1.5rem;
+padding: 1.25rem 1.5rem;
     color: var(--text-main);
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
 }
 
 .admin-table tbody tr {
-    transition: var(--transition);
+transition: var(--transition);
 }
 
 .admin-table tbody tr:hover {
-    background-color: var(--bg-body);
+background-color: var(--bg-body);
 }
 
 .admin-table tbody tr:last-child td {
-    border-bottom: none;
+border-bottom: none;
 }
 
 .admin-table tbody tr.user-banned td {
-    color: var(--text-muted);
+color: var(--text-muted);
 }
 
 .admin-table tbody tr.user-banned {
-    background-color: var(--danger-bg);
+background-color: var(--danger-bg);
 }
 
 /* =========================================
-   BADGES DE STATUT & BOUTONS ACTION
-   ========================================= */
+BADGES DE STATUT & BOUTONS ACTION=========================================*/
 .status-badge {
-    display: inline-block;
+display: inline-block;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: var(--icon-font-size);
@@ -793,23 +822,23 @@ select.form-control {
 }
 
 .status-badge.active {
-    background: var(--success-bg);
+background: var(--success-bg);
     color: var(--success-text);
 }
 
 .status-badge.banned {
-    background: var(--danger-bg);
+background: var(--danger-bg);
     color: var(--danger-text);
 }
 
 .action-links {
-    display: flex;
+display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
 }
 
 .btn-action {
-    padding: 0.4rem 0.8rem;
+padding: 0.4rem 0.8rem;
     border-radius: var(--radius-md);
     font-size: var(--card-desc-font-size);
     font-weight: 500;
@@ -818,43 +847,42 @@ select.form-control {
 }
 
 .btn-edit {
-    background: var(--info-bg);
+background: var(--info-bg);
     color: var(--info-text);
 }
 
 .btn-edit:hover {
-    background: var(--info);
+background: var(--info);
     color: #fff;
     box-shadow: var(--shadow-sm);
 }
 
 .btn-ban {
-    background: var(--danger-bg);
+background: var(--danger-bg);
     color: var(--danger-text);
 }
 
 .btn-ban:hover {
-    background: var(--danger);
+background: var(--danger);
     color: #fff;
     box-shadow: var(--shadow-sm);
 }
 
 .btn-unban {
-    background: var(--success-bg);
+background: var(--success-bg);
     color: var(--success-text);
 }
 
 .btn-unban:hover {
-    background: var(--success);
+background: var(--success);
     color: #fff;
     box-shadow: var(--shadow-sm);
 }
 
 /* =========================================
-   PAGINATION
-   ========================================= */
+PAGINATION=========================================*/
 .pagination {
-    display: flex;
+display: flex;
     justify-content: center;
     gap: 0.5rem;
     list-style: none;
@@ -864,7 +892,7 @@ select.form-control {
 
 .pagination li a,
 .pagination li span {
-    display: inline-flex;
+display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 36px;
@@ -881,24 +909,23 @@ select.form-control {
 }
 
 .pagination li a:hover {
-    border-color: var(--primary);
+border-color: var(--primary);
     color: var(--primary);
     box-shadow: var(--shadow-sm);
 }
 
 .pagination li.active a,
 .pagination li.active span {
-    background: var(--primary);
+background: var(--primary);
     color: #fff;
     border-color: var(--primary);
     box-shadow: var(--shadow-sm);
 }
 
 /* =========================================
-   NOTIFICATIONS (TOASTS)
-   ========================================= */
+NOTIFICATIONS (TOASTS)=========================================*/
 .toast-container {
-    position: fixed;
+position: fixed;
     bottom: 20px;
     right: 20px;
     z-index: 9999;
@@ -908,7 +935,7 @@ select.form-control {
 }
 
 .toast {
-    padding: 15px 25px;
+padding: 15px 25px;
     border-radius: var(--radius-md);
     background: var(--bg-card);
     color: var(--text-main);
@@ -922,75 +949,74 @@ select.form-control {
 }
 
 .toast.show {
-    transform: translateX(0);
+transform: translateX(0);
     opacity: 1;
 }
 
 .toast-success {
-    border-left-color: var(--success);
+border-left-color: var(--success);
 }
 
 .toast-danger {
-    border-left-color: var(--danger);
+border-left-color: var(--danger);
 }
 
 .toast-info {
-    border-left-color: var(--info);
+border-left-color: var(--info);
 }
 
 /* =========================================
-   ANIMATIONS & RESPONSIVE
-   ========================================= */
+ANIMATIONS & RESPONSIVE=========================================*/
 @keyframes fadeInUp {
-    from {
+from {
         opacity: 0;
         transform: translateY(15px);
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
 }
 
 .fade-in {
-    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
 }
 
 .card:nth-child(1) {
-    animation-delay: 0.05s;
+animation-delay: 0.05s;
 }
 
 .card:nth-child(2) {
-    animation-delay: 0.1s;
+animation-delay: 0.1s;
 }
 
 .card:nth-child(3) {
-    animation-delay: 0.15s;
+animation-delay: 0.15s;
 }
 
 .card:nth-child(4) {
-    animation-delay: 0.2s;
+animation-delay: 0.2s;
 }
 
 .card:nth-child(5) {
-    animation-delay: 0.25s;
+animation-delay: 0.25s;
 }
 
 .card:nth-child(6) {
-    animation-delay: 0.3s;
+animation-delay: 0.3s;
 }
 
 .sortable-ghost {
-    opacity: 0.4;
+opacity: 0.4;
     background-color: var(--primary-light);
     border: 2px dashed var(--primary);
     transform: scale(0.98);
 }
 
 .btn-report-sm{
-    color: var(--warning);
+color: var(--warning);
     position: absolute;
     right: 1rem;
     top: 1rem;
@@ -1000,44 +1026,44 @@ select.form-control {
 }
 
 @media (max-width: 768px) {
-    .main-header .container {
+.main-header .container {
         flex-direction: column;
         gap: 15px;
     }
 
-    .cards-grid {
-        grid-template-columns: 1fr;
-    }
+.cards-grid {
+    grid-template-columns: 1fr;
+}
 
-    .form-group.row {
-        flex-direction: column;
-        gap: 1.5rem;
-    }
+.form-group.row {
+    flex-direction: column;
+    gap: 1.5rem;
+}
 
-    .nav-tab {
-        font-size: var(--card-desc-font-size);
-        padding: 0.5rem 1rem;
-    }
+.nav-tab {
+    font-size: var(--card-desc-font-size);
+    padding: 0.5rem 1rem;
+}
 
-    .form-container {
-        padding: 1.5rem;
-        margin: 1.5rem auto;
-        border-radius: var(--radius-lg);
-    }
+.form-container {
+    padding: 1.5rem;
+    margin: 1.5rem auto;
+    border-radius: var(--radius-lg);
+}
 
-    .main-header {
-        padding: 12px 20px;
-    }
+.main-header {
+    padding: 12px 20px;
+}
 
-    .main-header h1 {
-        font-size: var(--card-title-font-size);
-        display: flex;
-        align-items: center;
-        text-align: center;
-    }
+.main-header h1 {
+    font-size: var(--card-title-font-size);
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
 
-    .user-nav {
-        font-size: smaller;
-        text-align: center;
-    }
+.user-nav {
+    font-size: smaller;
+    text-align: center;
+}
 }
