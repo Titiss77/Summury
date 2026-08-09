@@ -252,8 +252,6 @@ details[open].division-section .cards-grid {
     background: var(--bg-card);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    width: 240px;
-    height: 360px;
     backdrop-filter: blur(7px);
     -webkit-backdrop-filter: blur(7px);
     box-shadow:
