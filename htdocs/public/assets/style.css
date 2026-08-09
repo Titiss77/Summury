@@ -8,15 +8,13 @@
 body {
     background-color: var(--bg-body);
     color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        line-height: 1.47059;
-        font-weight: 400;
-        letter-spacing: -0.022em;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     transition: background-color 0.3s ease, color 0.3s ease;
+    /* Pour le dark mode */
 }
 
 a {
@@ -34,27 +32,20 @@ a {
 /* =========================================
    HEADER (Navigation Globale)
    ========================================= */
-   .main-header {
-       display: flex;
-       justify-content: space-between;
-    /* Translucidité et flou d'arrière-plan */
-        background-color: rgba(255, 255, 255, 0.72);
-        backdrop-filter: saturate(180%) blur(20px);
-        -webkit-backdrop-filter: saturate(180%) blur(20px);
-    
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        padding: 16px 30px;
-        margin-bottom: 32px;
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 30px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow-sm);
     position: sticky;
-        top: 0;
-            z-index: 100;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
+    top: 0;
+    z-index: 100;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
 
-   [data-theme="dark"] .main-header {
-       background-color: rgba(28, 28, 30, 0.72);
-       border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-   }
 .main-header .container {
     display: flex;
     justify-content: space-between;
@@ -424,16 +415,16 @@ details[open].division-section .cards-grid {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 20px;
-    border-radius: 980px;
-    /* Crée l'effet capsule */
-    font-weight: 600;
-    font-size: 15px;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: var(--card-desc-font-size);
     text-decoration: none !important;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: var(--transition);
     border: none;
     font-family: inherit;
+    margin-bottom: 10px;
     position: relative;
 }
 

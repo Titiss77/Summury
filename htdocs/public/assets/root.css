@@ -1,53 +1,63 @@
 :root {
-    /* Palette Apple (Clair) */
-    --primary: #0071e3; /* Bleu Apple signature */
-    --primary-hover: #0077ed;
-    --primary-light: rgba(0, 113, 227, 0.1);
-    --bg-body: #f5f5f7; /* Gris clair typique Apple */
+    /* Palette de couleurs "Premium Frost" (Lumineux, épuré et luxueux) */
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: rgba(79, 70, 229, 0.1);
+
+    --bg-body: #fcfcfd;
     --bg-card: #ffffff;
-    --text-main: #1d1d1f;
-    --text-muted: #86868b;
-    --border-color: #d2d2d7;
-    --success: #34c759;
-    --success-bg: rgba(52, 199, 89, 0.1);
-    --success-text: #248a3d;
-    --info: #32ade6;
-    --info-bg: rgba(50, 173, 230, 0.1);
-    --info-text: #007bb5;
-    --danger: #ff3b30;
-    --danger-hover: #ff453a;
-    --danger-bg: rgba(255, 59, 48, 0.1);
-    --danger-text: #c93429;
-    --warning: #ff9500;
-    --warning-hover: #ff9f0a;
 
-    /* Ombres plus douces et diffuses */
+    --text-main: #09090b;
+    --text-muted: #71717a;
+    --border-color: #e4e4e7;
+
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.1);
+    --success-text: #047857;
+
+    --info: #3b82f6;
+    --info-bg: rgba(59, 130, 246, 0.1);
+    --info-text: #1d4ed8;
+
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --danger-bg: rgba(239, 68, 68, 0.1);
+    --danger-text: #b91c1c;
+
+    --warning: #f59e0b;
+    --warning-hover: #d97706;
+
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
-    --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.08), 0 10px 20px rgba(79, 70, 229, 0.06);
 
-    /* Rayons de bordure plus prononcés */
-    --radius-md: 12px;
-    --radius-lg: 18px;
-    --radius-xl: 24px;
+    --radius-md: 0.75rem;
+    --radius-lg: 1.25rem;
+    --radius-xl: 1.75rem;
 
-    --transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
     --card-title-font-size: 1.15rem;
-    --card-desc-font-size: 0.9rem;
+    --card-desc-font-size: 0.9 rem;
     --icon-font-size: 0.75rem;
 }
 
-/* Thème sombre adapté (Dark Mode iOS/macOS) */
+/* =========================================
+   THÈME SOMBRE (DARK MODE)
+   ========================================= */
 [data-theme="dark"] {
-    --bg-body: #000000;
-    --bg-card: #1c1c1e;
-    --text-main: #f5f5f7;
-    --text-muted: #86868b;
-    --border-color: #38383a;
+    --bg-body: #18181b;
+    --bg-card: #1d1d21;
+
+    --text-main: #fcfcfd;
+    --text-muted: #a1a1aa;
+    --border-color: #27272a;
+
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-    --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.6);
-    --success-text: #30d158;
-    --info-text: #64d2ff;
-    --danger-text: #ff453a;
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.6), 0 10px 20px rgba(79, 70, 229, 0.1);
+
+    --success-text: #34d399;
+    --info-text: #60a5fa;
+    --danger-text: #f87171;
 }

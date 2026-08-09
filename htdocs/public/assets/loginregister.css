@@ -8,15 +8,13 @@
 body {
     background-color: var(--bg-body);
     color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.47059;
-    font-weight: 400;
-    letter-spacing: -0.022em;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Améliore le rendu sur macOS */
 }
 
 a {
