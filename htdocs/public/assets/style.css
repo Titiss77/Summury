@@ -250,16 +250,45 @@ details[open].division-section .cards-grid {
 
 .card {
     background: var(--bg-card);
-    backdrop-filter: blur(7px) saturate(180%);
-    -webkit-backdrop-filter: blur(7px) saturate(180%);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    /* Utilise la nouvelle ombre douce */
-    transition: var(--transition);
-    display: flex;
-    flex-direction: column;
+    width: 240px;
+    height: 360px;
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 0 14px 7px rgba(255, 255, 255, 0.7);
+    position: relative;
     overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.8),
+            transparent);
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.8),
+            transparent,
+            rgba(255, 255, 255, 0.3));
 }
 
 .card:hover {
