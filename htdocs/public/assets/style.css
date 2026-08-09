@@ -32,19 +32,24 @@ a {
 /* =========================================
    HEADER (Navigation Globale)
    ========================================= */
-.main-header {
-    display: flex;
-    justify-content: space-between;
-    background-color: var(--bg-card);
-    border-bottom: 1px solid var(--border-color);
-    padding: 16px 30px;
-    margin-bottom: 32px;
-    box-shadow: var(--shadow-sm);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
+   .main-header {
+       display: flex;
+       justify-content: space-between;
+       background-color: var(--bg-card);
+    /* Utilise le fond transparent */
+        backdrop-filter: blur(7px) saturate(180%);
+        /* L'effet Liquid Glass */
+        -webkit-backdrop-filter: blur(7px) saturate(180%);
+        /* Support Safari/iOS */
+        border-bottom: 1px solid var(--glass-border);
+        padding: 16px 30px;
+        margin-bottom: 32px;
+        box-shadow: var(--shadow-sm);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
 
 .main-header .container {
     display: flex;
@@ -245,9 +250,12 @@ details[open].division-section .cards-grid {
 
 .card {
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
+        /* Utilise la nouvelle ombre douce */
     transition: var(--transition);
     display: flex;
     flex-direction: column;
@@ -257,7 +265,19 @@ details[open].division-section .cards-grid {
 .card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-hover);
-    border-color: var(--primary-light);
+    border-color: rgba(255, 255, 255, 0.8);
+        /* Bordure qui s'illumine au survol */
+    }
+    
+    /* L'intérieur des actions de la carte doit aussi être transparent pour ne pas casser l'effet */
+    .card-actions-bottom {
+        padding: 0.75rem 1.5rem;
+        background: transparent;
+        border-top: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        align-items: center;
 }
 
 .card:active {
@@ -373,16 +393,6 @@ details[open].division-section .cards-grid {
 .badge-episode {
     background: var(--info-bg);
     color: var(--info-text);
-}
-
-.card-actions-bottom {
-    padding: 0.75rem 1.5rem;
-    background: var(--bg-body);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
-    gap: 16px;
-    align-items: center;
 }
 
 .status-completed {
@@ -528,15 +538,29 @@ details[open].division-section .cards-grid {
 /* =========================================
    FORMULAIRES & INPUT MOT DE PASSE
    ========================================= */
-.form-container {
-    max-width: 600px;
-    margin: 3rem auto;
-    padding: 2.5rem;
-    background: var(--bg-card);
+   .form-container {
+       max-width: 600px;
+       margin: 3rem auto;
+       padding: 2.5rem;
+       background: var(--bg-card);
+    backdrop-filter: blur(25px) saturate(200%);
+        -webkit-backdrop-filter: blur(25px) saturate(200%);
     border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-color);
-}
+        box-shadow: var(--shadow-md);
+    border: 1px solid var(--glass-border);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--bg-card);
+        backdrop-filter: blur(15px) saturate(150%);
+        -webkit-backdrop-filter: blur(15px) saturate(150%);
+        border-radius: var(--radius-xl);
+        border: 1px dashed var(--border-color);
+        color: var(--text-muted);
+        margin-top: 2rem;
+    }
 
 .form-container .header-title {
     margin-top: 0;
@@ -669,15 +693,6 @@ select.form-control {
 /* =========================================
    MESSAGES & ÉTATS VIDES & ALERTS
    ========================================= */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: var(--bg-card);
-    border-radius: var(--radius-xl);
-    border: 1px dashed var(--border-color);
-    color: var(--text-muted);
-    margin-top: 2rem;
-}
 
 .empty-state h2 {
     color: var(--text-main);
