@@ -35,21 +35,43 @@ a {
 .main-header {
     display: flex;
     justify-content: space-between;
-    background-color: var(--bg-card);
-    /* Utilise le fond transparent */
-    backdrop-filter: blur(7px) saturate(180%);
-        /* L'effet Liquid Glass */
-        -webkit-backdrop-filter: blur(7px) saturate(180%);
-        /* Support Safari/iOS */
-        border-bottom: 1px solid var(--glass-border);
-        padding: 16px 30px;
-        margin-bottom: 32px;
-        box-shadow: var(--shadow-sm);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
+    padding: 16px 30px;
+    margin-bottom: 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+}
+
+.main-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.8),
+            transparent);
+}
+
+.main-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.8),
+            transparent,
+            rgba(255, 255, 255, 0.3)); }
 
 .main-header .container {
     display: flex;
@@ -130,10 +152,18 @@ a {
 }
 
 .nav-tab.active {
-    background: var(--text-main);
-    color: var(--bg-body);
-    box-shadow: var(--shadow-sm);
+    background: transparent;
+        backdrop-filter: blur(7px);
+        -webkit-backdrop-filter: blur(7px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 0 2px 1px rgba(255, 255, 255, 0.1);
 }
+
+
 
 /* =========================================
    ACTIONS CONTAINER
