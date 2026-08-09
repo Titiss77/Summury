@@ -250,12 +250,12 @@ details[open].division-section .cards-grid {
 
 .card {
     background: var(--bg-card);
-    backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid var(--glass-border);
+    backdrop-filter: blur(7px) saturate(180%);
+    -webkit-backdrop-filter: blur(7px) saturate(180%);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-        /* Utilise la nouvelle ombre douce */
+    /* Utilise la nouvelle ombre douce */
     transition: var(--transition);
     display: flex;
     flex-direction: column;
