@@ -59,8 +59,12 @@ a {
     color: var(--text-main);
     font-weight: 700;
     font-size: var(--card-title-font-size);
-    margin: 0;
     letter-spacing: -0.02em;
+}
+
+.main-header h1 a {
+    display: flex;
+    align-items: center;
 }
 
 .user-nav {
@@ -405,6 +409,14 @@ details[open].division-section .cards-grid {
     font-weight: 500;
     color: var(--text-muted);
     transition: var(--transition);
+}
+
+.logo-amfs{
+    width: 30px;
+    height: 30px;
+    margin-right: 8px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .btn-edit-sm:hover {

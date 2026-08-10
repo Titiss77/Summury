@@ -44,7 +44,10 @@
     <div id="toast-container" class="toast-container"></div>
 
     <header class="main-header">
-        <h1><a href="<?php echo base_url('/'); ?>" style="color:inherit;">AMFS</a></h1>
+        <h1>
+            <a href="<?php echo base_url('/'); ?>" style="color:inherit;"><img class="logo-amfs"
+                    src="<?php echo base_url('favicon.ico'); ?>" alt="AMFS Logo">AMFS</a>
+        </h1>
 
         <div class="user-nav">
             <button id="theme-toggle" class="btn-theme">
