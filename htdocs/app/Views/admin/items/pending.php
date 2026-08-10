@@ -38,7 +38,8 @@
                     <td><?php echo esc($item->description); ?></td>
                     <td>
                         <div class="action-links">
-                            <a href="<?php echo base_url('item/form/'.$item->id); ?>" class="btn-action btn-edit">Examiner</a>
+                            <a href="<?php echo base_url('item/form/'.$item->id); ?>"
+                                class="btn-action btn-edit">Examiner</a>
                             <a href="<?php echo base_url('items/approve/'.$item->id); ?>" class="btn-action"
                                 style="background:var(--success); color:white;">Valider</a>
                             <a href="<?php echo base_url('items/reject/'.$item->id); ?>" class="btn-action btn-ban"
@@ -69,7 +70,8 @@
                 <tr>
                     <td>
                         <strong><?php echo esc($revision['original_titre']); ?></strong><br>
-                        <small style="color: #666;">ID Original: <?php echo esc($revision['original_item_id']); ?></small>
+                        <small style="color: #666;">ID Original:
+                            <?php echo esc($revision['original_item_id']); ?></small>
                     </td>
                     <td>
                         <?php if (!empty($revision['changes'])) { ?>
@@ -84,7 +86,7 @@
                                     <div style="text-align: center;">
                                         <?php if (!empty($change['old'])) { ?>
                                         <img src="<?php echo esc($change['old']); ?>" alt="Ancienne"
-                                            style="max-height: 60px; border-radius: 4px; border: 1px solid #ddd; opacity: 0.5;">
+                                            style="max-height: 60px; border-radius: var(--radius-md); border: 1px solid #ddd; opacity: 0.5;">
                                         <?php } else { ?>
                                         <span
                                             style="color: #dc3545; font-size: 0.85em; text-decoration: line-through;">Aucune</span>
@@ -95,7 +97,7 @@
                                     <div style="text-align: center;">
                                         <?php if (!empty($change['new'])) { ?>
                                         <img src="<?php echo esc($change['new']); ?>" alt="Nouvelle"
-                                            style="max-height: 60px; border-radius: 4px; border: 2px solid var(--success, #28a745);">
+                                            style="max-height: 60px; border-radius: var(--radius-md); border: 2px solid var(--success, #28a745);">
                                         <?php } else { ?>
                                         <span
                                             style="color: #28a745; font-weight: bold; font-size: 0.85em;">Supprimée</span>
@@ -124,14 +126,14 @@
                     </td>
                     <td>
                         <span
-                            style="background: var(--primary); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em;">
+                            style="background: var(--primary); color: white; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.85em;">
                             <?php echo esc($revision['author_name']); ?>
                         </span>
                     </td>
                     <td>
                         <div class="action-links">
-                            <a href="<?php echo base_url('items/approve-revision/'.$revision['id']); ?>" class="btn-action"
-                                style="background:var(--success); color:white;"
+                            <a href="<?php echo base_url('items/approve-revision/'.$revision['id']); ?>"
+                                class="btn-action" style="background:var(--success); color:white;"
                                 onclick="return confirm('Approuver cette modification ? Elle écrasera la version publique actuelle.')">Approuver</a>
                             <a href="<?php echo base_url('items/reject-revision/'.$revision['id']); ?>"
                                 class="btn-action btn-ban"

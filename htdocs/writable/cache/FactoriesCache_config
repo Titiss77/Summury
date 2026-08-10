@@ -37,6 +37,8 @@
     'Config\\Validation' => 'Config\\Validation',
     'Config\\CURLRequest' => 'Config\\CURLRequest',
     'Cookie' => 'Config\\Cookie',
+    'Validation' => 'Config\\Validation',
+    'Config\\Pager' => 'Config\\Pager',
   ),
   'instances' => 
   array (
@@ -917,6 +919,16 @@
     'Config\\CURLRequest' => 
     \Config\CURLRequest::__set_state(array(
        'shareOptions' => false,
+    )),
+    'Config\\Pager' => 
+    \Config\Pager::__set_state(array(
+       'templates' => 
+      array (
+        'default_full' => 'CodeIgniter\\Pager\\Views\\default_full',
+        'default_simple' => 'CodeIgniter\\Pager\\Views\\default_simple',
+        'default_head' => 'CodeIgniter\\Pager\\Views\\default_head',
+      ),
+       'perPage' => 20,
     )),
   ),
 );

@@ -46,7 +46,7 @@
                     <td style="padding: 12px;">
                         <?php if ($log['username']) { ?>
                         <span
-                            style="background: var(--primary); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em;">
+                            style="background: var(--primary); color: white; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.85em;">
                             <?php echo esc($log['username']); ?>
                         </span>
                         <?php } else { ?>

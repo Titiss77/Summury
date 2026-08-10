@@ -59,7 +59,7 @@
         if ($isPendingNew || $hasPendingRevision) {
             ?>
                 <div
-                    style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
+                    style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                     <?php if ($isPendingNew) { ?>
                     ⏳ En cours d'inspection (Non public)
                     <?php } else { ?>

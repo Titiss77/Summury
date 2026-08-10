@@ -24,7 +24,7 @@
     <?php } ?>
 
     <div
-        style="background: #f8f9fa; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #dee2e6;">
+        style="background: #f8f9fa; padding: 15px 20px; border-radius: var(--radius-md); margin-bottom: 25px; border: 1px solid #dee2e6;">
         <h4 style="margin-top: 0; color: #333; display: flex; align-items: center; gap: 8px;">
             🛠️ Migration de Domaine
         </h4>
@@ -38,7 +38,7 @@
             <?php echo csrf_field(); ?>
 
             <select name="old_domain" required
-                style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background-color: white;">
+                style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: var(--radius-md); background-color: white;">
                 <option value="">-- Sélectionner l'ancien domaine --</option>
                 <?php foreach ($domains as $domain) { ?>
                 <option value="<?php echo esc($domain); ?>"><?php echo esc($domain); ?></option>
@@ -47,9 +47,9 @@
 
             <span style="font-weight: bold; color: #888;">➔</span>
             <input type="text" name="new_domain" placeholder="Nouveau domaine (ex: https://site.fr)" required
-                style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: var(--radius-md);">
             <button type="submit" class="btn"
-                style="background: var(--success, #28a745); color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;"
+                style="background: var(--success, #28a745); color: white; border: none; padding: 10px 15px; border-radius: var(--radius-md); cursor: pointer; font-weight: bold;"
                 onclick="return confirm('⚠️ Attention : Cette action va chercher TOUTES les cartes contenant l\'ancien domaine et les modifier. Êtes-vous sûr ?')">
                 Mettre à jour les liens
             </button>
@@ -58,7 +58,7 @@
 
     <?php if (empty($deadItems)) { ?>
     <div class="empty-state"
-        style="text-align: center; padding: 40px 0; color: #666; background: #fdfdfd; border-radius: 8px; border: 1px dashed #ddd;">
+        style="text-align: center; padding: 40px 0; color: #666; background: #fdfdfd; border-radius: var(--radius-md); border: 1px dashed #ddd;">
         <p style="font-size: 1.2em; margin: 0;">✅ Excellente nouvelle, tous les liens de streaming testés fonctionnent
             correctement !</p>
     </div>

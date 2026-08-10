@@ -79,7 +79,7 @@ p.lead {
     background: #343434;
     color: var(--light-text-color);
     padding: 0.5em 1em;
-    border-radius: 5px;
+    border-radius: var(--radius-md);
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
     font-size: 0.85rem;
     margin: 0;
@@ -149,7 +149,7 @@ p.lead {
     line-height: 3.0;
     background: #d9edf7;
     border: 1px solid #bcdff1;
-    border-radius: 5px;
+    border-radius: var(--radius-md);
     color: #31708f;
 }
 

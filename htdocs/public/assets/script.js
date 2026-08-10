@@ -358,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const imgSrc = res.imageThumb || fallbackImg;
 
                         divItem.innerHTML = `
-                            <img src="${imgSrc}" alt="Affiche" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px; margin-right: 15px;">
+                            <img src="${imgSrc}" alt="Affiche" style="width: 40px; height: 60px; object-fit: cover; border-radius: var(--radius-md); margin-right: 15px;">
                             <div style="flex-grow: 1; overflow: hidden;">
                                 <strong style="display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${res.titre}</strong>
                                 <small style="color: gray;">${res.info}</small>
