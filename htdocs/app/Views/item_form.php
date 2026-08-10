@@ -139,12 +139,12 @@
         <div class="form-group row">
             <div class="col-half">
                 <label for="saison" class="form-label">Saison</label>
-                <input type="number" id="saison" name="saison" class="form-control"
+                <input type="number" id="saison" name="saison" min="0" class="form-control"
                     value="<?php echo isset($item) ? esc($item->saison) : ''; ?>">
             </div>
             <div class="col-half">
                 <label for="episode" class="form-label">Épisode</label>
-                <input type="number" id="episode" name="episode" class="form-control"
+                <input type="number" id="episode" name="episode" min="0" class="form-control"
                     value="<?php echo isset($item) ? esc($item->episode) : ''; ?>">
             </div>
         </div>
