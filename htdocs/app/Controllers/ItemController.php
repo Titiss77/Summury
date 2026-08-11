@@ -401,6 +401,7 @@ class ItemController extends BaseController
         
         // 1. Initialisation des logs de debug
         $debugLogs = [
+            '1_url_recue' => $urlCible
         ];
         
         if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
@@ -412,6 +413,8 @@ class ItemController extends BaseController
         $sites = $siteConfigModel->where('is_active', 1)->findAll();
         $currentConfig = null;
 
+        $debugLogs['2_domaines_actifs_en_bdd'] = array_column($sites, 'domain');
+
         foreach ($sites as $config) {
             if (stripos($urlCible, $config['domain']) !== false) {
                 $currentConfig = $config;
@@ -420,12 +423,15 @@ class ItemController extends BaseController
         }
 
         if (!$currentConfig) {
+            $debugLogs['erreur'] = 'Aucun domaine BDD ne correspond à l\'URL fournie.';
             return $this->response->setJSON([
                 'success' => false, 
-                'error' => 'Domaine non supporté par le script de vérification.'
+                'error' => 'Domaine non supporté par le script de vérification.',
+                'debug' => $debugLogs
             ]);
         }
 
+        $debugLogs['3_config_trouvee'] = $currentConfig['domain'];
         $debugLogs['4_regex_utilisee'] = $currentConfig['regex_episode'];
 
         preg_match($currentConfig['regex_episode'], $urlCible, $matches);
