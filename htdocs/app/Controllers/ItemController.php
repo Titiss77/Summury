@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -45,7 +47,7 @@ class ItemController extends BaseController
             $rules = [
                 'titre' => 'required|max_length[100]',
                 'id_division' => 'required|numeric',
-                'status' => 'in_list[Aucun, À voir,En cours,En pause,Terminé]'
+                'status' => 'in_list[Aucun,À voir,En cours,En pause,Terminé]',
             ];
 
             if (!$this->validate($rules)) {
@@ -126,7 +128,6 @@ class ItemController extends BaseController
 
                 $item = new Item($data);
                 $this->model->save($item);
-
                 $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
                 $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
 
@@ -181,13 +182,13 @@ class ItemController extends BaseController
                 return redirect()->to($backUrl . $separator . 'open=' . $id_div . '#div-' . $id_div);
             }
         }
+
         return redirect()->back();
     }
 
     public function incrementEpisode($id)
     {
         $item = $this->model->find($id);
-
         if ($item) {
             $newEpisode = (int) $item->episode + 1;
             $this->model->update($id, ['episode' => $newEpisode]);
@@ -243,7 +244,6 @@ class ItemController extends BaseController
                 if (!isset($body['error'])) {
                     $cache->save($cacheKey, $body, 3600);
                 }
-
                 return $this->response->setJSON($body);
             }
 
@@ -266,7 +266,6 @@ class ItemController extends BaseController
             // --- Recherche TMDB (Films/Séries + Plan B pour les Animes) ---
             $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
             $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
-            
             $response = $client->get($url);
             $body = json_decode($response->getBody(), true);
 
@@ -325,7 +324,6 @@ class ItemController extends BaseController
 
                 foreach ($json->order as $index => $itemId) {
                     $item = $this->model->find($itemId);
-
                     if ($item && ((int) $item->id_user === (int) $userId || $isAdmin)) {
                         $this->model->update($itemId, ['position' => $index]);
                         ++$count;
@@ -399,22 +397,14 @@ class ItemController extends BaseController
     {
         $urlCible = $this->request->getGet('urlCible');
         
-        // 1. Initialisation des logs de debug
-        $debugLogs = [
-            '1_url_recue' => $urlCible
-        ];
-        
         if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
-            $debugLogs['erreur'] = 'URL invalide ou vide.';
-            return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.', 'debug' => $debugLogs]);
+            return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
         $siteConfigModel = new \App\Models\SiteConfigModel();
         $sites = $siteConfigModel->where('is_active', 1)->findAll();
+
         $currentConfig = null;
-
-        $debugLogs['2_domaines_actifs_en_bdd'] = array_column($sites, 'domain');
-
         foreach ($sites as $config) {
             if (stripos($urlCible, $config['domain']) !== false) {
                 $currentConfig = $config;
@@ -423,20 +413,14 @@ class ItemController extends BaseController
         }
 
         if (!$currentConfig) {
-            $debugLogs['erreur'] = 'Aucun domaine BDD ne correspond à l\'URL fournie.';
             return $this->response->setJSON([
                 'success' => false, 
-                'error' => 'Domaine non supporté par le script de vérification.',
-                'debug' => $debugLogs
+                'error' => 'Domaine non supporté par le script de vérification.'
             ]);
         }
 
-        $debugLogs['3_config_trouvee'] = $currentConfig['domain'];
-        $debugLogs['4_regex_utilisee'] = $currentConfig['regex_episode'];
-
         preg_match($currentConfig['regex_episode'], $urlCible, $matches);
         $episodeExtrait = $matches[1] ?? null;
-        $debugLogs['5_episode_extrait'] = $episodeExtrait;
 
         $indicateursPageInvalide = json_decode($currentConfig['indicateurs_page_invalide'], true) ?? [];
         $indicateursLecteur = json_decode($currentConfig['indicateurs_lecteur'], true) ?? [];
@@ -446,109 +430,62 @@ class ItemController extends BaseController
                 'timeout'         => 8,
                 'connect_timeout' => 5,
                 'http_errors'     => false,
-                'allow_redirects' => false, 
+                'allow_redirects' => true,
                 'verify'          => false,
                 'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker'
             ]);
-            
-            $urlEnCours = $urlCible;
-            $maxRedirects = 3;
-            $redirectCount = 0;
-            $response = null;
-            
-            $debugLogs['6_historique_redirections'] = [];
 
-            while ($redirectCount <= $maxRedirects) {
-                $debugLogs['6_historique_redirections'][$redirectCount] = "Tentative GET sur: " . $urlEnCours;
-                
-                $response = $client->get($urlEnCours);
-                $statusCode = $response->getStatusCode();
-                
-                $debugLogs['6_historique_redirections'][$redirectCount . '_status'] = $statusCode;
-                
-                if ($statusCode >= 300 && $statusCode < 400) {
-                    $redirectUrl = $response->getHeaderLine('Location');
-                    $debugLogs['6_historique_redirections'][$redirectCount . '_location'] = $redirectUrl;
-                    
-                    if ($episodeExtrait) {
-                        preg_match($currentConfig['regex_episode'], $redirectUrl, $matchRedirect);
-                        $episodeRedirige = $matchRedirect[1] ?? null;
-                        $debugLogs['6_historique_redirections'][$redirectCount . '_episode_redirige'] = $episodeRedirige;
-                        
-                        if ($episodeRedirige && $episodeRedirige !== $episodeExtrait) {
-                            $debugLogs['resultat'] = 'NON_DISPO_CAR_ALTERE';
-                            return $this->response->setJSON([
-                                'success'    => true,
-                                'disponible' => false,
-                                'details'    => ['erreur' => "L'URL a été modifiée par le site (redirigé vers l'épisode {$episodeRedirige})"],
-                                'debug'      => $debugLogs
-                            ]);
-                        }
-                    }
-                    
-                    if (!preg_match('#^https?://#i', $redirectUrl)) {
-                        $parsed = parse_url($urlEnCours);
-                        $redirectUrl = $parsed['scheme'] . '://' . $parsed['host'] . (str_starts_with($redirectUrl, '/') ? '' : '/') . $redirectUrl;
-                    }
-                    
-                    $urlEnCours = $redirectUrl;
-                    $redirectCount++;
-                } else {
-                    break;
-                }
-            }
-
+            $response = $client->get($urlCible);
+            
+            // Si la page est en 404 (Introuvable)
             if ($response->getStatusCode() === 404) {
-                $debugLogs['resultat'] = 'NON_DISPO_CAR_404';
                 return $this->response->setJSON([
                     'success'    => true,
                     'disponible' => false,
-                    'details'    => ['erreur' => 'Page 404 retournée'],
-                    'debug'      => $debugLogs
+                    'details'    => ['erreur' => 'Page 404 retournée']
                 ]);
             }
 
             $html = (string) $response->getBody();
 
+            // Vérification 1 : Est-on redirigé sur une fiche globale au lieu de l'épisode ?
             $estSurFicheAnime = false;
             foreach ($indicateursPageInvalide as $indicator) {
                 if (stripos($html, $indicator) !== false) {
                     $estSurFicheAnime = true;
-                    $debugLogs['7_indicateur_fiche_trouve'] = $indicator;
                     break;
                 }
             }
 
+            // Vérification 2 : Y a-t-il le lecteur vidéo (avec remplacement de {ep}) ?
             $lecteurPresent = false;
             foreach ($indicateursLecteur as $indicator) {
                 $indicatorFinal = $episodeExtrait ? str_replace('{ep}', (string)$episodeExtrait, $indicator) : $indicator;
+
                 if (stripos($html, $indicatorFinal) !== false) {
                     $lecteurPresent = true;
-                    $debugLogs['8_indicateur_lecteur_trouve'] = $indicatorFinal;
                     break;
                 }
             }
             
+            // L'ÉQUATION FINALE CORRIGÉE : 
+            // C'est disponible uniquement si on n'est PAS sur une fiche ET que le lecteur est présent.
             $estDisponible = !$estSurFicheAnime && $lecteurPresent;
-            $debugLogs['resultat_final'] = $estDisponible ? 'DISPONIBLE' : 'NON_DISPONIBLE';
 
             return $this->response->setJSON([
-                'success'    => true,
+                'success'    => true, // On renvoie "true" pour que le Javascript traite la réponse
                 'disponible' => $estDisponible,
                 'details'    => [
                     'estSurFicheAnime' => $estSurFicheAnime,
                     'lecteurPresent'   => $lecteurPresent,
                     'episodeDetecte'   => $episodeExtrait
-                ],
-                'debug' => $debugLogs
+                ]
             ]);
 
         } catch (\Throwable $e) {
-            $debugLogs['erreur_exception'] = $e->getMessage();
             return $this->response->setJSON([
                 'success' => false, 
-                'error'   => 'Erreur Interne : ' . $e->getMessage(),
-                'debug'   => $debugLogs
+                'error'   => 'Erreur Interne : ' . $e->getMessage()
             ]);
         }
     }
