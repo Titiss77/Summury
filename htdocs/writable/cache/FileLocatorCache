@@ -145,25 +145,6 @@
         ),
       ),
     ),
-    'Language/fr/HTTP.php' => 
-    array (
-      'php' => 
-      array (
-        0 => 
-        array (
-        ),
-      ),
-    ),
-    'Language/en/HTTP.php' => 
-    array (
-      'php' => 
-      array (
-        0 => 
-        array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Language\\en\\HTTP.php',
-        ),
-      ),
-    ),
     'Language/fr/Auth.php' => 
     array (
       'php' => 
@@ -171,25 +152,6 @@
         0 => 
         array (
           0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\shield\\src\\Language\\fr\\Auth.php',
-        ),
-      ),
-    ),
-    'Language/fr/Errors.php' => 
-    array (
-      'php' => 
-      array (
-        0 => 
-        array (
-        ),
-      ),
-    ),
-    'Language/en/Errors.php' => 
-    array (
-      'php' => 
-      array (
-        0 => 
-        array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Language\\en\\Errors.php',
         ),
       ),
     ),
