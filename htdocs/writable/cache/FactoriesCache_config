@@ -39,6 +39,8 @@
     'Cookie' => 'Config\\Cookie',
     'Validation' => 'Config\\Validation',
     'Config\\Pager' => 'Config\\Pager',
+    'AuthGroups' => 'Config\\AuthGroups',
+    'Config\\AuthGroups' => 'Config\\AuthGroups',
   ),
   'instances' => 
   array (
@@ -929,6 +931,70 @@
         'default_head' => 'CodeIgniter\\Pager\\Views\\default_head',
       ),
        'perPage' => 20,
+    )),
+    'Config\\AuthGroups' => 
+    \Config\AuthGroups::__set_state(array(
+       'defaultGroup' => 'user',
+       'groups' => 
+      array (
+        'superadmin' => 
+        array (
+          'title' => 'Super Admin',
+          'description' => 'Administrateur suprême du site.',
+        ),
+        'admin' => 
+        array (
+          'title' => 'Admin',
+          'description' => 'Day to day administrators of the site.',
+        ),
+        'user' => 
+        array (
+          'title' => 'User',
+          'description' => 'General users of the site. Often customers.',
+        ),
+      ),
+       'permissions' => 
+      array (
+        'admin.access' => 'Can access the sites admin area',
+        'admin.settings' => 'Can access the main site settings',
+        'users.manage-admins' => 'Can manage other admins',
+        'users.create' => 'Can create new non-admin users',
+        'users.edit' => 'Can edit existing non-admin users',
+        'users.delete' => 'Can delete existing non-admin users',
+        'beta.access' => 'Can access beta-level features',
+      ),
+       'matrix' => 
+      array (
+        'superadmin' => 
+        array (
+          0 => 'admin.*',
+          1 => 'users.*',
+          2 => 'beta.*',
+        ),
+        'admin' => 
+        array (
+          0 => 'admin.access',
+          1 => 'users.create',
+          2 => 'users.edit',
+          3 => 'users.delete',
+          4 => 'beta.access',
+        ),
+        'developer' => 
+        array (
+          0 => 'admin.access',
+          1 => 'admin.settings',
+          2 => 'users.create',
+          3 => 'users.edit',
+          4 => 'beta.access',
+        ),
+        'user' => 
+        array (
+        ),
+        'beta' => 
+        array (
+          0 => 'beta.access',
+        ),
+      ),
     )),
   ),
 );

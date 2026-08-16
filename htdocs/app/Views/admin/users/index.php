@@ -24,6 +24,7 @@
     padding: 1.25rem 1.5rem;
     color: var(--text-main);
     border-bottom: 1px solid var(--border-color);
+    text-align: center;
 }
 
 .dataTable-wrapper {
@@ -65,12 +66,14 @@
                     <th>ID</th>
                     <th>Nom d'utilisateur</th>
                     <th>Statut</th>
+                    <th>Mail</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($users as $user) { ?>
-                <tr class="<?php echo $user->isBanned() ? 'user-banned' : ''; ?>">
+                <tr class="<?php echo $user->isBanned() ? 'user-banned' : ''; ?>"
+                    style="<?php echo $user->isBanned() ? 'background-color: var(--danger-light, #f8d7da);' : ''; ?>">
                     <td><?php echo esc($user->id); ?></td>
                     <td><strong><?php echo esc($user->username); ?></strong></td>
                     <td>
@@ -80,9 +83,11 @@
                         <span class="status-badge active">Actif</span>
                         <?php } ?>
                     </td>
+                    <td><?php echo esc($user->email); ?></td>
                     <td>
                         <div class="action-links">
-                            <a href="<?php echo base_url('users/edit/'.$user->id); ?>" class="btn-action btn-edit">Modifier</a>
+                            <a href="<?php echo base_url('users/edit/'.$user->id); ?>"
+                                class="btn-action btn-edit">Modifier</a>
                             <?php if ($user->isBanned()) { ?>
                             <a href="<?php echo base_url('users/unban/'.$user->id); ?>" class="btn-action btn-unban"
                                 onclick="return confirm('Réhabiliter cet utilisateur ?')">Débannir</a>
