@@ -43,7 +43,7 @@ class ItemModel extends Model
         ;
 
         if (null === $userId) {
-            $builder->where('i.is_public', 1);
+            $builder->where('i.is_public', 2);
         } else {
             $builder
                 ->groupStart()

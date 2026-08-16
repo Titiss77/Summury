@@ -92,7 +92,7 @@
         </div>
     </header>
 
-    <?php if (isset($headers) && !empty($headers)) { ?>
+    <?php if (isset($headers) && !empty($headers) && auth()->loggedIn()) { ?>
     <nav class="category-nav container">
         <?php foreach ($headers as $h) { ?>
         <a href="<?php echo base_url('categorie/'.$h['id']); ?>"
@@ -101,6 +101,8 @@
         </a>
         <?php } ?>
     </nav>
+    <?php } else { ?>
+    <nav class="category-nav container"></nav>
     <?php } ?>
 
     <main class="container">

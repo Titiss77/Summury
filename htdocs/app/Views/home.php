@@ -3,8 +3,9 @@
 <?php if (!auth()->loggedIn()) { ?>
 <div class="empty-state shadow-card">
     <h2>Bienvenue sur AMFS Dashboard</h2>
-    <p style="color: var(--danger);">Seuls les Liens & Outils sont accessibles sans être connecté.</p>
-    <p>Veuillez vous connecter ou créer un compte pour gérer et visualiser vos propres cartes.</p>
+    <p style="color: var(--danger);">Les cartes ne sont pas accessibles sans être connecté.</p>
+    <p>Veuillez vous connecter ou créer un compte pour gérer et visualiser vos propres cartes ainsi que les publiques.
+    </p>
     <br>
     <a href="<?php echo base_url('login'); ?>" class="btn btn-primary">Se connecter</a>
     <a href="<?php echo base_url('register'); ?>" class="btn btn-primary">Créer un compte</a>
@@ -52,10 +53,6 @@
     <p>Commencez par en ajouter une !</p>
     <br>
     <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success">+ Ajouter une carte</a>
-</div>
-<?php } else { ?>
-<div class="empty-state">
-    <p>Aucune donnée disponible.</p>
 </div>
 <?php } ?>
 <?php } else { ?>
