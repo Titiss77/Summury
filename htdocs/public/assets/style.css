@@ -1025,6 +1025,13 @@ select.form-control {
     cursor: pointer;
 }
 
+.logs {
+    color: #80808099;
+    font-size: small;
+    display: flex;
+    align-items: center;
+}
+
 @media (max-width: 768px) {
     .main-header .container {
         flex-direction: column;
@@ -1065,5 +1072,15 @@ select.form-control {
     .user-nav {
         font-size: smaller;
         text-align: center;
+        gap: 5px;
+        }
+        
+        .actions-container {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .logs {
+            display: none;
     }
 }
