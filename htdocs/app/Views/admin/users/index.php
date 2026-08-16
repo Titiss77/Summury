@@ -72,8 +72,7 @@
             </thead>
             <tbody>
                 <?php foreach ($users as $user) { ?>
-                <tr class="<?php echo $user->isBanned() ? 'user-banned' : ''; ?>"
-                    style="<?php echo $user->isBanned() ? 'background-color: var(--danger-light, #f8d7da);' : ''; ?>">
+                <tr class="<?php echo $user->isBanned() ? 'user-banned' : ''; ?>">
                     <td><?php echo esc($user->id); ?></td>
                     <td><strong><?php echo esc($user->username); ?></strong></td>
                     <td>
