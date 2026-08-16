@@ -417,6 +417,12 @@ details[open].division-section .cards-grid {
     margin-right: 8px;
     border-radius: 50%;
     object-fit: cover;
+    filter: grayscale(100%) contrast(1000%) brightness(0);
+}
+
+/* Thème sombre : inverse le noir pour qu'il devienne blanc */
+html[data-theme="dark"] .logo-amfs {
+    filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
 }
 
 .btn-edit-sm:hover {
