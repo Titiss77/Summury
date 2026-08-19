@@ -2,6 +2,13 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+
+DROP TABLE IF EXISTS `audit_logs`;
 CREATE TABLE `audit_logs` (
   `id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED DEFAULT NULL,
@@ -11,6 +18,7 @@ CREATE TABLE `audit_logs` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `auth_groups_users`;
 CREATE TABLE `auth_groups_users` (
   `id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
@@ -18,6 +26,7 @@ CREATE TABLE `auth_groups_users` (
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `auth_identities`;
 CREATE TABLE `auth_identities` (
   `id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
@@ -33,6 +42,7 @@ CREATE TABLE `auth_identities` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `auth_logins`;
 CREATE TABLE `auth_logins` (
   `id` int UNSIGNED NOT NULL,
   `ip_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -44,6 +54,7 @@ CREATE TABLE `auth_logins` (
   `success` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `auth_permissions_users`;
 CREATE TABLE `auth_permissions_users` (
   `id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
@@ -51,6 +62,7 @@ CREATE TABLE `auth_permissions_users` (
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `auth_remember_tokens`;
 CREATE TABLE `auth_remember_tokens` (
   `id` int UNSIGNED NOT NULL,
   `selector` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -61,6 +73,7 @@ CREATE TABLE `auth_remember_tokens` (
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `auth_token_logins`;
 CREATE TABLE `auth_token_logins` (
   `id` int UNSIGNED NOT NULL,
   `ip_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -72,6 +85,7 @@ CREATE TABLE `auth_token_logins` (
   `success` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `cron_logs`;
 CREATE TABLE `cron_logs` (
   `id` int UNSIGNED NOT NULL,
   `item_id` int UNSIGNED DEFAULT NULL,
@@ -82,22 +96,26 @@ CREATE TABLE `cron_logs` (
   `last_run` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `division`;
 CREATE TABLE `division` (
   `id` int UNSIGNED NOT NULL,
   `id_header` int UNSIGNED NOT NULL,
   `nom` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `header`;
 CREATE TABLE `header` (
   `id` int UNSIGNED NOT NULL,
   `nom` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item` (
   `id` int UNSIGNED NOT NULL,
   `id_user` int UNSIGNED NOT NULL,
   `is_public` tinyint(1) NOT NULL DEFAULT '0',
   `id_division` int UNSIGNED NOT NULL,
+  `sous_categorie` varchar(100) DEFAULT NULL,
   `titre` varchar(100) NOT NULL,
   `status` varchar(20) NOT NULL DEFAULT 'Aucun',
   `image` varchar(255) DEFAULT NULL,
@@ -113,11 +131,13 @@ CREATE TABLE `item` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `item_revisions`;
 CREATE TABLE `item_revisions` (
   `id` int UNSIGNED NOT NULL,
   `original_item_id` int UNSIGNED NOT NULL,
   `id_user` int UNSIGNED NOT NULL,
   `titre` varchar(100) NOT NULL,
+  `sous_categorie` varchar(100) DEFAULT NULL,
   `status` varchar(20) NOT NULL DEFAULT 'Aucun',
   `image` varchar(255) DEFAULT NULL,
   `lien` text,
@@ -130,6 +150,7 @@ CREATE TABLE `item_revisions` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `migrations`;
 CREATE TABLE `migrations` (
   `id` bigint UNSIGNED NOT NULL,
   `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -140,6 +161,7 @@ CREATE TABLE `migrations` (
   `batch` int UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `reports`;
 CREATE TABLE `reports` (
   `id` int UNSIGNED NOT NULL,
   `item_id` int UNSIGNED NOT NULL,
@@ -151,6 +173,7 @@ CREATE TABLE `reports` (
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `settings`;
 CREATE TABLE `settings` (
   `id` int NOT NULL,
   `class` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -162,6 +185,7 @@ CREATE TABLE `settings` (
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `sites_config`;
 CREATE TABLE `sites_config` (
   `id` int NOT NULL,
   `domain` varchar(255) NOT NULL,
@@ -171,6 +195,7 @@ CREATE TABLE `sites_config` (
   `is_active` tinyint(1) DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int UNSIGNED NOT NULL,
   `username` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -313,3 +338,7 @@ ALTER TABLE `reports`
   ADD CONSTRAINT `reports_item_fk` FOREIGN KEY (`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `reports_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
