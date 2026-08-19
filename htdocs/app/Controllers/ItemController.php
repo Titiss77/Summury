@@ -83,7 +83,6 @@ class ItemController extends BaseController
             $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
             $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
             
-            // --- NOUVELLE LOGIQUE POUR LA SOUS-CATÉGORIE ---
             $sousCatSelect = $this->request->getPost('sous_categorie_select');
             $sousCatNew = $this->request->getPost('sous_categorie_new');
             
@@ -92,7 +91,6 @@ class ItemController extends BaseController
             } else {
                 $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string)$sousCatSelect);
             }
-            // -----------------------------------------------
 
             $existing = null;
             if ($id) {
@@ -331,13 +329,14 @@ class ItemController extends BaseController
                 }
 
                 $userId = auth()->id();
-                $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+                $isSuperAdmin = auth()->user()->inGroup('superadmin');
                 $count = 0;
 
                 foreach ($json->order as $index => $itemId) {
                     $item = $this->model->find($itemId);
 
-                    if ($item && ((int) $item->id_user === (int) $userId || $isAdmin)) {
+                    // Seuls le propriétaire ou le Super-Admin peuvent réordonner
+                    if ($item && ((int) $item->id_user === (int) $userId || $isSuperAdmin)) {
                         $this->model->update($itemId, ['position' => $index]);
                         ++$count;
                     }

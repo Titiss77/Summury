@@ -151,15 +151,28 @@
                 $opacity = $isSansSub ? '0.6' : '0.9';
                 $lineOpacity = $isSansSub ? '0.4' : '0.7';
                 
-                // On utilise un menu déroulant si c'est une sous-catégorie nommée, 
-                // OU si c'est "Autres cartes" mais qu'il y a d'autres sous-catégories dans la division.
                 $useDetails = (!$isSansSub || $hasMultipleGroups);
+                
+                // Vérifier si l'utilisateur possède au moins une carte dans ce groupe pour autoriser le déplacement global
+                $canDragSub = false;
+                if (auth()->loggedIn()) {
+                    $isSuperAdmin = auth()->user()->inGroup('superadmin');
+                    $currentUserId = (int) auth()->id();
+                    foreach ($items as $itm) {
+                        if ($isSuperAdmin || (int) $itm->id_user === $currentUserId) {
+                            $canDragSub = true;
+                            break;
+                        }
+                    }
+                }
             ?>
             <div class="subcategory-wrapper">
                 <?php if ($useDetails) { ?>
                 <details class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;">
                     <summary style="display: flex; align-items: center; gap: 10px; cursor: pointer; outline: none;">
+                        <?php if ($canDragSub) { ?>
                         <span class="drag-handle-sub" title="Déplacer ce groupe">&#x2630;</span>
+                        <?php } ?>
                         <span class="sub-toggle">&#x25B6;</span>
                         <h3 class="subcategory-title"
                             style="margin: 0; font-size: 1.05rem; color: var(--text-main); opacity: <?php echo $opacity; ?>; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
@@ -173,19 +186,40 @@
                         <?php } else { ?>
                         <div class="subcategory-details"
                             style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;">
-                            <div class="cards-grid sortable-grid" style="padding-top: 0;">
+                            <?php if ($hasMultipleGroups) { ?>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                <?php if ($canDragSub) { ?>
+                                <span class="drag-handle-sub" title="Déplacer les cartes principales">&#x2630;</span>
+                                <?php } ?>
+                                <h3 class="subcategory-title"
+                                    style="margin: 0; font-size: 1.05rem; color: var(--text-main); opacity: 0.6; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                                    Autres cartes
+                                </h3>
+                                <div
+                                    style="flex-grow: 1; height: 1px; background-color: var(--border-color); opacity: 0.4;">
+                                </div>
+                            </div>
+                            <?php } ?>
+                            <div class="cards-grid sortable-grid"
+                                style="padding-top: <?php echo $hasMultipleGroups ? '0' : '15px'; ?>;">
                                 <?php } ?>
 
-                                <?php foreach ($items as $item) { ?>
+                                <?php foreach ($items as $item) { 
+                            // Vérifier si l'utilisateur a le droit de déplacer cette carte spécifique
+                            $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
+                        ?>
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : (!empty($item->episode) ? 'needs-dispo-check' : ''); ?>"
                                     data-id="<?php echo esc($item->id); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
 
+                                    <?php if ($canDragItem) { ?>
                                     <div class="drag-handle"
                                         style="cursor: grab; text-align: center; color: #ccc; padding: 5px; touch-action: none;"
                                         title="Déplacer cette carte">
                                         &#x2630;
                                     </div>
+                                    <?php } ?>
+
                                     <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank"
                                         class="card-link-block">
                                         <div class="card-body">

@@ -155,6 +155,16 @@
         ),
       ),
     ),
+    'Helpers/text_helper' => 
+    array (
+      'php' => 
+      array (
+        1 => 
+        array (
+          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Helpers\\text_helper.php',
+        ),
+      ),
+    ),
   ),
   'findQualifiedNameFromPath' => 
   array (
