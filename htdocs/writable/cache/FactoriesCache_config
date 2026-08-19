@@ -37,6 +37,7 @@
     'Validation' => 'Config\\Validation',
     'Config\\Validation' => 'Config\\Validation',
     'Config\\Format' => 'Config\\Format',
+    'Config\\CURLRequest' => 'Config\\CURLRequest',
   ),
   'instances' => 
   array (
@@ -913,6 +914,10 @@
         'application/xml' => 0,
         'text/xml' => 0,
       ),
+    )),
+    'Config\\CURLRequest' => 
+    \Config\CURLRequest::__set_state(array(
+       'shareOptions' => false,
     )),
   ),
 );
