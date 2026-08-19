@@ -5,20 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AMFS</title>
+
+    <!-- DNS Prefetch / Preconnect pour accélérer le chargement des images externes -->
+    <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
+    <link rel="preconnect" href="https://cdn.myanimelist.net" crossorigin>
+    <link rel="dns-prefetch" href="https://image.tmdb.org">
+    <link rel="dns-prefetch" href="https://cdn.myanimelist.net">
+
     <script>
     /* Theme Sombre */
     if (localStorage.getItem('theme') === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.setAttribute('data-bs-theme', 'dark'); /* Ajout pour Bootstrap 5 */
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
     }
     </script>
-    <link rel="stylesheet" href="<?php echo base_url('assets/root.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/style.css'); ?>">
+
+    <?php 
+    // Cache-busting intelligent : Ne met à jour la version que si le fichier a été modifié
+    $rootCssVersion = file_exists(FCPATH . 'assets/root.css') ? filemtime(FCPATH . 'assets/root.css') : '1';
+    $styleCssVersion = file_exists(FCPATH . 'assets/style.css') ? filemtime(FCPATH . 'assets/style.css') : '1';
+    $scriptJsVersion = file_exists(FCPATH . 'assets/script.js') ? filemtime(FCPATH . 'assets/script.js') : '1';
+    ?>
+
+    <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v=' . $rootCssVersion); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v=' . $styleCssVersion); ?>">
 
     <meta name="csrf-token" content="<?php echo csrf_hash(); ?>">
     <meta name="csrf-header" content="<?php echo csrf_header(); ?>">
-    <meta name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)">
+    <meta id="meta-theme-color" name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
 
     <script>
     /* Configuration Globale (Securisee contre la minification) */
@@ -34,27 +48,32 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous">
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
+        defer>
     </script>
-    <script src="<?php echo base_url('assets/script.js?v='.time()); ?>" defer></script>
+    <script src="<?php echo base_url('assets/script.js?v=' . $scriptJsVersion); ?>" defer></script>
 </head>
 
 <body>
     <div id="toast-container" class="toast-container"></div>
     <header class="main-header">
         <h1>
-            <a href="<?php echo base_url('/'); ?>" style="color:inherit;"><img class="logo-amfs"
-                    src="<?php echo base_url('favicon.ico'); ?>" alt="AMFS Logo">AMFS</a>
+            <a href="<?php echo base_url('/'); ?>" style="color:inherit;">
+                <!-- Décodage asynchrone pour le logo -->
+                <img class="logo-amfs" src="<?php echo base_url('favicon.ico'); ?>" alt="AMFS Logo"
+                    decoding="async">AMFS
+            </a>
         </h1>
         <div class="user-nav">
-            <button id="theme-toggle" class="btn-theme">
+            <button id="theme-toggle" class="btn-theme" aria-label="Toggle Theme">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                     class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
                     <path
                         d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278" />
                     <path
                         d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z" />
-                </svg></button>
+                </svg>
+            </button>
             <?php if (auth()->loggedIn()) { ?>
 
             <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
@@ -80,7 +99,8 @@
                     <path fill-rule="evenodd"
                         d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
                 </svg>
-                <?php echo esc(auth()->user()->username); ?></span>
+                <?php echo esc(auth()->user()->username); ?>
+            </span>
             <a href="<?php echo base_url('logout'); ?>" class="btn-logout">Déconnexion</a>
             <?php } else { ?>
             <a href="<?php echo base_url('login'); ?>" class="btn-login">Connexion</a>
