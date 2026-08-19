@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
@@ -148,9 +150,9 @@ class ItemController extends BaseController
 
         if ($item) {
             $titre = $item->titre;
-            
+
             $itemModel->delete($id);
-            
+
             $cronLogModel = new CronLogModel();
             $cronLogModel->where('item_id', $id)->delete();
 
@@ -167,7 +169,7 @@ class ItemController extends BaseController
     {
         $cronLogModel = new CronLogModel();
         $itemModel = new ItemModel();
-        
+
         $items = $itemModel->asArray()->select('lien')->findAll();
         $domains = [];
 
@@ -234,6 +236,7 @@ class ItemController extends BaseController
 
             return redirect()->back()->with('error', "Aucune carte trouvée contenant le domaine '{$oldDomain}'.");
         }
+
         return redirect()->back();
     }
 }

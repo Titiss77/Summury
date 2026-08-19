@@ -74,11 +74,11 @@
 
     <?php
         foreach ($divisions as $divisionName => $subCategories) {
-            
             $currentDivisionId = null;
             foreach ($subCategories as $items) {
                 if (!empty($items)) {
                     $currentDivisionId = $items[0]->id_division;
+
                     break;
                 }
             }
@@ -94,14 +94,14 @@
         <!-- Le conteneur principal pour le drag & drop des blocs de sous-catégories -->
         <div class="division-body sortable-division" data-division-id="<?php echo $currentDivisionId; ?>">
 
-            <?php foreach ($subCategories as $subCatName => $items) { 
-                $isSansSub = ($subCatName === 'Sans sous-catégorie');
+            <?php foreach ($subCategories as $subCatName => $items) {
+                $isSansSub = ('Sans sous-catégorie' === $subCatName);
                 $displayTitle = $isSansSub ? 'Autres cartes' : $subCatName;
                 $opacity = $isSansSub ? '0.6' : '0.9';
                 $lineOpacity = $isSansSub ? '0.4' : '0.7';
-                
+
                 $useDetails = (!$isSansSub || $hasMultipleGroups);
-                
+
                 // Vérifier si l'utilisateur possède au moins une carte dans ce groupe pour autoriser le déplacement global
                 $canDragSub = false;
                 if (auth()->loggedIn()) {
@@ -110,11 +110,12 @@
                     foreach ($items as $itm) {
                         if ($isSuperAdmin || (int) $itm->id_user === $currentUserId) {
                             $canDragSub = true;
+
                             break;
                         }
                     }
                 }
-            ?>
+                ?>
             <div class="subcategory-wrapper">
                 <?php if ($useDetails) { ?>
                 <details class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;">
@@ -153,10 +154,10 @@
                                 style="padding-top: <?php echo $hasMultipleGroups ? '0' : '15px'; ?>;">
                                 <?php } ?>
 
-                                <?php foreach ($items as $item) { 
-                            // Vérifier si l'utilisateur a le droit de déplacer cette carte spécifique
-                            $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
-                        ?>
+                                <?php foreach ($items as $item) {
+                                    // Vérifier si l'utilisateur a le droit de déplacer cette carte spécifique
+                                    $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
+                                    ?>
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : (!empty($item->episode) ? 'needs-dispo-check' : ''); ?>"
                                     data-id="<?php echo esc($item->id); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
@@ -173,19 +174,19 @@
                                         class="card-link-block">
                                         <div class="card-body">
                                             <?php
-                                        $isFuture = false;
-                                        $dateSortieFormatted = '';
-                                        $textColor = '';
-                                        if (!empty($item->date_sortie)) {
-                                            $timezone = new DateTimeZone('Europe/Paris');
-                                            $dateSortie = new DateTime($item->date_sortie, $timezone);
-                                            $now = new DateTime('now', $timezone);
-                                            if ($dateSortie > $now) {
-                                                $isFuture = true;
-                                                $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
-                                                $textColor = 'color: var(--danger);';
-                                            }
+                                                    $isFuture = false;
+                                    $dateSortieFormatted = '';
+                                    $textColor = '';
+                                    if (!empty($item->date_sortie)) {
+                                        $timezone = new DateTimeZone('Europe/Paris');
+                                        $dateSortie = new DateTime($item->date_sortie, $timezone);
+                                        $now = new DateTime('now', $timezone);
+                                        if ($dateSortie > $now) {
+                                            $isFuture = true;
+                                            $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
+                                            $textColor = 'color: var(--danger);';
                                         }
+                                    }
                                     ?>
                                             <div class="date-container" id="date-container-<?php echo $item->id; ?>">
                                                 <?php if ($isFuture) { ?>
@@ -195,19 +196,20 @@
                                                 <?php } ?>
                                             </div>
 
-                                            <?php 
+                                            <?php
                                     $isCheckable = false;
                                     if (!empty($item->episode) && isset($supportedDomains) && is_array($supportedDomains)) {
                                         foreach ($supportedDomains as $domain) {
                                             if (str_contains($item->getFinalLink(), $domain)) {
                                                 $isCheckable = true;
+
                                                 break;
                                             }
                                         }
                                     }
-                                    
-                                    if ('Terminé' !== $item->status && $isCheckable) { 
-                                    ?>
+
+                                    if ('Terminé' !== $item->status && $isCheckable) {
+                                        ?>
                                             <div class="live-status" id="live-status-<?php echo $item->id; ?>"
                                                 style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
                                                 Vérification...
@@ -223,10 +225,10 @@
                                             </p>
 
                                             <?php
-                                    $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+                                        $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
                                     $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
                                     if ($isPendingNew || $hasPendingRevision) {
-                                    ?>
+                                        ?>
                                             <div
                                                 style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                                                 <?php if ($isPendingNew) { ?>

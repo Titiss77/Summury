@@ -42,20 +42,20 @@
                 <select id="sous_categorie_select" name="sous_categorie_select" class="form-control"
                     onchange="toggleNewSubCategory()">
                     <option value="">-- Aucune --</option>
-                    <?php 
+                    <?php
                     $itemSub = isset($item) ? $item->sous_categorie : '';
-                    $found = false;
-                    
-                    if (isset($subCategories) && is_array($subCategories)) {
-                        foreach ($subCategories as $sub) { 
-                            $selected = ($itemSub === $sub) ? 'selected' : '';
-                            if ($selected) {
-                                $found = true;
-                            }
-                            ?>
+$found = false;
+
+if (isset($subCategories) && is_array($subCategories)) {
+    foreach ($subCategories as $sub) {
+        $selected = ($itemSub === $sub) ? 'selected' : '';
+        if ($selected) {
+            $found = true;
+        }
+        ?>
                     <option value="<?php echo esc($sub); ?>" <?php echo $selected; ?>><?php echo esc($sub); ?></option>
-                    <?php } 
-                    } ?>
+                    <?php }
+    } ?>
 
                     <?php if ($itemSub && !$found) { ?>
                     <option value="<?php echo esc($itemSub); ?>" selected><?php echo esc($itemSub); ?></option>

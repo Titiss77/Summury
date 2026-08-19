@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Config;
 
+use App\Filters\HtmlMinifier;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -36,7 +37,7 @@ class Filters extends BaseFilters
         'forcehttps' => ForceHTTPS::class,
         'pagecache' => PageCache::class,
         'performance' => PerformanceMetrics::class,
-        'minifier'      => \App\Filters\HtmlMinifier::class,
+        'minifier' => HtmlMinifier::class,
     ];
 
     /**
@@ -83,17 +84,17 @@ class Filters extends BaseFilters
                 'minifier',
             ],
         ]
-        : [
-            'before' => [
-                // 'honeypot',
-                // 'csrf',
-                // 'invalidchars',
-            ],
-            'after' => [
-                // 'honeypot',
-                // 'secureheaders',
-            ],
-        ];
+    : [
+        'before' => [
+            // 'honeypot',
+            // 'csrf',
+            // 'invalidchars',
+        ],
+        'after' => [
+            // 'honeypot',
+            // 'secureheaders',
+        ],
+    ];
 
     /**
      * List of filter aliases that works on a

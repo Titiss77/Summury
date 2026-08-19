@@ -1,6 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use CodeIgniter\Router\RouteCollection;
+use CodeIgniter\Shield\Config\Auth;
 
 // @var RouteCollection $routes
 
@@ -27,7 +30,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/turn/(:num)', 'ItemController::turnToAdmin/$1');
     $routes->get('item/search', 'ItemController::search');
     $routes->post('report/submit', 'ReportController::submit');
-    
+
     // NOUVELLE ROUTE : Vérification de disponibilité des épisodes
     $routes->get('item/check-dispo', 'ItemController::checkDispo');
 });
@@ -67,6 +70,6 @@ $routes->group('reports', ['namespace' => 'App\Controllers\Admin', 'filter' => '
 // --------------------------------------------------------------------
 // Routes par défaut de Shield (Login, Register, etc.)
 // --------------------------------------------------------------------
-if (class_exists(\CodeIgniter\Shield\Config\Auth::class)) {
+if (class_exists(Auth::class)) {
     service('auth')->routes($routes);
 }

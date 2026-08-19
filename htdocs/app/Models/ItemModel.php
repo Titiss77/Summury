@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -19,7 +21,7 @@ class ItemModel extends Model
     ];
 
     protected $useSoftDeletes = true;
-    protected $useTimestamps = true; 
+    protected $useTimestamps = true;
     protected $dateFormat = 'datetime';
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
@@ -55,7 +57,7 @@ class ItemModel extends Model
         $builder
             ->orderBy('h.id', 'ASC')
             ->orderBy('d.id', 'ASC')
-            // Le tri alphabétique par sous-catégorie est retiré pour laisser 
+            // Le tri alphabétique par sous-catégorie est retiré pour laisser
             // la priorité absolue à la position (Drag & Drop)
             ->orderBy('i.position', 'ASC')
         ;
@@ -98,6 +100,7 @@ class ItemModel extends Model
     public function checkToGlobal()
     {
         $command = 'SELECT * FROM `item` WHERE id_division >= 5 AND id_division < 11 AND is_public = 1 AND deleted_at IS NULL;';
+
         return $this->db->query($command)->getCustomResultObject(Item::class);
     }
 }

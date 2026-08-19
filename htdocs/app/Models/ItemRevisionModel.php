@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -8,7 +10,7 @@ class ItemRevisionModel extends Model
 {
     protected $table = 'item_revisions';
     protected $primaryKey = 'id';
-    protected $returnType = 'array'; 
+    protected $returnType = 'array';
     protected $allowedFields = [
         'original_item_id',
         'id_user',

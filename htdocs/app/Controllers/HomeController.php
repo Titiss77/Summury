@@ -14,7 +14,7 @@ class HomeController extends BaseController
         // Charge explicitement le helper auth de Shield pour que la fonction auth() soit reconnue
         helper('auth');
     }
-         
+
     public function index()
     {
         $model = new ItemModel();
@@ -22,6 +22,7 @@ class HomeController extends BaseController
         if (!empty($headers)) {
             return redirect()->to('categorie/'.$headers[0]['id']);
         }
+
         return view('home', ['headers' => [], 'groupedItems' => [], 'supportedDomains' => []]);
     }
 
@@ -40,7 +41,8 @@ class HomeController extends BaseController
                 ->where('id_division <', 11)
                 ->where('is_public', 1)
                 ->where('id_user !=', 1)
-                ->countAllResults();
+                ->countAllResults()
+            ;
         }
 
         // ==========================================

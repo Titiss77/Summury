@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Commands;
 
@@ -7,6 +9,7 @@ use App\Models\CronLogModel;
 use App\Models\ItemModel;
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use Config\Services;
 
 class CheckDeadLinks extends BaseCommand
 {
@@ -14,7 +17,7 @@ class CheckDeadLinks extends BaseCommand
     protected $name = 'app:check-links';
     protected $description = 'Vérifie les liens morts (404) ou blacklistés de toutes les cartes. Exécution limitée à 1 fois par semaine.';
 
-    public function run(array $params)
+    public function run(array $params): void
     {
         $cronModel = new CronLogModel();
         $lastRun = $cronModel->where('task_name', 'check_dead_links')->first();
@@ -26,8 +29,9 @@ class CheckDeadLinks extends BaseCommand
             $force = in_array('-f', $params);
 
             if (($now - $lastRunDate) < 604800 && !$force) {
-                CLI::write('La vérification a déjà eu lieu cette semaine (' . date('d/m/Y', $lastRunDate) . ').', 'yellow');
+                CLI::write('La vérification a déjà eu lieu cette semaine ('.date('d/m/Y', $lastRunDate).').', 'yellow');
                 CLI::write("Utilisez 'php spark app:check-links -f' pour forcer l'exécution.", 'yellow');
+
                 return;
             }
         }
@@ -37,7 +41,7 @@ class CheckDeadLinks extends BaseCommand
         $itemModel = new ItemModel();
         $items = $itemModel->where('lien !=', '')->where('lien IS NOT NULL')->findAll();
 
-        $client = \Config\Services::curlrequest([
+        $client = Services::curlrequest([
             'timeout' => 7,
             'connect_timeout' => 5,
             'verify' => false,
@@ -58,7 +62,7 @@ class CheckDeadLinks extends BaseCommand
             'dlink9.com',
             'domain is for sale',
             'page not found',
-            'expired'
+            'expired',
         ];
 
         foreach ($items as $item) {
@@ -66,16 +70,17 @@ class CheckDeadLinks extends BaseCommand
             $ep2 = str_pad((string) $ep, 2, '0', STR_PAD_LEFT);
 
             $urlToTest = str_replace(['{ep}', '{ep2}'], [$ep, $ep2], $item->lien);
-            $totalChecked++;
+            ++$totalChecked;
 
             $isDead = false;
             $statusLog = '';
 
             // 1. Vérification immédiate de l'URL brute renseignée en base
             foreach ($blacklist as $badWord) {
-                if (stripos($urlToTest, $badWord) !== false) {
+                if (false !== stripos($urlToTest, $badWord)) {
                     $isDead = true;
                     $statusLog = 'Blacklist (URL source)';
+
                     break;
                 }
             }
@@ -87,39 +92,40 @@ class CheckDeadLinks extends BaseCommand
                     $statusCode = $response->getStatusCode();
 
                     // Si erreur réseau (DNS_PROBE_FINISHED_NXDOMAIN renvoie souvent 0)
-                    if ($statusCode === 0) {
+                    if (0 === $statusCode) {
                         $isDead = true;
-                        $statusLog = "Erreur Réseau/DNS (Hôte introuvable)";
+                        $statusLog = 'Erreur Réseau/DNS (Hôte introuvable)';
                     }
                     // Si c'est une redirection (301, 302, 307, 308)
                     elseif ($statusCode >= 300 && $statusCode < 400) {
                         $redirectUrl = $response->getHeaderLine('Location');
-                        
+
                         foreach ($blacklist as $badWord) {
-                            if (stripos($redirectUrl, $badWord) !== false) {
+                            if (false !== stripos($redirectUrl, $badWord)) {
                                 $isDead = true;
                                 $statusLog = "Blacklist (Redirigé vers {$badWord})";
+
                                 break;
                             }
                         }
-                    } 
+                    }
                     // Si la page charge directement en 200 OK
-                    elseif ($statusCode == 200) {
+                    elseif (200 == $statusCode) {
                         $html = $response->getBody();
                         foreach ($blacklist as $badWord) {
-                            if (stripos((string)$html, $badWord) !== false) {
+                            if (false !== stripos((string) $html, $badWord)) {
                                 $isDead = true;
                                 $statusLog = "Blacklist (Mot clé '{$badWord}' dans le code)";
+
                                 break;
                             }
                         }
-                    } 
-                    // Si la page est clairement introuvable (On ignore les 403 et 5xx qui sont souvent des blocages Cloudflare)
-                    elseif ($statusCode === 404) {
-                        $isDead = true;
-                        $statusLog = "Erreur HTTP 404 (Introuvable)";
                     }
-                    
+                    // Si la page est clairement introuvable (On ignore les 403 et 5xx qui sont souvent des blocages Cloudflare)
+                    elseif (404 === $statusCode) {
+                        $isDead = true;
+                        $statusLog = 'Erreur HTTP 404 (Introuvable)';
+                    }
                 } catch (\Throwable $e) {
                     // CATCH : On utilise \Throwable pour s'assurer d'attraper absolument toutes les erreurs
                     $isDead = true;
@@ -131,9 +137,9 @@ class CheckDeadLinks extends BaseCommand
             if ($isDead) {
                 CLI::write("[MORT] ({$statusLog}) : {$item->titre}", 'red');
                 $itemModel->update($item->id, ['link_status' => 'dead']);
-                $deadCount++;
+                ++$deadCount;
             } else {
-                if ($item->link_status === 'dead') {
+                if ('dead' === $item->link_status) {
                     $itemModel->update($item->id, ['link_status' => 'ok']);
                     CLI::write("[RÉTABLI] : {$item->titre}", 'green');
                 }
