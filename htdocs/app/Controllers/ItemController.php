@@ -23,7 +23,7 @@ class ItemController extends BaseController
         $userId = auth()->loggedIn() ? auth()->id() : null;
         $subCategories = [];
         
-        // Récupérer la liste des sous-catégories déjà créées par l'utilisateur pour l'autocomplétion
+        // Récupérer la liste des sous-catégories déjà créées par l'utilisateur
         if ($userId) {
             $subCategories = $this->model
                 ->where('id_user', $userId)
@@ -82,7 +82,17 @@ class ItemController extends BaseController
             $data['date_sortie'] = empty($this->request->getPost('date_sortie')) ? null : $this->request->getPost('date_sortie');
             $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
             $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
-            $data['sous_categorie'] = empty($this->request->getPost('sous_categorie')) ? null : trim($this->request->getPost('sous_categorie'));
+            
+            // --- NOUVELLE LOGIQUE POUR LA SOUS-CATÉGORIE ---
+            $sousCatSelect = $this->request->getPost('sous_categorie_select');
+            $sousCatNew = $this->request->getPost('sous_categorie_new');
+            
+            if ($sousCatSelect === '__NEW__') {
+                $data['sous_categorie'] = empty($sousCatNew) ? null : trim((string)$sousCatNew);
+            } else {
+                $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string)$sousCatSelect);
+            }
+            // -----------------------------------------------
 
             $existing = null;
             if ($id) {

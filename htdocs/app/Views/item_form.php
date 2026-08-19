@@ -36,17 +36,37 @@
                     <?php } ?>
                 </select>
             </div>
+
             <div class="col-half">
-                <label for="sous_categorie" class="form-label">Sous-catégorie (Optionnel)</label>
-                <input type="text" id="sous_categorie" name="sous_categorie" class="form-control"
-                    list="sub_categories_list" value="<?php echo isset($item) ? esc($item->sous_categorie) : ''; ?>"
-                    placeholder="Ex: Saga Saw, Marvel...">
-                <datalist id="sub_categories_list">
-                    <?php if (isset($subCategories) && is_array($subCategories)) {
-                        foreach ($subCategories as $sub) { ?>
-                    <option value="<?php echo esc($sub); ?>"></option>
-                    <?php } } ?>
-                </datalist>
+                <label for="sous_categorie_select" class="form-label">Sous-catégorie (Optionnel)</label>
+                <select id="sous_categorie_select" name="sous_categorie_select" class="form-control"
+                    onchange="toggleNewSubCategory()">
+                    <option value="">-- Aucune --</option>
+                    <?php 
+                    $itemSub = isset($item) ? $item->sous_categorie : '';
+                    $found = false;
+                    
+                    if (isset($subCategories) && is_array($subCategories)) {
+                        foreach ($subCategories as $sub) { 
+                            $selected = ($itemSub === $sub) ? 'selected' : '';
+                            if ($selected) {
+                                $found = true;
+                            }
+                            ?>
+                    <option value="<?php echo esc($sub); ?>" <?php echo $selected; ?>><?php echo esc($sub); ?></option>
+                    <?php } 
+                    } ?>
+
+                    <?php if ($itemSub && !$found) { ?>
+                    <option value="<?php echo esc($itemSub); ?>" selected><?php echo esc($itemSub); ?></option>
+                    <?php } ?>
+
+                    <option value="__NEW__" style="font-weight: bold; color: var(--primary);">+ Créer une nouvelle...
+                    </option>
+                </select>
+
+                <input type="text" id="sous_categorie_new" name="sous_categorie_new" class="form-control"
+                    style="display: none; margin-top: 10px;" placeholder="Nom de la nouvelle sous-catégorie">
             </div>
         </div>
 
@@ -171,5 +191,27 @@
         </div>
     </form>
 </div>
+
+<script>
+function toggleNewSubCategory() {
+    var select = document.getElementById('sous_categorie_select');
+    var input = document.getElementById('sous_categorie_new');
+
+    if (select.value === '__NEW__') {
+        input.style.display = 'block';
+        input.setAttribute('required', 'required');
+        input.focus();
+    } else {
+        input.style.display = 'none';
+        input.removeAttribute('required');
+        input.value = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // S'assurer de l'état correct du champ au chargement de la page
+    toggleNewSubCategory();
+});
+</script>
 
 <?php echo $this->endSection(); ?>
