@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -22,9 +20,23 @@ class ItemController extends BaseController
 
     public function form($id = null)
     {
+        $userId = auth()->loggedIn() ? auth()->id() : null;
+        $subCategories = [];
+        
+        // Récupérer la liste des sous-catégories déjà créées par l'utilisateur pour l'autocomplétion
+        if ($userId) {
+            $subCategories = $this->model
+                ->where('id_user', $userId)
+                ->where('sous_categorie IS NOT NULL')
+                ->where('sous_categorie !=', '')
+                ->distinct()
+                ->findColumn('sous_categorie') ?? [];
+        }
+
         $data = [
             'headers' => $this->model->getHeaders(),
             'divisions' => $this->model->getDivisions(),
+            'subCategories' => $subCategories,
             'item' => null,
             'view' => 'item_form',
             'redirect_url' => $this->request->getUserAgent()->getReferrer() ?? site_url('/'),
@@ -47,7 +59,7 @@ class ItemController extends BaseController
             $rules = [
                 'titre' => 'required|max_length[100]',
                 'id_division' => 'required|numeric',
-                'status' => 'in_list[Aucun,À voir,En cours,En pause,Terminé]',
+                'status' => 'in_list[Aucun, À voir,En cours,En pause,Terminé]',
             ];
 
             if (!$this->validate($rules)) {
@@ -70,6 +82,7 @@ class ItemController extends BaseController
             $data['date_sortie'] = empty($this->request->getPost('date_sortie')) ? null : $this->request->getPost('date_sortie');
             $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
             $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
+            $data['sous_categorie'] = empty($this->request->getPost('sous_categorie')) ? null : trim($this->request->getPost('sous_categorie'));
 
             $existing = null;
             if ($id) {
@@ -102,6 +115,7 @@ class ItemController extends BaseController
                         'original_item_id' => $id,
                         'id_user' => auth()->id(),
                         'titre' => $data['titre'],
+                        'sous_categorie' => $data['sous_categorie'] ?? $existing->sous_categorie,
                         'status' => $data['status'],
                         'image' => $data['image'] ?? $existing->image,
                         'lien' => $data['lien'] ?? null,
@@ -118,6 +132,7 @@ class ItemController extends BaseController
                     }
 
                     $revisionModel->save($revisionData);
+
                     $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
                     $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
 
@@ -128,6 +143,7 @@ class ItemController extends BaseController
 
                 $item = new Item($data);
                 $this->model->save($item);
+
                 $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
                 $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
 
@@ -182,7 +198,6 @@ class ItemController extends BaseController
                 return redirect()->to($backUrl . $separator . 'open=' . $id_div . '#div-' . $id_div);
             }
         }
-
         return redirect()->back();
     }
 
@@ -204,7 +219,6 @@ class ItemController extends BaseController
                 ]);
             }
         }
-
         return redirect()->back();
     }
 
@@ -217,12 +231,8 @@ class ItemController extends BaseController
             return $this->response->setJSON([]);
         }
 
-        // ========================================================
-        // 1. INITIALISATION DU CACHE CÔTÉ SERVEUR
-        // ========================================================
         $cache = \Config\Services::cache();
         $cacheKey = 'api_search_' . md5($query . '_' . $type);
-
         if ($cachedResult = $cache->get($cacheKey)) {
             return $this->response->setJSON($cachedResult);
         }
@@ -236,7 +246,6 @@ class ItemController extends BaseController
         ]);
 
         try {
-            // --- Recherche par URL (Scraping OpenGraph) ---
             if (filter_var($query, FILTER_VALIDATE_URL)) {
                 $metaData = $this->scrapeOpenGraph($query);
                 $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
@@ -247,25 +256,20 @@ class ItemController extends BaseController
                 return $this->response->setJSON($body);
             }
 
-            // --- Recherche Jikan (Animes/Mangas) ---
             if ('manga' === $type || 'anime' === $type) {
                 $url = "https://api.jikan.moe/v4/{$type}?q=" . urlencode($query) . '&limit=5';
                 $response = $client->get($url);
                 
-                // Si Jikan répond avec succès, on sauvegarde et on renvoie les données
                 if ($response->getStatusCode() === 200) {
                     $body = json_decode($response->getBody(), true);
                     $cache->save($cacheKey, $body, 3600);
                     return $this->response->setJSON($body);
                 }
-                
-                // NOUVEAU : Si Jikan plante (MyAnimeList down, 429 Rate Limit, etc.), 
-                // on ne renvoie PLUS l'erreur. On laisse le code continuer pour utiliser TMDB en Plan B !
             }
 
-            // --- Recherche TMDB (Films/Séries + Plan B pour les Animes) ---
             $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
             $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
+            
             $response = $client->get($url);
             $body = json_decode($response->getBody(), true);
 
@@ -276,7 +280,6 @@ class ItemController extends BaseController
 
             $cache->save($cacheKey, $body, 3600);
             return $this->response->setJSON($body);
-
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erreur de recherche : ' . $e->getMessage()]);
         }
@@ -301,7 +304,6 @@ class ItemController extends BaseController
             $audit->logAction('Transfert Carte', "La carte ID {$id} ('{$item->titre}') a été transférée à l'admin.");
             return redirect()->back()->with('message', "La carte a été transférée à l'admin avec succès.");
         }
-
         return redirect()->back()->with('error', "Vous n'avez pas les droits pour effectuer cette action.");
     }
 
@@ -324,6 +326,7 @@ class ItemController extends BaseController
 
                 foreach ($json->order as $index => $itemId) {
                     $item = $this->model->find($itemId);
+
                     if ($item && ((int) $item->id_user === (int) $userId || $isAdmin)) {
                         $this->model->update($itemId, ['position' => $index]);
                         ++$count;
@@ -389,7 +392,6 @@ class ItemController extends BaseController
                 $data['titre'] = $titles->item(0)->nodeValue;
             }
         }
-
         return $data;
     }
 
@@ -403,8 +405,8 @@ class ItemController extends BaseController
 
         $siteConfigModel = new \App\Models\SiteConfigModel();
         $sites = $siteConfigModel->where('is_active', 1)->findAll();
-
         $currentConfig = null;
+
         foreach ($sites as $config) {
             if (stripos($urlCible, $config['domain']) !== false) {
                 $currentConfig = $config;
@@ -437,7 +439,6 @@ class ItemController extends BaseController
 
             $response = $client->get($urlCible);
             
-            // Si la page est en 404 (Introuvable)
             if ($response->getStatusCode() === 404) {
                 return $this->response->setJSON([
                     'success'    => true,
@@ -447,9 +448,8 @@ class ItemController extends BaseController
             }
 
             $html = (string) $response->getBody();
-
-            // Vérification 1 : Est-on redirigé sur une fiche globale au lieu de l'épisode ?
             $estSurFicheAnime = false;
+
             foreach ($indicateursPageInvalide as $indicator) {
                 if (stripos($html, $indicator) !== false) {
                     $estSurFicheAnime = true;
@@ -457,23 +457,19 @@ class ItemController extends BaseController
                 }
             }
 
-            // Vérification 2 : Y a-t-il le lecteur vidéo (avec remplacement de {ep}) ?
             $lecteurPresent = false;
             foreach ($indicateursLecteur as $indicator) {
                 $indicatorFinal = $episodeExtrait ? str_replace('{ep}', (string)$episodeExtrait, $indicator) : $indicator;
-
                 if (stripos($html, $indicatorFinal) !== false) {
                     $lecteurPresent = true;
                     break;
                 }
             }
             
-            // L'ÉQUATION FINALE CORRIGÉE : 
-            // C'est disponible uniquement si on n'est PAS sur une fiche ET que le lecteur est présent.
             $estDisponible = !$estSurFicheAnime && $lecteurPresent;
 
             return $this->response->setJSON([
-                'success'    => true, // On renvoie "true" pour que le Javascript traite la réponse
+                'success'    => true, 
                 'disponible' => $estDisponible,
                 'details'    => [
                     'estSurFicheAnime' => $estSurFicheAnime,

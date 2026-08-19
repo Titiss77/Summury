@@ -1,7 +1,8 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <div class="form-container card">
-    <h2 class="header-title"><?php echo isset($item) ? '✏️ Modifier la carte' : '+ Ajouter une carte'; ?></h2>
+    <h2 class="header-title"><?php echo isset($item) ? '📝 Modifier la carte' : '+ Ajouter une carte'; ?></h2>
 
     <form action="<?php echo base_url('item/save'); ?>" method="POST">
         <input type="hidden" name="redirect_url" value="<?php echo esc($redirect_url); ?>">
@@ -28,7 +29,6 @@
                 <label for="id_division" class="form-label">Division *</label>
                 <select id="id_division" name="id_division" class="form-control" required>
                     <option value="" disabled <?php echo !isset($item) ? 'selected' : ''; ?>>-- Sélectionner --</option>
-
                     <?php foreach ($divisions as $div) { ?>
                     <option value="<?php echo esc($div['id']); ?>"
                         <?php echo (isset($item) && $item->id_division == $div['id']) ? 'selected' : ''; ?>>
@@ -36,6 +36,21 @@
                     <?php } ?>
                 </select>
             </div>
+            <div class="col-half">
+                <label for="sous_categorie" class="form-label">Sous-catégorie (Optionnel)</label>
+                <input type="text" id="sous_categorie" name="sous_categorie" class="form-control"
+                    list="sub_categories_list" value="<?php echo isset($item) ? esc($item->sous_categorie) : ''; ?>"
+                    placeholder="Ex: Saga Saw, Marvel...">
+                <datalist id="sub_categories_list">
+                    <?php if (isset($subCategories) && is_array($subCategories)) {
+                        foreach ($subCategories as $sub) { ?>
+                    <option value="<?php echo esc($sub); ?>"></option>
+                    <?php } } ?>
+                </datalist>
+            </div>
+        </div>
+
+        <div class="form-group row">
             <div class="col-half">
                 <label for="status" class="form-label">Statut</label>
                 <select id="status" name="status" class="form-control">
@@ -50,20 +65,22 @@
                     </option>
                 </select>
             </div>
-        </div>
-
-        <div class="form-group">
-            <input type="checkbox" id="is_public" name="is_public" value="1"
-                <?php echo (isset($item) && in_array($item->is_public, [1, 2])) ? 'checked' : ''; ?>>
-            <label for="is_public" class="form-label" style="display:inline;">Rendre ce lien visible au public</label>
-            <small>
-                <br><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red"
-                    class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
-                    <path
-                        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
-                </svg>
-                Attention : Si vous rendez ce lien public, attendez-vous à perdre l'épisode et la saison en cours.
-            </small>
+            <div class="col-half" style="display: flex; align-items: flex-end; padding-bottom: 5px;">
+                <div>
+                    <input type="checkbox" id="is_public" name="is_public" value="1"
+                        <?php echo (isset($item) && in_array($item->is_public, [1, 2])) ? 'checked' : ''; ?>>
+                    <label for="is_public" class="form-label" style="display:inline; margin-left: 8px;">Rendre ce lien
+                        visible au public</label>
+                    <small style="display: block; margin-top: 5px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red"
+                            class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                        </svg>
+                        Attention : Perte de l'épisode si publié.
+                    </small>
+                </div>
+            </div>
         </div>
 
         <div class="form-group">
@@ -108,7 +125,6 @@
                         value="<?php echo htmlspecialchars($item->image ?? ''); ?>"
                         placeholder="https://exemple.com/image.jpg">
                 </div>
-
                 <div
                     style="flex-shrink: 0; width: 80px; height: 120px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg-body); transition: var(--transition);position: relative; top: -40px;">
                     <img id="img-preview" src="<?php echo htmlspecialchars($item->image ?? ''); ?>" alt="Aperçu"
@@ -155,4 +171,5 @@
         </div>
     </form>
 </div>
+
 <?php echo $this->endSection(); ?>
