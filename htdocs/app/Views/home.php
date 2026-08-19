@@ -1,57 +1,6 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
 
-<style>
-/* Styles spécifiques pour les sous-catégories rétractables */
-.subcategory-details>summary {
-    list-style: none;
-}
-
-.subcategory-details>summary::-webkit-details-marker {
-    display: none;
-}
-
-/* Rendre la flèche de sous-catégorie discrète et minimaliste */
-.sub-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    opacity: 0.5;
-    transition: transform 0.3s ease, color 0.3s ease, opacity 0.3s ease;
-}
-
-.subcategory-details>summary:hover .sub-toggle {
-    color: var(--text-main);
-    opacity: 0.8;
-}
-
-.subcategory-details[open]>summary .sub-toggle {
-    transform: rotate(90deg);
-    color: var(--primary);
-    opacity: 1;
-}
-
-.subcategory-details[open]>.cards-grid {
-    animation: slideDown 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    transform-origin: top center;
-}
-
-/* Poignée de drag & drop pour les catégories */
-.drag-handle-sub {
-    cursor: grab;
-    color: #ccc;
-    font-size: 1.1rem;
-    padding-right: 5px;
-    transition: color 0.2s ease;
-}
-
-.drag-handle-sub:hover {
-    color: var(--primary);
-}
-</style>
-
 <?php if (!auth()->loggedIn()) { ?>
 <div class="empty-state shadow-card">
     <h2>Bienvenue sur AMFS Dashboard</h2>
@@ -363,22 +312,6 @@
 
 <script>
 window.amfsSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Écouteur pour la recherche afin d'ouvrir automatiquement les catégories & sous-catégories
-    const searchInput = document.getElementById('liveSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const term = e.target.value.trim().toLowerCase();
-            if (term !== '') {
-                document.querySelectorAll('details.division-section, details.subcategory-details')
-                    .forEach(d => {
-                        d.setAttribute('open', 'open');
-                    });
-            }
-        });
-    }
-});
 </script>
 
 <?php echo $this->endSection(); ?>

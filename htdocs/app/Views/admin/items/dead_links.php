@@ -12,13 +12,14 @@
         </div>
         <button id="btn-force-cron" class="btn"
             style="background-color: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
-            🔄 Relancer la vérification (Forcer le scan)
+            ⚡ Relancer la vérification (Forcer le scan)
         </button>
     </div>
 
     <?php if (session()->has('message')) { ?>
     <div class="alert alert-success" style="margin-bottom: 20px;"><?php echo session('message'); ?></div>
     <?php } ?>
+
     <?php if (session()->has('error')) { ?>
     <div class="alert alert-danger" style="margin-bottom: 20px;"><?php echo session('error'); ?></div>
     <?php } ?>
@@ -26,13 +27,14 @@
     <div
         style="background: #f8f9fa; padding: 15px 20px; border-radius: var(--radius-md); margin-bottom: 25px; border: 1px solid #dee2e6;">
         <h4 style="margin-top: 0; color: #333; display: flex; align-items: center; gap: 8px;">
-            🛠️ Migration de Domaine
+            🔄 Migration de Domaine
         </h4>
         <p style="font-size: 0.9em; color: #555; margin-bottom: 15px;">
             Un site a changé d'adresse (ex: <em>https://sushiscan.net</em> devient <em>https://sushiscan.fr</em>) ? <br>
             Sélectionnez l'ancien domaine et entrez la nouvelle adresse. Le système mettra à jour tous les liens
             associés en conservant les structures de chapitres/épisodes.
         </p>
+
         <form action="<?php echo base_url('items/bulk-update-domain'); ?>" method="post"
             style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <?php echo csrf_field(); ?>
@@ -45,9 +47,11 @@
                 <?php } ?>
             </select>
 
-            <span style="font-weight: bold; color: #888;">➔</span>
+            <span style="font-weight: bold; color: #888;">➡️</span>
+
             <input type="text" name="new_domain" placeholder="Nouveau domaine (ex: https://site.fr)" required
                 style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: var(--radius-md);">
+
             <button type="submit" class="btn"
                 style="background: var(--success, #28a745); color: white; border: none; padding: 10px 15px; border-radius: var(--radius-md); cursor: pointer; font-weight: bold;"
                 onclick="return confirm('⚠️ Attention : Cette action va chercher TOUTES les cartes contenant l\'ancien domaine et les modifier. Êtes-vous sûr ?')">
@@ -59,7 +63,7 @@
     <?php if (empty($deadItems)) { ?>
     <div class="empty-state"
         style="text-align: center; padding: 40px 0; color: #666; background: #fdfdfd; border-radius: var(--radius-md); border: 1px dashed #ddd;">
-        <p style="font-size: 1.2em; margin: 0;">✅ Excellente nouvelle, tous les liens de streaming testés fonctionnent
+        <p style="font-size: 1.2em; margin: 0;">🎉 Excellente nouvelle, tous les liens de streaming testés fonctionnent
             correctement !</p>
     </div>
     <?php } else { ?>
@@ -84,11 +88,13 @@
                         <div class="action-links" style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <a href="<?php echo base_url('item/form/'.$item['item_id']); ?>"
                                 class="btn-action btn-edit">Mettre à jour manuellement</a>
+
                             <a href="<?php echo esc($item['url_testee']); ?>" target="_blank" class="btn-action"
                                 style="background: #6c757d; color: white;">Tester</a>
+
                             <a href="<?php echo base_url('items/delete/'.$item['item_id']); ?>"
                                 class="btn-action btn-ban"
-                                onclick="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer définitivement cette carte ainsi que tout son historique ? Cette action est irréversible.')"
+                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cette carte ainsi que tout son historique ? Cette action est irréversible.')"
                                 style="background-color: #dc3545; color: white;">Supprimer la carte</a>
                         </div>
                     </td>
@@ -99,37 +105,5 @@
     </div>
     <?php } ?>
 </div>
-
-<script>
-document.getElementById('btn-force-cron').addEventListener('click', function() {
-    const btn = this;
-    if (confirm(
-            'Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.'
-        )) {
-        btn.disabled = true;
-        btn.style.opacity = '0.6';
-        btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
-
-        fetch('<?php echo base_url('cron/run?force=1'); ?>')
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'executed') {
-                    alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards +
-                        '\nDomaines uniques interrogés : ' + data.unique_domains +
-                        '\nNouveaux liens rompus identifiés : ' + data.dead_count);
-                } else {
-                    alert('Le scan a retourné un statut inattendu.');
-                }
-                window.location.reload();
-            })
-            .catch(error => {
-                alert('Une erreur réseau ou un timeout est survenu durant le scan des serveurs distants.');
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.innerHTML = '🔄 Relancer la vérification (Forcer le scan)';
-            });
-    }
-});
-</script>
 
 <?php echo $this->endSection(); ?>

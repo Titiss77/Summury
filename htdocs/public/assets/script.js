@@ -4,6 +4,7 @@
 window.showToast = function(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerText = message;
@@ -19,9 +20,89 @@ window.showToast = function(message, type = 'success') {
 }
 
 // ==========================================
+// 12. FONCTIONS GLOBALES 
+// ==========================================
+window.toggleNewSubCategory = function() {
+    var select = document.getElementById('sous_categorie_select');
+    var input = document.getElementById('sous_categorie_new');
+    
+    if (!select || !input) return;
+    
+    if (select.value === '__NEW__') {
+        input.style.display = 'block';
+        input.setAttribute('required', 'required');
+        input.focus();
+    } else {
+        input.style.display = 'none';
+        input.removeAttribute('required');
+        input.value = '';
+    }
+};
+
+window.copierLien = function(lien) {
+    function notifierSucces() {
+        if (typeof showToast === 'function') {
+            showToast('Lien copié dans le presse-papiers !', 'success');
+        } else {
+            alert('Lien copié !');
+        }
+    }
+
+    function notifierErreur() {
+        if (typeof showToast === 'function') {
+            showToast('Erreur lors de la copie du lien.', 'danger');
+        } else {
+            alert('Erreur lors de la copie.');
+        }
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(lien).then(() => {
+            notifierSucces();
+        }).catch(err => {
+            console.error('Erreur API Clipboard :', err);
+            notifierErreur();
+        });
+    } else {
+        let textArea = document.createElement("textarea");
+        textArea.value = lien;
+        textArea.style.position = "fixed";
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            let successful = document.execCommand('copy');
+            if (successful) {
+                notifierSucces();
+            } else {
+                notifierErreur();
+            }
+        } catch (err) {
+            console.error('Erreur Fallback :', err);
+            notifierErreur();
+        }
+        document.body.removeChild(textArea);
+    }
+};
+
+
+// ==========================================
 // INITIALISATION DES ELEMENTS DU DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
+
+    // --- Gestion des paramètres d'URL (URL Hash cleaner) ---
+    const currentUrl = new URL(window.location.href);
+    if (currentUrl.searchParams.has('open') || currentUrl.hash) {
+        setTimeout(() => {
+            window.history.replaceState({}, document.title, currentUrl.pathname);
+        }, 10);
+    }
+
     function svgWithColor($color) {
         if ($color === 'Sombre') {
             return `
@@ -126,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
 
                 const data = await response.json();
-
+                
                 if (data.success) {
                     counterSpan.innerText = data.new_episode;
                     counterSpan.style.color = 'var(--success)';
@@ -186,10 +267,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 7. RECHERCHE EN DIRECT (Live Search)
     // ==========================================
     const searchInput = document.getElementById('liveSearch');
-
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
-            const term = e.target.value.toLowerCase();
+            const term = e.target.value.trim().toLowerCase();
             const cards = document.querySelectorAll('.searchable-card, .card');
             
             cards.forEach(card => {
@@ -202,6 +282,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     card.style.display = 'none';
                 }
             });
+
+            if (term !== '') {
+                document.querySelectorAll('details.division-section, details.subcategory-details').forEach(d => {
+                    d.setAttribute('open', 'open');
+                });
+            }
         });
     }
 
@@ -210,7 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     if (typeof Sortable !== 'undefined') {
         
-        // Fonction commune pour enregistrer l'ordre calculé
         async function updateOrderBackend(newOrder) {
             try {
                 const response = await fetch(amfsConfig.updateOrderUrl, {
@@ -235,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // 8.1 - Drag & Drop des CARTES (au sein d'une sous-catégorie)
         var grids = document.querySelectorAll('.sortable-grid');
         grids.forEach(function(el) {
             Sortable.create(el, {
@@ -247,8 +331,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 onEnd: function(evt) {
                     if (evt.oldIndex === evt.newIndex) return;
                     
-                    // IMPORTANT: On récupère TOUTES les cartes de la division entière 
-                    // pour recalculer les positions absolues et préserver l'ordre des sous-catégories !
                     var divisionBody = el.closest('.sortable-division');
                     if (!divisionBody) return;
 
@@ -265,20 +347,17 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // 8.2 - Drag & Drop des SOUS-CATÉGORIES
         var divisions = document.querySelectorAll('.sortable-division');
         divisions.forEach(function(el) {
             Sortable.create(el, {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
-                handle: '.drag-handle-sub', // On tire par l'icône à gauche du titre
+                handle: '.drag-handle-sub',
                 delay: 150, 
                 delayOnTouchOnly: true,
                 onEnd: function(evt) {
                     if (evt.oldIndex === evt.newIndex) return;
                     
-                    // Lors du déplacement d'un bloc complet, l'ordre HTML change.
-                    // On rescanne toutes les cartes dans leur nouvel ordre d'apparition global.
                     var itemEls = el.querySelectorAll('.card');
                     var newOrder = [];
                     
@@ -427,7 +506,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         resultsContainer.appendChild(divItem);
                     });
-
                 } else {
                     statusTxt.innerText = 'Aucun resultat';
                     resultsContainer.style.display = 'none';
@@ -462,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 imgPreview.src = '';
             }
         });
-        
+
         imgPreview.addEventListener('error', function() {
             this.style.display = 'none';
             imgPlaceholder.style.display = 'block';
@@ -523,18 +601,86 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 if (typeof showToast === 'function') showToast(data.error || 'Erreur lors de l\'envoi.', 'danger');
             }
+
         } catch (error) {
             console.error("Erreur d'envoi du signalement:", error);
             if (typeof showToast === 'function') showToast("Une erreur réseau est survenue.", "danger");
         }
     };
-}); // Fin DOMContentLoaded
 
+    // ==========================================
+    // INITIALISATION DU CHAMP SOUS-CATEGORIE
+    // ==========================================
+    window.toggleNewSubCategory();
+
+    // ==========================================
+    // INIT DATATABLES (Admin Users)
+    // ==========================================
+    const tableEl = document.getElementById("myAdminTable");
+    if (tableEl && typeof simpleDatatables !== 'undefined') {
+        new simpleDatatables.DataTable(tableEl, {
+            searchable: true,
+            fixedHeight: false,
+            perPage: 10,
+            labels: {
+                placeholder: "Rechercher un utilisateur...",
+                perPage: "utilisateurs par page",
+                noRows: "Aucun utilisateur trouvé",
+                info: "Affichage de {start} à {end} sur {rows} utilisateurs",
+            }
+        });
+    }
+
+    // ==========================================
+    // INIT FORCER CRON (Admin Liens Morts)
+    // ==========================================
+    const btnForceCron = document.getElementById('btn-force-cron');
+    if (btnForceCron) {
+        btnForceCron.addEventListener('click', function() {
+            const btn = this;
+            if (confirm('Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
+                
+                const cronUrl = amfsConfig.cronUrl.includes('?') ? amfsConfig.cronUrl + '&force=1' : amfsConfig.cronUrl + '?force=1';
+
+                fetch(cronUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'executed') {
+                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards +
+                                '\nDomaines uniques interrogés : ' + data.unique_domains +
+                                '\nNouveaux liens rompus identifiés : ' + data.dead_count);
+                        } else {
+                            alert('Le scan a retourné un statut inattendu.');
+                        }
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        alert('Une erreur réseau ou un timeout est survenu durant le scan des serveurs distants.');
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.innerHTML = '⚡ Relancer la vérification (Forcer le scan)';
+                    });
+            }
+        });
+    }
+
+}); // Fin DOMContentLoaded
 
 // ==========================================
 // 11. VÉRIFICATION DE DISPONIBILITÉ EN DIRECT
 // ==========================================
 window.addEventListener('load', function() {
+    
+    // FETCH SILENCIEUX CRON
+    if (typeof amfsConfig !== 'undefined' && amfsConfig.cronUrl) {
+        setTimeout(function() {
+            fetch(amfsConfig.cronUrl).catch(error => console.log('Tache de fond ignoree.'));
+        }, 5000);
+    }
+
     const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
     
     // --- On récupère dynamiquement les domaines supportés transmis par PHP ---
@@ -553,23 +699,16 @@ window.addEventListener('load', function() {
             return;
         }
 
-        // ========================================================
-        // NOUVEAU : SYSTÈME DE CACHE (sessionStorage)
-        // La clé de cache inclut l'URL complète. 
-        // Si la carte est modifiée (ex: épisode +1), l'URL change, 
-        // le cache est invalidé et la carte est re-vérifiée !
-        // ========================================================
         const cacheKey = `dispo_check_${itemId}_${url}`;
         const cachedResult = sessionStorage.getItem(cacheKey);
 
-        // Si un résultat récent existe (moins de 30 minutes), on l'utilise sans requête HTTP
         if (cachedResult) {
             const cacheData = JSON.parse(cachedResult);
             const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;
             
             if (ageInMinutes < 30) {
                 applyDispoResult(cacheData.disponible, statusDiv, dateContainer);
-                return; // On arrête l'exécution ici, la carte ne sera pas re-vérifiée
+                return; 
             }
         }
 
@@ -615,7 +754,6 @@ window.addEventListener('load', function() {
         if (statusDiv) {
             statusDiv.style.display = 'none';
         }
-
         if (disponible) {
             if (dateContainer) dateContainer.style.display = 'none'; 
         } else {

@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AMFS</title>
-
     <script>
     /* Theme Sombre */
     if (localStorage.getItem('theme') === 'dark') {
@@ -13,9 +12,9 @@
         document.documentElement.setAttribute('data-bs-theme', 'dark'); /* Ajout pour Bootstrap 5 */
     }
     </script>
-
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css'); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css'); ?>">
+
     <meta name="csrf-token" content="<?php echo csrf_hash(); ?>">
     <meta name="csrf-header" content="<?php echo csrf_header(); ?>">
     <meta name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
@@ -42,13 +41,11 @@
 
 <body>
     <div id="toast-container" class="toast-container"></div>
-
     <header class="main-header">
         <h1>
             <a href="<?php echo base_url('/'); ?>" style="color:inherit;"><img class="logo-amfs"
                     src="<?php echo base_url('favicon.ico'); ?>" alt="AMFS Logo">AMFS</a>
         </h1>
-
         <div class="user-nav">
             <button id="theme-toggle" class="btn-theme">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -58,8 +55,8 @@
                     <path
                         d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z" />
                 </svg></button>
-
             <?php if (auth()->loggedIn()) { ?>
+
             <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
             <?php
                 // Calcul du total des signalements en attente
@@ -75,6 +72,7 @@
                 <?php } ?>
             </a>
             <?php } ?>
+
             <span class="welcome-text">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
                     class="bi bi-person-circle" viewBox="0 0 16 16">
@@ -88,6 +86,7 @@
             <a href="<?php echo base_url('login'); ?>" class="btn-login">Connexion</a>
             <a href="<?php echo base_url('register'); ?>" class="btn-register">Créer un compte</a>
             <?php } ?>
+
         </div>
     </header>
 
@@ -110,37 +109,19 @@
 
     <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const currentUrl = new URL(window.location.href);
-
-        if (currentUrl.searchParams.has('open') || currentUrl.hash) {
-            setTimeout(() => {
-                window.history.replaceState({}, document.title, currentUrl.pathname);
-            }, 10);
-        }
-
         /* Interception des Flashdata de CodeIgniter 4 pour lancer des Toasts automatiquement */
         <?php if (session()->getFlashdata('success')) { ?>
         if (typeof showToast === 'function') showToast("<?php echo esc(session()->getFlashdata('success')); ?>",
             "success");
         <?php } ?>
-
         <?php if (session()->getFlashdata('error')) { ?>
         if (typeof showToast === 'function') showToast("<?php echo esc(session()->getFlashdata('error')); ?>",
             "danger");
         <?php } ?>
-
         <?php if (session()->getFlashdata('message')) { ?>
         if (typeof showToast === 'function') showToast("<?php echo esc(session()->getFlashdata('message')); ?>",
             "info");
         <?php } ?>
-    });
-
-    /* Cron Job silencieux */
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            fetch('<?php echo base_url('cron/run'); ?>')
-                .catch(error => console.log('Tache de fond ignoree.'));
-        }, 5000);
     });
     </script>
 </body>

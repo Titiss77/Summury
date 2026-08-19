@@ -192,26 +192,4 @@
     </form>
 </div>
 
-<script>
-function toggleNewSubCategory() {
-    var select = document.getElementById('sous_categorie_select');
-    var input = document.getElementById('sous_categorie_new');
-
-    if (select.value === '__NEW__') {
-        input.style.display = 'block';
-        input.setAttribute('required', 'required');
-        input.focus();
-    } else {
-        input.style.display = 'none';
-        input.removeAttribute('required');
-        input.value = '';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // S'assurer de l'état correct du champ au chargement de la page
-    toggleNewSubCategory();
-});
-</script>
-
 <?php echo $this->endSection(); ?>

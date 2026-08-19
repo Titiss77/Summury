@@ -14,10 +14,10 @@ body {
     padding: 0;
     -webkit-font-smoothing: antialiased;
     transition: background-color 0.3s ease, color 0.3s ease;
-    /* Pour le dark mode */
 }
 
 a {
+    /* Pour le dark mode */
     color: var(--primary);
     text-decoration: none;
     transition: var(--transition);
@@ -137,8 +137,6 @@ a {
     border: 1px solid var(--border-color);
 }
 
-
-
 /* =========================================
    ACTIONS CONTAINER
    ========================================= */
@@ -149,7 +147,7 @@ a {
 }
 
 /* =========================================
-   MENUS DÉROULANTS (Divisions / Accordéon)
+   MENUS DÉROULANTS (Divisions / Accordéons)
    ========================================= */
 .division-section {
     margin-bottom: 1.5rem;
@@ -229,16 +227,63 @@ details[open].division-section .cards-grid {
         max-height: 0;
         transform: translateY(-10px) scaleY(0.95);
     }
-
     50% {
         opacity: 0.5;
     }
-
     100% {
         opacity: 1;
         max-height: 5000px;
         transform: translateY(0) scaleY(1);
     }
+}
+
+/* =========================================
+   SOUS-CATÉGORIES
+   ========================================= */
+.subcategory-details > summary {
+    list-style: none;
+}
+
+.subcategory-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.sub-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0.5;
+    transition: transform 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+}
+
+.subcategory-details > summary:hover .sub-toggle {
+    color: var(--text-main);
+    opacity: 0.8;
+}
+
+.subcategory-details[open] > summary .sub-toggle {
+    transform: rotate(90deg);
+    color: var(--primary);
+    opacity: 1;
+}
+
+.subcategory-details[open] > .cards-grid {
+    animation: slideDown 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    transform-origin: top center;
+}
+
+.drag-handle-sub {
+    cursor: grab;
+    color: #ccc;
+    font-size: 1.1rem;
+    padding-right: 5px;
+    transition: color 0.2s ease;
+}
+
+.drag-handle-sub:hover {
+    color: var(--primary);
 }
 
 /* =========================================
@@ -318,22 +363,14 @@ details[open].division-section .cards-grid {
     color: var(--text-muted);
     line-height: 1.6;
     margin: 0;
-
-    /* --- NOUVEAU : Limite de 4 lignes avec défilement --- */
     max-height: calc(1.6em * 3);
-    /* line-height (1.6) x 4 lignes */
     overflow-y: auto;
-    /* Active le scroll vertical */
     padding-right: 6px;
-    /* Évite que le texte colle à la scrollbar */
     word-wrap: break-word;
-    /* Empêche les mots trop longs de déborder */
 }
 
-/* --- OPTIONNEL MAIS RECOMMANDÉ : Styliser la scrollbar des descriptions --- */
 .card-desc::-webkit-scrollbar {
     width: 4px;
-    /* Scrollbar très fine */
 }
 
 .card-desc::-webkit-scrollbar-track {
@@ -453,15 +490,13 @@ html[data-theme="dark"] .logo-amfs {
     position: relative;
 }
 
-.btn-primary,
-.btn-success {
+.btn-primary, .btn-success {
     background-color: var(--primary);
     color: #fff;
     box-shadow: var(--shadow-sm);
 }
 
-.btn-primary:hover,
-.btn-success:hover {
+.btn-primary:hover, .btn-success:hover {
     background-color: var(--primary-hover);
     box-shadow: var(--shadow-md);
 }
@@ -806,6 +841,49 @@ select.form-control {
 }
 
 /* =========================================
+   DATATABLES (Plugin Admin)
+   ========================================= */
+.dataTable-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.dataTable-table th {
+    background: var(--bg-body);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 1.25rem 1.5rem;
+}
+.dataTable-table td {
+    padding: 1.25rem 1.5rem;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+.dataTable-wrapper {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+.dataTable-input {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-body);
+    color: var(--text-main);
+}
+.dataTable-selector {
+    border: 1px solid var(--border-color);
+    padding: 6px;
+    border-radius: var(--radius-md);
+    background: var(--bg-body);
+    color: var(--text-main);
+}
+
+/* =========================================
    BADGES DE STATUT & BOUTONS ACTION
    ========================================= */
 .status-badge {
@@ -972,7 +1050,6 @@ select.form-control {
         opacity: 0;
         transform: translateY(15px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -984,29 +1061,12 @@ select.form-control {
     opacity: 0;
 }
 
-.card:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.card:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.card:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.card:nth-child(4) {
-    animation-delay: 0.2s;
-}
-
-.card:nth-child(5) {
-    animation-delay: 0.25s;
-}
-
-.card:nth-child(6) {
-    animation-delay: 0.3s;
-}
+.card:nth-child(1) { animation-delay: 0.05s; }
+.card:nth-child(2) { animation-delay: 0.1s; }
+.card:nth-child(3) { animation-delay: 0.15s; }
+.card:nth-child(4) { animation-delay: 0.2s; }
+.card:nth-child(5) { animation-delay: 0.25s; }
+.card:nth-child(6) { animation-delay: 0.3s; }
 
 .sortable-ghost {
     opacity: 0.4;
@@ -1037,50 +1097,41 @@ select.form-control {
         flex-direction: column;
         gap: 15px;
     }
-
     .cards-grid {
         grid-template-columns: 1fr;
     }
-
     .form-group.row {
         flex-direction: column;
         gap: 1.5rem;
     }
-
     .nav-tab {
         font-size: var(--card-desc-font-size);
         padding: 0.5rem 1rem;
     }
-
     .form-container {
         padding: 1.5rem;
         margin: 1.5rem auto;
         border-radius: var(--radius-md);
     }
-
     .main-header {
         padding: 12px 20px;
     }
-
     .main-header h1 {
         font-size: var(--card-title-font-size);
         display: flex;
         align-items: center;
         text-align: center;
     }
-
     .user-nav {
         font-size: smaller;
         text-align: center;
         gap: 5px;
-        }
-        
-        .actions-container {
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .logs {
-            display: none;
+    }
+    .actions-container {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .logs {
+        display: none;
     }
 }

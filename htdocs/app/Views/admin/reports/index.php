@@ -1,15 +1,15 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-
     <a href="<?php echo base_url('audit'); ?>" class="btn btn-cancel" style="margin-bottom: 20px;">Retour aux logs</a>
-
     <h2>Administration des Signalements</h2>
     <p>Gérez les retours des utilisateurs concernant les cartes (liens morts, erreurs, etc.).</p>
 
     <?php if (session()->has('message')) { ?>
     <div class="alert alert-success"><?php echo session('message'); ?></div>
     <?php } ?>
+
     <?php if (session()->has('error')) { ?>
     <div class="alert alert-danger"><?php echo session('error'); ?></div>
     <?php } ?>
@@ -81,6 +81,7 @@
                     <td>
                         <div class="action-links">
                             <?php if ('pending' === $report['status'] && $report['item_titre']) { ?>
+
                             <!-- Bouton "Tester le lien" -->
                             <a href="<?php echo htmlspecialchars($finalLink); ?>" target="_blank" class="btn-action"
                                 style="background: #6c757d; color: white;">Tester le lien</a>
@@ -105,62 +106,4 @@
     </div>
 </div>
 
-<script>
-function copierLien(lien) {
-    // 1. Essayer l'API moderne (HTTPS ou localhost)
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(lien).then(() => {
-            notifierSucces();
-        }).catch(err => {
-            console.error('Erreur API Clipboard :', err);
-            notifierErreur();
-        });
-    } else {
-        // 2. Solution de secours (Fallback) pour le HTTP classique
-        let textArea = document.createElement("textarea");
-        textArea.value = lien;
-
-        // Cacher la textarea pour que ça soit invisible pour l'utilisateur
-        textArea.style.position = "fixed";
-        textArea.style.top = "0";
-        textArea.style.left = "0";
-        textArea.style.opacity = "0";
-
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-
-        try {
-            let successful = document.execCommand('copy');
-            if (successful) {
-                notifierSucces();
-            } else {
-                notifierErreur();
-            }
-        } catch (err) {
-            console.error('Erreur Fallback :', err);
-            notifierErreur();
-        }
-
-        document.body.removeChild(textArea);
-    }
-}
-
-// Fonctions utilitaires pour éviter de répéter le code de notification
-function notifierSucces() {
-    if (typeof showToast === 'function') {
-        showToast('Lien copié dans le presse-papiers !', 'success');
-    } else {
-        alert('Lien copié !');
-    }
-}
-
-function notifierErreur() {
-    if (typeof showToast === 'function') {
-        showToast('Erreur lors de la copie du lien.', 'danger');
-    } else {
-        alert('Erreur lors de la copie.');
-    }
-}
-</script>
 <?php echo $this->endSection(); ?>
