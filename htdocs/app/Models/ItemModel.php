@@ -55,7 +55,8 @@ class ItemModel extends Model
         $builder
             ->orderBy('h.id', 'ASC')
             ->orderBy('d.id', 'ASC')
-            ->orderBy('i.sous_categorie', 'ASC') // Tri par sous-catégorie
+            // Le tri alphabétique par sous-catégorie est retiré pour laisser 
+            // la priorité absolue à la position (Drag & Drop)
             ->orderBy('i.position', 'ASC')
         ;
 
@@ -79,17 +80,6 @@ class ItemModel extends Model
             }
 
             $groupedData[$header][$division][$subCat][] = $item;
-        }
-
-        // S'assurer que "Sans sous-catégorie" apparaît toujours en premier
-        foreach ($groupedData as $h => $divisions) {
-            foreach ($divisions as $d => $subCats) {
-                if (isset($subCats['Sans sous-catégorie'])) {
-                    $sansSub = ['Sans sous-catégorie' => $subCats['Sans sous-catégorie']];
-                    unset($subCats['Sans sous-catégorie']);
-                    $groupedData[$h][$d] = array_merge($sansSub, $subCats);
-                }
-            }
         }
 
         return $groupedData;

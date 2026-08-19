@@ -208,18 +208,77 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // 8. DRAG AND DROP (SortableJS)
     // ==========================================
-    var grids = document.querySelectorAll('.sortable-grid');
     if (typeof Sortable !== 'undefined') {
+        
+        // Fonction commune pour enregistrer l'ordre calculé
+        async function updateOrderBackend(newOrder) {
+            try {
+                const response = await fetch(amfsConfig.updateOrderUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [amfsConfig.csrfHeader]: amfsConfig.csrfToken
+                    },
+                    body: JSON.stringify({ order: newOrder })
+                });
+                const data = await response.json();
+                
+                if (data.csrf_token) {
+                    amfsConfig.csrfToken = data.csrf_token;
+                }
+                
+                if (typeof showToast === 'function') showToast("Ordre mis à jour !", 'success');
+            } catch (err) {
+                console.error("Erreur Drag&Drop:", err);
+                if (typeof showToast === 'function') showToast("Erreur lors de la sauvegarde de l'ordre", "danger");
+            }
+        }
+
+        // 8.1 - Drag & Drop des CARTES (au sein d'une sous-catégorie)
+        var grids = document.querySelectorAll('.sortable-grid');
         grids.forEach(function(el) {
             Sortable.create(el, {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 handle: '.drag-handle',
                 delay: 200, 
-                delayOnTouchOnly: true, 
-                onEnd: async function(evt) {
+                delayOnTouchOnly: true,
+                onEnd: function(evt) {
                     if (evt.oldIndex === evt.newIndex) return;
                     
+                    // IMPORTANT: On récupère TOUTES les cartes de la division entière 
+                    // pour recalculer les positions absolues et préserver l'ordre des sous-catégories !
+                    var divisionBody = el.closest('.sortable-division');
+                    if (!divisionBody) return;
+
+                    var itemEls = divisionBody.querySelectorAll('.card');
+                    var newOrder = [];
+                    
+                    itemEls.forEach(function(item) {
+                        var id = item.getAttribute('data-id');
+                        if (id) newOrder.push(id);
+                    });
+                    
+                    updateOrderBackend(newOrder);
+                }
+            });
+        });
+
+        // 8.2 - Drag & Drop des SOUS-CATÉGORIES
+        var divisions = document.querySelectorAll('.sortable-division');
+        divisions.forEach(function(el) {
+            Sortable.create(el, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                handle: '.drag-handle-sub', // On tire par l'icône à gauche du titre
+                delay: 150, 
+                delayOnTouchOnly: true,
+                onEnd: function(evt) {
+                    if (evt.oldIndex === evt.newIndex) return;
+                    
+                    // Lors du déplacement d'un bloc complet, l'ordre HTML change.
+                    // On rescanne toutes les cartes dans leur nouvel ordre d'apparition global.
                     var itemEls = el.querySelectorAll('.card');
                     var newOrder = [];
                     
@@ -227,28 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         var id = item.getAttribute('data-id');
                         if (id) newOrder.push(id);
                     });
-
-                    try {
-                        const response = await fetch(amfsConfig.updateOrderUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                                [amfsConfig.csrfHeader]: amfsConfig.csrfToken
-                            },
-                            body: JSON.stringify({ order: newOrder })
-                        });
-                        const data = await response.json();
-                        
-                        if (data.csrf_token) {
-                            amfsConfig.csrfToken = data.csrf_token;
-                        }
-                        
-                        if (typeof showToast === 'function') showToast("Ordre mis à jour !", 'success');
-                    } catch (err) {
-                        console.error("Erreur Drag&Drop:", err);
-                        if (typeof showToast === 'function') showToast("Erreur lors de la sauvegarde de l'ordre", "danger");
-                    }
+                    
+                    updateOrderBackend(newOrder);
                 }
             });
         });
