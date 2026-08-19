@@ -24,8 +24,8 @@
     --danger-bg: rgba(239, 68, 68, 0.1);
     --danger-text: #b91c1c;
 
-    --warning: #f59e0b;
-    --warning-hover: #d97706;
+    --warning: rgb(245, 158, 11, 0.5);
+    --warning-hover: rgb(217, 119, 6, 0.5);
 
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);

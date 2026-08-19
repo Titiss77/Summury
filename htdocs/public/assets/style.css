@@ -1078,8 +1078,8 @@ select.form-control {
 .btn-report-sm{
     color: var(--warning);
     position: absolute;
-    right: 1rem;
-    top: 1rem;
+    left: 0.9rem;
+    bottom: 0.3rem;
     background-color: transparent;
     border: none;
     cursor: pointer;
