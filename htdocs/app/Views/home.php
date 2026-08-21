@@ -122,7 +122,7 @@
                         <?php } ?>
                         <span class="sub-toggle">&#x25B6;</span>
                         <h3 class="subcategory-title"
-                            style="margin: 0; font-size: 1.05rem; color: var(--text-main); opacity: <?php echo $opacity; ?>; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                            style="margin: 0; font-size: 1.05rem; color: var(--text-main); opacity: <?php echo $opacity; ?>; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; ">
                             <?php echo htmlspecialchars($displayTitle); ?>
                         </h3>
                         <div
