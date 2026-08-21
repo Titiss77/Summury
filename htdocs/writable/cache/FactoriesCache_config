@@ -25,7 +25,6 @@
     'Config\\Feature' => 'Config\\Feature',
     'Config\\Logger' => 'Config\\Logger',
     'Config\\Database' => 'Config\\Database',
-    'Config\\View' => 'Config\\View',
     'Factory' => 'CodeIgniter\\Config\\Factory',
     'CodeIgniter\\Config\\Factory' => 'CodeIgniter\\Config\\Factory',
     'Security' => 'Config\\Security',
@@ -33,11 +32,8 @@
     'Settings' => 'CodeIgniter\\Settings\\Config\\Settings',
     'CodeIgniter\\Settings\\Config\\Settings' => 'CodeIgniter\\Settings\\Config\\Settings',
     'Config\\Session' => 'Config\\Session',
-    'Cookie' => 'Config\\Cookie',
+    'Config\\View' => 'Config\\View',
     'Config\\Format' => 'Config\\Format',
-    'Validation' => 'Config\\Validation',
-    'Config\\Validation' => 'Config\\Validation',
-    'Config\\CURLRequest' => 'Config\\CURLRequest',
   ),
   'instances' => 
   array (
@@ -738,6 +734,64 @@
         ),
       ),
     )),
+    'CodeIgniter\\Config\\Factory' => 
+    \CodeIgniter\Config\Factory::__set_state(array(
+       'models' => 
+      array (
+        'preferApp' => true,
+      ),
+    )),
+    'Config\\Security' => 
+    \Config\Security::__set_state(array(
+       'csrfProtection' => 'session',
+       'tokenRandomize' => false,
+       'tokenName' => 'csrf_test_name',
+       'headerName' => 'X-CSRF-TOKEN',
+       'cookieName' => 'csrf_cookie_name',
+       'expires' => 7200,
+       'regenerate' => true,
+       'redirect' => false,
+    )),
+    'CodeIgniter\\Settings\\Config\\Settings' => 
+    \CodeIgniter\Settings\Config\Settings::__set_state(array(
+       'handlers' => 
+      array (
+        0 => 'database',
+      ),
+       'array' => 
+      array (
+        'class' => 'CodeIgniter\\Settings\\Handlers\\ArrayHandler',
+        'writeable' => true,
+      ),
+       'database' => 
+      array (
+        'class' => 'CodeIgniter\\Settings\\Handlers\\DatabaseHandler',
+        'table' => 'settings',
+        'group' => NULL,
+        'writeable' => true,
+        'deferWrites' => false,
+      ),
+       'file' => 
+      array (
+        'class' => 'CodeIgniter\\Settings\\Handlers\\FileHandler',
+        'path' => '/var/www/html/writable/settings',
+        'writeable' => true,
+        'deferWrites' => false,
+      ),
+    )),
+    'Config\\Session' => 
+    \Config\Session::__set_state(array(
+       'driver' => 'CodeIgniter\\Session\\Handlers\\FileHandler',
+       'cookieName' => 'ci_session',
+       'expiration' => 7200,
+       'savePath' => '/var/www/html/writable/session',
+       'matchIP' => false,
+       'timeToUpdate' => 300,
+       'regenerateDestroy' => false,
+       'DBGroup' => NULL,
+       'lockRetryInterval' => 100000,
+       'lockMaxRetries' => 300,
+    )),
     'Config\\View' => 
     \Config\View::__set_state(array(
        'saveData' => true,
@@ -819,64 +873,6 @@
         'siteURL' => '\\CodeIgniter\\View\\Plugins::siteURL',
       ),
     )),
-    'CodeIgniter\\Config\\Factory' => 
-    \CodeIgniter\Config\Factory::__set_state(array(
-       'models' => 
-      array (
-        'preferApp' => true,
-      ),
-    )),
-    'Config\\Security' => 
-    \Config\Security::__set_state(array(
-       'csrfProtection' => 'session',
-       'tokenRandomize' => false,
-       'tokenName' => 'csrf_test_name',
-       'headerName' => 'X-CSRF-TOKEN',
-       'cookieName' => 'csrf_cookie_name',
-       'expires' => 7200,
-       'regenerate' => true,
-       'redirect' => false,
-    )),
-    'CodeIgniter\\Settings\\Config\\Settings' => 
-    \CodeIgniter\Settings\Config\Settings::__set_state(array(
-       'handlers' => 
-      array (
-        0 => 'database',
-      ),
-       'array' => 
-      array (
-        'class' => 'CodeIgniter\\Settings\\Handlers\\ArrayHandler',
-        'writeable' => true,
-      ),
-       'database' => 
-      array (
-        'class' => 'CodeIgniter\\Settings\\Handlers\\DatabaseHandler',
-        'table' => 'settings',
-        'group' => NULL,
-        'writeable' => true,
-        'deferWrites' => false,
-      ),
-       'file' => 
-      array (
-        'class' => 'CodeIgniter\\Settings\\Handlers\\FileHandler',
-        'path' => '/var/www/html/writable/settings',
-        'writeable' => true,
-        'deferWrites' => false,
-      ),
-    )),
-    'Config\\Session' => 
-    \Config\Session::__set_state(array(
-       'driver' => 'CodeIgniter\\Session\\Handlers\\FileHandler',
-       'cookieName' => 'ci_session',
-       'expiration' => 7200,
-       'savePath' => '/var/www/html/writable/session',
-       'matchIP' => false,
-       'timeToUpdate' => 300,
-       'regenerateDestroy' => false,
-       'DBGroup' => NULL,
-       'lockRetryInterval' => 100000,
-       'lockMaxRetries' => 300,
-    )),
     'Config\\Format' => 
     \Config\Format::__set_state(array(
        'supportedResponseFormats' => 
@@ -897,26 +893,6 @@
         'application/xml' => 0,
         'text/xml' => 0,
       ),
-    )),
-    'Config\\Validation' => 
-    \Config\Validation::__set_state(array(
-       'ruleSets' => 
-      array (
-        0 => 'CodeIgniter\\Validation\\StrictRules\\Rules',
-        1 => 'CodeIgniter\\Validation\\StrictRules\\FormatRules',
-        2 => 'CodeIgniter\\Validation\\StrictRules\\FileRules',
-        3 => 'CodeIgniter\\Validation\\StrictRules\\CreditCardRules',
-        4 => 'CodeIgniter\\Shield\\Authentication\\Passwords\\ValidationRules',
-      ),
-       'templates' => 
-      array (
-        'list' => 'CodeIgniter\\Validation\\Views\\list',
-        'single' => 'CodeIgniter\\Validation\\Views\\single',
-      ),
-    )),
-    'Config\\CURLRequest' => 
-    \Config\CURLRequest::__set_state(array(
-       'shareOptions' => false,
     )),
   ),
 );

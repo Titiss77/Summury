@@ -145,16 +145,6 @@
         ),
       ),
     ),
-    'Language/fr/Auth.php' => 
-    array (
-      'php' => 
-      array (
-        0 => 
-        array (
-          0 => '/var/www/html/vendor/codeigniter4/shield/src/Language/fr/Auth.php',
-        ),
-      ),
-    ),
     'Helpers/security_helper' => 
     array (
       'php' => 
@@ -162,35 +152,6 @@
         1 => 
         array (
           0 => '/var/www/html/system/Helpers/security_helper.php',
-        ),
-      ),
-    ),
-    'Helpers/number_helper' => 
-    array (
-      'php' => 
-      array (
-        1 => 
-        array (
-          0 => '/var/www/html/system/Helpers/number_helper.php',
-        ),
-      ),
-    ),
-    'Language/fr/Number.php' => 
-    array (
-      'php' => 
-      array (
-        0 => 
-        array (
-        ),
-      ),
-    ),
-    'Language/en/Number.php' => 
-    array (
-      'php' => 
-      array (
-        0 => 
-        array (
-          0 => '/var/www/html/system/Language/en/Number.php',
         ),
       ),
     ),
