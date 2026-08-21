@@ -1,0 +1,14 @@
+# Créer et lancer les conteneurs en arrière-plan
+docker-compose up -d
+
+# Lancer et forcer la reconstruction des images (indispensable si tu modifies le Dockerfile)
+docker-compose up -d --build
+
+# Éteindre et détruire les conteneurs (les volumes comme la base de données restent intacts)
+docker-compose down
+
+# Éteindre et détruire les conteneurs ET les volumes (⚠️ Attention : supprime définitivement ta base de données !)
+docker-compose down -v
+
+# Voir la liste des conteneurs actifs pour ce projet et leur statut
+docker-compose ps

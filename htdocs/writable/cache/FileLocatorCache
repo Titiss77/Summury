@@ -7,10 +7,10 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\app\\Config\\Services.php',
-          1 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\shield\\src\\Config\\Services.php',
-          2 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\settings\\src\\Config\\Services.php',
-          3 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Config\\Services.php',
+          0 => '/var/www/html/app/Config/Services.php',
+          1 => '/var/www/html/vendor/codeigniter4/shield/src/Config/Services.php',
+          2 => '/var/www/html/vendor/codeigniter4/settings/src/Config/Services.php',
+          3 => '/var/www/html/system/Config/Services.php',
         ),
       ),
     ),
@@ -20,7 +20,7 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\shield\\src\\Config\\Registrar.php',
+          0 => '/var/www/html/vendor/codeigniter4/shield/src/Config/Registrar.php',
         ),
       ),
     ),
@@ -30,7 +30,7 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Helpers\\kint_helper.php',
+          0 => '/var/www/html/system/Helpers/kint_helper.php',
         ),
       ),
     ),
@@ -40,7 +40,7 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Helpers\\url_helper.php',
+          0 => '/var/www/html/system/Helpers/url_helper.php',
         ),
       ),
     ),
@@ -50,7 +50,7 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\shield\\src\\Helpers\\auth_helper.php',
+          0 => '/var/www/html/vendor/codeigniter4/shield/src/Helpers/auth_helper.php',
         ),
       ),
     ),
@@ -60,7 +60,7 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\settings\\src\\Helpers\\setting_helper.php',
+          0 => '/var/www/html/vendor/codeigniter4/settings/src/Helpers/setting_helper.php',
         ),
       ),
     ),
@@ -70,7 +70,7 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Helpers\\filesystem_helper.php',
+          0 => '/var/www/html/system/Helpers/filesystem_helper.php',
         ),
       ),
     ),
@@ -80,18 +80,7 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\app\\Config\\Events.php',
-        ),
-      ),
-    ),
-    'Config/Filters.php' => 
-    array (
-      'php' => 
-      array (
-        1 => 
-        array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\app\\Config\\Filters.php',
-          1 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Config\\Filters.php',
+          0 => '/var/www/html/app/Config/Events.php',
         ),
       ),
     ),
@@ -101,17 +90,28 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Helpers\\array_helper.php',
+          0 => '/var/www/html/system/Helpers/array_helper.php',
         ),
       ),
     ),
-    'Config\\AuthRoutes' => 
+    'Config/Filters.php' => 
     array (
       'php' => 
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\shield\\src\\Config\\AuthRoutes.php',
+          0 => '/var/www/html/app/Config/Filters.php',
+          1 => '/var/www/html/system/Config/Filters.php',
+        ),
+      ),
+    ),
+    'Config/AuthRoutes' => 
+    array (
+      'php' => 
+      array (
+        1 => 
+        array (
+          0 => '/var/www/html/vendor/codeigniter4/shield/src/Config/AuthRoutes.php',
         ),
       ),
     ),
@@ -121,44 +121,93 @@
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\app\\Config\\Routes.php',
+          0 => '/var/www/html/app/Config/Routes.php',
         ),
       ),
     ),
-    'Config\\Factory' => 
+    'Config/Factory' => 
     array (
       'php' => 
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Config\\Factory.php',
+          0 => '/var/www/html/system/Config/Factory.php',
         ),
       ),
     ),
-    'Config\\Settings' => 
+    'Config/Settings' => 
     array (
       'php' => 
       array (
         1 => 
         array (
-          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\settings\\src\\Config\\Settings.php',
+          0 => '/var/www/html/vendor/codeigniter4/settings/src/Config/Settings.php',
+        ),
+      ),
+    ),
+    'Language/fr/Auth.php' => 
+    array (
+      'php' => 
+      array (
+        0 => 
+        array (
+          0 => '/var/www/html/vendor/codeigniter4/shield/src/Language/fr/Auth.php',
+        ),
+      ),
+    ),
+    'Helpers/security_helper' => 
+    array (
+      'php' => 
+      array (
+        1 => 
+        array (
+          0 => '/var/www/html/system/Helpers/security_helper.php',
+        ),
+      ),
+    ),
+    'Helpers/number_helper' => 
+    array (
+      'php' => 
+      array (
+        1 => 
+        array (
+          0 => '/var/www/html/system/Helpers/number_helper.php',
+        ),
+      ),
+    ),
+    'Language/fr/Number.php' => 
+    array (
+      'php' => 
+      array (
+        0 => 
+        array (
+        ),
+      ),
+    ),
+    'Language/en/Number.php' => 
+    array (
+      'php' => 
+      array (
+        0 => 
+        array (
+          0 => '/var/www/html/system/Language/en/Number.php',
         ),
       ),
     ),
   ),
   'findQualifiedNameFromPath' => 
   array (
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\app\\Config\\Services.php' => 'Config\\Services',
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\shield\\src\\Config\\Services.php' => 'CodeIgniter\\Shield\\Config\\Services',
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\settings\\src\\Config\\Services.php' => 'CodeIgniter\\Settings\\Config\\Services',
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\shield\\src\\Config\\Registrar.php' => 'CodeIgniter\\Shield\\Config\\Registrar',
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\shield\\src\\Config\\AuthRoutes.php' => 'CodeIgniter\\Shield\\Config\\AuthRoutes',
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Config\\Factory.php' => 'CodeIgniter\\Config\\Factory',
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\vendor\\codeigniter4\\settings\\src\\Config\\Settings.php' => 'CodeIgniter\\Settings\\Config\\Settings',
+    '/var/www/html/app/Config/Services.php' => 'Config\\Services',
+    '/var/www/html/vendor/codeigniter4/shield/src/Config/Services.php' => 'CodeIgniter\\Shield\\Config\\Services',
+    '/var/www/html/vendor/codeigniter4/settings/src/Config/Services.php' => 'CodeIgniter\\Settings\\Config\\Services',
+    '/var/www/html/vendor/codeigniter4/shield/src/Config/Registrar.php' => 'CodeIgniter\\Shield\\Config\\Registrar',
+    '/var/www/html/vendor/codeigniter4/shield/src/Config/AuthRoutes.php' => 'CodeIgniter\\Shield\\Config\\AuthRoutes',
+    '/var/www/html/system/Config/Factory.php' => 'CodeIgniter\\Config\\Factory',
+    '/var/www/html/vendor/codeigniter4/settings/src/Config/Settings.php' => 'CodeIgniter\\Settings\\Config\\Settings',
   ),
   'getClassname' => 
   array (
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\app\\Config\\Filters.php' => 'Config\\Filters',
-    'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Config\\Filters.php' => 'CodeIgniter\\Config\\Filters',
+    '/var/www/html/app/Config/Filters.php' => 'Config\\Filters',
+    '/var/www/html/system/Config/Filters.php' => 'CodeIgniter\\Config\\Filters',
   ),
 );
