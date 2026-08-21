@@ -226,6 +226,8 @@ CREATE TABLE IF NOT EXISTS `sites_config` (
   `domain` varchar(255) NOT NULL,
   `regex_episode` varchar(255) NOT NULL,
   `indicateurs_page_invalide` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `indicateurs_lecteur` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`)
 ) ;
 

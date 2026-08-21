@@ -10,7 +10,6 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 
-TRUNCATE TABLE `audit_logs`;
 INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `created_at`) VALUES
 (1, 2, 'Mise à jour Carte', 'Modification de la carte ID 35 (\'Classroom of the Elite\'). Visibilité : Privée.', '5.49.246.18', '2026-08-19 18:21:03'),
 (2, 2, 'Mise à jour Carte', 'Modification de la carte ID 57 (\'Mushoku Tensei\'). Visibilité : Privée.', '5.49.246.18', '2026-08-19 18:21:10'),
@@ -59,7 +58,6 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `c
 (45, 5, 'Mise à jour Carte', 'Modification de la carte ID 109 (\'Harry Potter à l\'école des sorciers\'). Visibilité : Privée.', '5.49.246.18', '2026-08-21 14:56:57'),
 (46, 5, 'Mise à jour Carte', 'Modification de la carte ID 109 (\'Harry Potter à l\'école des sorciers\'). Visibilité : Privée.', '5.49.246.18', '2026-08-21 16:12:03');
 
-TRUNCATE TABLE `auth_groups_users`;
 INSERT INTO `auth_groups_users` (`id`, `user_id`, `group`, `created_at`) VALUES
 (1, 1, 'superadmin', '2026-04-11 17:01:16'),
 (3, 3, 'user', '2026-04-30 14:13:10'),
@@ -67,7 +65,6 @@ INSERT INTO `auth_groups_users` (`id`, `user_id`, `group`, `created_at`) VALUES
 (7, 4, 'user', '2026-05-29 22:30:45'),
 (8, 5, 'user', '2026-06-17 20:17:27');
 
-TRUNCATE TABLE `auth_identities`;
 INSERT INTO `auth_identities` (`id`, `user_id`, `type`, `name`, `secret`, `secret2`, `expires`, `extra`, `force_reset`, `last_used_at`, `created_at`, `updated_at`) VALUES
 (1, 1, 'email_password', NULL, 'titisland@gmail.com', '$2y$12$fQQGOXUFz0cpRjQv6KEQKunD.NyN.foC2QF30zzcvm47qdRIHtW26', NULL, NULL, 0, '2026-08-19 17:45:50', '2026-04-11 17:01:16', '2026-08-19 17:45:50'),
 (2, 2, 'email_password', NULL, 'mathisfrances11@gmail.com', '$2y$12$MCy7X0OR/J0IAycNYTkrwOGAi2UygpbYVtakTyTZEOGJvE6b60BSa', NULL, NULL, 0, '2026-08-19 18:28:03', '2026-04-11 17:02:38', '2026-08-19 18:28:03'),
@@ -76,25 +73,19 @@ INSERT INTO `auth_identities` (`id`, `user_id`, `type`, `name`, `secret`, `secre
 (5, 4, 'email_password', NULL, 'mathisfrances111@gmail.com', '$2y$12$q4NTrCKkkMj3kINlncokHuDcbgPaDT2SDDooXI0R5asUjUwjK1pem', NULL, NULL, 0, '2026-08-19 17:22:31', '2026-05-29 22:30:44', '2026-08-19 17:22:31'),
 (6, 5, 'email_password', NULL, 'ambrefrances1@gmail.com', '$2y$12$AyjlWNvzet1MU5XhMJBDdeMjd9oGgFhKSGjIbtn3R25TWPeFUTfTG', NULL, NULL, 0, '2026-08-21 14:00:10', '2026-06-17 20:17:27', '2026-08-21 14:00:10');
 
-TRUNCATE TABLE `auth_logins`;
 INSERT INTO `auth_logins` (`id`, `ip_address`, `user_agent`, `id_type`, `identifier`, `user_id`, `date`, `success`) VALUES
 (1, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-08-19 18:19:41', 1),
 (2, '140.248.41.24', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15', 'email_password', 'mathisfrances11@gmail.com', 2, '2026-08-19 18:28:03', 1),
 (3, '5.49.246.18', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0', 'email_password', 'ambrefrances1@gmail.com', 5, '2026-08-21 14:00:10', 1);
 
-TRUNCATE TABLE `auth_permissions_users`;
-TRUNCATE TABLE `auth_remember_tokens`;
 INSERT INTO `auth_remember_tokens` (`id`, `selector`, `hashedValidator`, `user_id`, `expires`, `created_at`, `updated_at`) VALUES
 (1, 'a2a498a0c9bda9951fc5932e', '6d46de9248284a62c4907ddf3bc8809db49f3e5f26daca4b8f589f3efd31e275', 2, '2026-09-20 14:44:17', '2026-08-19 18:19:41', '2026-08-21 14:44:17'),
 (2, '726afcded5d4212425265c9d', '30769506d6fba6f2095893891e5bbfe7740a8ef5c3b67490734b64cf57980ca3', 2, '2026-09-20 01:08:16', '2026-08-19 18:28:03', '2026-08-21 01:08:16'),
 (3, 'b613017008433af034b316b0', 'af76f6fdc31599dafd4c104437b3f0f0cff911eab2ab0d5d6dc41fe78a6fee33', 5, '2026-09-20 14:00:10', '2026-08-21 14:00:10', '2026-08-21 14:00:10');
 
-TRUNCATE TABLE `auth_token_logins`;
-TRUNCATE TABLE `cron_logs`;
 INSERT INTO `cron_logs` (`id`, `item_id`, `titre`, `url_testee`, `code_erreur`, `task_name`, `last_run`) VALUES
 (1, 25, 'Audio To Text', 'https://editor.flixier.com/transcribe?fx_source=search&lang=en&fx_campaign=convert-audio-to-text&fx_medium=tools', 0, 'check_dead_links', '2026-08-17 21:43:48');
 
-TRUNCATE TABLE `division`;
 INSERT INTO `division` (`id`, `id_header`, `nom`) VALUES
 (1, 1, 'Animés'),
 (2, 1, 'Mangas'),
@@ -108,14 +99,12 @@ INSERT INTO `division` (`id`, `id_header`, `nom`) VALUES
 (10, 5, 'Utilitaires Web'),
 (11, 5, 'Autres');
 
-TRUNCATE TABLE `header`;
 INSERT INTO `header` (`id`, `nom`) VALUES
 (1, 'Animés & Mangas'),
 (2, 'Films & Séries'),
 (3, 'Liens'),
 (5, 'Outils');
 
-TRUNCATE TABLE `item`;
 INSERT INTO `item` (`id`, `id_user`, `is_public`, `id_division`, `sous_categorie`, `titre`, `status`, `image`, `lien`, `link_status`, `description`, `episode`, `saison`, `position`, `date_sortie`, `deleted_at`, `created_at`, `updated_at`) VALUES
 (1, 2, 0, 1, 'En cours', 'One Piece', 'En cours', 'https://image.tmdb.org/t/p/w500/l5menwH7JjOBbXjoftYdwMmsqmT.jpg', 'https://voir-anime.to/anime/one-piece/one-piece-{ep4}-vostfr/', 'ok', 'Une aventure en haute mer légendaire et unique en son genre. Monkey D. Luffy est un jeune aventurier...', '1141', 1, 8, NULL, NULL, NULL, '2026-08-19 18:22:15'),
 (2, 2, 0, 2, NULL, 'One Piece', 'Aucun', 'https://www.myutaku.com/media/mangas/12.jpg', 'https://www.scan-vf.net/one_piece/chapitre-{ep}', 'ok', 'Une aventure en haute mer légendaire et unique en son genre. Monkey D. Luffy est un jeune aventurier...', '1192', 0, 0, '2026-08-28 18:00:00', NULL, NULL, '2026-08-21 14:49:20'),
@@ -213,17 +202,12 @@ INSERT INTO `item` (`id`, `id_user`, `is_public`, `id_division`, `sous_categorie
 (110, 5, 0, 3, NULL, 'Harry Potter et la Chambre des secrets', 'À voir', 'https://image.tmdb.org/t/p/w500/8KpHRokGpiaqEGpjYe0rpywtvUx.jpg', 'https://nakastream.tv/player?title=Harry%20Potter%20et%20la%20Chambre%20des%20secrets&id=456&poster=/8KpHRokGpiaqEGpjYe0rpywtvUx.jpg&type=movie', 'ok', 'Après de très mauvaises vacances passées chez ses odieux oncle et tante et son affreux cousin, Harry rejoint, non sans mal, l\'École des Sorciers où, avec ses amis Ron et Hermione et l\'aide ponctuelle de nouveaux venus, il parvient à élucider le my...', NULL, NULL, 2, NULL, NULL, '2026-08-21 14:18:12', '2026-08-21 14:18:35'),
 (111, 5, 0, 3, NULL, 'Harry Potter et le Prisonnier d\'Azkaban', 'À voir', 'https://image.tmdb.org/t/p/w500/t4P2079IyK19njHDP2GwQrKdvzd.jpg', 'https://nakastream.tv/player?title=Harry%20Potter%20et%20le%20Prisonnier%20d%27Azkaban&id=455&poster=/t4P2079IyK19njHDP2GwQrKdvzd.jpg&type=movie', 'ok', 'Sirius Black, un dangereux sorcier criminel, s’échappe de la sombre prison d’Azkaban avec un seul et unique but : retrouver Harry Potter, en troisième année à l’école de Poudlard. Selon la légende, Black aurait jadis livré les parents du jeune sor...', NULL, NULL, 3, NULL, NULL, '2026-08-21 14:22:08', '2026-08-21 14:22:08');
 
-TRUNCATE TABLE `item_revisions`;
-TRUNCATE TABLE `migrations`;
-TRUNCATE TABLE `reports`;
-TRUNCATE TABLE `settings`;
-TRUNCATE TABLE `sites_config`;
+
 INSERT INTO `sites_config` (`id`, `domain`, `regex_episode`, `indicateurs_page_invalide`, `indicateurs_lecteur`, `is_active`) VALUES
 (1, 'voir-anime.to', '/-(\\d+)-vostfr/i', '[\"Premier EP\", \"Dernier EP\"]', '[\"class=\\\"lecteur\\\"\", \"<iframe\", \"Lecteur\"]', 1),
 (2, 'scan-vf.net', '/chapitre-(\\d+)/i', '[\"Liste des chapitres\", \"Manga en cours\"]', '[\"img-responsive\", \"img-fluid\", \"pages_container\"]', 1),
 (4, 'franime.fr', '/[?&]ep=(\\d+)/i', '[]', '[\"margin-player\", \"Regarder l&#x27;épisode\"]', 1);
 
-TRUNCATE TABLE `users`;
 INSERT INTO `users` (`id`, `username`, `status`, `status_message`, `active`, `last_active`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 'Super Admin', NULL, NULL, 1, '2026-08-19 17:46:29', '2026-04-11 17:01:15', '2026-05-17 12:39:43', NULL),
 (2, 'Titiss', NULL, NULL, 1, '2026-08-21 14:49:21', '2026-04-11 17:02:37', '2026-04-11 17:02:38', NULL),
