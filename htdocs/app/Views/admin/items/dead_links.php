@@ -1,6 +1,8 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
 
+<a href="<?php echo base_url('/'); ?>" class="btn btn-warning" style="margin-bottom: 20px;">Retour aux cartes</a>
+
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
 
     <div

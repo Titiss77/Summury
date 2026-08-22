@@ -12,14 +12,26 @@ class ProfileController extends BaseController
         $user = auth()->user();
         $itemModel = new ItemModel();
 
-        // Récupération des statistiques
+        // Statistiques globales
         $totalItems = $itemModel->where('id_user', $user->id)->countAllResults();
         $publicItems = $itemModel->where('id_user', $user->id)->where('is_public', 1)->countAllResults();
 
+        // Statistiques détaillées par statut
+        $statusAVoir   = $itemModel->where('id_user', $user->id)->where('status', 'À voir')->countAllResults();
+        $statusEnCours = $itemModel->where('id_user', $user->id)->where('status', 'En cours')->countAllResults();
+        $statusEnPause = $itemModel->where('id_user', $user->id)->where('status', 'En pause')->countAllResults();
+        $statusTermine = $itemModel->where('id_user', $user->id)->where('status', 'Terminé')->countAllResults();
+        $statusAucun   = $itemModel->where('id_user', $user->id)->where('status', 'Aucun')->countAllResults();
+
         $data = [
-            'user' => $user,
-            'totalItems' => $totalItems,
-            'publicItems' => $publicItems,
+            'user'          => $user,
+            'totalItems'    => $totalItems,
+            'publicItems'   => $publicItems,
+            'statusAVoir'   => $statusAVoir,
+            'statusEnCours' => $statusEnCours,
+            'statusEnPause' => $statusEnPause,
+            'statusTermine' => $statusTermine,
+            'statusAucun'   => $statusAucun,
         ];
 
         return view('profile/index', $data);
@@ -55,7 +67,7 @@ class ProfileController extends BaseController
             return redirect()->back()->with('error', 'Le mot de passe actuel est incorrect.');
         }
 
-        // Enregistrement du nouveau mot de passe (Shield gère le hashage automatiquement)
+        // Enregistrement du nouveau mot de passe
         $user->password = $this->request->getPost('new_password');
         $users->save($user);
 

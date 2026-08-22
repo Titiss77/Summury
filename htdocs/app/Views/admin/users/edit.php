@@ -1,6 +1,8 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
 
+<a href="<?php echo base_url('/'); ?>" class="btn btn-warning" style="margin-bottom: 20px;">Retour aux cartes</a>
+
 <div class="container mt-5">
     <h2>Modifier l'utilisateur : <?php echo esc($user->username); ?></h2>
 

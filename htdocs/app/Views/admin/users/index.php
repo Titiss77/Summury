@@ -5,7 +5,7 @@
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
 
 <div class="actions-container">
-    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">🔙 Retour aux cartes</a>
+    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
 <div class="container">
