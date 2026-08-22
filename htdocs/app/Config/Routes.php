@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 use CodeIgniter\Router\RouteCollection;
 use CodeIgniter\Shield\Config\Auth;
@@ -30,9 +28,11 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/turn/(:num)', 'ItemController::turnToAdmin/$1');
     $routes->get('item/search', 'ItemController::search');
     $routes->post('report/submit', 'ReportController::submit');
-
-    // NOUVELLE ROUTE : Vérification de disponibilité des épisodes
     $routes->get('item/check-dispo', 'ItemController::checkDispo');
+    
+    // NOUVELLES ROUTES : Profil utilisateur
+    $routes->get('profile', 'ProfileController::index');
+    $routes->post('profile/update-password', 'ProfileController::updatePassword');
 });
 
 // --------------------------------------------------------------------

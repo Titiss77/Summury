@@ -26,10 +26,8 @@
     $styleCssVersion = file_exists(FCPATH . 'assets/style.css') ? filemtime(FCPATH . 'assets/style.css') : '1';
     $scriptJsVersion = file_exists(FCPATH . 'assets/script.js') ? filemtime(FCPATH . 'assets/script.js') : '1';
     ?>
-
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v=' . $rootCssVersion); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v=' . $styleCssVersion); ?>">
-
     <meta name="csrf-token" content="<?php echo csrf_hash(); ?>">
     <meta name="csrf-header" content="<?php echo csrf_header(); ?>">
     <meta id="meta-theme-color" name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
@@ -75,7 +73,6 @@
                 </svg>
             </button>
             <?php if (auth()->loggedIn()) { ?>
-
             <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
             <?php
                 // Calcul du total des signalements en attente
@@ -92,7 +89,9 @@
             </a>
             <?php } ?>
 
-            <span class="welcome-text">
+            <!-- Lien mis à jour vers le profil au lieu d'un simple texte -->
+            <a href="<?php echo base_url('profile'); ?>" class="welcome-text"
+                style="text-decoration: none; display: flex; align-items: center; gap: 5px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
                     class="bi bi-person-circle" viewBox="0 0 16 16">
                     <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
@@ -100,16 +99,15 @@
                         d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
                 </svg>
                 <?php echo esc(auth()->user()->username); ?>
-            </span>
+            </a>
+
             <a href="<?php echo base_url('logout'); ?>" class="btn-logout">Déconnexion</a>
             <?php } else { ?>
             <a href="<?php echo base_url('login'); ?>" class="btn-login">Connexion</a>
             <a href="<?php echo base_url('register'); ?>" class="btn-register">Créer un compte</a>
             <?php } ?>
-
         </div>
     </header>
-
     <?php if (isset($headers) && !empty($headers) && auth()->loggedIn()) { ?>
     <nav class="category-nav container">
         <?php foreach ($headers as $h) { ?>
@@ -122,11 +120,9 @@
     <?php } else { ?>
     <nav class="category-nav container"></nav>
     <?php } ?>
-
     <main class="container">
         <?php echo $this->renderSection('content'); ?>
     </main>
-
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         /* Interception des Flashdata de CodeIgniter 4 pour lancer des Toasts automatiquement */
