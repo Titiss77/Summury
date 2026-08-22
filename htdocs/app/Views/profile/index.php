@@ -50,14 +50,16 @@
                 <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
                     <label for="current_password" class="form-label">Mot de passe actuel</label>
                     <input type="password" id="current_password" name="current_password" class="form-control" required>
-                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+                    <button type="button" class="password-toggle" style="margin-top: 1.15rem;"
+                        aria-label="Afficher le mot de passe"></button>
                 </div>
 
                 <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
                     <label for="new_password" class="form-label">Nouveau mot de passe</label>
                     <input type="password" id="new_password" name="new_password" class="form-control" required
                         minlength="8">
-                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+                    <button type="button" class="password-toggle" style="margin-top: 1.15rem;"
+                        aria-label="Afficher le mot de passe"></button>
                 </div>
 
                 <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
