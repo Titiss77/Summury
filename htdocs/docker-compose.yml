@@ -9,11 +9,13 @@ services:
       - "8080:80"
     volumes:
       - .:/var/www/html # Synchronise ton code en temps réel avec le conteneur
+      - /var/www/html/vendor
     depends_on:
       - db
 
   db:
     image: mysql:8.0
+    command: --skip-name-resolve
     environment:
       MYSQL_ROOT_PASSWORD: titiss.space
       MYSQL_DATABASE: titiss.space
