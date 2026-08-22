@@ -1,18 +1,15 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
-
 <a href="<?php echo base_url('/'); ?>" class="btn btn-warning">Retour aux cartes</a>
 <div style="margin-bottom: 2.5rem;">
     <h2>Cartes intéressantes</h2>
     <p style="color: var(--text-muted);">Voici les cartes publiques qui ne viennent pas de l'admin.</p>
 </div>
-
 <div class="cards-grid">
     <?php foreach ($items as $item) { ?>
     <?php if (1 != $item->id_user) { ?>
     <div class="card fade-in <?php echo 'Terminé' === $item->status ? 'status-completed' : ''; ?>"
         data-id="<?php echo esc($item->id); ?>">
-
         <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank" class="card-link-block">
             <div class="card-body">
                 <?php
@@ -60,7 +57,6 @@
                     <?php echo htmlspecialchars($item->description); ?>
                 </p>
                 <?php } ?>
-
                 <div class="card-badges">
                     <?php if (!empty($item->saison)) { ?>
                     <span class="badge badge-season">Saison <?php echo htmlspecialchars($item->saison); ?></span>
@@ -73,17 +69,16 @@
                     <?php } ?>
                 </div>
             </div>
-
+            
+            <?php if (!empty($item->image)) { ?>
             <div class="card-image">
-                <?php if (!empty($item->image)) { ?>
                 <!-- Ajout de decoding="async" et fetchpriority="low" -->
                 <img src="<?php echo htmlspecialchars($item->image); ?>"
                     alt="<?php echo htmlspecialchars($item->titre); ?>" class="image-view" loading="lazy"
                     decoding="async" fetchpriority="low">
-                <?php } ?>
             </div>
+            <?php } ?>
         </a>
-
         <div class="card-actions-bottom">
             <a href="<?php echo base_url('item/turn/'.esc($item->id)); ?>" class="btn-icon btn-edit-sm">
                 Passer en admin
@@ -93,5 +88,4 @@
     <?php } ?>
     <?php } ?>
 </div>
-
 <?php echo $this->endSection(); ?>

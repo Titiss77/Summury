@@ -1,6 +1,5 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
-
 <?php if (!auth()->loggedIn()) { ?>
 <div class="empty-state shadow-card">
     <h2>Bienvenue sur AMFS Dashboard</h2>
@@ -35,7 +34,6 @@
         </span>
         <?php } ?>
     </a>
-
     <a href="<?php echo base_url('items/check-to-global'); ?>" class="btn btn-warning"
         style="margin-right: 15px;">Autres publiques
         <?php if (isset($toAdminCount) && $toAdminCount > 0) { ?>
@@ -65,13 +63,11 @@
 </div>
 
 <?php $openDivision = $_GET['open'] ?? null; ?>
-
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
     <h2 class="header-title">
         <?php echo htmlspecialchars($headerName); ?>
     </h2>
-
     <?php
         foreach ($divisions as $divisionName => $subCategories) {
             
@@ -90,9 +86,7 @@
         <summary class="division-title">
             <span class="toggle-icon">&#x25B6;</span> <?php echo htmlspecialchars($divisionName); ?>
         </summary>
-
         <div class="division-body sortable-division" data-division-id="<?php echo $currentDivisionId; ?>">
-
             <?php foreach ($subCategories as $subCatName => $items) { 
                 $isSansSub = ($subCatName === 'Sans sous-catégorie');
                 $displayTitle = $isSansSub ? 'Autres cartes' : $subCatName;
@@ -157,7 +151,6 @@
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : (!empty($item->episode) ? 'needs-dispo-check' : ''); ?>"
                                     data-id="<?php echo esc($item->id); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
-
                                     <?php if ($canDragItem) { ?>
                                     <div class="drag-handle"
                                         style="cursor: grab; text-align: center; color: #ccc; padding: 5px; touch-action: none;"
@@ -165,7 +158,6 @@
                                         &#x2630;
                                     </div>
                                     <?php } ?>
-
                                     <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank"
                                         class="card-link-block">
                                         <div class="card-body">
@@ -215,6 +207,7 @@
                                                 style="<?php echo $textColor; ?>">
                                                 <?php echo htmlspecialchars($item->titre); ?>
                                             </h4>
+
                                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
                                                 <?php echo htmlspecialchars($item->status); ?>
                                             </p>
@@ -245,6 +238,7 @@
                                                 <span class="badge badge-season">Saison
                                                     <?php echo htmlspecialchars($item->saison); ?></span>
                                                 <?php } ?>
+
                                                 <?php if (!empty($item->episode)) { ?>
                                                 <span class="badge badge-episode">
                                                     Ép. <span
@@ -258,14 +252,14 @@
                                             </div>
                                         </div>
 
+                                        <?php if (!empty($item->image)) { ?>
                                         <div class="card-image">
-                                            <?php if (!empty($item->image)) { ?>
                                             <!-- Ajout de decoding="async" et fetchpriority="low" -->
                                             <img src="<?php echo htmlspecialchars($item->image); ?>"
                                                 alt="<?php echo htmlspecialchars($item->titre); ?>" class="image-view"
                                                 loading="lazy" decoding="async" fetchpriority="low">
-                                            <?php } ?>
                                         </div>
+                                        <?php } ?>
                                     </a>
 
                                     <?php if (1 == $item->is_public) { ?>
@@ -300,7 +294,6 @@
         <?php } ?>
         </div>
         <?php } ?>
-
         </div>
     </details>
     <?php } ?>

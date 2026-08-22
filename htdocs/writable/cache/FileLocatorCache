@@ -155,6 +155,16 @@
         ),
       ),
     ),
+    'Language/fr/Auth.php' => 
+    array (
+      'php' => 
+      array (
+        0 => 
+        array (
+          0 => '/var/www/html/vendor/codeigniter4/shield/src/Language/fr/Auth.php',
+        ),
+      ),
+    ),
   ),
   'findQualifiedNameFromPath' => 
   array (
