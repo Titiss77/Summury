@@ -1,3 +1,4 @@
 /htdocs/writable/debugbar
 /htdocs/writable/session
 /htdocs/.env
+/htdocs/writable/cache
