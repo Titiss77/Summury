@@ -4,7 +4,8 @@
 <div class="empty-state shadow-card">
     <h2>Bienvenue sur AMFS Dashboard</h2>
     <p style="color: var(--danger);">Les cartes ne sont pas accessibles sans être connecté.</p>
-    <p>Veuillez vous connecter ou créer un compte pour gérer et visualiser vos propres cartes ainsi que les publiques.</p>
+    <p>Veuillez vous connecter ou créer un compte pour gérer et visualiser vos propres cartes ainsi que les publiques.
+    </p>
     <br>
     <a href="<?php echo base_url('login'); ?>" class="btn btn-primary">Se connecter</a>
     <a href="<?php echo base_url('register'); ?>" class="btn btn-primary">Créer un compte</a>
@@ -12,7 +13,8 @@
 <?php } else { ?>
 <div class="actions-container">
     <?php if (auth()->user()->inGroup('superadmin')) { ?>
-    <a href="<?php echo base_url('users'); ?>" class="btn btn-warning" style="margin-right: 15px;">Gérer les utilisateurs</a>
+    <a href="<?php echo base_url('users'); ?>" class="btn btn-warning" style="margin-right: 15px;">Gérer les
+        utilisateurs</a>
     <?php } ?>
     <?php
     $pendingTotal = 0;
@@ -26,13 +28,15 @@
     <a href="<?php echo base_url('items/pending'); ?>" class="btn btn-info" style="margin-right: 15px;">
         Cartes en attente
         <?php if (isset($pendingTotal) && $pendingTotal > 0) { ?>
-        <span style="background-color: var(--danger, #dc3545); color: white; padding: 2px 6px; border-radius: 50%; font-size: 0.8em; margin-left: 5px; font-weight: bold;"><?php echo $pendingTotal; ?></span>
+        <span
+            style="background-color: var(--danger, #dc3545); color: white; padding: 2px 6px; border-radius: 50%; font-size: 0.8em; margin-left: 5px; font-weight: bold;"><?php echo $pendingTotal; ?></span>
         <?php } ?>
     </a>
     <a href="<?php echo base_url('items/check-to-global'); ?>" class="btn btn-warning" style="margin-right: 15px;">
         Autres publiques
         <?php if (isset($toAdminCount) && $toAdminCount > 0) { ?>
-        <span style="background-color: var(--danger, #dc3545); color: white; padding: 2px 6px; border-radius: 50%; font-size: 0.8em; margin-left: 5px; font-weight: bold;"><?php echo $toAdminCount; ?></span>
+        <span
+            style="background-color: var(--danger, #dc3545); color: white; padding: 2px 6px; border-radius: 50%; font-size: 0.8em; margin-left: 5px; font-weight: bold;"><?php echo $toAdminCount; ?></span>
         <?php } ?>
     </a>
     <?php } ?>
@@ -50,7 +54,8 @@
 <?php } ?>
 <?php } else { ?>
 <div class="search-container" style="margin-bottom: 2rem;">
-    <input type="text" id="liveSearch" class="form-control" placeholder="Rechercher une œuvre... (titre, description)" autocomplete="off">
+    <input type="text" id="liveSearch" class="form-control" placeholder="Rechercher une œuvre... (titre, description)"
+        autocomplete="off">
 </div>
 <?php $openDivision = $_GET['open'] ?? null; ?>
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
@@ -98,37 +103,50 @@
                         <span class="drag-handle-sub" title="Déplacer ce groupe">&#x2630;</span>
                         <?php } ?>
                         <span class="sub-toggle">&#x25B6;</span>
-                        <h3 class="subcategory-title" style="margin: 0; font-size: 1.05rem; color: var(--text-main); opacity: <?php echo $opacity; ?>; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                        <h3 class="subcategory-title"
+                            style="margin: 0; font-size: 1.05rem; color: var(--text-main); opacity: <?php echo $opacity; ?>; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
                             <?php echo htmlspecialchars($displayTitle); ?>
                         </h3>
-                        <div style="flex-grow: 1; height: 1px; background-color: var(--border-color); opacity: <?php echo $lineOpacity; ?>;"></div>
+                        <div
+                            style="flex-grow: 1; height: 1px; background-color: var(--border-color); opacity: <?php echo $lineOpacity; ?>;">
+                        </div>
                     </summary>
                     <div class="cards-grid sortable-grid" style="padding-top: 15px;">
-                <?php } else { ?>
-                <div class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;">
-                    <?php if ($hasMultipleGroups) { ?>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <?php if ($canDragSub) { ?>
-                        <span class="drag-handle-sub" title="Déplacer les cartes principales">&#x2630;</span>
-                        <?php } ?>
-                        <h3 class="subcategory-title" style="margin: 0; font-size: 1.05rem; color: var(--text-main); opacity: 0.6; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
-                            Autres cartes
-                        </h3>
-                        <div style="flex-grow: 1; height: 1px; background-color: var(--border-color); opacity: 0.4;"></div>
-                    </div>
-                    <?php } ?>
-                    <div class="cards-grid sortable-grid" style="padding-top: <?php echo $hasMultipleGroups ? '0' : '15px'; ?>;">
-                <?php } ?>
-                        <?php foreach ($items as $item) {
+                        <?php } else { ?>
+                        <div class="subcategory-details"
+                            style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;">
+                            <?php if ($hasMultipleGroups) { ?>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                <?php if ($canDragSub) { ?>
+                                <span class="drag-handle-sub" title="Déplacer les cartes principales">&#x2630;</span>
+                                <?php } ?>
+                                <h3 class="subcategory-title"
+                                    style="margin: 0; font-size: 1.05rem; color: var(--text-main); opacity: 0.6; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                                    Autres cartes
+                                </h3>
+                                <div
+                                    style="flex-grow: 1; height: 1px; background-color: var(--border-color); opacity: 0.4;">
+                                </div>
+                            </div>
+                            <?php } ?>
+                            <div class="cards-grid sortable-grid"
+                                style="padding-top: <?php echo $hasMultipleGroups ? '0' : '15px'; ?>;">
+                                <?php } ?>
+                                <?php foreach ($items as $item) {
                             $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
                         ?>
-                        <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : (!empty($item->episode) ? 'needs-dispo-check' : ''); ?>" data-id="<?php echo esc($item->id); ?>" data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
-                            <?php if ($canDragItem) { ?>
-                            <div class="drag-handle" style="cursor: grab; text-align: center; color: #ccc; padding: 5px; touch-action: none;" title="Déplacer cette carte">&#x2630;</div>
-                            <?php } ?>
-                            <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank" class="card-link-block">
-                                <div class="card-body">
-                                    <?php
+                                <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : (!empty($item->episode) ? 'needs-dispo-check' : ''); ?>"
+                                    data-id="<?php echo esc($item->id); ?>"
+                                    data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
+                                    <?php if ($canDragItem) { ?>
+                                    <div class="drag-handle"
+                                        style="cursor: grab; text-align: center; color: #ccc; padding: 5px; touch-action: none;"
+                                        title="Déplacer cette carte">&#x2630;</div>
+                                    <?php } ?>
+                                    <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank"
+                                        class="card-link-block">
+                                        <div class="card-body">
+                                            <?php
                                     $isFuture = false;
                                     $dateSortieFormatted = '';
                                     $textColor = '';
@@ -143,12 +161,13 @@
                                         }
                                     }
                                     ?>
-                                    <div class="date-container" id="date-container-<?php echo $item->id; ?>">
-                                        <?php if ($isFuture) { ?>
-                                        <p class="card-date" style="<?php echo $textColor; ?>">Sortie le : <?php echo $dateSortieFormatted; ?></p>
-                                        <?php } ?>
-                                    </div>
-                                    <?php
+                                            <div class="date-container" id="date-container-<?php echo $item->id; ?>">
+                                                <?php if ($isFuture) { ?>
+                                                <p class="card-date" style="<?php echo $textColor; ?>">Sortie le :
+                                                    <?php echo $dateSortieFormatted; ?></p>
+                                                <?php } ?>
+                                            </div>
+                                            <?php
                                     $isCheckable = false;
                                     if (!empty($item->episode) && isset($supportedDomains) && is_array($supportedDomains)) {
                                         foreach ($supportedDomains as $domain) {
@@ -160,88 +179,96 @@
                                     }
                                     if ('Terminé' !== $item->status && $isCheckable) {
                                     ?>
-                                    <div class="live-status" id="live-status-<?php echo $item->id; ?>" style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">Vérification...</div>
-                                    <?php } ?>
-                                    <h4 class="card-title search-target-title" style="<?php echo $textColor; ?>"><?php echo htmlspecialchars($item->titre); ?></h4>
-                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status : <?php echo htmlspecialchars($item->status); ?></p>
-                                    <?php
+                                            <div class="live-status" id="live-status-<?php echo $item->id; ?>"
+                                                style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
+                                                Vérification...</div>
+                                            <?php } ?>
+                                            <h4 class="card-title search-target-title"
+                                                style="<?php echo $textColor; ?>">
+                                                <?php echo htmlspecialchars($item->titre); ?></h4>
+                                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
+                                                <?php echo htmlspecialchars($item->status); ?></p>
+                                            <?php
                                     $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
                                     $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
                                     if ($isPendingNew || $hasPendingRevision) {
                                     ?>
-                                    <div style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
-                                        <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : "Modification en attente de validation"; ?>
-                                    </div>
-                                    <?php } ?>
-                                    <?php if (!empty($item->description)) { ?>
-                                    <p class="card-desc search-target-desc"><?php echo htmlspecialchars($item->description); ?></p>
-                                    <?php } ?>
-                                    
-                                    <div class="card-badges">
-                                        <?php if (!empty($item->saison)) { ?>
-                                        <div style="display: flex; flex-direction: column; align-items: center;">
-                                            <span class="badge badge-season">
-                                                Saison <span id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / ' . htmlspecialchars($item->total_saisons); } ?>
-                                            </span>
-                                            <?php if (!empty($item->total_saisons) && !empty($item->saison)) {
-                                                $saisons_restantes = max(0, $item->total_saisons - $item->saison);
-                                                if ($saisons_restantes > 0) {
-                                                    echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$saisons_restantes} restantes)</span>";
-                                                } else {
-                                                    echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminée</span>";
-                                                }
-                                            } ?>
-                                        </div>
-                                        <?php } ?>
+                                            <div
+                                                style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
+                                                <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : "Modification en attente de validation"; ?>
+                                            </div>
+                                            <?php } ?>
+                                            <?php if (!empty($item->description)) { ?>
+                                            <p class="card-desc search-target-desc">
+                                                <?php echo htmlspecialchars($item->description); ?></p>
+                                            <?php } ?>
 
-                                        <?php if (!empty($item->episode)) { ?>
-                                        <div style="display: flex; flex-direction: column; align-items: center;">
-                                            <span class="badge badge-episode">
-                                                Ép. <span id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / ' . htmlspecialchars($item->total_episodes); } ?>
-                                                <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
-                                                <button type="button" class="btn-increment btn-increment-episode" data-id="<?php echo $item->id; ?>">+1</button>
+                                            <div class="card-badges">
+                                                <?php if (!empty($item->saison)) { ?>
+                                                <div
+                                                    style="display: flex; flex-direction: column; align-items: center;">
+                                                    <span class="badge badge-season">
+                                                        S. <span
+                                                            id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / ' . htmlspecialchars($item->total_saisons); } ?>
+                                                    </span>
+
+                                                </div>
                                                 <?php } ?>
-                                            </span>
-                                            <?php if (!empty($item->total_episodes) && !empty($item->episode)) {
-                                                $restants = max(0, $item->total_episodes - $item->episode);
-                                                if ($restants > 0) {
-                                                    echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$restants} restants)</span>";
-                                                } else {
-                                                    echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminé</span>";
-                                                }
-                                            } ?>
+
+                                                <?php if (!empty($item->episode)) { ?>
+                                                <div
+                                                    style="display: flex; flex-direction: column; align-items: center;">
+                                                    <span class="badge badge-episode">
+                                                        Ép. <span
+                                                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / ' . htmlspecialchars($item->total_episodes); } ?>
+                                                        <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
+                                                        <button type="button"
+                                                            class="btn-increment btn-increment-episode"
+                                                            data-id="<?php echo $item->id; ?>">+1</button>
+                                                        <?php } ?>
+                                                    </span>
+                                                </div>
+                                                <?php } ?>
+                                            </div>
+                                        </div>
+                                        <?php if (!empty($item->image)) { ?>
+                                        <div class="card-image">
+                                            <img src="<?php echo htmlspecialchars($item->image); ?>"
+                                                alt="<?php echo htmlspecialchars($item->titre); ?>" class="image-view"
+                                                loading="lazy" decoding="async" fetchpriority="low">
                                         </div>
                                         <?php } ?>
+                                    </a>
+                                    <?php if (1 == $item->is_public) { ?>
+                                    <button type="button" class="btn-report-sm" data-id="<?php echo esc($item->id); ?>"
+                                        onclick="openReportModal(this)" aria-label="Signaler un problème">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            fill="currentColor" class="bi bi-flag-fill" viewBox="0 0 16 16">
+                                            <path
+                                                d="M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12 12 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A20 20 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a20 20 0 0 0 1.349-.476l.019-.007.004-.002h.001" />
+                                        </svg>
+                                    </button>
+                                    <?php } ?>
+                                    <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
+                                    <div class="card-actions-bottom">
+                                        <a href="<?php echo base_url('item/form/'.$item->id); ?>"
+                                            class="btn-icon btn-edit-sm">Modifier</a>
+                                        <a href="<?php echo base_url('item/delete/'.$item->id); ?>"
+                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');"
+                                            class="btn-icon btn-delete-sm">Supprimer</a>
                                     </div>
-                                </div>
-                                <?php if (!empty($item->image)) { ?>
-                                <div class="card-image">
-                                    <img src="<?php echo htmlspecialchars($item->image); ?>" alt="<?php echo htmlspecialchars($item->titre); ?>" class="image-view" loading="lazy" decoding="async" fetchpriority="low">
+                                    <?php } ?>
                                 </div>
                                 <?php } ?>
-                            </a>
-                            <?php if (1 == $item->is_public) { ?>
-                            <button type="button" class="btn-report-sm" data-id="<?php echo esc($item->id); ?>" onclick="openReportModal(this)" aria-label="Signaler un problème">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-flag-fill" viewBox="0 0 16 16"><path d="M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12 12 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A20 20 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a20 20 0 0 0 1.349-.476l.019-.007.004-.002h.001"/></svg>
-                            </button>
-                            <?php } ?>
-                            <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
-                            <div class="card-actions-bottom">
-                                <a href="<?php echo base_url('item/form/'.$item->id); ?>" class="btn-icon btn-edit-sm">Modifier</a>
-                                <a href="<?php echo base_url('item/delete/'.$item->id); ?>" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');" class="btn-icon btn-delete-sm">Supprimer</a>
+                                <?php if ($useDetails) { ?>
                             </div>
-                            <?php } ?>
-                        </div>
-                        <?php } ?>
-                <?php if ($useDetails) { ?>
-                    </div>
                 </details>
                 <?php } else { ?>
-                    </div>
-                </div>
-                <?php } ?>
             </div>
-            <?php } ?>
+        </div>
+        <?php } ?>
+        </div>
+        <?php } ?>
         </div>
     </details>
     <?php } ?>
