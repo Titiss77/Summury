@@ -37,6 +37,7 @@
     'Config\\Format' => 'Config\\Format',
     'Config\\Validation' => 'Config\\Validation',
     'Config\\CURLRequest' => 'Config\\CURLRequest',
+    'Validation' => 'Config\\Validation',
   ),
   'instances' => 
   array (
