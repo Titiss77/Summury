@@ -48,9 +48,6 @@
                     <div style="display: flex; flex-direction: column; align-items: center;">
                         <span class="badge badge-season">
                             Saison <span id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / ' . htmlspecialchars($item->total_saisons); } ?>
-                            <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
-                            <button type="button" class="btn-increment btn-increment-saison" data-id="<?php echo $item->id; ?>">+1</button>
-                            <?php } ?>
                         </span>
                         <?php if (!empty($item->total_saisons) && !empty($item->saison)) {
                             $saisons_restantes = max(0, $item->total_saisons - $item->saison);
