@@ -113,7 +113,8 @@ class ItemController extends BaseController
                 'image' => $revision['image'],
                 'lien' => $revision['lien'],
                 'description' => $revision['description'],
-                'episode' => $revision['episode'],
+                'episode' => $data['episode'] ?? null,
+                'total_episodes' => $data['total_episodes'] ?? null,
                 'saison' => $revision['saison'],
                 'date_sortie' => $revision['date_sortie'],
             ];

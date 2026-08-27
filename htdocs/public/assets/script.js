@@ -439,7 +439,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         imageLarge: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || '',
                         description: item.synopsis ? (item.synopsis.length > limitCut ? item.synopsis.substring(0, limitCut) + "..." : item.synopsis) : "",
                         info: (item.year || '') + ' - ' + (item.type || typeSelectionne).toUpperCase(),
-                        lien: ''
+                        lien: '',
+                        total_episodes: item.episodes || item.chapters || ''
                     }));
                 } else if (data.results && data.results.length > 0) {
                     listeResultats = data.results.map(item => ({
@@ -496,6 +497,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             const inputLien = document.getElementById('lien');
                             if (res.lien && inputLien) inputLien.value = res.lien;
+
+                            const totalEpField = document.getElementById('total_episodes');
+                            if (res.total_episodes && totalEpField) totalEpField.value = res.total_episodes;
                             
                             if (textarea) textarea.dispatchEvent(new Event('input'));
                             

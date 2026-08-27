@@ -25,6 +25,7 @@ class ItemRevisionModel extends Model
         'position',
         'date_sortie',
         'revision_status',
+        'total_episodes',
     ];
 
     protected $useTimestamps = false;

@@ -64,12 +64,20 @@
                     <?php if (!empty($item->episode)) { ?>
                     <span class="badge badge-episode">
                         Ép. <span
-                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span>
+                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / ' . htmlspecialchars($item->total_episodes); } ?>
                     </span>
+                    <?php if (!empty($item->total_episodes) && !empty($item->episode)) {
+    $restants = max(0, $item->total_episodes - $item->episode);
+    if ($restants > 0) {
+        echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$restants} restants)</span>";
+    } else {
+        echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminé</span>";
+    }
+} ?>
                     <?php } ?>
                 </div>
             </div>
-            
+
             <?php if (!empty($item->image)) { ?>
             <div class="card-image">
                 <!-- Ajout de decoding="async" et fetchpriority="low" -->

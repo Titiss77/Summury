@@ -85,6 +85,7 @@ class ItemController extends BaseController
             $data['date_sortie'] = empty($this->request->getPost('date_sortie')) ? null : $this->request->getPost('date_sortie');
             $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
             $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
+            $data['total_episodes'] = ('' === $this->request->getPost('total_episodes')) ? null : $this->request->getPost('total_episodes');
 
             $sousCatSelect = $this->request->getPost('sous_categorie_select');
             $sousCatNew = $this->request->getPost('sous_categorie_new');
@@ -134,6 +135,7 @@ class ItemController extends BaseController
                         'lien' => $data['lien'] ?? null,
                         'description' => $data['description'] ?? null,
                         'episode' => $data['episode'] ?? null,
+                        'total_episodes' => $data['total_episodes'] ?? null,
                         'saison' => $data['saison'] ?? null,
                         'position' => $existing->position,
                         'date_sortie' => $data['date_sortie'],
