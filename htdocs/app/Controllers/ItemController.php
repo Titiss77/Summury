@@ -55,7 +55,9 @@ class ItemController extends BaseController
             $wantsPublic = $this->request->getPost('is_public');
             $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
             $data['date_sortie'] = empty($this->request->getPost('date_sortie')) ? null : $this->request->getPost('date_sortie');
+            
             $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
+            $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
             $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
             $data['total_episodes'] = ('' === $this->request->getPost('total_episodes')) ? null : $this->request->getPost('total_episodes');
             
@@ -99,6 +101,7 @@ class ItemController extends BaseController
                         'episode' => $data['episode'] ?? null,
                         'total_episodes' => $data['total_episodes'] ?? null,
                         'saison' => $data['saison'] ?? null,
+                        'total_saisons' => $data['total_saisons'] ?? null,
                         'position' => $existing->position,
                         'date_sortie' => $data['date_sortie'],
                         'revision_status' => 'pending',
@@ -158,6 +161,17 @@ class ItemController extends BaseController
         }
         return redirect()->back();
     }
+    public function incrementSaison($id)
+    {
+        $item = $this->model->find($id);
+        if ($item) {
+            $newSaison = (int) $item->saison + 1;
+            $this->model->update($id, ['saison' => $newSaison]);
+            (new AuditLogModel())->logAction('Incrémentation Rapide', "Mise à jour de la carte ID {$id} ('{$item->titre}') : Saison passée à {$newSaison}.");
+            if ($this->request->isAJAX()) return $this->response->setJSON(['success' => true, 'new_saison' => $newSaison, 'csrf_token' => csrf_hash()]);
+        }
+        return redirect()->back();
+    }
     public function search()
     {
         $query = $this->request->getGet('q');
@@ -212,6 +226,9 @@ class ItemController extends BaseController
                                 
                                 if (isset($tvBody['number_of_episodes'])) {
                                     $result['total_episodes'] = $tvBody['number_of_episodes'];
+                                }
+                                if (isset($tvBody['number_of_seasons'])) {
+                                    $result['total_saisons'] = $tvBody['number_of_seasons'];
                                 }
                                 
                                 // Extraction des épisodes par saison

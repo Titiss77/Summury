@@ -36,6 +36,7 @@
     'Cookie' => 'Config\\Cookie',
     'Config\\Format' => 'Config\\Format',
     'Config\\Validation' => 'Config\\Validation',
+    'Config\\CURLRequest' => 'Config\\CURLRequest',
   ),
   'instances' => 
   array (
@@ -911,6 +912,10 @@
         'list' => 'CodeIgniter\\Validation\\Views\\list',
         'single' => 'CodeIgniter\\Validation\\Views\\single',
       ),
+    )),
+    'Config\\CURLRequest' => 
+    \Config\CURLRequest::__set_state(array(
+       'shareOptions' => false,
     )),
   ),
 );

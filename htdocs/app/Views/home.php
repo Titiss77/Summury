@@ -202,20 +202,32 @@
                                             <p class="card-desc search-target-desc">
                                                 <?php echo htmlspecialchars($item->description); ?></p>
                                             <?php } ?>
+
                                             <div class="card-badges">
                                                 <?php if (!empty($item->saison)) { ?>
-                                                <span class="badge badge-season">Saison
-                                                    <?php echo htmlspecialchars($item->saison); ?></span>
+                                                <div
+                                                    style="display: flex; flex-direction: column; align-items: center;">
+                                                    <span class="badge badge-season">
+                                                        S. <span
+                                                            id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo '/' . htmlspecialchars($item->total_saisons); } ?>
+                                                    </span>
+
+                                                </div>
                                                 <?php } ?>
+
                                                 <?php if (!empty($item->episode)) { ?>
-                                                <span class="badge badge-episode">
-                                                    Ép. <span
-                                                        id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / ' . htmlspecialchars($item->total_episodes); } ?>
-                                                    <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
-                                                    <button type="button" class="btn-increment"
-                                                        data-id="<?php echo $item->id; ?>">+1</button>
-                                                    <?php } ?>
-                                                </span>
+                                                <div
+                                                    style="display: flex; flex-direction: column; align-items: center;">
+                                                    <span class="badge badge-episode">
+                                                        Ép. <span
+                                                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo '/' . htmlspecialchars($item->total_episodes); } ?>
+                                                        <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
+                                                        <button type="button"
+                                                            class="btn-increment btn-increment-episode"
+                                                            data-id="<?php echo $item->id; ?>">+1</button>
+                                                        <?php } ?>
+                                                    </span>
+                                                </div>
                                                 <?php } ?>
                                             </div>
                                         </div>

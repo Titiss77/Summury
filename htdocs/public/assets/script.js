@@ -89,7 +89,7 @@ window.copierLien = function(lien) {
 // INITIALISATION DES ELEMENTS DU DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Gestion des param tres d'URL (URL Hash cleaner) ---
+    // --- Gestion des paramètres d'URL (URL Hash cleaner) ---
     const currentUrl = new URL(window.location.href);
     if (currentUrl.searchParams.has('open') || currentUrl.hash) {
         setTimeout(() => {
@@ -176,9 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // 4. INCREMENTATION ASYNCHRONE (+1 Episode)
+    // 4. INCREMENTATION ASYNCHRONE (+1 Episode & +1 Saison)
     // ==========================================
-    document.querySelectorAll('.btn-increment').forEach(button => {
+    document.querySelectorAll('.btn-increment-episode').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -208,19 +208,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         counterSpan.style.color = '';
                         counterSpan.style.transform = 'scale(1)';
-                        window.location.reload(); // Refresh pour mettre à jour le texte des "(X restants)"
+                        window.location.reload(); 
                     }, 400);
 
                     if (data.csrf_token) amfsConfig.csrfToken = data.csrf_token; 
-                    if (typeof showToast === 'function') showToast('Episode ajoute avec succes !', 'success');
+                    if (typeof showToast === 'function') showToast('Épisode ajouté avec succès !', 'success');
                 } else {
-                    console.error("Erreur renvoyee par PHP :", data);
+                    console.error("Erreur renvoyée par PHP :", data);
                 }
             } catch (error) {
-                console.error("Echec de la requete Fetch :", error);
+                console.error("Échec de la requête Fetch :", error);
             }
         });
     });
+
+    document.querySelectorAll('.btn-increment-saison').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const itemId = button.getAttribute('data-id');
+            const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+            const url = baseUrl + 'item/increment-saison/' + itemId;
+            const counterSpan = document.getElementById(`s-count-${itemId}`);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [amfsConfig.csrfHeader]: amfsConfig.csrfToken
+                    }
+                });
+
+                if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    counterSpan.innerText = data.new_saison;
+                    counterSpan.style.color = 'var(--success)';
+                    counterSpan.style.transform = 'scale(1.2)';
+                    
+                    setTimeout(() => {
+                        counterSpan.style.color = '';
+                        counterSpan.style.transform = 'scale(1)';
+                        window.location.reload(); 
+                    }, 400);
+
+                    if (data.csrf_token) amfsConfig.csrfToken = data.csrf_token; 
+                    if (typeof showToast === 'function') showToast('Saison ajoutée avec succès !', 'success');
+                } else {
+                    console.error("Erreur renvoyée par PHP :", data);
+                }
+            } catch (error) {
+                console.error("Échec de la requête Fetch :", error);
+            }
+        });
+    });
+
 
     // ==========================================
     // 5. BOUTONS DE CHARGEMENT SUR FORMULAIRES
@@ -435,6 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         info: (item.year || '') + ' - ' + (item.type || typeSelectionne).toUpperCase(),
                         lien: '',
                         total_episodes: item.episodes || item.chapters || '',
+                        total_saisons: item.total_saisons || '',
                         seasons_data: null
                     }));
                 } else if (data.results && data.results.length > 0) {
@@ -446,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         info: (item.release_date || item.first_air_date || '').substring(0,4) + ' - ' + (item.media_type || typeSelectionne).toUpperCase(),
                         lien: '',
                         total_episodes: item.total_episodes || '',
+                        total_saisons: item.total_saisons || '',
                         seasons_data: item.seasons_data || null
                     }));
                 } else if (Array.isArray(data) && data.length > 0 && data[0].is_link) {
@@ -497,9 +544,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (res.lien && inputLien) inputLien.value = res.lien;
 
                             const totalEpField = document.getElementById('total_episodes');
+                            const totalSaisonField = document.getElementById('total_saisons');
                             const saisonInput = document.getElementById('saison');
                             
                             if (res.total_episodes && totalEpField) totalEpField.value = res.total_episodes;
+                            if (res.total_saisons && totalSaisonField) totalSaisonField.value = res.total_saisons;
 
                             // -- NOUVEAU : Sauvegarde des donnees de saisons pour ajustement automatique --
                             window.currentSeasonsData = res.seasons_data || null;

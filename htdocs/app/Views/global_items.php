@@ -45,20 +45,41 @@
                 <?php } ?>
                 <div class="card-badges">
                     <?php if (!empty($item->saison)) { ?>
-                    <span class="badge badge-season">Saison <?php echo htmlspecialchars($item->saison); ?></span>
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <span class="badge badge-season">
+                            Saison <span id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / ' . htmlspecialchars($item->total_saisons); } ?>
+                            <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
+                            <button type="button" class="btn-increment btn-increment-saison" data-id="<?php echo $item->id; ?>">+1</button>
+                            <?php } ?>
+                        </span>
+                        <?php if (!empty($item->total_saisons) && !empty($item->saison)) {
+                            $saisons_restantes = max(0, $item->total_saisons - $item->saison);
+                            if ($saisons_restantes > 0) {
+                                echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$saisons_restantes} restantes)</span>";
+                            } else {
+                                echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminée</span>";
+                            }
+                        } ?>
+                    </div>
                     <?php } ?>
+
                     <?php if (!empty($item->episode)) { ?>
-                    <span class="badge badge-episode">
-                        Ép. <span id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / ' . htmlspecialchars($item->total_episodes); } ?>
-                    </span>
-                    <?php if (!empty($item->total_episodes) && !empty($item->episode)) {
-                        $restants = max(0, $item->total_episodes - $item->episode);
-                        if ($restants > 0) {
-                            echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$restants} restants)</span>";
-                        } else {
-                            echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminé</span>";
-                        }
-                    } ?>
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <span class="badge badge-episode">
+                            Ép. <span id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / ' . htmlspecialchars($item->total_episodes); } ?>
+                            <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
+                            <button type="button" class="btn-increment btn-increment-episode" data-id="<?php echo $item->id; ?>">+1</button>
+                            <?php } ?>
+                        </span>
+                        <?php if (!empty($item->total_episodes) && !empty($item->episode)) {
+                            $restants = max(0, $item->total_episodes - $item->episode);
+                            if ($restants > 0) {
+                                echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$restants} restants)</span>";
+                            } else {
+                                echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminé</span>";
+                            }
+                        } ?>
+                    </div>
                     <?php } ?>
                 </div>
             </div>

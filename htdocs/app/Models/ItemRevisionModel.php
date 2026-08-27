@@ -10,7 +10,7 @@ class ItemRevisionModel extends Model
     protected $allowedFields = [
         'original_item_id', 'id_user', 'titre', 'sous_categorie', 'status',
         'image', 'lien', 'description', 'episode', 'total_episodes',
-        'saison', 'position', 'date_sortie', 'revision_status',
+        'saison', 'total_saisons', 'position', 'date_sortie', 'revision_status',
     ];
     protected $useTimestamps = false;
 

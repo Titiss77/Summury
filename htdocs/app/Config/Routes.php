@@ -3,7 +3,9 @@
 use CodeIgniter\Router\RouteCollection;
 use CodeIgniter\Shield\Config\Auth;
 
-// @var RouteCollection $routes
+/**
+ * @var RouteCollection $routes
+ */
 
 // --------------------------------------------------------------------
 // Pages publiques (accessibles sans être connecté)
@@ -23,6 +25,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->post('item/save', 'ItemController::save');
     $routes->get('item/delete/(:num)', 'ItemController::delete/$1');
     $routes->post('item/increment-episode/(:num)', 'ItemController::incrementEpisode/$1');
+    $routes->post('item/increment-saison/(:num)', 'ItemController::incrementSaison/$1');
     $routes->post('items/update-order', 'ItemController::updateOrder');
     $routes->get('items/check-to-global', 'ItemController::checkToGlobal');
     $routes->get('item/turn/(:num)', 'ItemController::turnToAdmin/$1');

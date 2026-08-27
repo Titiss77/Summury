@@ -12,7 +12,7 @@ class ItemModel extends Model
     protected $allowedFields = [
         'id_user', 'id_division', 'sous_categorie', 'titre', 'titre_original', 'status',
         'is_public', 'description', 'date_sortie', 'image', 'lien',
-        'link_status', 'saison', 'episode', 'total_episodes', 'position',
+        'link_status', 'saison', 'total_saisons', 'episode', 'total_episodes', 'position',
     ];
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;

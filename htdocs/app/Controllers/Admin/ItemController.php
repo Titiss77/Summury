@@ -24,9 +24,10 @@ class ItemController extends BaseController
                 'image' => 'Image / Couverture',
                 'lien' => 'Lien de visionnage/lecture',
                 'description' => 'Description',
+                'saison' => 'Saison',
+                'total_saisons' => 'Total saisons',
                 'episode' => 'Épisode',
                 'total_episodes' => 'Total épisodes',
-                'saison' => 'Saison',
                 'date_sortie' => 'Date de sortie',
             ];
             if ($original) {
@@ -80,8 +81,9 @@ class ItemController extends BaseController
                 'titre' => $revision['titre'], 'sous_categorie' => $revision['sous_categorie'],
                 'status' => $revision['status'], 'image' => $revision['image'],
                 'lien' => $revision['lien'], 'description' => $revision['description'],
+                'saison' => $revision['saison'], 'total_saisons' => $revision['total_saisons'],
                 'episode' => $revision['episode'], 'total_episodes' => $revision['total_episodes'],
-                'saison' => $revision['saison'], 'date_sortie' => $revision['date_sortie'],
+                'date_sortie' => $revision['date_sortie'],
             ];
             $itemModel->update($revision['original_item_id'], $updateData);
             $revisionModel->update($revisionId, ['revision_status' => 'approved']);

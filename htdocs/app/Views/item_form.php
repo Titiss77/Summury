@@ -115,17 +115,24 @@
             <input type="text" id="lien" name="lien" class="form-control" value="<?php echo htmlspecialchars($item->lien ?? ''); ?>">
         </div>
         
-        <div class="form-group row">
+        <div class="form-group row" style="gap: 15px;">
             <div style="flex: 1;">
-                <label for="saison" class="form-label">Saison</label>
+                <label for="saison" class="form-label">Saison actuelle</label>
                 <input type="number" id="saison" name="saison" min="0" class="form-control" value="<?php echo isset($item) ? esc($item->saison) : ''; ?>">
             </div>
             <div style="flex: 1;">
-                <label for="episode" class="form-label">Épisode</label>
+                <label for="total_saisons" class="form-label">Total saisons</label>
+                <input type="number" id="total_saisons" name="total_saisons" min="0" class="form-control" value="<?php echo isset($item) ? esc($item->total_saisons) : ''; ?>">
+            </div>
+        </div>
+        
+        <div class="form-group row" style="gap: 15px;">
+            <div style="flex: 1;">
+                <label for="episode" class="form-label">Épisode actuel</label>
                 <input type="number" id="episode" name="episode" min="0" class="form-control" value="<?php echo isset($item) ? esc($item->episode) : ''; ?>">
             </div>
             <div style="flex: 1;">
-                <label for="total_episodes" class="form-label">Total épisodes</label>
+                <label for="total_episodes" class="form-label">Total épisodes (de la saison)</label>
                 <input type="number" id="total_episodes" name="total_episodes" min="0" class="form-control" value="<?php echo isset($item) ? esc($item->total_episodes) : ''; ?>">
             </div>
         </div>
