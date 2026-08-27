@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (res.total_episodes && totalEpField) totalEpField.value = res.total_episodes;
                             if (res.total_saisons && totalSaisonField) totalSaisonField.value = res.total_saisons;
 
-                            // -- NOUVEAU : Sauvegarde des donnees de saisons pour ajustement automatique --
+                            // -- Sauvegarde des donnees de saisons pour ajustement automatique --
                             window.currentSeasonsData = res.seasons_data || null;
 
                             if (window.currentSeasonsData && saisonInput && saisonInput.value) {
@@ -692,63 +692,78 @@ document.addEventListener('DOMContentLoaded', function() {
     const champTotalSaisons = document.getElementById('total_saisons');
     
     let isFetchingSeasons = false; // Flag pour éviter le spam de l'API
+    let fetchSeasonsTimeout = null;
 
     if (champSaison && champTotalEp) {
-        champSaison.addEventListener('change', async function() {
+        // Changement de 'change' en 'input' pour une réaction instantanée sans avoir à cliquer en dehors
+        champSaison.addEventListener('input', function() {
             const numSaison = this.value;
             if (!numSaison) return;
 
             // 1. Si on a déjà les données de la session en cours (après un clic sur Auto-remplir)
             if (window.currentSeasonsData && window.currentSeasonsData[numSaison] !== undefined) {
                 champTotalEp.value = window.currentSeasonsData[numSaison];
+                
+                champTotalEp.style.transition = 'color 0.3s';
+                champTotalEp.style.color = 'var(--success)';
+                setTimeout(() => champTotalEp.style.color = '', 800);
+                
                 return;
             }
 
             // 2. Si on édite la carte (page rechargée), on récupère les données de TMDB en fond
             const titreInput = document.getElementById('titre');
-            if (titreInput && titreInput.value.trim() !== '' && !isFetchingSeasons) {
-                isFetchingSeasons = true;
-                const titre = titreInput.value.trim();
-                const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+            if (titreInput && titreInput.value.trim() !== '') {
                 
-                // On force le type 'serie' pour utiliser TMDB et avoir le tableau des saisons (même pour les animes)
-                const url = `${baseUrl}item/search?q=${encodeURIComponent(titre)}&type=serie`;
+                clearTimeout(fetchSeasonsTimeout); // Debounce
+                
+                fetchSeasonsTimeout = setTimeout(async () => {
+                    if (isFetchingSeasons) return;
+                    isFetchingSeasons = true;
+                    
+                    const titre = titreInput.value.trim();
+                    const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+                    
+                    // On force le type 'serie' pour utiliser TMDB et avoir le tableau des saisons (même pour les animes)
+                    const url = `${baseUrl}item/search?q=${encodeURIComponent(titre)}&type=serie`;
 
-                try {
-                    // Indication visuelle discrète que le chargement est en cours
-                    champTotalEp.style.opacity = '0.5';
+                    try {
+                        // Indication visuelle discrète que le chargement est en cours
+                        champTotalEp.style.transition = 'opacity 0.3s';
+                        champTotalEp.style.opacity = '0.5';
 
-                    const response = await fetch(url);
-                    const data = await response.json();
+                        const response = await fetch(url);
+                        const data = await response.json();
 
-                    if (data.results && data.results.length > 0) {
-                        // On prend le premier résultat valide qui contient bien les saisons
-                        const bestMatch = data.results.find(r => r.seasons_data !== null);
-                        if (bestMatch && bestMatch.seasons_data) {
-                            
-                            // On met en cache pour éviter de refaire l'appel si l'utilisateur change encore la saison
-                            window.currentSeasonsData = bestMatch.seasons_data; 
-                            
-                            if (window.currentSeasonsData[numSaison] !== undefined) {
-                                champTotalEp.value = window.currentSeasonsData[numSaison];
+                        if (data.results && data.results.length > 0) {
+                            // On prend le premier résultat valide qui contient bien les saisons
+                            const bestMatch = data.results.find(r => r.seasons_data !== null);
+                            if (bestMatch && bestMatch.seasons_data) {
                                 
-                                // Feedback visuel de succès
-                                champTotalEp.style.color = 'var(--success)';
-                                setTimeout(() => champTotalEp.style.color = '', 1000);
-                            }
-                            
-                            // Si le total de saisons était vide, on le remplit aussi
-                            if (bestMatch.total_saisons && champTotalSaisons && !champTotalSaisons.value) {
-                                champTotalSaisons.value = bestMatch.total_saisons;
+                                // On met en cache pour éviter de refaire l'appel si l'utilisateur change encore la saison
+                                window.currentSeasonsData = bestMatch.seasons_data; 
+                                
+                                if (window.currentSeasonsData[numSaison] !== undefined) {
+                                    champTotalEp.value = window.currentSeasonsData[numSaison];
+                                    
+                                    // Feedback visuel de succès
+                                    champTotalEp.style.color = 'var(--success)';
+                                    setTimeout(() => champTotalEp.style.color = '', 800);
+                                }
+                                
+                                // Si le total de saisons était vide, on le remplit aussi
+                                if (bestMatch.total_saisons && champTotalSaisons && !champTotalSaisons.value) {
+                                    champTotalSaisons.value = bestMatch.total_saisons;
+                                }
                             }
                         }
+                    } catch (e) {
+                        console.error("Erreur Fetch auto-saison:", e);
+                    } finally {
+                        champTotalEp.style.opacity = '1';
+                        isFetchingSeasons = false;
                     }
-                } catch (e) {
-                    console.error("Erreur Fetch auto-saison:", e);
-                } finally {
-                    champTotalEp.style.opacity = '1';
-                    isFetchingSeasons = false;
-                }
+                }, 500); // 500ms d'attente après la dernière frappe avant d'interroger le serveur
             }
         });
     }
