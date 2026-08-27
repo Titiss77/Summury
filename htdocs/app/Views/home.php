@@ -247,16 +247,7 @@
                                                     <button type="button" class="btn-increment"
                                                         data-id="<?php echo $item->id; ?>">+1</button>
                                                     <?php } ?>
-                                                </span>
-                                                <?php if (!empty($item->total_episodes) && !empty($item->episode)) {
-                                                    $restants = max(0, $item->total_episodes - $item->episode);
-                                                    if ($restants > 0) {
-                                                        echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$restants} restants)</span>";
-                                                    } else {
-                                                        echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminé</span>";
-                                                    }
-                                                } ?>
-                                                <?php } ?>
+                                                </span> <?php } ?>
                                             </div>
                                         </div>
 

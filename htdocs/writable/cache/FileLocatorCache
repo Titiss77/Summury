@@ -165,6 +165,35 @@
         ),
       ),
     ),
+    'Helpers/number_helper' => 
+    array (
+      'php' => 
+      array (
+        1 => 
+        array (
+          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Helpers\\number_helper.php',
+        ),
+      ),
+    ),
+    'Language/fr/Number.php' => 
+    array (
+      'php' => 
+      array (
+        0 => 
+        array (
+        ),
+      ),
+    ),
+    'Language/en/Number.php' => 
+    array (
+      'php' => 
+      array (
+        0 => 
+        array (
+          0 => 'C:\\xampp\\htdocs\\www\\AllBigProjects\\titiss.space\\htdocs\\system\\Language\\en\\Number.php',
+        ),
+      ),
+    ),
   ),
   'findQualifiedNameFromPath' => 
   array (
