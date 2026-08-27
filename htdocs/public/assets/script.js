@@ -4,6 +4,7 @@
 window.showToast = function(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerText = message;
@@ -16,7 +17,7 @@ window.showToast = function(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
     }, 4000);
-};
+}
 
 // ==========================================
 // 12. FONCTIONS GLOBALES 
@@ -41,11 +42,12 @@ window.toggleNewSubCategory = function() {
 window.copierLien = function(lien) {
     function notifierSucces() {
         if (typeof showToast === 'function') {
-            showToast('Lien copi  dans le presse-papiers !', 'success');
+            showToast('Lien copié dans le presse-papiers !', 'success');
         } else {
-            alert('Lien copi  !');
+            alert('Lien copié !');
         }
     }
+
     function notifierErreur() {
         if (typeof showToast === 'function') {
             showToast('Erreur lors de la copie du lien.', 'danger');
@@ -53,6 +55,7 @@ window.copierLien = function(lien) {
             alert('Erreur lors de la copie.');
         }
     }
+
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(lien).then(() => {
             notifierSucces();
@@ -70,6 +73,7 @@ window.copierLien = function(lien) {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
+
         try {
             let successful = document.execCommand('copy');
             if (successful) {
@@ -85,11 +89,13 @@ window.copierLien = function(lien) {
     }
 };
 
+
 // ==========================================
 // INITIALISATION DES ELEMENTS DU DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Gestion des param tres d'URL (URL Hash cleaner) ---
+
+    // --- Gestion des paramètres d'URL (URL Hash cleaner) ---
     const currentUrl = new URL(window.location.href);
     if (currentUrl.searchParams.has('open') || currentUrl.hash) {
         setTimeout(() => {
@@ -145,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('theme', switchToTheme);
 
             themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
+
             if(metaThemeColor) {
                 metaThemeColor.setAttribute('content', switchToTheme === 'dark' ? '#09090b' : '#fcfcfd');
             }
@@ -198,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+
                 const data = await response.json();
                 
                 if (data.success) {
@@ -208,7 +216,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         counterSpan.style.color = '';
                         counterSpan.style.transform = 'scale(1)';
-                        window.location.reload(); // Refresh pour mettre à jour le texte des "(X restants)"
                     }, 400);
 
                     if (data.csrf_token) amfsConfig.csrfToken = data.csrf_token; 
@@ -306,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     amfsConfig.csrfToken = data.csrf_token;
                 }
                 
-                if (typeof showToast === 'function') showToast("Ordre mis   jour !", 'success');
+                if (typeof showToast === 'function') showToast("Ordre mis à jour !", 'success');
             } catch (err) {
                 console.error("Erreur Drag&Drop:", err);
                 if (typeof showToast === 'function') showToast("Erreur lors de la sauvegarde de l'ordre", "danger");
@@ -380,7 +387,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         btnApiSearch.addEventListener('click', async function() {
             const titreInput = document.getElementById('titre').value.trim();
-
             if (!titreInput) {
                 showToast("Entre d'abord un titre ou un lien !", "danger");
                 return;
@@ -398,8 +404,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (divisionSelect && divisionSelect.selectedIndex >= 0) {
                 const divText = divisionSelect.options[divisionSelect.selectedIndex].text.toLowerCase();
                 if (divText.includes('manga')) typeSelectionne = 'manga';
-                else if (divText.includes('anime') || divText.includes('anim ')) typeSelectionne = 'anime';
-                else if (divText.includes('s rie') || divText.includes('serie')) typeSelectionne = 'serie';
+                else if (divText.includes('anime') || divText.includes('animé')) typeSelectionne = 'anime';
+                else if (divText.includes('série') || divText.includes('serie')) typeSelectionne = 'serie';
                 else if (divText.includes('lien') || divText.includes('web') || divText.includes('autre')) typeSelectionne = 'lien';
             }
 
@@ -443,8 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         imageLarge: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '',
                         description: item.overview ? (item.overview.length > limitCut ? item.overview.substring(0, limitCut) + "..." : item.overview) : "",
                         info: (item.release_date || item.first_air_date || '').substring(0,4) + ' - ' + (item.media_type || typeSelectionne).toUpperCase(),
-                        lien: '',
-                        total_episodes: item.total_episodes || ''
+                        lien: ''
                     }));
                 } else if (Array.isArray(data) && data.length > 0 && data[0].is_link) {
                     listeResultats = [{
@@ -518,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // 10. APER U EN DIRECT DE L'IMAGE
+    // 10. APERÇU EN DIRECT DE L'IMAGE
     // ==========================================
     const imgInput = document.getElementById('img');
     const imgPreview = document.getElementById('img-preview');
@@ -559,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.openReportModal = async function(button) {
         const itemId = button.getAttribute('data-id');
         
-        const type = prompt("Que souhaitez-vous signaler ?\nTapez 1 pour : Lien mort\nTapez 2 pour : Autre probl me");
+        const type = prompt("Que souhaitez-vous signaler ?\nTapez 1 pour : Lien mort\nTapez 2 pour : Autre problème");
         
         if (!type) return; 
 
@@ -567,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (type === '1') issueType = 'lien_mort';
         if (type === '2') issueType = 'bug';
         
-        const description = prompt("Pouvez-vous pr ciser le probl me ? (Optionnel mais recommand )");
+        const description = prompt("Pouvez-vous préciser le problème ? (Optionnel mais recommandé)");
         
         if (description === null) return; 
 
@@ -600,9 +605,10 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 if (typeof showToast === 'function') showToast(data.error || 'Erreur lors de l\'envoi.', 'danger');
             }
+
         } catch (error) {
             console.error("Erreur d'envoi du signalement:", error);
-            if (typeof showToast === 'function') showToast("Une erreur r seau est survenue.", "danger");
+            if (typeof showToast === 'function') showToast("Une erreur réseau est survenue.", "danger");
         }
     };
 
@@ -623,8 +629,8 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: {
                 placeholder: "Rechercher un utilisateur...",
                 perPage: "utilisateurs par page",
-                noRows: "Aucun utilisateur trouv ",
-                info: "Affichage de {start}   {end} sur {rows} utilisateurs",
+                noRows: "Aucun utilisateur trouvé",
+                info: "Affichage de {start} à {end} sur {rows} utilisateurs",
             }
         });
     }
@@ -636,10 +642,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnForceCron) {
         btnForceCron.addEventListener('click', function() {
             const btn = this;
-            if (confirm('Lancer la v rification compl te de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
+            if (confirm('Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
-                btn.innerHTML = '  Analyse en cours... Veuillez patienter...';
+                btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
                 
                 const cronUrl = amfsConfig.cronUrl.includes('?') ? amfsConfig.cronUrl + '&force=1' : amfsConfig.cronUrl + '?force=1';
 
@@ -647,19 +653,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'executed') {
-                            alert('Scan termin  avec succ s !\n\nCartes inspect es : ' + data.total_cards + 
-                                '\nDomaines uniques interrog s : ' + data.unique_domains + 
-                                '\nNouveaux liens rompus identifi s : ' + data.dead_count);
+                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards +
+                                '\nDomaines uniques interrogés : ' + data.unique_domains +
+                                '\nNouveaux liens rompus identifiés : ' + data.dead_count);
                         } else {
-                            alert('Le scan a retourn  un statut inattendu.');
+                            alert('Le scan a retourné un statut inattendu.');
                         }
                         window.location.reload();
                     })
                     .catch(error => {
-                        alert('Une erreur r seau ou un timeout est survenu durant le scan des serveurs distants.');
+                        alert('Une erreur réseau ou un timeout est survenu durant le scan des serveurs distants.');
                         btn.disabled = false;
                         btn.style.opacity = '1';
-                        btn.innerHTML = '  Relancer la v rification (Forcer le scan)';
+                        btn.innerHTML = '⚡ Relancer la vérification (Forcer le scan)';
                     });
             }
         });
@@ -668,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }); // Fin DOMContentLoaded
 
 // ==========================================
-// 11. V RIFICATION DE DISPONIBILIT  EN DIRECT
+// 11. VÉRIFICATION DE DISPONIBILITÉ EN DIRECT
 // ==========================================
 window.addEventListener('load', function() {
     
@@ -681,7 +687,7 @@ window.addEventListener('load', function() {
 
     const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
     
-    // --- On r re dynamiquement les domaines support s transmis par PHP ---
+    // --- On récupère dynamiquement les domaines supportés transmis par PHP ---
     const supportedDomains = window.amfsSupportedDomains || [];
     
     cardsToCheck.forEach(async function(card) {
@@ -732,22 +738,22 @@ window.addEventListener('load', function() {
                 return;
             }
 
-            // --- SAUVEGARDE DU R SULTAT EN CACHE ---
+            // --- SAUVEGARDE DU RÉSULTAT EN CACHE ---
             sessionStorage.setItem(cacheKey, JSON.stringify({
                 timestamp: Date.now(),
                 disponible: data.disponible
             }));
 
-            // Mise   jour de l'interface
+            // Mise à jour de l'interface
             applyDispoResult(data.disponible, statusDiv, dateContainer);
 
         } catch (err) {
-            console.error("Erreur r seau/Fetch pour la carte " + itemId, err);
+            console.error("Erreur réseau/Fetch pour la carte " + itemId, err);
             if (statusDiv) statusDiv.style.display = 'none';
         }
     });
 
-    // Fonction utilitaire pour appliquer l'affichage (Mutualis e pour le cache et les requ tes)
+    // Fonction utilitaire pour appliquer l'affichage (Mutualisée pour le cache et les requêtes)
     function applyDispoResult(disponible, statusDiv, dateContainer) {
         if (statusDiv) {
             statusDiv.style.display = 'none';
@@ -758,10 +764,9 @@ window.addEventListener('load', function() {
             if (dateContainer) {
                 dateContainer.style.display = 'block';
                 if (dateContainer.innerHTML.trim() === '') {
-                    dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger); cursor: help;" title="L' pisode/chapitre n'est pas encore mis en ligne ou la saison s'est termin e.">Episode non disponible.</p>`;
+                    dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger); cursor: help;" title="L'épisode/chapitre n'est pas encore mis en ligne ou la saison s'est terminée.">Episode non disponible.</p>`;
                 }
             }
         }
     }
-
 });
