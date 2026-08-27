@@ -4,7 +4,6 @@
 window.showToast = function(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
-
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerText = message;
@@ -17,7 +16,7 @@ window.showToast = function(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
     }, 4000);
-}
+};
 
 // ==========================================
 // 12. FONCTIONS GLOBALES 
@@ -47,7 +46,6 @@ window.copierLien = function(lien) {
             alert('Lien copié !');
         }
     }
-
     function notifierErreur() {
         if (typeof showToast === 'function') {
             showToast('Erreur lors de la copie du lien.', 'danger');
@@ -55,7 +53,6 @@ window.copierLien = function(lien) {
             alert('Erreur lors de la copie.');
         }
     }
-
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(lien).then(() => {
             notifierSucces();
@@ -73,7 +70,6 @@ window.copierLien = function(lien) {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-
         try {
             let successful = document.execCommand('copy');
             if (successful) {
@@ -89,13 +85,11 @@ window.copierLien = function(lien) {
     }
 };
 
-
 // ==========================================
 // INITIALISATION DES ELEMENTS DU DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-
-    // --- Gestion des paramètres d'URL (URL Hash cleaner) ---
+    // --- Gestion des param tres d'URL (URL Hash cleaner) ---
     const currentUrl = new URL(window.location.href);
     if (currentUrl.searchParams.has('open') || currentUrl.hash) {
         setTimeout(() => {
@@ -151,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('theme', switchToTheme);
 
             themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
-
             if(metaThemeColor) {
                 metaThemeColor.setAttribute('content', switchToTheme === 'dark' ? '#09090b' : '#fcfcfd');
             }
@@ -205,7 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-
                 const data = await response.json();
                 
                 if (data.success) {
@@ -216,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         counterSpan.style.color = '';
                         counterSpan.style.transform = 'scale(1)';
+                        window.location.reload(); // Refresh pour mettre à jour le texte des "(X restants)"
                     }, 400);
 
                     if (data.csrf_token) amfsConfig.csrfToken = data.csrf_token; 
@@ -387,6 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         btnApiSearch.addEventListener('click', async function() {
             const titreInput = document.getElementById('titre').value.trim();
+
             if (!titreInput) {
                 showToast("Entre d'abord un titre ou un lien !", "danger");
                 return;
@@ -440,7 +434,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         description: item.synopsis ? (item.synopsis.length > limitCut ? item.synopsis.substring(0, limitCut) + "..." : item.synopsis) : "",
                         info: (item.year || '') + ' - ' + (item.type || typeSelectionne).toUpperCase(),
                         lien: '',
-                        total_episodes: item.episodes || item.chapters || ''
+                        total_episodes: item.episodes || item.chapters || '',
+                        seasons_data: null
                     }));
                 } else if (data.results && data.results.length > 0) {
                     listeResultats = data.results.map(item => ({
@@ -449,7 +444,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         imageLarge: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '',
                         description: item.overview ? (item.overview.length > limitCut ? item.overview.substring(0, limitCut) + "..." : item.overview) : "",
                         info: (item.release_date || item.first_air_date || '').substring(0,4) + ' - ' + (item.media_type || typeSelectionne).toUpperCase(),
-                        lien: ''
+                        lien: '',
+                        total_episodes: item.total_episodes || '',
+                        seasons_data: item.seasons_data || null
                     }));
                 } else if (Array.isArray(data) && data.length > 0 && data[0].is_link) {
                     listeResultats = [{
@@ -458,12 +455,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         imageLarge: data[0].image,
                         description: data[0].description ? (data[0].description.length > limitCut ? data[0].description.substring(0, limitCut) + "..." : data[0].description) : "",
                         info: "LIEN WEB",
-                        lien: data[0].lien
+                        lien: data[0].lien,
+                        seasons_data: null
                     }];
                 }
 
                 if (listeResultats.length > 0) {
-                    statusTxt.innerText = `${listeResultats.length} resultat(s)`;
+                    statusTxt.innerText = `${listeResultats.length} résultat(s)`;
                     resultsContainer.style.display = 'block';
 
                     listeResultats.forEach(res => {
@@ -499,19 +497,30 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (res.lien && inputLien) inputLien.value = res.lien;
 
                             const totalEpField = document.getElementById('total_episodes');
+                            const saisonInput = document.getElementById('saison');
+                            
                             if (res.total_episodes && totalEpField) totalEpField.value = res.total_episodes;
+
+                            // -- NOUVEAU : Sauvegarde des donnees de saisons pour ajustement automatique --
+                            window.currentSeasonsData = res.seasons_data || null;
+
+                            if (window.currentSeasonsData && saisonInput && saisonInput.value) {
+                                if (window.currentSeasonsData[saisonInput.value]) {
+                                    totalEpField.value = window.currentSeasonsData[saisonInput.value];
+                                }
+                            }
                             
                             if (textarea) textarea.dispatchEvent(new Event('input'));
                             
                             resultsContainer.style.display = 'none';
-                            statusTxt.innerText = 'Selectionne !';
-                            showToast("Formulaire mis a jour.", "success");
+                            statusTxt.innerText = 'Sélectionné !';
+                            showToast("Formulaire mis à jour.", "success");
                         });
 
                         resultsContainer.appendChild(divItem);
                     });
                 } else {
-                    statusTxt.innerText = 'Aucun resultat';
+                    statusTxt.innerText = 'Aucun résultat';
                     resultsContainer.style.display = 'none';
                 }
 
@@ -539,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 imgPreview.style.display = 'none';
                 imgPlaceholder.style.display = 'block';
-                imgPlaceholder.innerText = 'Apercu';
+                imgPlaceholder.innerText = 'Aperçu';
                 imgPlaceholder.style.color = 'var(--text-muted)';
                 imgPreview.src = '';
             }
@@ -554,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         imgPreview.addEventListener('load', function() {
             imgPlaceholder.style.color = 'var(--text-muted)';
-            imgPlaceholder.innerText = 'Apercu';
+            imgPlaceholder.innerText = 'Aperçu';
         });
     }
 
@@ -605,7 +614,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 if (typeof showToast === 'function') showToast(data.error || 'Erreur lors de l\'envoi.', 'danger');
             }
-
         } catch (error) {
             console.error("Erreur d'envoi du signalement:", error);
             if (typeof showToast === 'function') showToast("Une erreur réseau est survenue.", "danger");
@@ -645,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
-                btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
+                btn.innerHTML = '⚙️ Analyse en cours... Veuillez patienter...';
                 
                 const cronUrl = amfsConfig.cronUrl.includes('?') ? amfsConfig.cronUrl + '&force=1' : amfsConfig.cronUrl + '?force=1';
 
@@ -653,8 +661,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'executed') {
-                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards +
-                                '\nDomaines uniques interrogés : ' + data.unique_domains +
+                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards + 
+                                '\nDomaines uniques interrogés : ' + data.unique_domains + 
                                 '\nNouveaux liens rompus identifiés : ' + data.dead_count);
                         } else {
                             alert('Le scan a retourné un statut inattendu.');
@@ -665,8 +673,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         alert('Une erreur réseau ou un timeout est survenu durant le scan des serveurs distants.');
                         btn.disabled = false;
                         btn.style.opacity = '1';
-                        btn.innerHTML = '⚡ Relancer la vérification (Forcer le scan)';
+                        btn.innerHTML = '🔄 Relancer la vérification (Forcer le scan)';
                     });
+            }
+        });
+    }
+
+    // ==========================================
+    // 13. AJUSTEMENT AUTO TOTAL EPISODES VS SAISON
+    // ==========================================
+    const champSaison = document.getElementById('saison');
+    const champTotalEp = document.getElementById('total_episodes');
+
+    if (champSaison && champTotalEp) {
+        champSaison.addEventListener('input', function() {
+            if (window.currentSeasonsData && window.currentSeasonsData[this.value]) {
+                champTotalEp.value = window.currentSeasonsData[this.value];
             }
         });
     }
@@ -674,7 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }); // Fin DOMContentLoaded
 
 // ==========================================
-// 11. VÉRIFICATION DE DISPONIBILITÉ EN DIRECT
+// 11. VERIFICATION DE DISPONIBILITE EN DIRECT
 // ==========================================
 window.addEventListener('load', function() {
     
@@ -738,7 +760,7 @@ window.addEventListener('load', function() {
                 return;
             }
 
-            // --- SAUVEGARDE DU RÉSULTAT EN CACHE ---
+            // --- SAUVEGARDE DU RESULTAT EN CACHE ---
             sessionStorage.setItem(cacheKey, JSON.stringify({
                 timestamp: Date.now(),
                 disponible: data.disponible
@@ -769,4 +791,5 @@ window.addEventListener('load', function() {
             }
         }
     }
+
 });

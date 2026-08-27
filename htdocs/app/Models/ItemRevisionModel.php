@@ -1,9 +1,5 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace App\Models;
-
 use CodeIgniter\Model;
 
 class ItemRevisionModel extends Model
@@ -12,22 +8,10 @@ class ItemRevisionModel extends Model
     protected $primaryKey = 'id';
     protected $returnType = 'array';
     protected $allowedFields = [
-        'original_item_id',
-        'id_user',
-        'titre',
-        'sous_categorie',
-        'status',
-        'image',
-        'lien',
-        'description',
-        'episode',
-        'saison',
-        'position',
-        'date_sortie',
-        'revision_status',
-        'total_episodes',
+        'original_item_id', 'id_user', 'titre', 'sous_categorie', 'status',
+        'image', 'lien', 'description', 'episode', 'total_episodes',
+        'saison', 'position', 'date_sortie', 'revision_status',
     ];
-
     protected $useTimestamps = false;
 
     public function getPendingRevisions()
@@ -37,8 +21,6 @@ class ItemRevisionModel extends Model
             ->join('users u', 'ir.id_user = u.id')
             ->join('item i', 'ir.original_item_id = i.id')
             ->where('ir.revision_status', 'pending')
-            ->get()
-            ->getResultArray()
-        ;
+            ->get()->getResultArray();
     }
 }
