@@ -69,14 +69,13 @@ if (isset($subCategories) && is_array($subCategories)) {
                 <label for="status" class="form-label">Statut</label>
                 <select id="status" name="status" class="form-control">
                     <?php $currentStatus = isset($item) ? $item->status : 'Aucun'; ?>
-                    <option value="Aucun" <?php echo 'Aucun' == $currentStatus ? 'selected' : ''; ?>>Aucun</option>
-                    <option value="À voir" <?php echo 'À voir' == $currentStatus ? 'selected' : ''; ?>>À voir</option>
-                    <option value="En cours" <?php echo 'En cours' == $currentStatus ? 'selected' : ''; ?>>En cours
+
+                    <?php foreach ($statuts as $statut) { ?>
+                    <option value="<?php echo esc($statut['nom']); ?>"
+                        <?php echo ($statut['nom'] == $currentStatus) ? 'selected' : ''; ?>>
+                        <?php echo esc($statut['nom']); ?>
                     </option>
-                    <option value="En pause" <?php echo 'En pause' == $currentStatus ? 'selected' : ''; ?>>En pause
-                    </option>
-                    <option value="Terminé" <?php echo 'Terminé' == $currentStatus ? 'selected' : ''; ?>>Terminé
-                    </option>
+                    <?php } ?>
                 </select>
             </div>
             <div class="col-half" style="display: flex; align-items: flex-end; padding-bottom: 5px;">

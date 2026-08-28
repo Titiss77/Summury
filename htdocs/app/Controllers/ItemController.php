@@ -10,6 +10,7 @@ use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
 use App\Models\SiteConfigModel;
 use Config\Services;
+use App\Models\StatutModel;
 
 class ItemController extends BaseController
 {
@@ -18,6 +19,7 @@ class ItemController extends BaseController
     public function __construct()
     {
         $this->model = new ItemModel();
+        $this->statutModel = new StatutModel();
     }
 
     public function form($id = null)
@@ -33,6 +35,7 @@ class ItemController extends BaseController
             'headers' => $this->model->getHeaders(),
             'divisions' => $this->model->getDivisions(),
             'subCategories' => $subCategories,
+            'statuts' => $this->statutModel->orderBy('ordre', 'ASC')->findAll(),
             'item' => null,
             'view' => 'item_form',
             'redirect_url' => $this->request->getUserAgent()->getReferrer() ?? site_url('/'),
@@ -54,7 +57,7 @@ class ItemController extends BaseController
             $rules = [
                 'titre' => 'required|max_length[100]',
                 'id_division' => 'required|numeric',
-                'status' => 'in_list[Aucun, À voir,En cours,En pause,Terminé]',
+                'status' => 'required|is_not_unique[statuts.nom]',
             ];
 
             if (!$this->validate($rules)) {
