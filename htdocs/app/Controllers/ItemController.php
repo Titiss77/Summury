@@ -197,8 +197,8 @@ class ItemController extends BaseController
         if (empty($query)) return $this->response->setJSON([]);
         
         $cache = Services::cache();
-        // Version v3 pour forcer le nettoyage du cache précédent
-        $cacheKey = 'api_search_v3_'.md5($query.'_'.$type);
+        // Version v4 pour forcer le nettoyage du cache précédent Kitsu
+        $cacheKey = 'api_search_v4_'.md5($query.'_'.$type);
         if ($cachedResult = $cache->get($cacheKey)) return $this->response->setJSON($cachedResult);
         
         $client = Services::curlrequest([
@@ -282,33 +282,41 @@ class ItemController extends BaseController
                 }
             }
 
-            // 3. RECHERCHE KITSU (Mangas) - Plus fiable que Jikan
-            $kitsuUrl = "https://kitsu.io/api/edge/manga?filter[text]=".urlencode($query)."&page[limit]=5";
+            // 3. RECHERCHE ANILIST (Mangas & Scans - GraphQL) - Bulletproof
             try {
-                $kitsuResponse = $client->get($kitsuUrl);
-                if (200 === $kitsuResponse->getStatusCode()) {
-                    $kitsuBody = json_decode($kitsuResponse->getBody(), true);
-                    if (isset($kitsuBody['data']) && is_array($kitsuBody['data'])) {
-                        foreach ($kitsuBody['data'] as $r) {
-                            $attr = $r['attributes'] ?? [];
-                            $year = !empty($attr['startDate']) ? substr($attr['startDate'], 0, 4) : '';
-                            $titre = $attr['canonicalTitle'] ?? $attr['titles']['en_jp'] ?? 'Inconnu';
+                $graphqlQuery = 'query ($search: String) { Page(page: 1, perPage: 5) { media(search: $search, type: MANGA) { id title { romaji english } description(asHtml: false) coverImage { large medium } startDate { year } chapters } } }';
+                $payload = json_encode(['query' => $graphqlQuery, 'variables' => ['search' => $query]]);
+                
+                $aniResponse = $client->post('https://graphql.anilist.co', [
+                    'headers' => [
+                        'Content-Type' => 'application/json', 
+                        'Accept' => 'application/json'
+                    ],
+                    'body' => $payload
+                ]);
+                
+                if (200 === $aniResponse->getStatusCode()) {
+                    $aniBody = json_decode($aniResponse->getBody(), true);
+                    if (isset($aniBody['data']['Page']['media']) && is_array($aniBody['data']['Page']['media'])) {
+                        foreach ($aniBody['data']['Page']['media'] as $m) {
+                            $titre = $m['title']['english'] ?? $m['title']['romaji'] ?? 'Inconnu';
+                            $year = $m['startDate']['year'] ?? '';
                             
                             $unifiedResults[] = [
                                 'titre' => $titre,
-                                'imageThumb' => $attr['posterImage']['small'] ?? $attr['posterImage']['tiny'] ?? '',
-                                'imageLarge' => $attr['posterImage']['large'] ?? $attr['posterImage']['original'] ?? '',
-                                'description' => $attr['synopsis'] ?? '',
+                                'imageThumb' => $m['coverImage']['medium'] ?? '',
+                                'imageLarge' => $m['coverImage']['large'] ?? '',
+                                'description' => strip_tags($m['description'] ?? ''),
                                 'info' => ($year ? $year . ' - ' : '') . 'MANGA',
                                 'lien' => '',
-                                'total_episodes' => $attr['chapterCount'] ?? '',
+                                'total_episodes' => $m['chapters'] ?? '',
                                 'total_saisons' => '',
                                 'seasons_data' => null
                             ];
                         }
                     }
                 }
-            } catch (\Exception $e) { } // Ignore silencieusement si Kitsu échoue
+            } catch (\Exception $e) { } // Ignore silencieusement si AniList échoue
 
             $finalBody = ['unified' => $unifiedResults];
             $cache->save($cacheKey, $finalBody, 3600);
