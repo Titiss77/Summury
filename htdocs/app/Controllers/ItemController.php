@@ -197,8 +197,8 @@ class ItemController extends BaseController
         if (empty($query)) return $this->response->setJSON([]);
         
         $cache = Services::cache();
-        // Version v4 pour forcer le nettoyage du cache précédent Kitsu
-        $cacheKey = 'api_search_v4_'.md5($query.'_'.$type);
+        // Cache v5 pour purger les anciens résultats en anglais
+        $cacheKey = 'api_search_v5_'.md5($query.'_'.$type);
         if ($cachedResult = $cache->get($cacheKey)) return $this->response->setJSON($cachedResult);
         
         $client = Services::curlrequest([
@@ -282,41 +282,62 @@ class ItemController extends BaseController
                 }
             }
 
-            // 3. RECHERCHE ANILIST (Mangas & Scans - GraphQL) - Bulletproof
+            // 3. RECHERCHE MANGADEX (Mangas & Scans) - Support du Français
             try {
-                $graphqlQuery = 'query ($search: String) { Page(page: 1, perPage: 5) { media(search: $search, type: MANGA) { id title { romaji english } description(asHtml: false) coverImage { large medium } startDate { year } chapters } } }';
-                $payload = json_encode(['query' => $graphqlQuery, 'variables' => ['search' => $query]]);
+                // order[relevance]=desc permet de remonter les mangas les plus connus en premier
+                $mdUrl = "https://api.mangadex.org/manga?title=".urlencode($query)."&limit=5&includes[]=cover_art&order[relevance]=desc";
                 
-                $aniResponse = $client->post('https://graphql.anilist.co', [
+                $mdResponse = $client->get($mdUrl, [
                     'headers' => [
-                        'Content-Type' => 'application/json', 
+                        'User-Agent' => 'AMFS-App/1.0',
                         'Accept' => 'application/json'
-                    ],
-                    'body' => $payload
+                    ]
                 ]);
                 
-                if (200 === $aniResponse->getStatusCode()) {
-                    $aniBody = json_decode($aniResponse->getBody(), true);
-                    if (isset($aniBody['data']['Page']['media']) && is_array($aniBody['data']['Page']['media'])) {
-                        foreach ($aniBody['data']['Page']['media'] as $m) {
-                            $titre = $m['title']['english'] ?? $m['title']['romaji'] ?? 'Inconnu';
-                            $year = $m['startDate']['year'] ?? '';
+                if (200 === $mdResponse->getStatusCode()) {
+                    $mdBody = json_decode($mdResponse->getBody(), true);
+                    if (isset($mdBody['data']) && is_array($mdBody['data'])) {
+                        foreach ($mdBody['data'] as $m) {
+                            $attr = $m['attributes'] ?? [];
+                            
+                            // On prend le titre principal (Souvent en anglais ou romaji pour un bon rendu)
+                            $titre = $attr['title']['en'] ?? $attr['title']['ja-ro'] ?? $attr['title']['fr'] ?? 'Inconnu';
+                            if (is_array($titre)) $titre = 'Inconnu'; // Fallback sécurité
+
+                            // On cible spécifiquement la description en Français (fallback sur anglais si introuvable)
+                            $description = $attr['description']['fr'] ?? $attr['description']['en'] ?? '';
+                            
+                            $year = $attr['year'] ?? '';
+                            
+                            // Récupération de l'image de couverture
+                            $fileName = '';
+                            if (isset($m['relationships'])) {
+                                foreach ($m['relationships'] as $rel) {
+                                    if ($rel['type'] === 'cover_art' && isset($rel['attributes']['fileName'])) {
+                                        $fileName = $rel['attributes']['fileName'];
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            $imageThumb = $fileName ? "https://uploads.mangadex.org/covers/{$m['id']}/{$fileName}.256.jpg" : '';
+                            $imageLarge = $fileName ? "https://uploads.mangadex.org/covers/{$m['id']}/{$fileName}" : '';
                             
                             $unifiedResults[] = [
                                 'titre' => $titre,
-                                'imageThumb' => $m['coverImage']['medium'] ?? '',
-                                'imageLarge' => $m['coverImage']['large'] ?? '',
-                                'description' => strip_tags($m['description'] ?? ''),
+                                'imageThumb' => $imageThumb,
+                                'imageLarge' => $imageLarge,
+                                'description' => strip_tags((string)$description),
                                 'info' => ($year ? $year . ' - ' : '') . 'MANGA',
                                 'lien' => '',
-                                'total_episodes' => $m['chapters'] ?? '',
-                                'total_saisons' => '',
+                                'total_episodes' => $attr['lastChapter'] ?? '',
+                                'total_saisons' => $attr['lastVolume'] ?? '',
                                 'seasons_data' => null
                             ];
                         }
                     }
                 }
-            } catch (\Exception $e) { } // Ignore silencieusement si AniList échoue
+            } catch (\Exception $e) { } // Ignore silencieusement si MangaDex échoue
 
             $finalBody = ['unified' => $unifiedResults];
             $cache->save($cacheKey, $finalBody, 3600);
