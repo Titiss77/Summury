@@ -61,24 +61,25 @@
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
     <h2 class="header-title"><?php echo htmlspecialchars($headerName); ?></h2>
-    <?php foreach ($divisions as $divisionName => $subCategories) { 
+    <?php foreach ($divisions as $divisionName => $subCategories) {
         $currentDivisionId = null;
         foreach ($subCategories as $items) {
             if (!empty($items)) {
                 $currentDivisionId = $items[0]->id_division;
+
                 break;
             }
         }
         $isOpen = ($openDivision && $openDivision == $currentDivisionId) ? 'open' : '';
         $hasMultipleGroups = count($subCategories) > 1;
-    ?>
+        ?>
     <details class="division-section" id="div-<?php echo $currentDivisionId; ?>" <?php echo $isOpen; ?>>
         <summary class="division-title">
             <span class="toggle-icon">&#x25B6;</span> <?php echo htmlspecialchars($divisionName); ?>
         </summary>
         <div class="division-body sortable-division" data-division-id="<?php echo $currentDivisionId; ?>">
             <?php foreach ($subCategories as $subCatName => $items) {
-                $isSansSub = ($subCatName === 'Sans sous-catégorie');
+                $isSansSub = ('Sans sous-catégorie' === $subCatName);
                 $displayTitle = $isSansSub ? 'Autres cartes' : $subCatName;
                 $opacity = $isSansSub ? '0.6' : '0.9';
                 $lineOpacity = $isSansSub ? '0.4' : '0.7';
@@ -90,11 +91,12 @@
                     foreach ($items as $itm) {
                         if ($isSuperAdmin || (int) $itm->id_user === $currentUserId) {
                             $canDragSub = true;
+
                             break;
                         }
                     }
                 }
-            ?>
+                ?>
             <div class="subcategory-wrapper">
                 <?php if ($useDetails) { ?>
                 <details class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;">
@@ -133,8 +135,8 @@
                                 style="padding-top: <?php echo $hasMultipleGroups ? '0' : '15px'; ?>;">
                                 <?php } ?>
                                 <?php foreach ($items as $item) {
-                            $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
-                        ?>
+                                    $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
+                                    ?>
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : (!empty($item->episode) ? 'needs-dispo-check' : ''); ?>"
                                     data-id="<?php echo esc($item->id); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
@@ -147,7 +149,7 @@
                                         class="card-link-block">
                                         <div class="card-body">
                                             <?php
-                                    $isFuture = false;
+                                                $isFuture = false;
                                     $dateSortieFormatted = '';
                                     $textColor = '';
                                     if (!empty($item->date_sortie)) {
@@ -173,12 +175,13 @@
                                         foreach ($supportedDomains as $domain) {
                                             if (str_contains($item->getFinalLink(), $domain)) {
                                                 $isCheckable = true;
+
                                                 break;
                                             }
                                         }
                                     }
                                     if ('Terminé' !== $item->status && $isCheckable) {
-                                    ?>
+                                        ?>
                                             <div class="live-status" id="live-status-<?php echo $item->id; ?>"
                                                 style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
                                                 Vérification...</div>
@@ -189,13 +192,13 @@
                                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
                                                 <?php echo htmlspecialchars($item->status); ?></p>
                                             <?php
-                                    $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+                                        $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
                                     $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
                                     if ($isPendingNew || $hasPendingRevision) {
-                                    ?>
+                                        ?>
                                             <div
                                                 style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
-                                                <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : "Modification en attente de validation"; ?>
+                                                <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>
                                             </div>
                                             <?php } ?>
                                             <?php if (!empty($item->description)) { ?>
@@ -209,7 +212,9 @@
                                                     style="display: flex; flex-direction: column; align-items: center;">
                                                     <span class="badge badge-season">
                                                         S. <span
-                                                            id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / ' . htmlspecialchars($item->total_saisons); } ?>
+                                                            id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) {
+                                                                echo ' / '.htmlspecialchars($item->total_saisons);
+                                                            } ?>
                                                     </span>
 
                                                 </div>
@@ -220,7 +225,9 @@
                                                     style="display: flex; flex-direction: column; align-items: center;">
                                                     <span class="badge badge-episode">
                                                         Ép. <span
-                                                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / ' . htmlspecialchars($item->total_episodes); } ?>
+                                                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
+                                                                echo ' / '.htmlspecialchars($item->total_episodes);
+                                                            } ?>
                                                         <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                                         <button type="button"
                                                             class="btn-increment btn-increment-episode"

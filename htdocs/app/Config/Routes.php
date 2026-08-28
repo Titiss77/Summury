@@ -1,11 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use CodeIgniter\Router\RouteCollection;
 use CodeIgniter\Shield\Config\Auth;
 
-/**
- * @var RouteCollection $routes
- */
+// @var RouteCollection $routes
 
 // --------------------------------------------------------------------
 // Pages publiques (accessibles sans être connecté)
@@ -32,7 +32,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/search', 'ItemController::search');
     $routes->post('report/submit', 'ReportController::submit');
     $routes->get('item/check-dispo', 'ItemController::checkDispo');
-    
+
     // NOUVELLES ROUTES : Profil utilisateur
     $routes->get('profile', 'ProfileController::index');
     $routes->post('profile/update-password', 'ProfileController::updatePassword');

@@ -6,18 +6,18 @@
         <input type="hidden" name="redirect_url" value="<?php echo esc($redirect_url); ?>">
         <?php echo csrf_field(); ?>
         <input type="hidden" name="id" value="<?php echo isset($item) ? esc($item->id) : ''; ?>">
-        
+
         <div style="text-align: right; margin-bottom: 10px;">
             <button type="button" id="btn-api-search" class="btn btn-primary btn-sm">✨ Auto-remplir</button>
             <small id="api-status" style="display:none; color: var(--success);"></small>
         </div>
-        
+
         <div class="form-group" style="position: relative;">
             <label for="titre" class="form-label">Titre *</label>
             <input type="text" id="titre" name="titre" class="form-control" value="<?php echo isset($item) ? esc($item->titre) : ''; ?>" required>
             <div id="api-results-container" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; background: var(--bg-card, #fff); border: 1px solid var(--border-color, #ccc); border-radius: var(--radius-md); max-height: 350px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-top: 5px;"></div>
         </div>
-        
+
         <div class="form-group row">
             <div class="col-half">
                 <label for="id_division" class="form-label">Division *</label>
@@ -33,17 +33,20 @@
                 <select id="sous_categorie_select" name="sous_categorie_select" class="form-control" onchange="toggleNewSubCategory()">
                     <option value="">-- Aucune --</option>
                     <?php
-                    $itemSub = isset($item) ? $item->sous_categorie : ''; $found = false; 
-                    if (isset($subCategories) && is_array($subCategories)) {
-                        foreach ($subCategories as $sub) {
-                            $selected = ($itemSub === $sub) ? 'selected' : '';
-                            if ($selected) $found = true;
-                            ?>
+                    $itemSub = isset($item) ? $item->sous_categorie : '';
+$found = false;
+if (isset($subCategories) && is_array($subCategories)) {
+    foreach ($subCategories as $sub) {
+        $selected = ($itemSub === $sub) ? 'selected' : '';
+        if ($selected) {
+            $found = true;
+        }
+        ?>
                             <option value="<?php echo esc($sub); ?>" <?php echo $selected; ?>><?php echo esc($sub); ?></option>
-                            <?php 
-                        }
-                    } 
-                    ?>
+                            <?php
+    }
+}
+?>
                     <?php if ($itemSub && !$found) { ?>
                     <option value="<?php echo esc($itemSub); ?>" selected><?php echo esc($itemSub); ?></option>
                     <?php } ?>
@@ -52,7 +55,7 @@
                 <input type="text" id="sous_categorie_new" name="sous_categorie_new" class="form-control" style="display: none; margin-top: 10px;" placeholder="Nom de la nouvelle sous-catégorie">
             </div>
         </div>
-        
+
         <div class="form-group row">
             <div class="col-half">
                 <label for="status" class="form-label">Statut</label>
@@ -75,13 +78,13 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label for="description" class="form-label">Description</label>
             <textarea id="description" name="description" class="form-control" rows="1" maxlength="250"><?php echo isset($item) ? esc($item->description) : ''; ?></textarea>
             <small id="char-count" style="display: block; text-align: right; margin-top: 5px; font-weight: bold;"></small>
         </div>
-        
+
         <div class="form-group">
             <label for="date_sortie" class="form-label">Date et heure de sortie</label>
             <div style="display: grid; gap: 10px;">
@@ -89,13 +92,13 @@
                 <button type="button" class="btn btn-cancel" onclick="document.getElementById('date_sortie').value = '';">Ne pas définir</button>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label for="img" class="form-label">Image (URL) :</label>
             <small style="display: block; margin-bottom: 10px; color: var(--text-muted);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="yellow" class="bi bi-lightbulb-fill" viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5"/></svg>
-                <strong>Astuce :</strong> Si l'image automatique ne convient pas, trouvez des affiches de haute qualité sur 
-                <a href="https://theposterdb.com/" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 500;">TPDb (Films/Séries)</a> ou 
+                <strong>Astuce :</strong> Si l'image automatique ne convient pas, trouvez des affiches de haute qualité sur
+                <a href="https://theposterdb.com/" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 500;">TPDb (Films/Séries)</a> ou
                 <a href="https://myanimelist.net/" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 500;">MyAnimeList</a>.<br> Format recommandé : <strong>400x600 (Ratio 2:3)</strong>.
             </small>
             <div style="display: flex; gap: 15px; align-items: flex-start;">
@@ -108,13 +111,13 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label for="lien" class="form-label">Lien (URL) :</label>
             <small><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="yellow" class="bi bi-lightbulb-fill" viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5"/></svg> Astuce : <b>{s}</b> = saison, <b>{ep}</b> = Épisode normal (1). <br>Utilise <b>{ep2}</b>, <b>{ep3}</b> ou <b>{ep4}</b> pour forcer les zéros (ex: <b>01</b>, <b>001</b>, <b>0001</b>).</small>
             <input type="text" id="lien" name="lien" class="form-control" value="<?php echo htmlspecialchars($item->lien ?? ''); ?>">
         </div>
-        
+
         <div class="form-group row" style="gap: 15px;">
             <div style="flex: 1;">
                 <label for="saison" class="form-label">Saison actuelle</label>
@@ -125,7 +128,7 @@
                 <input type="number" id="total_saisons" name="total_saisons" min="0" class="form-control" value="<?php echo isset($item) ? esc($item->total_saisons) : ''; ?>">
             </div>
         </div>
-        
+
         <div class="form-group row" style="gap: 15px;">
             <div style="flex: 1;">
                 <label for="episode" class="form-label">Épisode actuel</label>
@@ -136,7 +139,7 @@
                 <input type="number" id="total_episodes" name="total_episodes" min="0" class="form-control" value="<?php echo isset($item) ? esc($item->total_episodes) : ''; ?>">
             </div>
         </div>
-        
+
         <div class="form-actions">
             <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Annuler</a>
             <button type="submit" class="btn btn-success">Enregistrer</button>

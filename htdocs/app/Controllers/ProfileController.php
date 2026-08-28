@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Models\ItemModel;
 use App\Models\AuditLogModel;
+use App\Models\ItemModel;
 
 class ProfileController extends BaseController
 {
@@ -17,21 +19,21 @@ class ProfileController extends BaseController
         $publicItems = $itemModel->where('id_user', $user->id)->where('is_public', 1)->countAllResults();
 
         // Statistiques détaillées par statut
-        $statusAVoir   = $itemModel->where('id_user', $user->id)->where('status', 'À voir')->countAllResults();
+        $statusAVoir = $itemModel->where('id_user', $user->id)->where('status', 'À voir')->countAllResults();
         $statusEnCours = $itemModel->where('id_user', $user->id)->where('status', 'En cours')->countAllResults();
         $statusEnPause = $itemModel->where('id_user', $user->id)->where('status', 'En pause')->countAllResults();
         $statusTermine = $itemModel->where('id_user', $user->id)->where('status', 'Terminé')->countAllResults();
-        $statusAucun   = $itemModel->where('id_user', $user->id)->where('status', 'Aucun')->countAllResults();
+        $statusAucun = $itemModel->where('id_user', $user->id)->where('status', 'Aucun')->countAllResults();
 
         $data = [
-            'user'          => $user,
-            'totalItems'    => $totalItems,
-            'publicItems'   => $publicItems,
-            'statusAVoir'   => $statusAVoir,
+            'user' => $user,
+            'totalItems' => $totalItems,
+            'publicItems' => $publicItems,
+            'statusAVoir' => $statusAVoir,
             'statusEnCours' => $statusEnCours,
             'statusEnPause' => $statusEnPause,
             'statusTermine' => $statusTermine,
-            'statusAucun'   => $statusAucun,
+            'statusAucun' => $statusAucun,
         ];
 
         return view('profile/index', $data);
@@ -41,7 +43,7 @@ class ProfileController extends BaseController
     {
         $rules = [
             'current_password' => 'required',
-            'new_password'     => 'required|min_length[8]',
+            'new_password' => 'required|min_length[8]',
             'confirm_password' => 'required|matches[new_password]',
         ];
 
@@ -51,13 +53,13 @@ class ProfileController extends BaseController
 
         $users = auth()->getProvider();
         $user = auth()->user();
-        
+
         $currentPassword = $this->request->getPost('current_password');
-        
+
         // CodeIgniter Shield : Vérification de l'ancien mot de passe
         $credentials = [
-            'email'    => $user->email,
-            'password' => $currentPassword
+            'email' => $user->email,
+            'password' => $currentPassword,
         ];
 
         $authenticator = auth('session')->getAuthenticator();

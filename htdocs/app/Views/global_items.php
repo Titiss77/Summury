@@ -13,31 +13,31 @@
             <div class="card-body">
                 <?php
                 $isFuture = false;
-                $dateSortieFormatted = '';
-                $textColor = '';
-                if (!empty($item->date_sortie)) {
-                    $timezone = new DateTimeZone('Europe/Paris');
-                    $dateSortie = new DateTime($item->date_sortie, $timezone);
-                    $now = new DateTime('now', $timezone);
-                    if ($dateSortie > $now) {
-                        $isFuture = true;
-                        $dateSortieFormatted = $dateSortie->format('d/m/Y   H:i');
-                        $textColor = 'color: var(--danger);';
-                    }
-                }
-                ?>
+        $dateSortieFormatted = '';
+        $textColor = '';
+        if (!empty($item->date_sortie)) {
+            $timezone = new DateTimeZone('Europe/Paris');
+            $dateSortie = new DateTime($item->date_sortie, $timezone);
+            $now = new DateTime('now', $timezone);
+            if ($dateSortie > $now) {
+                $isFuture = true;
+                $dateSortieFormatted = $dateSortie->format('d/m/Y   H:i');
+                $textColor = 'color: var(--danger);';
+            }
+        }
+        ?>
                 <h4 class="card-title search-target-title" style="<?php echo $textColor; ?>"><?php echo htmlspecialchars($item->titre); ?></h4>
                 <?php if ($isFuture) { ?>
                 <p class="card-date" style="<?php echo $textColor; ?>">Suivant le : <?php echo $dateSortieFormatted; ?></p>
                 <?php } ?>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status : <?php echo htmlspecialchars($item->status); ?></p>
                 <?php
-                $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-                $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
-                if ($isPendingNew || $hasPendingRevision) {
-                ?>
+        $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+        $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
+        if ($isPendingNew || $hasPendingRevision) {
+            ?>
                 <div style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
-                    <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : "Modification en attente de validation"; ?>
+                    <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>
                 </div>
                 <?php } ?>
                 <?php if (!empty($item->description)) { ?>
@@ -47,7 +47,9 @@
                     <?php if (!empty($item->saison)) { ?>
                     <div style="display: flex; flex-direction: column; align-items: center;">
                         <span class="badge badge-season">
-                            Saison <span id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / ' . htmlspecialchars($item->total_saisons); } ?>
+                            Saison <span id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) {
+                                echo ' / '.htmlspecialchars($item->total_saisons);
+                            } ?>
                         </span>
                         <?php if (!empty($item->total_saisons) && !empty($item->saison)) {
                             $saisons_restantes = max(0, $item->total_saisons - $item->saison);
@@ -63,7 +65,9 @@
                     <?php if (!empty($item->episode)) { ?>
                     <div style="display: flex; flex-direction: column; align-items: center;">
                         <span class="badge badge-episode">
-                            Ép. <span id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / ' . htmlspecialchars($item->total_episodes); } ?>
+                            Ép. <span id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
+                                echo ' / '.htmlspecialchars($item->total_episodes);
+                            } ?>
                             <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                             <button type="button" class="btn-increment btn-increment-episode" data-id="<?php echo $item->id; ?>">+1</button>
                             <?php } ?>

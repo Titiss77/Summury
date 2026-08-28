@@ -1,5 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace App\Models;
+
 use CodeIgniter\Model;
 
 class ItemRevisionModel extends Model
@@ -21,6 +25,7 @@ class ItemRevisionModel extends Model
             ->join('users u', 'ir.id_user = u.id')
             ->join('item i', 'ir.original_item_id = i.id')
             ->where('ir.revision_status', 'pending')
-            ->get()->getResultArray();
+            ->get()->getResultArray()
+        ;
     }
 }
