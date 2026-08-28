@@ -4,6 +4,7 @@
 window.showToast = function(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerText = message;
@@ -16,7 +17,7 @@ window.showToast = function(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
     }, 4000);
-};
+}
 
 // ==========================================
 // 12. FONCTIONS GLOBALES 
@@ -36,7 +37,7 @@ window.toggleNewSubCategory = function() {
         input.removeAttribute('required');
         input.value = '';
     }
-};
+}
 
 window.copierLien = function(lien) {
     function notifierSucces() {
@@ -46,6 +47,7 @@ window.copierLien = function(lien) {
             alert('Lien copié !');
         }
     }
+
     function notifierErreur() {
         if (typeof showToast === 'function') {
             showToast('Erreur lors de la copie du lien.', 'danger');
@@ -53,6 +55,7 @@ window.copierLien = function(lien) {
             alert('Erreur lors de la copie.');
         }
     }
+
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(lien).then(() => {
             notifierSucces();
@@ -70,6 +73,7 @@ window.copierLien = function(lien) {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
+
         try {
             let successful = document.execCommand('copy');
             if (successful) {
@@ -81,14 +85,16 @@ window.copierLien = function(lien) {
             console.error('Erreur Fallback :', err);
             notifierErreur();
         }
+
         document.body.removeChild(textArea);
     }
-};
+}
 
 // ==========================================
 // INITIALISATION DES ELEMENTS DU DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
+
     // --- Gestion des paramètres d'URL (URL Hash cleaner) ---
     const currentUrl = new URL(window.location.href);
     if (currentUrl.searchParams.has('open') || currentUrl.hash) {
@@ -145,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('theme', switchToTheme);
 
             themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
+
             if(metaThemeColor) {
                 metaThemeColor.setAttribute('content', switchToTheme === 'dark' ? '#09090b' : '#fcfcfd');
             }
@@ -198,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+
                 const data = await response.json();
                 
                 if (data.success) {
@@ -213,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (data.csrf_token) amfsConfig.csrfToken = data.csrf_token; 
                     if (typeof showToast === 'function') showToast('Épisode ajouté avec succès !', 'success');
+
                 } else {
                     console.error("Erreur renvoyée par PHP :", data);
                 }
@@ -221,7 +230,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
 
     // ==========================================
     // 5. BOUTONS DE CHARGEMENT SUR FORMULAIRES
@@ -301,6 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({ order: newOrder })
                 });
+
                 const data = await response.json();
                 
                 if (data.csrf_token) {
@@ -381,7 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         btnApiSearch.addEventListener('click', async function() {
             const titreInput = document.getElementById('titre').value.trim();
-
             if (!titreInput) {
                 showToast("Entre d'abord un titre ou un lien !", "danger");
                 return;
@@ -394,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsContainer.innerHTML = '';
             resultsContainer.style.display = 'none';
 
-            let typeSelectionne = 'film';
+            let typeSelectionne = 'film'; 
             const divisionSelect = document.getElementById('id_division');
             if (divisionSelect && divisionSelect.selectedIndex >= 0) {
                 const divText = divisionSelect.options[divisionSelect.selectedIndex].text.toLowerCase();
@@ -409,6 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+            // Le typeSelectionne est envoyé mais le serveur PHP gère maintenant tout en format unifié
             const url = `${baseUrl}item/search?q=${encodeURIComponent(titreInput)}&type=${typeSelectionne}`;
 
             try {
@@ -424,32 +433,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 const descField = document.getElementById('description');
                 const maxDescLength = descField && descField.hasAttribute('maxlength') ? parseInt(descField.getAttribute('maxlength')) : 250;
                 const limitCut = maxDescLength > 3 ? maxDescLength - 3 : maxDescLength;
-
+                
                 let listeResultats = [];
 
-                if (data.data && data.data.length > 0) {
-                    listeResultats = data.data.map(item => ({
-                        titre: item.title,
-                        imageThumb: item.images?.jpg?.image_url || '',
-                        imageLarge: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || '',
-                        description: item.synopsis ? (item.synopsis.length > limitCut ? item.synopsis.substring(0, limitCut) + "..." : item.synopsis) : "",
-                        info: (item.year || '') + ' - ' + (item.type || typeSelectionne).toUpperCase(),
-                        lien: '',
-                        total_episodes: item.episodes || item.chapters || '',
-                        total_saisons: item.total_saisons || '',
-                        seasons_data: null
-                    }));
-                } else if (data.results && data.results.length > 0) {
-                    listeResultats = data.results.map(item => ({
-                        titre: item.title || item.name || item.original_name,
-                        imageThumb: item.poster_path ? `https://image.tmdb.org/t/p/w200${item.poster_path}` : '',
-                        imageLarge: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '',
-                        description: item.overview ? (item.overview.length > limitCut ? item.overview.substring(0, limitCut) + "..." : item.overview) : "",
-                        info: (item.release_date || item.first_air_date || '').substring(0,4) + ' - ' + (item.media_type || typeSelectionne).toUpperCase(),
-                        lien: '',
-                        total_episodes: item.total_episodes || '',
-                        total_saisons: item.total_saisons || '',
-                        seasons_data: item.seasons_data || null
+                // Nouvelle logique de parsing pour le format unifié
+                if (data.unified && data.unified.length > 0) {
+                    listeResultats = data.unified.map(item => ({
+                        titre: item.titre,
+                        imageThumb: item.imageThumb,
+                        imageLarge: item.imageLarge,
+                        description: item.description ? (item.description.length > limitCut ? item.description.substring(0, limitCut) + "..." : item.description) : "",
+                        info: item.info, // Contient déjà la valeur formattée, ex: "1999 - ANIME" ou "1997 - MANGA"
+                        lien: item.lien,
+                        total_episodes: item.total_episodes,
+                        total_saisons: item.total_saisons,
+                        seasons_data: item.seasons_data
                     }));
                 } else if (Array.isArray(data) && data.length > 0 && data[0].is_link) {
                     listeResultats = [{
@@ -508,7 +506,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             // -- Sauvegarde des donnees de saisons pour ajustement automatique --
                             window.currentSeasonsData = res.seasons_data || null;
-
                             if (window.currentSeasonsData && saisonInput && saisonInput.value) {
                                 if (window.currentSeasonsData[saisonInput.value]) {
                                     totalEpField.value = window.currentSeasonsData[saisonInput.value];
@@ -524,6 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         resultsContainer.appendChild(divItem);
                     });
+
                 } else {
                     statusTxt.innerText = 'Aucun résultat';
                     resultsContainer.style.display = 'none';
@@ -619,6 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 if (typeof showToast === 'function') showToast(data.error || 'Erreur lors de l\'envoi.', 'danger');
             }
+
         } catch (error) {
             console.error("Erreur d'envoi du signalement:", error);
             if (typeof showToast === 'function') showToast("Une erreur réseau est survenue.", "danger");
@@ -658,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
-                btn.innerHTML = '⚙️ Analyse en cours... Veuillez patienter...';
+                btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
                 
                 const cronUrl = amfsConfig.cronUrl.includes('?') ? amfsConfig.cronUrl + '&force=1' : amfsConfig.cronUrl + '?force=1';
 
@@ -667,8 +666,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(data => {
                         if (data.status === 'executed') {
                             alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards + 
-                                '\nDomaines uniques interrogés : ' + data.unique_domains + 
-                                '\nNouveaux liens rompus identifiés : ' + data.dead_count);
+                                  '\nDomaines uniques interrogés : ' + data.unique_domains + 
+                                  '\nNouveaux liens rompus identifiés : ' + data.dead_count);
                         } else {
                             alert('Le scan a retourné un statut inattendu.');
                         }
@@ -695,6 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let fetchSeasonsTimeout = null;
 
     if (champSaison && champTotalEp) {
+        
         // Changement de 'change' en 'input' pour une réaction instantanée sans avoir à cliquer en dehors
         champSaison.addEventListener('input', function() {
             const numSaison = this.value;
@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 2. Si on édite la carte (page rechargée), on récupère les données de TMDB en fond
+            // 2. Si on édite la carte (page rechargée), on récupère les données unifiées en fond
             const titreInput = document.getElementById('titre');
             if (titreInput && titreInput.value.trim() !== '') {
                 
@@ -724,7 +724,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const titre = titreInput.value.trim();
                     const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
                     
-                    // On force le type 'serie' pour utiliser TMDB et avoir le tableau des saisons (même pour les animes)
+                    // On récupère le format unifié
                     const url = `${baseUrl}item/search?q=${encodeURIComponent(titre)}&type=serie`;
 
                     try {
@@ -735,13 +735,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         const response = await fetch(url);
                         const data = await response.json();
 
-                        if (data.results && data.results.length > 0) {
+                        if (data.unified && data.unified.length > 0) {
                             // On prend le premier résultat valide qui contient bien les saisons
-                            const bestMatch = data.results.find(r => r.seasons_data !== null);
+                            const bestMatch = data.unified.find(r => r.seasons_data !== null);
+
                             if (bestMatch && bestMatch.seasons_data) {
                                 
                                 // On met en cache pour éviter de refaire l'appel si l'utilisateur change encore la saison
-                                window.currentSeasonsData = bestMatch.seasons_data; 
+                                window.currentSeasonsData = bestMatch.seasons_data;
                                 
                                 if (window.currentSeasonsData[numSaison] !== undefined) {
                                     champTotalEp.value = window.currentSeasonsData[numSaison];
@@ -763,6 +764,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         champTotalEp.style.opacity = '1';
                         isFetchingSeasons = false;
                     }
+
                 }, 500); // 500ms d'attente après la dernière frappe avant d'interroger le serveur
             }
         });
@@ -855,6 +857,7 @@ window.addEventListener('load', function() {
         if (statusDiv) {
             statusDiv.style.display = 'none';
         }
+        
         if (disponible) {
             if (dateContainer) dateContainer.style.display = 'none'; 
         } else {
