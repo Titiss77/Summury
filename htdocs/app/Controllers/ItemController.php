@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -15,6 +13,7 @@ use App\Models\StatutModel;
 class ItemController extends BaseController
 {
     private $model;
+    private $statutModel;
 
     public function __construct()
     {
@@ -26,13 +25,15 @@ class ItemController extends BaseController
     {
         $userId = auth()->loggedIn() ? auth()->id() : null;
         $subCategories = [];
+
         if ($userId) {
             $subCategories = $this->model->where('id_user', $userId)->where('sous_categorie IS NOT NULL')
                 ->where('sous_categorie !=', '')->distinct()->findColumn('sous_categorie') ?? []
             ;
         }
+
         $data = [
-            'headers' => $this->model->getHeaders(),
+            'headers' => [], // <-- MODIFICATION ICI : On n'envoie plus les catégories pour masquer le menu
             'divisions' => $this->model->getDivisions(),
             'subCategories' => $subCategories,
             'statuts' => $this->statutModel->orderBy('ordre', 'ASC')->findAll(),
@@ -40,6 +41,7 @@ class ItemController extends BaseController
             'view' => 'item_form',
             'redirect_url' => $this->request->getUserAgent()->getReferrer() ?? site_url('/'),
         ];
+
         if (null !== $id) {
             $data['item'] = $this->model->find($id);
         }
@@ -73,7 +75,6 @@ class ItemController extends BaseController
             $wantsPublic = $this->request->getPost('is_public');
             $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
             $data['date_sortie'] = empty($this->request->getPost('date_sortie')) ? null : $this->request->getPost('date_sortie');
-
             $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
             $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
             $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
@@ -105,13 +106,13 @@ class ItemController extends BaseController
                 $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
                 if (!$canEdit) {
                     $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
-
                     return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
                 }
 
                 if (1 == $existing->is_public && 0 != $data['is_public'] && !$isSuperAdmin) {
                     $revisionModel = new ItemRevisionModel();
                     $existingRevision = $revisionModel->where('original_item_id', $id)->where('revision_status', 'pending')->first();
+
                     $revisionData = [
                         'original_item_id' => $id,
                         'id_user' => auth()->id(),
@@ -129,6 +130,7 @@ class ItemController extends BaseController
                         'date_sortie' => $data['date_sortie'],
                         'revision_status' => 'pending',
                     ];
+
                     if ($existingRevision) {
                         $revisionData['id'] = $existingRevision['id'];
                     }
@@ -142,6 +144,7 @@ class ItemController extends BaseController
 
                 $item = new Item($data);
                 $this->model->save($item);
+
                 $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
                 $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
 
@@ -152,9 +155,11 @@ class ItemController extends BaseController
             } else {
                 $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
                 $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
+
                 $item = new Item($data);
                 $this->model->save($item);
                 $newId = $this->model->getInsertID();
+
                 $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
                 $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
             }
@@ -181,7 +186,6 @@ class ItemController extends BaseController
                 return redirect()->to($backUrl.$separator.'open='.$id_div.'#div-'.$id_div);
             }
         }
-
         return redirect()->back();
     }
 
@@ -192,11 +196,11 @@ class ItemController extends BaseController
             $newEpisode = (int) $item->episode + 1;
             $this->model->update($id, ['episode' => $newEpisode]);
             (new AuditLogModel())->logAction('Incrémentation Rapide', "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode}.");
+
             if ($this->request->isAJAX()) {
                 return $this->response->setJSON(['success' => true, 'new_episode' => $newEpisode, 'csrf_token' => csrf_hash()]);
             }
         }
-
         return redirect()->back();
     }
 
@@ -207,11 +211,11 @@ class ItemController extends BaseController
             $newSaison = (int) $item->saison + 1;
             $this->model->update($id, ['saison' => $newSaison]);
             (new AuditLogModel())->logAction('Incrémentation Rapide', "Mise à jour de la carte ID {$id} ('{$item->titre}') : Saison passé à {$newSaison}.");
+
             if ($this->request->isAJAX()) {
                 return $this->response->setJSON(['success' => true, 'new_saison' => $newSaison, 'csrf_token' => csrf_hash()]);
             }
         }
-
         return redirect()->back();
     }
 
@@ -227,6 +231,7 @@ class ItemController extends BaseController
         $cache = Services::cache();
         // Cache v5 pour purger les anciens résultats en anglais
         $cacheKey = 'api_search_v5_'.md5($query.'_'.$type);
+
         if ($cachedResult = $cache->get($cacheKey)) {
             return $this->response->setJSON($cachedResult);
         }
@@ -244,6 +249,7 @@ class ItemController extends BaseController
             if (filter_var($query, FILTER_VALIDATE_URL)) {
                 $metaData = $this->scrapeOpenGraph($query);
                 $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
+
                 if (!isset($body['error'])) {
                     $cache->save($cacheKey, $body, 3600);
                 }
@@ -305,7 +311,6 @@ class ItemController extends BaseController
                                     if (isset($tvBody['number_of_seasons'])) {
                                         $item['total_saisons'] = $tvBody['number_of_seasons'];
                                     }
-
                                     if (isset($tvBody['seasons'])) {
                                         $seasons = [];
                                         foreach ($tvBody['seasons'] as $season) {
@@ -326,7 +331,6 @@ class ItemController extends BaseController
             try {
                 // order[relevance]=desc permet de remonter les mangas les plus connus en premier
                 $mdUrl = 'https://api.mangadex.org/manga?title='.urlencode($query).'&limit=5&includes[]=cover_art&order[relevance]=desc';
-
                 $mdResponse = $client->get($mdUrl, [
                     'headers' => [
                         'User-Agent' => 'AMFS-App/1.0',
@@ -348,7 +352,6 @@ class ItemController extends BaseController
 
                             // On cible spécifiquement la description en Français (fallback sur anglais si introuvable)
                             $description = $attr['description']['fr'] ?? $attr['description']['en'] ?? '';
-
                             $year = $attr['year'] ?? '';
 
                             // Récupération de l'image de couverture
@@ -357,7 +360,6 @@ class ItemController extends BaseController
                                 foreach ($m['relationships'] as $rel) {
                                     if ('cover_art' === $rel['type'] && isset($rel['attributes']['fileName'])) {
                                         $fileName = $rel['attributes']['fileName'];
-
                                         break;
                                     }
                                 }
@@ -401,6 +403,7 @@ class ItemController extends BaseController
     {
         $item = $this->model->find($id);
         $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
             $this->model->update($id, ['id_user' => 1]);
             (new AuditLogModel())->logAction('Transfert Carte', "La carte ID {$id} ('{$item->titre}') a été transférée à l'admin.");
@@ -419,17 +422,20 @@ class ItemController extends BaseController
                 if (!auth()->loggedIn()) {
                     return $this->response->setJSON(['success' => false, 'error' => 'Session expirée.']);
                 }
+
                 $userId = auth()->id();
                 $isSuperAdmin = auth()->user()->inGroup('superadmin');
 
                 $count = 0;
                 foreach ($json->order as $index => $itemId) {
                     $item = $this->model->find($itemId);
+
                     if ($item && ((int) $item->id_user === (int) $userId || $isSuperAdmin)) {
                         $this->model->update($itemId, ['position' => $index]);
                         ++$count;
                     }
                 }
+
                 if ($count > 0) {
                     (new AuditLogModel())->logAction('Reorganisation', "Ordre d'affichage de {$count} carte(s) modifié.");
                 }
@@ -444,21 +450,22 @@ class ItemController extends BaseController
     public function checkDispo()
     {
         $urlCible = $this->request->getGet('urlCible');
+
         if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
         $siteConfigModel = new SiteConfigModel();
         $sites = $siteConfigModel->where('is_active', 1)->findAll();
-        $currentConfig = null;
 
+        $currentConfig = null;
         foreach ($sites as $config) {
             if (false !== stripos($urlCible, $config['domain'])) {
                 $currentConfig = $config;
-
                 break;
             }
         }
+
         if (!$currentConfig) {
             return $this->response->setJSON(['success' => false, 'error' => 'Domaine non supporté.']);
         }
@@ -486,7 +493,6 @@ class ItemController extends BaseController
             foreach ($indicateursPageInvalide as $indicator) {
                 if (false !== stripos($html, $indicator)) {
                     $estSurFicheAnime = true;
-
                     break;
                 }
             }
@@ -496,7 +502,6 @@ class ItemController extends BaseController
                 $indicatorFinal = $episodeExtrait ? str_replace('{ep}', (string) $episodeExtrait, $indicator) : $indicator;
                 if (false !== stripos($html, $indicatorFinal)) {
                     $lecteurPresent = true;
-
                     break;
                 }
             }
@@ -517,11 +522,13 @@ class ItemController extends BaseController
         if (!$html) {
             return null;
         }
+
         $doc = new \DOMDocument();
         @$doc->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
         $tags = $doc->getElementsByTagName('meta');
 
         $data = ['titre' => '', 'description' => '', 'image' => '', 'lien' => $url, 'is_link' => true];
+
         foreach ($tags as $tag) {
             if ($tag->hasAttribute('property')) {
                 $property = $tag->getAttribute('property');
@@ -536,6 +543,7 @@ class ItemController extends BaseController
                 }
             }
         }
+
         if (empty($data['titre'])) {
             $titles = $doc->getElementsByTagName('title');
             if ($titles->length > 0) {
