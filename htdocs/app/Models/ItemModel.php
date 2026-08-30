@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Models;
 
@@ -35,7 +33,8 @@ class ItemModel extends Model
         ;
 
         if (null === $userId) {
-            $builder->where('i.is_public', 2);
+            // Modification ici : afficher les cartes publiques (1) aux visiteurs
+            $builder->where('i.is_public', 1);
         } else {
             $builder->groupStart()->where('i.id_user', $userId)->orWhere('i.is_public', 1)->groupEnd();
         }
@@ -46,12 +45,13 @@ class ItemModel extends Model
 
         $builder->orderBy('h.id', 'ASC')->orderBy('d.id', 'ASC')->orderBy('i.position', 'ASC');
         $results = $builder->get()->getCustomResultObject(Item::class);
-        $groupedData = [];
 
+        $groupedData = [];
         foreach ($results as $item) {
             $header = $item->header_nom;
             $division = $item->division_nom;
             $subCat = empty($item->sous_categorie) ? 'Sans sous-catégorie' : $item->sous_categorie;
+
             if (!isset($groupedData[$header])) {
                 $groupedData[$header] = [];
             }
@@ -61,6 +61,7 @@ class ItemModel extends Model
             if (!isset($groupedData[$header][$division][$subCat])) {
                 $groupedData[$header][$division][$subCat] = [];
             }
+
             $groupedData[$header][$division][$subCat][] = $item;
         }
 

@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AMFS</title>
-
     <!-- DNS Prefetch / Preconnect pour accélérer le chargement des images externes -->
     <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
     <link rel="preconnect" href="https://cdn.myanimelist.net" crossorigin>
@@ -26,14 +25,16 @@
     $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
     $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
     ?>
+
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v='.$rootCssVersion); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v='.$styleCssVersion); ?>">
+
     <meta name="csrf-token" content="<?php echo csrf_hash(); ?>">
     <meta name="csrf-header" content="<?php echo csrf_header(); ?>">
     <meta id="meta-theme-color" name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
 
     <script>
-    /* Configuration Globale (Securisee contre la minification) */
+    /* Configuration Globale (Sécurisée contre la minification) */
     window.amfsConfig = {
         "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
         "updateOrderUrl": "<?php echo base_url('items/update-order'); ?>",
@@ -81,15 +82,14 @@
             <a href="<?php echo base_url('audit'); ?>" class="logs">
                 logs
                 <?php if ($pendingReportsTotal > 0) { ?>
-                <span style=" background-color: var(--danger, #dc3545); color: white; padding: 2px 5px; border-radius:
-                50%; font-size: 0.7em; margin-left: 4px; font-weight: bold; line-height: 1;">
+                <span
+                    style=" background-color: var(--danger, #dc3545); color: white; padding: 2px 5px; border-radius: 50%; font-size: 0.7em; margin-left: 4px; font-weight: bold; line-height: 1;">
                     <?php echo $pendingReportsTotal; ?>
                 </span>
                 <?php } ?>
             </a>
             <?php } ?>
 
-            <!-- Lien mis à jour vers le profil au lieu d'un simple texte -->
             <a href="<?php echo base_url('profile'); ?>" class="welcome-text"
                 style="text-decoration: none; display: flex; align-items: center; gap: 5px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
@@ -100,7 +100,6 @@
                 </svg>
                 <?php echo esc(auth()->user()->username); ?>
             </a>
-
             <a href="<?php echo base_url('logout'); ?>" class="btn-logout">Déconnexion</a>
             <?php } else { ?>
             <a href="<?php echo base_url('login'); ?>" class="btn-login">Connexion</a>
@@ -108,7 +107,11 @@
             <?php } ?>
         </div>
     </header>
-    <?php if (isset($headers) && !empty($headers) && auth()->loggedIn()) { ?>
+
+    <?php 
+    // Modification : on affiche le menu des headers même si l'utilisateur n'est pas connecté
+    if (isset($headers) && !empty($headers)) { 
+    ?>
     <nav class="category-nav container">
         <?php foreach ($headers as $h) { ?>
         <a href="<?php echo base_url('categorie/'.$h['id']); ?>"
@@ -120,9 +123,11 @@
     <?php } else { ?>
     <nav class="category-nav container"></nav>
     <?php } ?>
+
     <main class="container">
         <?php echo $this->renderSection('content'); ?>
     </main>
+
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         /* Interception des Flashdata de CodeIgniter 4 pour lancer des Toasts automatiquement */

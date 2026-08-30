@@ -1,16 +1,36 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <?php if (!auth()->loggedIn()) { ?>
-<div class="empty-state shadow-card">
-    <h2>Bienvenue sur AMFS Dashboard</h2>
-    <p style="color: var(--danger);">Les cartes ne sont pas accessibles sans être connecté.</p>
-    <p>Veuillez vous connecter ou créer un compte pour gérer et visualiser vos propres cartes ainsi que les publiques.
+<!-- NOUVELLE LANDING PAGE (Visiteurs) -->
+<div class="landing-hero fade-in shadow-card"
+    style="text-align: center; padding: 5rem 2rem; background: linear-gradient(135deg, rgba(79,70,229,0.1) 0%, var(--bg-card) 100%); border-radius: var(--radius-md); margin-bottom: 3rem; border: 1px solid var(--border-color);">
+    <h2
+        style="font-size: 2.8rem; color: var(--text-main); margin-bottom: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">
+        Centralisez vos œuvres et <span style="color: var(--primary);">suivez votre progression</span></h2>
+    <p
+        style="font-size: 1.15rem; color: var(--text-muted); max-width: 700px; margin: 0 auto 2.5rem auto; line-height: 1.6;">
+        AMFS est votre tableau de bord personnel. Organisez vos séries, films, animes, mangas et liens favoris.
+        Récupérez automatiquement les métadonnées, gérez vos statuts de visionnage et explorez les collections publiques
+        !
     </p>
-    <br>
-    <a href="<?php echo base_url('login'); ?>" class="btn btn-primary">Se connecter</a>
-    <a href="<?php echo base_url('register'); ?>" class="btn btn-primary">Créer un compte</a>
+    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+        <a href="<?php echo base_url('register'); ?>" class="btn btn-primary"
+            style="padding: 14px 32px; font-size: 1.1rem; border-radius: 50px;">Créer mon compte gratuit</a>
+        <a href="<?php echo base_url('login'); ?>" class="btn btn-cancel"
+            style="padding: 14px 32px; font-size: 1.1rem; border-radius: 50px; background: transparent;">Me
+            connecter</a>
+    </div>
+</div>
+
+<div class="public-invitation fade-in" style="text-align: center; margin-bottom: 3rem;">
+    <h3 style="color: var(--text-main); font-size: 1.6rem; font-weight: 700;">Explorez les cartes publiques</h3>
+    <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 600px; margin: 0 auto;">Naviguez via les onglets
+        ci-dessus pour découvrir les liens, outils et recommandations partagés par la communauté AMFS.</p>
 </div>
 <?php } else { ?>
+
+<!-- ACTIONS ADMIN & USER CONNECTÉ -->
 <div class="actions-container">
     <?php if (auth()->user()->inGroup('superadmin')) { ?>
     <a href="<?php echo base_url('users'); ?>" class="btn btn-warning" style="margin-right: 15px;">Gérer les
@@ -43,6 +63,8 @@
     <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success">+ Ajouter une carte</a>
 </div>
 <?php } ?>
+
+
 <?php if (empty($groupedItems)) { ?>
 <?php if (auth()->loggedIn()) { ?>
 <div class="empty-state">
@@ -51,12 +73,18 @@
     <br>
     <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success">+ Ajouter une carte</a>
 </div>
+<?php } else { ?>
+<div class="empty-state" style="margin-top: 2rem;">
+    <h3 style="color: var(--text-main);">Aucune carte publique dans cette catégorie.</h3>
+    <p>Créez un compte pour partager les vôtres !</p>
+</div>
 <?php } ?>
 <?php } else { ?>
 <div class="search-container" style="margin-bottom: 2rem;">
     <input type="text" id="liveSearch" class="form-control" placeholder="Rechercher une œuvre... (titre, description)"
         autocomplete="off">
 </div>
+
 <?php $openDivision = $_GET['open'] ?? null; ?>
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
@@ -66,7 +94,6 @@
         foreach ($subCategories as $items) {
             if (!empty($items)) {
                 $currentDivisionId = $items[0]->id_division;
-
                 break;
             }
         }
@@ -79,19 +106,19 @@
         </summary>
         <div class="division-body sortable-division" data-division-id="<?php echo $currentDivisionId; ?>">
             <?php foreach ($subCategories as $subCatName => $items) {
-                $isSansSub = ('Sans sous-catégorie' === $subCatName);
+                $isSansSub = ('Sans sous-catégorie' === $subCatName || 'Sans sous-cat gorie' === $subCatName);
                 $displayTitle = $isSansSub ? 'Autres cartes' : $subCatName;
                 $opacity = $isSansSub ? '0.6' : '0.9';
                 $lineOpacity = $isSansSub ? '0.4' : '0.7';
                 $useDetails = (!$isSansSub || $hasMultipleGroups);
                 $canDragSub = false;
+                
                 if (auth()->loggedIn()) {
                     $isSuperAdmin = auth()->user()->inGroup('superadmin');
                     $currentUserId = (int) auth()->id();
                     foreach ($items as $itm) {
                         if ($isSuperAdmin || (int) $itm->id_user === $currentUserId) {
                             $canDragSub = true;
-
                             break;
                         }
                     }
@@ -149,58 +176,61 @@
                                         class="card-link-block">
                                         <div class="card-body">
                                             <?php
-                                                $isFuture = false;
-                                    $dateSortieFormatted = '';
-                                    $textColor = '';
-                                    if (!empty($item->date_sortie)) {
-                                        $timezone = new DateTimeZone('Europe/Paris');
-                                        $dateSortie = new DateTime($item->date_sortie, $timezone);
-                                        $now = new DateTime('now', $timezone);
-                                        if ($dateSortie > $now) {
-                                            $isFuture = true;
-                                            $dateSortieFormatted = $dateSortie->format('d/m/Y   H:i');
-                                            $textColor = 'color: var(--danger);';
-                                        }
-                                    }
-                                    ?>
+                                            $isFuture = false;
+                                            $dateSortieFormatted = '';
+                                            $textColor = '';
+                                            if (!empty($item->date_sortie)) {
+                                                $timezone = new DateTimeZone('Europe/Paris');
+                                                $dateSortie = new DateTime($item->date_sortie, $timezone);
+                                                $now = new DateTime('now', $timezone);
+                                                if ($dateSortie > $now) {
+                                                    $isFuture = true;
+                                                    $dateSortieFormatted = $dateSortie->format('d/m/Y H:i');
+                                                    $textColor = 'color: var(--danger);';
+                                                }
+                                            }
+                                            ?>
                                             <div class="date-container" id="date-container-<?php echo $item->id; ?>">
                                                 <?php if ($isFuture) { ?>
                                                 <p class="card-date" style="<?php echo $textColor; ?>">Sortie le :
                                                     <?php echo $dateSortieFormatted; ?></p>
                                                 <?php } ?>
                                             </div>
-                                            <?php
-                                    $isCheckable = false;
-                                    if (!empty($item->episode) && isset($supportedDomains) && is_array($supportedDomains)) {
-                                        foreach ($supportedDomains as $domain) {
-                                            if (str_contains($item->getFinalLink(), $domain)) {
-                                                $isCheckable = true;
 
-                                                break;
+                                            <?php
+                                            $isCheckable = false;
+                                            if (!empty($item->episode) && isset($supportedDomains) && is_array($supportedDomains)) {
+                                                foreach ($supportedDomains as $domain) {
+                                                    if (str_contains($item->getFinalLink(), $domain)) {
+                                                        $isCheckable = true;
+                                                        break;
+                                                    }
+                                                }
                                             }
-                                        }
-                                    }
-                                    if ('Terminé' !== $item->status && $isCheckable) {
-                                        ?>
+                                            if ('Terminé' !== $item->status && $isCheckable) {
+                                                ?>
                                             <div class="live-status" id="live-status-<?php echo $item->id; ?>"
                                                 style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
                                                 Vérification...</div>
                                             <?php } ?>
+
                                             <h4 class="card-title search-target-title"
                                                 style="<?php echo $textColor; ?>">
                                                 <?php echo htmlspecialchars($item->titre); ?></h4>
                                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
                                                 <?php echo htmlspecialchars($item->status); ?></p>
+
                                             <?php
-                                        $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-                                    $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
-                                    if ($isPendingNew || $hasPendingRevision) {
-                                        ?>
+                                            $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+                                            $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
+                                            if ($isPendingNew || $hasPendingRevision) {
+                                                ?>
                                             <div
                                                 style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                                                 <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>
                                             </div>
                                             <?php } ?>
+
                                             <?php if (!empty($item->description)) { ?>
                                             <p class="card-desc search-target-desc">
                                                 <?php echo htmlspecialchars($item->description); ?></p>
@@ -210,24 +240,15 @@
                                                 <?php if (!empty($item->saison)) { ?>
                                                 <div
                                                     style="display: flex; flex-direction: column; align-items: center;">
-                                                    <span class="badge badge-season">
-                                                        S. <span
-                                                            id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) {
-                                                                echo ' / '.htmlspecialchars($item->total_saisons);
-                                                            } ?>
-                                                    </span>
-
+                                                    <span class="badge badge-season">S. <span
+                                                            id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / '.htmlspecialchars($item->total_saisons); } ?></span>
                                                 </div>
                                                 <?php } ?>
-
                                                 <?php if (!empty($item->episode)) { ?>
                                                 <div
                                                     style="display: flex; flex-direction: column; align-items: center;">
-                                                    <span class="badge badge-episode">
-                                                        Ép. <span
-                                                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
-                                                                echo ' / '.htmlspecialchars($item->total_episodes);
-                                                            } ?>
+                                                    <span class="badge badge-episode">Ép. <span
+                                                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / '.htmlspecialchars($item->total_episodes); } ?>
                                                         <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                                         <button type="button"
                                                             class="btn-increment btn-increment-episode"
@@ -246,6 +267,7 @@
                                         </div>
                                         <?php } ?>
                                     </a>
+
                                     <?php if (1 == $item->is_public) { ?>
                                     <button type="button" class="btn-report-sm" data-id="<?php echo esc($item->id); ?>"
                                         onclick="openReportModal(this)" aria-label="Signaler un problème">
@@ -256,6 +278,7 @@
                                         </svg>
                                     </button>
                                     <?php } ?>
+
                                     <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                     <div class="card-actions-bottom">
                                         <a href="<?php echo base_url('item/form/'.$item->id); ?>"
@@ -282,7 +305,9 @@
 </section>
 <?php } ?>
 <?php } ?>
+
 <script>
 window.amfsSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
 </script>
+
 <?php echo $this->endSection(); ?>
