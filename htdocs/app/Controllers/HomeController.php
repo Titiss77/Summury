@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -18,7 +16,11 @@ class HomeController extends BaseController
     public function index()
     {
         $model = new ItemModel();
-        $headers = $model->getHeaders();
+        $userId = auth()->loggedIn() ? auth()->id() : null;
+        
+        // On utilise la nouvelle méthode pour n'afficher que les onglets utiles
+        $headers = $model->getActiveHeaders($userId);
+
         if (!empty($headers)) {
             return redirect()->to('categorie/'.$headers[0]['id']);
         }
@@ -30,8 +32,12 @@ class HomeController extends BaseController
     {
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
-        $headers = $model->getHeaders();
+        
+        // On utilise la nouvelle méthode pour n'afficher que les onglets utiles
+        $headers = $model->getActiveHeaders($userId);
+
         $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
+
         $pendingCount = 0;
         $toAdminCount = 0;
 
@@ -46,7 +52,7 @@ class HomeController extends BaseController
         }
 
         // ==========================================
-        // NOUVEAU : Récupération des domaines supportés en BDD
+        // Récupération des domaines supportés en BDD
         // ==========================================
         $siteConfigModel = new SiteConfigModel();
         // On récupère uniquement la colonne 'domain' des sites actifs
