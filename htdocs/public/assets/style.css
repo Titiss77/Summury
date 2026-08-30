@@ -655,7 +655,7 @@ details[open].division-section .division-title {
 .password-toggle {
     position: absolute;
     right: 15px;
-    top: 50%;
+    top: 3.6rem;
     transform: translateY(-50%);
     background: none;
     border: none;
