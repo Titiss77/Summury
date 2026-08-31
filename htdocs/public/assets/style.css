@@ -148,7 +148,7 @@ a {
 
 .nav-tab.active {
     background: var(--primary);
-    color: #ffffff;
+    color: var(--text-main);
     border-color: var(--primary);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
@@ -221,7 +221,7 @@ a {
 details[open].division-section .toggle-icon {
     transform: rotate(90deg);
     background: var(--primary);
-    color: #fff;
+    color: var(--text-main);
     box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
 }
 
@@ -262,7 +262,7 @@ details[open].division-section .division-title {
 .subcategory-details[open]>summary .sub-toggle {
     transform: rotate(90deg);
     background: var(--primary);
-    color: #fff;
+    color: var(--text-main);
 }
 
 .subcategory-details[open]>.cards-grid {
@@ -504,7 +504,7 @@ details[open].division-section .division-title {
 .btn-primary,
 .btn-success {
     background-color: var(--primary);
-    color: #fff;
+    color: var(--text-main);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
@@ -517,12 +517,12 @@ details[open].division-section .division-title {
 
 .btn-warning {
     background-color: var(--bg-card);
-    color: #fff;
+    color: var(--text-main);
 }
 
 .btn-info {
     background-color: var(--info);
-    color: #fff;
+    color: var(--text-main);
 }
 
 .btn-increment {
@@ -540,7 +540,7 @@ details[open].division-section .division-title {
 
 .btn-increment:hover {
     background: var(--danger-text);
-    color: #fff;
+    color: var(--text-main);
 }
 
 .btn-login {
@@ -564,7 +564,7 @@ details[open].division-section .division-title {
 
 .btn-register:hover {
     background-color: var(--primary);
-    color: #fff;
+    color: var(--text-main);
     transform: translateY(-2px);
 }
 
@@ -840,7 +840,7 @@ textarea.form-control {
 
 .btn-edit:hover {
     background: var(--info);
-    color: #fff;
+    color: var(--text-main);
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 }
@@ -852,7 +852,7 @@ textarea.form-control {
 
 .btn-ban:hover {
     background: var(--danger);
-    color: #fff;
+    color: var(--text-main);
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 }
