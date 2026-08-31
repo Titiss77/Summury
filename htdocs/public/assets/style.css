@@ -150,7 +150,7 @@ a {
     background: var(--primary);
     color: var(--text-main);
     border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    box-shadow: var(--shadow-md);
 }
 
 /* =========================================
@@ -505,7 +505,7 @@ details[open].division-section .division-title {
 .btn-success {
     background-color: var(--primary);
     color: var(--text-main);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-primary:hover,
