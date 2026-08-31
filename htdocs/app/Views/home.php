@@ -18,7 +18,7 @@
         <a href="<?php echo base_url('register'); ?>" class="btn btn-primary"
             style="padding: 14px 32px; font-size: 1.1rem; border-radius: 50px;">Créer mon compte gratuit</a>
         <a href="<?php echo base_url('login'); ?>" class="btn btn-cancel"
-            style="padding: 14px 32px; font-size: 1.1rem; border-radius: 50px; background: transparent;">Me
+            style="padding: 14px 32px; font-size: 1.1rem; border-radius: 50px;">Me
             connecter</a>
     </div>
 </div>
