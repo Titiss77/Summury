@@ -19,13 +19,18 @@ class HomeController extends BaseController
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
         // On utilise la nouvelle méthode pour n'afficher que les onglets utiles
-        $headers = $model->getActiveHeaders($userId);
+        $headersWithNoLogin = $model->getActiveHeaders($userId);
+        $headersWithLogin = $model->getHeaders($userId);
 
-        if (!empty($headers)) {
-            return redirect()->to('categorie/'.$headers[0]['id']);
+        if (!empty($headersWithNoLogin)) {
+            return redirect()->to('categorie/'.$headersWithNoLogin[0]['id']);
         }
 
-        return view('home', ['headers' => [], 'groupedItems' => [], 'supportedDomains' => []]);
+        if (!empty($headersWithLogin)) {
+            return redirect()->to('categorie/'.$headersWithLogin[0]['id']);
+        }
+
+        return view('home', ['headersWithNoLogin' => $headersWithNoLogin, 'headersWithLogin' => $headersWithLogin, 'groupedItems' => [], 'supportedDomains' => []]);
     }
 
     public function categorie($headerId)
@@ -34,8 +39,10 @@ class HomeController extends BaseController
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
         // On utilise la nouvelle méthode pour n'afficher que les onglets utiles
-        $headers = $model->getActiveHeaders($userId);
-
+        $headersWithNoLogin = $model->getActiveHeaders($userId);
+        $headersWithLogin = $model->getHeaders($userId);
+        
+    
         $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
 
         $pendingCount = 0;
@@ -59,7 +66,8 @@ class HomeController extends BaseController
         $supportedDomains = $siteConfigModel->where('is_active', 1)->findColumn('domain') ?? [];
 
         return view('home', [
-            'headers' => $headers,
+            'headersWithNoLogin' => $headersWithNoLogin,
+            'headersWithLogin' => $headersWithLogin,
             'groupedItems' => $groupedItems,
             'currentHeaderId' => $headerId,
             'pendingCount' => $pendingCount,

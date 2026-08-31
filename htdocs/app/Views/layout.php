@@ -110,16 +110,30 @@
 
     <?php 
     // Modification : on affiche le menu des headers même si l'utilisateur n'est pas connecté
-    if (isset($headers) && !empty($headers)) { 
+    if (isset($headersWithNoLogin) && !empty($headersWithNoLogin)) { 
+    ?>
+    <?php 
+    // Modification : on affiche le menu des headers même si l'utilisateur n'est pas connecté
+    if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { 
     ?>
     <nav class="category-nav container">
-        <?php foreach ($headers as $h) { ?>
+        <?php foreach ($headersWithLogin as $h) { ?>
         <a href="<?php echo base_url('categorie/'.$h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
         <?php } ?>
     </nav>
+    <?php } else { ?>
+    <nav class="category-nav container">
+        <?php foreach ($headersWithNoLogin as $h) { ?>
+        <a href="<?php echo base_url('categorie/'.$h['id']); ?>"
+            class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
+            <?php echo esc($h['nom']); ?>
+        </a>
+        <?php } ?>
+    </nav>
+    <?php } ?>
     <?php } else { ?>
     <nav class="category-nav container"></nav>
     <?php } ?>
@@ -132,15 +146,18 @@
     document.addEventListener("DOMContentLoaded", function() {
         /* Interception des Flashdata de CodeIgniter 4 pour lancer des Toasts automatiquement */
         <?php if (session()->getFlashdata('success')) { ?>
-        if (typeof showToast === 'function') showToast("<?php echo esc(session()->getFlashdata('success')); ?>",
+        if (typeof showToast === 'function') showToast(
+            "<?php echo esc(session()->getFlashdata('success')); ?>",
             "success");
         <?php } ?>
         <?php if (session()->getFlashdata('error')) { ?>
-        if (typeof showToast === 'function') showToast("<?php echo esc(session()->getFlashdata('error')); ?>",
+        if (typeof showToast === 'function') showToast(
+            "<?php echo esc(session()->getFlashdata('error')); ?>",
             "danger");
         <?php } ?>
         <?php if (session()->getFlashdata('message')) { ?>
-        if (typeof showToast === 'function') showToast("<?php echo esc(session()->getFlashdata('message')); ?>",
+        if (typeof showToast === 'function') showToast(
+            "<?php echo esc(session()->getFlashdata('message')); ?>",
             "info");
         <?php } ?>
     });
