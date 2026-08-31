@@ -144,7 +144,6 @@ a {
     background: var(--primary-light);
     color: var(--primary);
     border-color: var(--primary-light);
-    transform: translateY(-2px);
 }
 
 .nav-tab.active {
