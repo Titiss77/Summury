@@ -526,7 +526,7 @@ details[open].division-section .division-title {
 }
 
 .btn-increment {
-    background: var(--bg-card);
+    background: var(--info-bg);
     border: 1px solid var(--danger-text);
     color: var(--danger-text);
     cursor: pointer;
