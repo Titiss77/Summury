@@ -1,7 +1,7 @@
 :root {
     /* Palette de couleurs "Premium Frost" (Lumineux, aéré et luxueux) */
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
+    --primary: #c8a468;
+    --primary-hover: #836b42;
     --primary-light: rgba(79, 70, 229, 0.1);
 
     --bg-body: #f8f9fa;
@@ -16,9 +16,9 @@
     --success-bg: rgba(16, 185, 129, 0.1);
     --success-text: #047857;
 
-    --info: #4f46e5;
+    --info: #c8a468;
     --info-bg: rgba(59, 130, 246, 0.1);
-    --info-text: #1d4ed8;
+    --info-text: #8d754a;
 
     --danger: #ef4444;
     --danger-hover: #dc2626;
