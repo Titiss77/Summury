@@ -66,8 +66,6 @@
         --text-muted: #8C857D;
         --border-color: #25201B;
 
-        --info: #c8a468;
-
         --shadow-sm: 0 4px 6px -1px rgb(200, 164, 104, 0.3);
         --shadow-hover: 0 25px 35px -5px rgba(200, 164, 104, 0.08), 0 10px 10px -5px rgba(200, 164, 104, 0.04);
 
@@ -75,9 +73,9 @@
         --success-bg: rgba(16, 185, 129, 0.1);
         --success-text: #21d29f;
     
-        --info: #4f46e5;
+        --info: #c8a468;
         --info-bg: rgba(59, 130, 246, 0.1);
-        --info-text: #1d4ed8;
+        --info-text: #8d754a;
     
         --danger: #ef4444;
         --danger-hover: #dc2626;
