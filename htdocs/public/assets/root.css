@@ -55,21 +55,16 @@
    THÈME SOMBRE (DARK MODE)
    ========================================= */
 [data-theme="dark"] {
-    --bg-body: #0f172a;
-    --bg-card: #1e293b;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --border-color: #334155;
+        --primary: #c8a468;
+        --primary-hover: #836b42;
+        --primary-light: rgba(79, 70, 229, 0.1);
+    
+        --bg-body: #14120D;
+        --bg-card: #201d15;
+    
+        --text-main: #FFFFFF;
+        --text-muted: #8C857D;
+        --border-color: #25201B;
 
-    /* Ombres adaptées au fond sombre pour ne pas faire "tâche" */
-    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-    --shadow-hover: 0 25px 35px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(79, 70, 229, 0.15);
-
-    --primary-light: rgba(79, 70, 229, 0.2);
-    --success-text: #34d399;
-    --info-text: #60a5fa;
-    --danger-text: #f87171;
+        --shadow-sm: 0 4px 6px -1px rgb(200, 164, 104, 0.3);
 }
