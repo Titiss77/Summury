@@ -31,7 +31,7 @@
     /* Ombres Modernes (Plus douces, étalées et réalistes) */
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 15px -3px rgba(255, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
     --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     --shadow-hover: 0 25px 35px -5px rgba(79, 70, 229, 0.08), 0 10px 10px -5px rgba(79, 70, 229, 0.04);
 
@@ -57,7 +57,7 @@
 [data-theme="dark"] {
         --primary: #c8a468;
         --primary-hover: #836b42;
-        --primary-light: rgba(79, 70, 229, 0.1);
+        --primary-light: rgba(200, 164, 104, 0.1);
     
         --bg-body: #14120D;
         --bg-card: #201d15;
@@ -66,5 +66,8 @@
         --text-muted: #8C857D;
         --border-color: #25201B;
 
+        --info: #c8a468;
+
         --shadow-sm: 0 4px 6px -1px rgb(200, 164, 104, 0.3);
+        --shadow-hover: 0 25px 35px -5px rgba(200, 164, 104, 0.08), 0 10px 10px -5px rgba(200, 164, 104, 0.04);
 }
