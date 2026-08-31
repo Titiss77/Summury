@@ -223,7 +223,7 @@ details[open].division-section .toggle-icon {
     transform: rotate(90deg);
     background: var(--primary);
     color: var(--text-main);
-    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+    box-shadow: var(--shadow-sm);
 }
 
 details[open].division-section .division-title {
