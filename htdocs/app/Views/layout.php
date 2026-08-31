@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://cdn.myanimelist.net" crossorigin>
     <link rel="dns-prefetch" href="https://image.tmdb.org">
     <link rel="dns-prefetch" href="https://cdn.myanimelist.net">
+    <link rel="icon" href="data:,">
 
     <script>
     /* Theme Sombre */
