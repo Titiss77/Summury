@@ -516,7 +516,7 @@ details[open].division-section .division-title {
 }
 
 .btn-warning {
-    background-color: var(--warning);
+    background-color: var(--bg-card);
     color: #fff;
 }
 
