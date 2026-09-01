@@ -76,6 +76,11 @@ a {
     margin-right: 10px;
     border-radius: 50%;
     object-fit: cover;
+    filter: grayscale(100%) contrast(1000%) brightness(0);
+    }
+    
+html[data-theme="dark"] .logo-site {
+    filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
 }
 
 .user-nav {
