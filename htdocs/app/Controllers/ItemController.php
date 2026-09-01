@@ -241,7 +241,7 @@ class ItemController extends BaseController
             'connect_timeout' => 5,
             'http_errors' => false,
             'verify' => false,
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/AMFS',
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/site',
         ]);
 
         try {
@@ -333,7 +333,7 @@ class ItemController extends BaseController
                 $mdUrl = 'https://api.mangadex.org/manga?title='.urlencode($query).'&limit=5&includes[]=cover_art&order[relevance]=desc';
                 $mdResponse = $client->get($mdUrl, [
                     'headers' => [
-                        'User-Agent' => 'AMFS-App/1.0',
+                        'User-Agent' => 'site-App/1.0',
                         'Accept' => 'application/json',
                     ],
                 ]);

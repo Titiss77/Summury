@@ -70,13 +70,12 @@ a {
     color: inherit;
 }
 
-.logo-amfs {
+.logo-site {
     width: 34px;
     height: 34px;
     margin-right: 10px;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: var(--shadow-sm);
 }
 
 .user-nav {

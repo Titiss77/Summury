@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
 
             const itemId = button.getAttribute('data-id');
-            const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+            const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             const url = baseUrl + 'item/increment-episode/' + itemId;
             const counterSpan = document.getElementById(`ep-count-${itemId}`);
 
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        [amfsConfig.csrfHeader]: amfsConfig.csrfToken
+                        [siteConfig.csrfHeader]: siteConfig.csrfToken
                     }
                 });
 
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload(); 
                     }, 400);
 
-                    if (data.csrf_token) amfsConfig.csrfToken = data.csrf_token; 
+                    if (data.csrf_token) siteConfig.csrfToken = data.csrf_token; 
                     if (typeof showToast === 'function') showToast('Épisode ajouté avec succès !', 'success');
 
                 } else {
@@ -300,12 +300,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         async function updateOrderBackend(newOrder) {
             try {
-                const response = await fetch(amfsConfig.updateOrderUrl, {
+                const response = await fetch(siteConfig.updateOrderUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
-                        [amfsConfig.csrfHeader]: amfsConfig.csrfToken
+                        [siteConfig.csrfHeader]: siteConfig.csrfToken
                     },
                     body: JSON.stringify({ order: newOrder })
                 });
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (data.csrf_token) {
-                    amfsConfig.csrfToken = data.csrf_token;
+                    siteConfig.csrfToken = data.csrf_token;
                 }
                 
                 if (typeof showToast === 'function') showToast("Ordre mis à jour !", 'success');
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 typeSelectionne = 'lien';
             }
 
-            const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+            const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             // Le typeSelectionne est envoyé mais le serveur PHP gère maintenant tout en format unifié
             const url = `${baseUrl}item/search?q=${encodeURIComponent(titreInput)}&type=${typeSelectionne}`;
 
@@ -588,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (description === null) return; 
 
-        const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+        const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
         const url = baseUrl + 'report/submit';
 
         try {
@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    [amfsConfig.csrfHeader]: amfsConfig.csrfToken
+                    [siteConfig.csrfHeader]: siteConfig.csrfToken
                 },
                 body: JSON.stringify({
                     item_id: itemId,
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (data.csrf_token) {
-                amfsConfig.csrfToken = data.csrf_token;
+                siteConfig.csrfToken = data.csrf_token;
             }
 
             if (data.success) {
@@ -659,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.style.opacity = '0.6';
                 btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
                 
-                const cronUrl = amfsConfig.cronUrl.includes('?') ? amfsConfig.cronUrl + '&force=1' : amfsConfig.cronUrl + '?force=1';
+                const cronUrl = siteConfig.cronUrl.includes('?') ? siteConfig.cronUrl + '&force=1' : siteConfig.cronUrl + '?force=1';
 
                 fetch(cronUrl)
                     .then(response => response.json())
@@ -722,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     isFetchingSeasons = true;
                     
                     const titre = titreInput.value.trim();
-                    const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+                    const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
                     
                     // On récupère le format unifié
                     const url = `${baseUrl}item/search?q=${encodeURIComponent(titre)}&type=serie`;
@@ -778,16 +778,16 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('load', function() {
     
     // FETCH SILENCIEUX CRON
-    if (typeof amfsConfig !== 'undefined' && amfsConfig.cronUrl) {
+    if (typeof siteConfig !== 'undefined' && siteConfig.cronUrl) {
         setTimeout(function() {
-            fetch(amfsConfig.cronUrl).catch(error => console.log('Tache de fond ignoree.'));
+            fetch(siteConfig.cronUrl).catch(error => console.log('Tache de fond ignoree.'));
         }, 5000);
     }
 
     const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
     
     // --- On récupère dynamiquement les domaines supportés transmis par PHP ---
-    const supportedDomains = window.amfsSupportedDomains || [];
+    const supportedDomains = window.siteSupportedDomains || [];
     
     cardsToCheck.forEach(async function(card) {
         const itemId = card.getAttribute('data-id');
@@ -816,7 +816,7 @@ window.addEventListener('load', function() {
         }
 
         try {
-            const baseUrl = amfsConfig.baseUrl.endsWith('/') ? amfsConfig.baseUrl : amfsConfig.baseUrl + '/';
+            const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             
             const response = await fetch(`${baseUrl}item/check-dispo?urlCible=${encodeURIComponent(url)}`, {
                 method: 'GET',

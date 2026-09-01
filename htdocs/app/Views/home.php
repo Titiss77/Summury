@@ -10,7 +10,8 @@
         Centralisez vos œuvres et <span style="color: var(--primary);">suivez votre progression</span></h2>
     <p
         style="font-size: 1.15rem; color: var(--text-muted); max-width: 700px; margin: 0 auto 2.5rem auto; line-height: 1.6;">
-        AMFS est votre tableau de bord personnel. Organisez vos séries, films, animes, mangas et liens favoris.
+        <?php echo env('SITENAME'); ?> est votre tableau de bord personnel. Organisez vos séries, films, animes, mangas
+        et liens favoris.
         Récupérez automatiquement les métadonnées, gérez vos statuts de visionnage et explorez les collections publiques
         !
     </p>
@@ -26,7 +27,8 @@
 <div class="public-invitation fade-in" style="text-align: center; margin-bottom: 3rem;">
     <h3 style="color: var(--text-main); font-size: 1.6rem; font-weight: 700;">Explorez les cartes publiques</h3>
     <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 600px; margin: 0 auto;">Naviguez via les onglets
-        ci-dessus pour découvrir les liens, outils et recommandations partagés par la communauté AMFS.</p>
+        ci-dessus pour découvrir les liens, outils et recommandations partagés par la communauté
+        <?php echo env('SITENAME'); ?>.</p>
 </div>
 <?php } else { ?>
 
@@ -307,7 +309,7 @@
 <?php } ?>
 
 <script>
-window.amfsSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
+window.<?php echo env('SITENAME'); ?>SupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
 </script>
 
 <?php echo $this->endSection(); ?>

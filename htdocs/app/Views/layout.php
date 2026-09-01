@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AMFS</title>
+    <title><?php echo env('SITENAME'); ?></title>
     <!-- DNS Prefetch / Preconnect pour accélérer le chargement des images externes -->
     <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
     <link rel="preconnect" href="https://cdn.myanimelist.net" crossorigin>
@@ -35,7 +35,7 @@
 
     <script>
     /* Configuration Globale (Sécurisée contre la minification) */
-    window.amfsConfig = {
+    window.<?php echo env('SITENAME'); ?>Config = {
         "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
         "updateOrderUrl": "<?php echo base_url('items/update-order'); ?>",
         "cronUrl": "<?php echo base_url('cron/run'); ?>",
@@ -59,8 +59,8 @@
         <h1>
             <a href="<?php echo base_url('/'); ?>" style="color:inherit;">
                 <!-- Décodage asynchrone pour le logo -->
-                <img class="logo-amfs" src="<?php echo base_url('favicon.ico'); ?>" alt="AMFS Logo"
-                    decoding="async">AMFS
+                <img class="logo-site" src="<?php echo base_url('favicon.ico'); ?>"
+                    alt="<?php echo env('SITENAME'); ?> Logo" decoding="async"><?php echo env('SITENAME'); ?>
             </a>
         </h1>
         <div class="user-nav">
