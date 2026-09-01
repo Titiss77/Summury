@@ -164,7 +164,8 @@ class ItemController extends BaseController
                 $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
             }
 
-            return redirect()->to($backUrl.$separator.'open='.$data['id_division'].'#div-'.$data['id_division']);
+            $subParam = !empty($data['sous_categorie']) ? '&subopen='.urlencode($data['sous_categorie']) : '';
+            return redirect()->to($backUrl.$separator.'open='.$data['id_division'].$subParam.'#div-'.$data['id_division']);
         }
     }
 

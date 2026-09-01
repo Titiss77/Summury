@@ -88,6 +88,7 @@
 </div>
 
 <?php $openDivision = $_GET['open'] ?? null; ?>
+<?php $openSub = $_GET['subopen'] ?? null; ?>
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
     <h2 class="header-title"><?php echo htmlspecialchars($headerName); ?></h2>
@@ -128,7 +129,18 @@
                 ?>
             <div class="subcategory-wrapper">
                 <?php if ($useDetails) { ?>
-                <details class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;">
+                <?php
+                $isSubOpen = '';
+                if ($isOpen === 'open') {
+                    if ($openSub && $openSub === $subCatName) {
+                        $isSubOpen = 'open';
+                    } elseif (!$openSub) {
+                        $isSubOpen = 'open'; // S'ouvre par défaut s'il n'y a pas de sous-catégorie précisée
+                    }
+                }
+                ?>
+                <details class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;"
+                    <?php echo $isSubOpen; ?>>
                     <summary style="display: flex; align-items: center; gap: 10px; cursor: pointer; outline: none;">
                         <?php if ($canDragSub) { ?>
                         <span class="drag-handle-sub" title="Déplacer ce groupe">&#x2630;</span>
@@ -254,7 +266,11 @@
                                                         <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                                         <button type="button"
                                                             class="btn-increment btn-increment-episode"
-                                                            data-id="<?php echo $item->id; ?>">+1</button>
+                                                            data-id="<?php echo $item->id; ?>"
+                                                            data-division="<?php echo $item->id_division; ?>"
+                                                            data-sub="<?php echo htmlspecialchars($item->sous_categorie ?? ''); ?>">
+                                                            +1
+                                                        </button>
                                                         <?php } ?>
                                                     </span>
                                                 </div>

@@ -191,6 +191,10 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
 
             const itemId = button.getAttribute('data-id');
+            // NOUVEAU : On récupère les infos de la catégorie depuis le bouton
+            const divisionId = button.getAttribute('data-division');
+            const subCategory = button.getAttribute('data-sub');
+
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             const url = baseUrl + 'item/increment-episode/' + itemId;
             const counterSpan = document.getElementById(`ep-count-${itemId}`);
@@ -216,7 +220,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         counterSpan.style.color = '';
                         counterSpan.style.transform = 'scale(1)';
-                        window.location.reload(); 
+                        
+                        // NOUVEAU : On reconstruit l'URL avec les bons paramètres au lieu d'un reload simple
+                        const currentUrl = new URL(window.location.href.split('?')[0].split('#')[0]);
+                        
+                        if (divisionId) {
+                            currentUrl.searchParams.set('open', divisionId);
+                            currentUrl.hash = 'div-' + divisionId; // Fait défiler jusqu'à la division
+                        }
+                        if (subCategory) {
+                            currentUrl.searchParams.set('subopen', subCategory);
+                        }
+                        
+                        // On redirige vers l'URL modifiée (ce qui recharge la page au bon endroit)
+                        window.location.href = currentUrl.toString();
+                        
                     }, 400);
 
                     if (data.csrf_token) siteConfig.csrfToken = data.csrf_token; 
