@@ -35,7 +35,7 @@
 
     <script>
     /* Configuration Globale (Sécurisée contre la minification) */
-    window.<?php echo env('SITENAME'); ?>Config = {
+    window.siteConfig = {
         "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
         "updateOrderUrl": "<?php echo base_url('items/update-order'); ?>",
         "cronUrl": "<?php echo base_url('cron/run'); ?>",
