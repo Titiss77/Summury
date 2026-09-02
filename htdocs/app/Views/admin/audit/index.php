@@ -10,16 +10,6 @@
     <!-- Nouveau conteneur pour les boutons d'action -->
     <div style="display: flex; gap: 15px; margin-bottom: 20px;">
         <a href="<?php echo base_url('items/dead-links'); ?>" class="btn btn-warning">Gérer les liens morts</a>
-        <a href="<?php echo base_url('reports'); ?>" class="btn btn-info"
-            style="background: var(--info); color: white;">
-            Gérer les signalements
-            <?php if (isset($pendingReportsCount) && $pendingReportsCount > 0) { ?>
-            <span
-                style="background-color: var(--danger, #dc3545); color: white; padding: 2px 6px; border-radius: 50%; font-size: 0.8em; margin-left: 5px; font-weight: bold;">
-                <?php echo $pendingReportsCount; ?>
-            </span>
-            <?php } ?>
-        </a>
     </div>
 
     <div class="admin-table-container fade-in" style="margin-top: 20px;">

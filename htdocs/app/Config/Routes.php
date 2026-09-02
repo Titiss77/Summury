@@ -30,7 +30,6 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('items/check-to-global', 'ItemController::checkToGlobal');
     $routes->get('item/turn/(:num)', 'ItemController::turnToAdmin/$1');
     $routes->get('item/search', 'ItemController::search');
-    $routes->post('report/submit', 'ReportController::submit');
     $routes->get('item/check-dispo', 'ItemController::checkDispo');
 
     // NOUVELLES ROUTES : Profil utilisateur
@@ -62,12 +61,6 @@ $routes->group('items', ['namespace' => 'App\Controllers\Admin', 'filter' => 'gr
 
 $routes->group('audit', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function ($routes): void {
     $routes->get('/', 'AuditController::index');
-});
-
-$routes->group('reports', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function ($routes): void {
-    $routes->get('/', 'ReportController::index');
-    $routes->get('resolve/(:num)', 'ReportController::resolve/$1');
-    $routes->get('delete/(:num)', 'ReportController::delete/$1');
 });
 
 // --------------------------------------------------------------------

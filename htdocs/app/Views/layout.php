@@ -75,18 +75,8 @@
             </button>
             <?php if (auth()->loggedIn()) { ?>
             <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
-            <?php
-                // Calcul du total des signalements en attente
-                $pendingReportsTotal = model('App\Models\ReportModel')->where('status', 'pending')->countAllResults();
-                ?>
             <a href="<?php echo base_url('audit'); ?>" class="logs">
                 logs
-                <?php if ($pendingReportsTotal > 0) { ?>
-                <span
-                    style=" background-color: var(--danger, #dc3545); color: white; padding: 2px 5px; border-radius: 50%; font-size: 0.7em; margin-left: 4px; font-weight: bold; line-height: 1;">
-                    <?php echo $pendingReportsTotal; ?>
-                </span>
-                <?php } ?>
             </a>
             <?php } ?>
 

@@ -467,21 +467,6 @@ details[open].division-section .division-title {
     color: var(--danger);
 }
 
-.btn-report-sm {
-    color: var(--warning);
-    position: absolute;
-    left: 1.2rem;
-    bottom: 1rem;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.btn-report-sm:hover {
-    transform: scale(1.1);
-}
-
 /* =========================================
    BOUTONS GLOBAUX
    ========================================= */
