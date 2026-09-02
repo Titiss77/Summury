@@ -892,6 +892,33 @@ textarea.form-control {
 }
 
 /* =========================================
+   FOOTER
+   ========================================= */
+.footer-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.footer-links a:hover {
+    color: var(--primary);
+    padding-left: 5px;
+    /* Petit effet de glissement au survol */
+}
+.logo-footer {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(1000%) brightness(0);
+}
+
+html[data-theme="dark"] .logo-footer {
+    filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
+}
+
+/* =========================================
    ANIMATIONS & RESPONSIVE
    ========================================= */
 @keyframes fadeInUp {

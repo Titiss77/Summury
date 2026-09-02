@@ -75,4 +75,14 @@ class HomeController extends BaseController
             'supportedDomains' => $supportedDomains, // Transmis à la vue
         ]);
     }
+
+    public function legal()
+    {
+        return view('rgpd/legal');
+    }
+    
+    public function privacy()
+    {
+        return view('rgpd/privacy');
+    }
 }

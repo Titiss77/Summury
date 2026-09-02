@@ -13,6 +13,9 @@ use CodeIgniter\Shield\Config\Auth;
 $routes->get('/', 'HomeController::index');
 $routes->get('categorie/(:num)', 'HomeController::categorie/$1');
 
+$routes->get('legal', 'HomeController::legal');
+$routes->get('privacy', 'HomeController::privacy');
+
 // Route silencieuse pour la tâche de fond (Pseudo-Cron)
 $routes->get('cron/run', 'CronController::run');
 

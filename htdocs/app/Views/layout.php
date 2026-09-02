@@ -132,6 +132,61 @@
         <?php echo $this->renderSection('content'); ?>
     </main>
 
+    <footer class="main-footer"
+        style="margin-top: 4rem; padding: 3rem 0 1.5rem; background: var(--bg-card); border-top: 1px solid var(--border-color);">
+        <div class="container"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+
+            <!-- Colonne 1 : Logo & Présentation -->
+            <div>
+                <h3
+                    style="color: var(--text-main); font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                    <img src="<?php echo base_url('favicon.ico'); ?>" alt="Logo" class="logo-footer">
+                    <?php echo env('SITENAME'); ?>
+                </h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                    Votre tableau de bord personnel pour centraliser et suivre votre progression sur vos œuvres
+                    préférées (Films, Séries, Animés, Mangas).
+                </p>
+            </div>
+
+            <!-- Colonne 2 : Navigation Rapide -->
+            <div>
+                <h4 style="color: var(--text-main); font-size: 1rem; margin-bottom: 1rem;">Navigation</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem;"
+                    class="footer-links">
+                    <li><a href="<?php echo base_url('/'); ?>">Accueil</a></li>
+                    <?php if (auth()->loggedIn()) { ?>
+                    <li><a href="<?php echo base_url('profile'); ?>">Mon Profil</a></li>
+                    <li><a href="<?php echo base_url('item/form'); ?>">Ajouter une carte</a></li>
+                    <?php } else { ?>
+                    <li><a href="<?php echo base_url('login'); ?>">Connexion</a></li>
+                    <li><a href="<?php echo base_url('register'); ?>">Créer un compte</a></li>
+                    <?php } ?>
+                </ul>
+            </div>
+
+            <!-- Colonne 3 : Informations & Légal -->
+            <div>
+                <h4 style="color: var(--text-main); font-size: 1rem; margin-bottom: 1rem;">Informations</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem;"
+                    class="footer-links">
+                    <li><a href="<?php echo base_url('legal'); ?>">Mentions légales</a></li>
+                    <li><a href="<?php echo base_url('privacy'); ?>">Politique de confidentialité</a></li>
+                    <li><a href="mailto:contact@ton-domaine.com">Contactez-nous</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Copyright (Ton code d'origine centré) -->
+        <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid rgba(128, 128, 128, 0.1);">
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+                &copy; <?php echo date('Y'); ?> <?php echo env('SITENAME'); ?>. Tous droits réservés.
+            </p>
+        </div>
+    </footer>
+
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         /* Interception des Flashdata de CodeIgniter 4 pour lancer des Toasts automatiquement */
