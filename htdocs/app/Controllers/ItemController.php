@@ -606,4 +606,52 @@ class ItemController extends BaseController
 
         return redirect()->back()->with('error', "Impossible de supprimer définitivement cette carte.");
     }
+
+    public function restoreAll()
+    {
+        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        $userId = auth()->id();
+
+        // On cible toutes les cartes supprimées
+        $builder = $this->model->builder()->where('deleted_at IS NOT NULL');
+        
+        // Si ce n'est pas un admin, on restreint à ses propres cartes
+        if (!$isAdmin) {
+            $builder->where('id_user', $userId);
+        }
+        
+        // On remet le champ deleted_at à NULL
+        $builder->update(['deleted_at' => null]);
+        
+        (new \App\Models\AuditLogModel())->logAction('Restauration Globale', "Toutes les cartes de la corbeille ont été restaurées.");
+        return redirect()->back()->with('message', "Toutes les cartes ont été restaurées avec succès.");
+    }
+
+    public function emptyTrash()
+    {
+        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        $userId = auth()->id();
+
+        // 1. D'abord, on liste les cartes concernées pour pouvoir nettoyer les logs de cron
+        $query = $this->model->onlyDeleted();
+        if (!$isAdmin) {
+            $query->where('id_user', $userId);
+        }
+        $itemsToDelete = $query->findAll();
+        
+        if (!empty($itemsToDelete)) {
+            // Récupère uniquement les IDs des cartes
+            $itemIds = array_column($itemsToDelete, 'id');
+            
+            // 2. Supprime les logs Cron associés à ces cartes
+            (new \App\Models\CronLogModel())->whereIn('item_id', $itemIds)->delete();
+            
+            // 3. Suppression définitive (Le builder direct bypass le Soft Delete)
+            $this->model->builder()->whereIn('id', $itemIds)->delete();
+            
+            (new \App\Models\AuditLogModel())->logAction('Vidage Corbeille', "La corbeille a été vidée définitivement (" . count($itemIds) . " cartes détruites).");
+        }
+        
+        return redirect()->back()->with('message', "La corbeille a été vidée définitivement.");
+    }
 }

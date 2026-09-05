@@ -6,7 +6,24 @@
 </div>
 
 <div class="container">
-    <h2 style="margin-bottom: 2rem;">Corbeille</h2>
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;">
+        <h2 style="margin: 0;">Corbeille</h2>
+
+        <?php if (!empty($deletedItems)) { ?>
+        <div style="display: flex; gap: 10px;">
+            <a href="<?php echo base_url('items/restore-all'); ?>" class="btn btn-success"
+                onclick="return confirm('Êtes-vous sûr de vouloir restaurer TOUTES les cartes de la corbeille ?');">
+                Tout restaurer
+            </a>
+            <a href="<?php echo base_url('items/empty-trash'); ?>" class="btn"
+                style="background-color: var(--danger); color: white;"
+                onclick="return confirm('ATTENTION ACTION IRRÉVERSIBLE !\nÊtes-vous sûr de vouloir détruire DÉFINITIVEMENT toutes les cartes de cette page ?');">
+                Tout détruire
+            </a>
+        </div>
+        <?php } ?>
+    </div>
 
     <?php if (empty($deletedItems)) { ?>
     <div class="empty-state">
