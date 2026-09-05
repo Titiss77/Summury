@@ -1,41 +1,86 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
 
-<a href="<?php echo base_url('/'); ?>" class="btn btn-warning">Retour aux cartes</a>
+<div class="actions-container">
+    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
+</div>
 
-<?php if (empty($deletedItems)) { ?>
-<div class="alert alert-info" role="alert">
-    Aucune carte supprimée pour le moment.
+<div class="container">
+    <h2 style="margin-bottom: 2rem;">Corbeille</h2>
+
+    <?php if (empty($deletedItems)) { ?>
+    <div class="empty-state">
+        <h3 style="color: var(--text-main);">Aucune carte dans la corbeille.</h3>
+        <p>Les cartes supprimées apparaîtront ici.</p>
+    </div>
+    <?php } else { ?>
+
+    <div class="cards-grid">
+        <?php foreach ($deletedItems as $item) { ?>
+        <div class="card fade-in" data-id="<?php echo esc($item->id); ?>" style="opacity: 0.8; filter: grayscale(20%);">
+
+            <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank" class="card-link-block">
+                <div class="card-body">
+                    <!-- Date de suppression au format badge (flux naturel, pas d'absolute) -->
+                    <div style="margin-bottom: 10px;">
+                        <span
+                            style="background-color: var(--danger-bg, rgba(239, 68, 68, 0.1)); color: var(--danger); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+                            Supprimée le : <?php echo date('d/m/Y', strtotime($item->deleted_at)); ?>
+                        </span>
+                    </div>
+
+                    <h4 class="card-title search-target-title"><?php echo htmlspecialchars($item->titre); ?></h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Auteur :
+                        <?php echo htmlspecialchars($item->author_name ?? 'Inconnu'); ?></p>
+
+                    <?php if (!empty($item->description)) { ?>
+                    <p class="card-desc search-target-desc"><?php echo htmlspecialchars($item->description); ?></p>
+                    <?php } ?>
+
+                    <div class="card-badges">
+                        <?php if (!empty($item->saison)) { ?>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <span class="badge badge-season">S. <span
+                                    id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / '.htmlspecialchars($item->total_saisons); } ?></span>
+                        </div>
+                        <?php } ?>
+
+                        <?php if (!empty($item->episode)) { ?>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <span class="badge badge-episode">Ép. <span
+                                    id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / '.htmlspecialchars($item->total_episodes); } ?></span>
+                        </div>
+                        <?php } ?>
+                    </div>
+                </div>
+
+                <?php if (!empty($item->image)) { ?>
+                <div class="card-image">
+                    <img src="<?php echo htmlspecialchars($item->image); ?>"
+                        alt="<?php echo htmlspecialchars($item->titre); ?>" class="image-view" loading="lazy"
+                        decoding="async" fetchpriority="low">
+                </div>
+                <?php } ?>
+            </a>
+
+            <!-- NOUVELLES ACTIONS POUR LA CORBEILLE -->
+            <div class="card-actions-bottom" style="justify-content: space-between;">
+                <a href="<?php echo base_url('item/restore/' . $item->id); ?>" class="btn-icon btn-edit-sm"
+                    style="color: var(--success); font-weight: bold;">
+                    Restaurer
+                </a>
+                <a href="<?php echo base_url('item/permanent-delete/' . $item->id); ?>"
+                    onclick="return confirm('Êtes-vous sûr de vouloir détruire définitivement cette carte ?');"
+                    class="btn-icon btn-delete-sm" style="color: var(--danger);">
+                    Détruire
+                </a>
+            </div>
+
+        </div>
+        <?php } ?>
+    </div>
+
+    <?php } ?>
 </div>
-<?php } else { ?>
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th scope="col">Titre</th>
-                <th scope="col">Auteur</th>
-                <th scope="col">Date de suppression</th>
-                <th scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($deletedItems as $item) { ?>
-            <tr>
-                <td><?php echo htmlspecialchars($item->titre); ?></td>
-                <td><?php echo htmlspecialchars($item->author_name ?? ''); ?></td>
-                <td><?php echo htmlspecialchars((string) $item->deleted_at); ?></td>
-                <td>
-                    <a href="<?php echo base_url('item/restore/' . $item->id); ?>"
-                        class="btn btn-success btn-sm">Restaurer</a>
-                    <a href="<?php echo base_url('item/permanent-delete/' . $item->id); ?>"
-                        class="btn btn-danger btn-sm"
-                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cette carte ?');">Supprimer
-                        définitivement</a>
-                </td>
-            </tr>
-            <?php } ?>
-        </tbody>
-    </table>
-</div>
-<?php } ?>
+
 <?php echo $this->endSection(); ?>
