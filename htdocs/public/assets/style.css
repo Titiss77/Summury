@@ -574,6 +574,18 @@ details[open].division-section .division-title {
     background-color: var(--border-color);
 }
 
+.btn-suppr {
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-suppr:hover {
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
 /* =========================================
    FORMULAIRES
    ========================================= */

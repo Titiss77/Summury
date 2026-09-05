@@ -33,7 +33,7 @@
 <?php } else { ?>
 
 <!-- ACTIONS ADMIN & USER CONNECTÉ -->
-<div class="actions-container">
+<div class="actions-container" style="align-items: flex-start;">
     <?php if (auth()->user()->inGroup('superadmin')) { ?>
     <a href="<?php echo base_url('users'); ?>" class="btn btn-warning" style="margin-right: 15px;">Gérer les
         utilisateurs</a>
@@ -62,11 +62,12 @@
         <?php } ?>
     </a>
     <?php } ?>
-    <!-- Bouton redirigeant vers les cartes supprimées -->
-    <a href="<?php echo base_url('items/deleted'); ?>" class="btn btn-cancel" style="margin-right: 15px;">
-        Cartes supprimées
-    </a>
-    <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success">+ Ajouter une carte</a>
+    <!-- Conteneur vertical pour les boutons d'ajout et de corbeille -->
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+        <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success" style="margin: 0;">+ Ajouter une
+            carte</a>
+        <a href="<?php echo base_url('items/deleted'); ?>" class="btn-suppr">Cartes supprimées</a>
+    </div>
 </div>
 <?php } ?>
 
