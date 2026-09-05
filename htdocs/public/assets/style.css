@@ -582,7 +582,7 @@ details[open].division-section .division-title {
 }
 
 .btn-suppr:hover {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-main);
 }
 
