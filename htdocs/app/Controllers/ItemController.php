@@ -558,100 +558,91 @@ class ItemController extends BaseController
     public function viewDeleted()
     {
         $userId = auth()->id();
-        $isAdmin = auth()->user()->inGroup('superadmin');
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
         
-        // On passe null si c'est un admin pour qu'il voit tout, sinon on passe son ID
-        $deletedItems = $this->model->getDeletedItems($isAdmin ? null : $userId);
+        // On passe null si c'est un superadmin pour qu'il voit tout, sinon on passe son ID
+        $deletedItems = $this->model->getDeletedItems($isSuperAdmin ? null : $userId);
         
         return view('deleted_items', ['deletedItems' => $deletedItems]);
     }
 
     public function restore($id)
     {
-        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
         
-        // On cherche la carte même si elle est supprimée avec "withDeleted()"
         $item = $this->model->withDeleted()->find($id);
 
-        if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
-            // Utilisation du Query Builder pour forcer la modification de deleted_at
+        // Seul le propriétaire ou le superadmin peut restaurer
+        if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
             $this->model->builder()->where('id', $id)->update(['deleted_at' => null]);
             
             (new \App\Models\AuditLogModel())->logAction('Restauration', "La carte ID {$id} ('{$item->titre}') a été restaurée de la corbeille.");
             return redirect()->back()->with('message', "La carte '{$item->titre}' a été restaurée avec succès.");
         }
 
-        return redirect()->back()->with('error', "Impossible de restaurer cette carte.");
+        return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de restaurer cette carte.");
     }
 
     public function permanentDelete($id)
     {
-        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
         
-        // On cherche la carte
         $item = $this->model->withDeleted()->find($id);
 
-        if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
+        // Seul le propriétaire ou le superadmin peut détruire définitivement
+        if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
             $titre = $item->titre;
             
-            // Le second paramètre "true" force la suppression matérielle (contourne le SoftDelete)
             $this->model->delete($id, true);
-            
-            // Par précaution, nettoie les logs de cron liés à cet item s'il y en a
             (new \App\Models\CronLogModel())->where('item_id', $id)->delete();
             
             (new \App\Models\AuditLogModel())->logAction('Suppression Définitive', "La carte ID {$id} ('{$titre}') a été détruite définitivement.");
             return redirect()->back()->with('message', "La carte '{$titre}' a été définitivement supprimée de la base de données.");
         }
 
-        return redirect()->back()->with('error', "Impossible de supprimer définitivement cette carte.");
+        return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de supprimer définitivement cette carte.");
     }
 
     public function restoreAll()
     {
-        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
         $userId = auth()->id();
 
-        // On cible toutes les cartes supprimées
         $builder = $this->model->builder()->where('deleted_at IS NOT NULL');
         
-        // Si ce n'est pas un admin, on restreint à ses propres cartes
-        if (!$isAdmin) {
+        // Si ce n'est pas un superadmin, on restreint à ses propres cartes
+        if (!$isSuperAdmin) {
             $builder->where('id_user', $userId);
         }
         
-        // On remet le champ deleted_at à NULL
         $builder->update(['deleted_at' => null]);
         
         (new \App\Models\AuditLogModel())->logAction('Restauration Globale', "Toutes les cartes de la corbeille ont été restaurées.");
-        return redirect()->back()->with('message', "Toutes les cartes ont été restaurées avec succès.");
+        return redirect()->back()->with('message', "Vos cartes ont été restaurées avec succès.");
     }
 
     public function emptyTrash()
     {
-        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
         $userId = auth()->id();
 
-        // 1. D'abord, on liste les cartes concernées pour pouvoir nettoyer les logs de cron
         $query = $this->model->onlyDeleted();
-        if (!$isAdmin) {
+        
+        // Si ce n'est pas un superadmin, on restreint à ses propres cartes
+        if (!$isSuperAdmin) {
             $query->where('id_user', $userId);
         }
         $itemsToDelete = $query->findAll();
         
         if (!empty($itemsToDelete)) {
-            // Récupère uniquement les IDs des cartes
             $itemIds = array_column($itemsToDelete, 'id');
             
-            // 2. Supprime les logs Cron associés à ces cartes
             (new \App\Models\CronLogModel())->whereIn('item_id', $itemIds)->delete();
-            
-            // 3. Suppression définitive (Le builder direct bypass le Soft Delete)
             $this->model->builder()->whereIn('id', $itemIds)->delete();
             
             (new \App\Models\AuditLogModel())->logAction('Vidage Corbeille', "La corbeille a été vidée définitivement (" . count($itemIds) . " cartes détruites).");
         }
         
-        return redirect()->back()->with('message', "La corbeille a été vidée définitivement.");
+        return redirect()->back()->with('message', "Vos cartes supprimées ont été vidées définitivement.");
     }
 }
