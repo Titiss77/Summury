@@ -62,6 +62,10 @@
         <?php } ?>
     </a>
     <?php } ?>
+    <!-- Bouton redirigeant vers les cartes supprimées -->
+    <a href="<?php echo base_url('items/deleted'); ?>" class="btn btn-cancel" style="margin-right: 15px;">
+        Cartes supprimées
+    </a>
     <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success">+ Ajouter une carte</a>
 </div>
 <?php } ?>

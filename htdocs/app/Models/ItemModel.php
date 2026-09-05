@@ -104,4 +104,24 @@ class ItemModel extends Model
     {
         return $this->db->query('SELECT * FROM `item` WHERE id_division >= 5 AND id_division < 11 AND is_public = 1 AND deleted_at IS NULL;')->getCustomResultObject(Item::class);
     }
+    
+    public function getDeletedItems($userId = null)
+    {
+        $builder = $this->db->table('item i')
+            ->select('u.username AS author_name, i.*')
+            ->join('users u', 'i.id_user = u.id', 'left')
+            ->where('i.deleted_at IS NOT NULL');
+
+        // Si le contrôleur a passé un ID (c'est-à-dire que ce n'est pas un admin)
+        // on filtre pour n'afficher que ses cartes.
+        // Si l'ID est null (passé par l'admin), on ne filtre pas.
+        if ($userId !== null) {
+            $builder->where('i.id_user', $userId);
+        }
+
+        // On trie par date de suppression de la plus récente à la plus ancienne
+        $builder->orderBy('i.deleted_at', 'DESC');
+
+        return $builder->get()->getCustomResultObject(Item::class);
+    }
 }

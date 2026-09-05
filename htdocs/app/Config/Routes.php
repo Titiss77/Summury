@@ -34,6 +34,11 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/turn/(:num)', 'ItemController::turnToAdmin/$1');
     $routes->get('item/search', 'ItemController::search');
     $routes->get('item/check-dispo', 'ItemController::checkDispo');
+    $routes->get('items/deleted', 'ItemController::viewDeleted');
+    
+    // Nouvelles routes pour gérer la corbeille
+    $routes->get('item/restore/(:num)', 'ItemController::restore/$1');
+    $routes->get('item/permanent-delete/(:num)', 'ItemController::permanentDelete/$1');
 
     // NOUVELLES ROUTES : Profil utilisateur
     $routes->get('profile', 'ProfileController::index');

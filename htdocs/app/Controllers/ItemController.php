@@ -554,4 +554,56 @@ class ItemController extends BaseController
 
         return $data;
     }
+    
+    public function viewDeleted()
+    {
+        $userId = auth()->id();
+        $isAdmin = auth()->user()->inGroup('superadmin');
+        
+        // On passe null si c'est un admin pour qu'il voit tout, sinon on passe son ID
+        $deletedItems = $this->model->getDeletedItems($isAdmin ? null : $userId);
+        
+        return view('deleted_items', ['deletedItems' => $deletedItems]);
+    }
+
+    public function restore($id)
+    {
+        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        
+        // On cherche la carte même si elle est supprimée avec "withDeleted()"
+        $item = $this->model->withDeleted()->find($id);
+
+        if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
+            // Utilisation du Query Builder pour forcer la modification de deleted_at
+            $this->model->builder()->where('id', $id)->update(['deleted_at' => null]);
+            
+            (new \App\Models\AuditLogModel())->logAction('Restauration', "La carte ID {$id} ('{$item->titre}') a été restaurée de la corbeille.");
+            return redirect()->back()->with('message', "La carte '{$item->titre}' a été restaurée avec succès.");
+        }
+
+        return redirect()->back()->with('error', "Impossible de restaurer cette carte.");
+    }
+
+    public function permanentDelete($id)
+    {
+        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        
+        // On cherche la carte
+        $item = $this->model->withDeleted()->find($id);
+
+        if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
+            $titre = $item->titre;
+            
+            // Le second paramètre "true" force la suppression matérielle (contourne le SoftDelete)
+            $this->model->delete($id, true);
+            
+            // Par précaution, nettoie les logs de cron liés à cet item s'il y en a
+            (new \App\Models\CronLogModel())->where('item_id', $id)->delete();
+            
+            (new \App\Models\AuditLogModel())->logAction('Suppression Définitive', "La carte ID {$id} ('{$titre}') a été détruite définitivement.");
+            return redirect()->back()->with('message', "La carte '{$titre}' a été définitivement supprimée de la base de données.");
+        }
+
+        return redirect()->back()->with('error', "Impossible de supprimer définitivement cette carte.");
+    }
 }
