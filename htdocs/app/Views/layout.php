@@ -192,17 +192,17 @@
         /* Interception des Flashdata de CodeIgniter 4 pour lancer des Toasts automatiquement */
         <?php if (session()->getFlashdata('success')) { ?>
         if (typeof showToast === 'function') showToast(
-            "<?php echo esc(session()->getFlashdata('success')); ?>",
+            <?php echo json_encode(session()->getFlashdata('success')); ?>,
             "success");
         <?php } ?>
         <?php if (session()->getFlashdata('error')) { ?>
         if (typeof showToast === 'function') showToast(
-            "<?php echo esc(session()->getFlashdata('error')); ?>",
+            <?php echo json_encode(session()->getFlashdata('error')); ?>,
             "danger");
         <?php } ?>
         <?php if (session()->getFlashdata('message')) { ?>
         if (typeof showToast === 'function') showToast(
-            "<?php echo esc(session()->getFlashdata('message')); ?>",
+            <?php echo json_encode(session()->getFlashdata('message')); ?>,
             "info");
         <?php } ?>
     });
