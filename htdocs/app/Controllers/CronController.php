@@ -20,7 +20,7 @@ class CronController extends BaseController
 
         $now = time();
         $shouldRun = false;
-        $isForced = $this->request->getGet('force') == 1;
+        $isForced = '1' === $this->request->getGet('force');
 
         if (!$lastRunRow) {
             $shouldRun = true;
@@ -42,10 +42,10 @@ class CronController extends BaseController
 
         $client = Services::curlrequest([
             'timeout' => 10,
-            'connect_timeout' => 5,
+            'connect_timeout' => 5,  // NOUVEAU : Force l'arrêt rapide si le DNS est introuvable
             'http_errors' => false,
             'allow_redirects' => true,
-            // 'verify' => false a été supprimé pour détecter les sites non sécurisés
+            'verify' => false,  // NOUVEAU CRUCIAL : Ignore les erreurs HTTPS/SSL des sites morts
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             'headers' => [
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -58,63 +58,62 @@ class CronController extends BaseController
         $totalChecked = 0;
         $currentTimestamp = date('Y-m-d H:i:s');
         $deadLinksDetails = [];
-        $domainStatus = []; // Cache pour ne pas tester 100 fois un domaine totalement mort
+        $checkedDomains = [];
 
         foreach ($items as $item) {
-            $ep = '1';
-            $ep2 = '01';
-            $s = '1';
-            $s2 = '01';
+            // 1. Formatage du lien complet pour l'affichage (Lien avec épisodes et saisons remplacés)
+            $ep = $item->episode ?: '1';
+            $ep2 = str_pad((string) $ep, 2, '0', STR_PAD_LEFT);
+            $s = $item->saison ?: '1';
+            $s2 = str_pad((string) $s, 2, '0', STR_PAD_LEFT);
+
             $urlToTest = str_replace(
                 ['{ep}', '{ep2}', '{s}', '{s2}'],
                 [$ep, $ep2, $s, $s2],
                 $item->lien
             );
 
-            $parsedUrl = parse_url($urlToTest);
+            // 2. Extraction du domaine principal pour le test serveur (ex: https://sushiscan.net)
+            $parsedUrl = parse_url($item->lien);
+
             if (!isset($parsedUrl['host'])) {
                 continue;
             }
-            $domain = $parsedUrl['host'];
+
+            $scheme = $parsedUrl['scheme'] ?? 'https';
+            $domainToTest = $scheme.'://'.$parsedUrl['host'];
 
             ++$totalChecked;
             $statusCode = null;
-            $isDead = false;
 
-            // Si le domaine a déjà renvoyé une erreur réseau critique (ex: DNS crash)
-            if (isset($domainStatus[$domain]) && $domainStatus[$domain] === 'dead') {
-                $isDead = true;
-                $statusCode = 0;
+            // 3. Vérification du domaine (avec cache pour ne pas tester 10 fois sushiscan.net)
+            if (array_key_exists($domainToTest, $checkedDomains)) {
+                $statusCode = $checkedDomains[$domainToTest];
             } else {
                 try {
-                    $response = $client->get($urlToTest);
+                    $response = $client->get($domainToTest);
                     $statusCode = $response->getStatusCode();
-                    
-                    // On inclut les erreurs 404 ET les erreurs serveurs (500+)
-                    if ($statusCode === 404 || $statusCode >= 500) {
-                        $isDead = true;
-                    } else {
-                        $domainStatus[$domain] = 'ok';
-                    }
                 } catch (\Throwable $e) {
-                    // CATCH : Attrape les erreurs DNS (NXDOMAIN), Timeouts et certificats SSL expirés
-                    $isDead = true;
+                    // On attrape les crashs réseau profonds et on définit le code sur 0
                     $statusCode = 0;
-                    $domainStatus[$domain] = 'dead';
                 }
+                $checkedDomains[$domainToTest] = $statusCode;
             }
 
-            if ($isDead) {
+            // 4. Si le DOMAINE est mort, on flague la carte et on enregistre son LIEN COMPLET
+            if (0 === $statusCode || 404 === $statusCode) {
                 $itemModel->update($item->id, ['link_status' => 'dead']);
                 ++$deadCount;
+
                 $cronModel->insert([
                     'task_name' => 'check_dead_links',
                     'last_run' => $currentTimestamp,
                     'item_id' => $item->id,
                     'titre' => $item->titre,
-                    'url_testee' => $urlToTest,
+                    'url_testee' => $urlToTest,  // <-- CORRECTION : Affiche le vrai lien de la carte (ex: /chainsaw-man-chapitre-52)
                     'code_erreur' => $statusCode,
                 ]);
+
                 $deadLinksDetails[] = [
                     'id' => $item->id,
                     'titre' => $item->titre,

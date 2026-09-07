@@ -150,18 +150,8 @@ class ItemController extends BaseController
             }
         }
         sort($domains);
-        
-        // --- FILTRAGE DES DOUBLONS ---
-        $rawDeadItems = $cronLogModel->where('item_id IS NOT NULL')->findAll();
-        $uniqueDeadItems = [];
-        foreach ($rawDeadItems as $log) {
-            $uniqueDeadItems[$log['item_id']] = $log; // Écrase les doublons éventuels pour le même item_id
-        }
-        
-        return view('admin/items/dead_links', [
-            'deadItems' => array_values($uniqueDeadItems), 
-            'domains'   => $domains
-        ]);
+
+        return view('admin/items/dead_links', ['deadItems' => $cronLogModel->where('item_id IS NOT NULL')->findAll(), 'domains' => $domains]);
     }
 
     public function bulkUpdateDomain()

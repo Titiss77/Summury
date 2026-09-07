@@ -26,7 +26,7 @@ class CheckDeadLinks extends BaseCommand
             $lastRunDate = strtotime($lastRun['last_run']);
             $now = time();
 
-            $force = array_key_exists('f', CLI::getOptions()) || in_array('-f', $params);
+            $force = in_array('-f', $params);
 
             if (($now - $lastRunDate) < 604800 && !$force) {
                 CLI::write('La vérification a déjà eu lieu cette semaine ('.date('d/m/Y', $lastRunDate).').', 'yellow');
@@ -37,7 +37,6 @@ class CheckDeadLinks extends BaseCommand
         }
 
         CLI::write('Démarrage de la vérification des liens externes...', 'cyan');
-        $cronModel->truncate();
 
         $itemModel = new ItemModel();
         $items = $itemModel->where('lien !=', '')->where('lien IS NOT NULL')->findAll();
@@ -45,8 +44,9 @@ class CheckDeadLinks extends BaseCommand
         $client = Services::curlrequest([
             'timeout' => 7,
             'connect_timeout' => 5,
+            'verify' => false,
             'http_errors' => false,
-            'allow_redirects' => true,
+            'allow_redirects' => false,
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             'headers' => [
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -66,15 +66,9 @@ class CheckDeadLinks extends BaseCommand
         ];
 
         foreach ($items as $item) {
-            $ep = '1';
-            $ep2 = '01';
-            $s = '1';
-            $s2 = '01';
-            $urlToTest = str_replace(
-                ['{ep}', '{ep2}', '{s}', '{s2}'],
-                [$ep, $ep2, $s, $s2],
-                $item->lien
-            );
+            $ep = $item->episode ?: '1';
+            $ep2 = str_pad((string) $ep, 2, '0', STR_PAD_LEFT);
+
             $urlToTest = str_replace(['{ep}', '{ep2}'], [$ep, $ep2], $item->lien);
             ++$totalChecked;
 
@@ -127,9 +121,10 @@ class CheckDeadLinks extends BaseCommand
                             }
                         }
                     }
-                    elseif ($statusCode === 404 || $statusCode >= 500) {
+                    // Si la page est clairement introuvable (On ignore les 403 et 5xx qui sont souvent des blocages Cloudflare)
+                    elseif (404 === $statusCode) {
                         $isDead = true;
-                        $statusLog = "Erreur HTTP {$statusCode} (Inaccessible)";
+                        $statusLog = 'Erreur HTTP 404 (Introuvable)';
                     }
                 } catch (\Throwable $e) {
                     // CATCH : On utilise \Throwable pour s'assurer d'attraper absolument toutes les erreurs

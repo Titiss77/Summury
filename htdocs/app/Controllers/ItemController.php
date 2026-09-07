@@ -480,15 +480,15 @@ class ItemController extends BaseController
         try {
             $client = Services::curlrequest([
                 'timeout' => 8, 'connect_timeout' => 5, 'http_errors' => false,
-                'allow_redirects' => true, 
-                // 'verify' => false a été supprimé
+                'allow_redirects' => true, 'verify' => false,
                 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
             $response = $client->get($urlCible);
-            $statusCode = $response->getStatusCode();
-            if ($statusCode === 404 || $statusCode >= 500) {
-                return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => "Erreur HTTP {$statusCode}"]]);
+
+            if (404 === $response->getStatusCode()) {
+                return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']]);
             }
+
             $html = (string) $response->getBody();
             $estSurFicheAnime = false;
             foreach ($indicateursPageInvalide as $indicator) {
@@ -512,13 +512,8 @@ class ItemController extends BaseController
                 'disponible' => !$estSurFicheAnime && $lecteurPresent,
                 'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent, 'episodeDetecte' => $episodeExtrait],
             ]);
-            } catch (\Throwable $e) {
-            // Au lieu de crasher en "success => false", on déclare l'épisode indisponible
-            return $this->response->setJSON([
-                'success' => true, 
-                'disponible' => false, 
-                'details' => ['erreur' => 'Hôte injoignable ou certificat invalide', 'message' => $e->getMessage()]
-            ]);
+        } catch (\Throwable $e) {
+            return $this->response->setJSON(['success' => false, 'error' => 'Erreur Interne : '.$e->getMessage()]);
         }
     }
 
