@@ -61,10 +61,10 @@ class CronController extends BaseController
         $domainStatus = []; // Cache pour ne pas tester 100 fois un domaine totalement mort
 
         foreach ($items as $item) {
-            $ep = $item->episode ?: '1';
-            $ep2 = str_pad((string) $ep, 2, '0', STR_PAD_LEFT);
-            $s = $item->saison ?: '1';
-            $s2 = str_pad((string) $s, 2, '0', STR_PAD_LEFT);
+            $ep = '1';
+            $ep2 = '01';
+            $s = '1';
+            $s2 = '01';
             $urlToTest = str_replace(
                 ['{ep}', '{ep2}', '{s}', '{s2}'],
                 [$ep, $ep2, $s, $s2],

@@ -37,6 +37,7 @@ class CheckDeadLinks extends BaseCommand
         }
 
         CLI::write('Démarrage de la vérification des liens externes...', 'cyan');
+        $cronModel->truncate();
 
         $itemModel = new ItemModel();
         $items = $itemModel->where('lien !=', '')->where('lien IS NOT NULL')->findAll();
@@ -65,8 +66,8 @@ class CheckDeadLinks extends BaseCommand
         ];
 
         foreach ($items as $item) {
-            $ep = $item->episode ?: '1';
-            $ep2 = str_pad((string) $ep, 2, '0', STR_PAD_LEFT);
+            $ep = '1';
+            $ep2 = '01';
 
             $urlToTest = str_replace(['{ep}', '{ep2}'], [$ep, $ep2], $item->lien);
             ++$totalChecked;
