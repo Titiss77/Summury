@@ -15,6 +15,7 @@ body {
     padding: 0;
     -webkit-font-smoothing: antialiased;
     transition: background-color 0.3s ease, color 0.3s ease;
+    user-select: none;
 }
 
 a {
@@ -199,7 +200,6 @@ html[data-theme="dark"] .logo-site {
     padding: 1.25rem 1.5rem;
     background: transparent;
     transition: background-color 0.2s ease;
-    user-select: none;
 }
 
 .division-title:hover {

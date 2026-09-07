@@ -14,7 +14,7 @@ body {
     padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Améliore le rendu sur macOS */
+    user-select: none;
 }
 
 a {
