@@ -101,7 +101,7 @@ class CronController extends BaseController
             }
 
             // 4. Si le DOMAINE est mort, on flague la carte et on enregistre son LIEN COMPLET
-            if (0 === $statusCode || 404 === $statusCode) {
+            if ($statusCode === 0 || $statusCode === 404 || $statusCode >= 500) {
                 $itemModel->update($item->id, ['link_status' => 'dead']);
                 ++$deadCount;
 

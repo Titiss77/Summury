@@ -122,9 +122,9 @@ class CheckDeadLinks extends BaseCommand
                         }
                     }
                     // Si la page est clairement introuvable (On ignore les 403 et 5xx qui sont souvent des blocages Cloudflare)
-                    elseif (404 === $statusCode) {
+                    elseif ($statusCode === 404 || $statusCode >= 500) {
                         $isDead = true;
-                        $statusLog = 'Erreur HTTP 404 (Introuvable)';
+                        $statusLog = "Erreur HTTP {$statusCode} (Inaccessible)";
                     }
                 } catch (\Throwable $e) {
                     // CATCH : On utilise \Throwable pour s'assurer d'attraper absolument toutes les erreurs

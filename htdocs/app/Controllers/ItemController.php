@@ -485,8 +485,9 @@ class ItemController extends BaseController
             ]);
             $response = $client->get($urlCible);
 
-            if (404 === $response->getStatusCode()) {
-                return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']]);
+            $statusCode = $response->getStatusCode();
+            if ($statusCode === 404 || $statusCode >= 500) {
+                return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => "Erreur HTTP {$statusCode}"]]);
             }
 
             $html = (string) $response->getBody();
@@ -512,9 +513,14 @@ class ItemController extends BaseController
                 'disponible' => !$estSurFicheAnime && $lecteurPresent,
                 'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent, 'episodeDetecte' => $episodeExtrait],
             ]);
-        } catch (\Throwable $e) {
-            return $this->response->setJSON(['success' => false, 'error' => 'Erreur Interne : '.$e->getMessage()]);
-        }
+            } catch (\Throwable $e) {
+                // Au lieu d'une erreur technique, on informe le JS que le lien est indisponible (ex: NXDOMAIN, Timeout)
+                return $this->response->setJSON([
+                    'success' => true, 
+                    'disponible' => false, 
+                    'details' => ['erreur' => 'Hôte injoignable ou erreur réseau', 'message' => $e->getMessage()]
+                ]);
+            }
     }
 
     private function scrapeOpenGraph(string $url): ?array
