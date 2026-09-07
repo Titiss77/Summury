@@ -68,7 +68,13 @@ class CheckDeadLinks extends BaseCommand
         foreach ($items as $item) {
             $ep = '1';
             $ep2 = '01';
-
+            $s = '1';
+            $s2 = '01';
+            $urlToTest = str_replace(
+                ['{ep}', '{ep2}', '{s}', '{s2}'],
+                [$ep, $ep2, $s, $s2],
+                $item->lien
+            );
             $urlToTest = str_replace(['{ep}', '{ep2}'], [$ep, $ep2], $item->lien);
             ++$totalChecked;
 
