@@ -26,7 +26,7 @@ class CheckDeadLinks extends BaseCommand
             $lastRunDate = strtotime($lastRun['last_run']);
             $now = time();
 
-            $force = in_array('-f', $params);
+            $force = array_key_exists('f', CLI::getOptions()) || in_array('-f', $params);
 
             if (($now - $lastRunDate) < 604800 && !$force) {
                 CLI::write('La vérification a déjà eu lieu cette semaine ('.date('d/m/Y', $lastRunDate).').', 'yellow');
@@ -44,9 +44,8 @@ class CheckDeadLinks extends BaseCommand
         $client = Services::curlrequest([
             'timeout' => 7,
             'connect_timeout' => 5,
-            'verify' => false,
             'http_errors' => false,
-            'allow_redirects' => false,
+            'allow_redirects' => true,
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             'headers' => [
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -121,7 +120,6 @@ class CheckDeadLinks extends BaseCommand
                             }
                         }
                     }
-                    // Si la page est clairement introuvable (On ignore les 403 et 5xx qui sont souvent des blocages Cloudflare)
                     elseif ($statusCode === 404 || $statusCode >= 500) {
                         $isDead = true;
                         $statusLog = "Erreur HTTP {$statusCode} (Inaccessible)";

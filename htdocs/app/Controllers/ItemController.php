@@ -480,16 +480,15 @@ class ItemController extends BaseController
         try {
             $client = Services::curlrequest([
                 'timeout' => 8, 'connect_timeout' => 5, 'http_errors' => false,
-                'allow_redirects' => true, 'verify' => false,
+                'allow_redirects' => true, 
+                // 'verify' => false a été supprimé
                 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
             $response = $client->get($urlCible);
-
             $statusCode = $response->getStatusCode();
             if ($statusCode === 404 || $statusCode >= 500) {
                 return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => "Erreur HTTP {$statusCode}"]]);
             }
-
             $html = (string) $response->getBody();
             $estSurFicheAnime = false;
             foreach ($indicateursPageInvalide as $indicator) {
@@ -514,13 +513,13 @@ class ItemController extends BaseController
                 'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent, 'episodeDetecte' => $episodeExtrait],
             ]);
             } catch (\Throwable $e) {
-                // Au lieu d'une erreur technique, on informe le JS que le lien est indisponible (ex: NXDOMAIN, Timeout)
-                return $this->response->setJSON([
-                    'success' => true, 
-                    'disponible' => false, 
-                    'details' => ['erreur' => 'Hôte injoignable ou erreur réseau', 'message' => $e->getMessage()]
-                ]);
-            }
+            // Au lieu de crasher en "success => false", on déclare l'épisode indisponible
+            return $this->response->setJSON([
+                'success' => true, 
+                'disponible' => false, 
+                'details' => ['erreur' => 'Hôte injoignable ou certificat invalide', 'message' => $e->getMessage()]
+            ]);
+        }
     }
 
     private function scrapeOpenGraph(string $url): ?array
