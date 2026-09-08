@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 use CodeIgniter\Router\RouteCollection;
 use CodeIgniter\Shield\Config\Auth;
@@ -12,7 +10,6 @@ use CodeIgniter\Shield\Config\Auth;
 // --------------------------------------------------------------------
 $routes->get('/', 'HomeController::index');
 $routes->get('categorie/(:num)', 'HomeController::categorie/$1');
-
 $routes->get('legal', 'HomeController::legal');
 $routes->get('privacy', 'HomeController::privacy');
 
@@ -41,8 +38,10 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/permanent-delete/(:num)', 'ItemController::permanentDelete/$1');
     $routes->get('items/restore-all', 'ItemController::restoreAll');
     $routes->get('items/empty-trash', 'ItemController::emptyTrash');
-
+    
     $routes->get('automatisation', 'ItemController::automatisation');
+    $routes->post('automatisation/save', 'ItemController::saveAutomation');
+    $routes->get('automatisation/delete/(:num)', 'ItemController::deleteAutomation/$1');
 
     // NOUVELLES ROUTES : Profil utilisateur
     $routes->get('profile', 'ProfileController::index');
