@@ -2,3 +2,4 @@
 /htdocs/writable/session
 /htdocs/.env
 /htdocs/writable/cache
+*.sql.zip
