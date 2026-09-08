@@ -38,15 +38,14 @@ class ItemController extends BaseController
             'subCategories' => $subCategories,
             'statuts' => $this->statutModel->orderBy('ordre', 'ASC')->findAll(),
             'item' => null,
-            'view' => 'item_form',
+            'view' => 'items/item_form',
             'redirect_url' => $this->request->getUserAgent()->getReferrer() ?? site_url('/'),
         ];
 
         if (null !== $id) {
             $data['item'] = $this->model->find($id);
         }
-
-        return view('item_form', $data);
+        return view('items/item_form', $data);
     }
 
     public function save()
@@ -397,7 +396,7 @@ class ItemController extends BaseController
 
     public function checkToGlobal()
     {
-        return view('global_items', ['items' => $this->model->checkToGlobal()]);
+        return view('items/global_items', ['items' => $this->model->checkToGlobal()]);
     }
 
     public function turnToAdmin($id)
