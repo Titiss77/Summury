@@ -1,5 +1,8 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+<div class="actions-container">
+    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
+</div>
 <div class="form-container card">
     <h2 class="header-title"><?php echo isset($item) ? '✏️ Modifier la carte' : '+ Ajouter une carte'; ?></h2>
     <form action="<?php echo base_url('item/save'); ?>" method="POST">

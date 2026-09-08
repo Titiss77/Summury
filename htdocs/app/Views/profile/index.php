@@ -2,7 +2,9 @@
 
 <?php echo $this->section('content'); ?>
 
-<a href="<?php echo base_url('/'); ?>" class="btn btn-warning" style="margin-bottom: 20px;">Retour aux cartes</a>
+<div class="actions-container">
+    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
+</div>
 
 <div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
     <h2 class="header-title" style="margin-bottom: 2rem;">Mon Profil</h2>
