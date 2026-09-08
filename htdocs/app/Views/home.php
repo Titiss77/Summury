@@ -318,7 +318,7 @@
 <?php } ?>
 
 <script>
-window.<?php echo env('SITENAME'); ?>SupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
+window.siteSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
 </script>
 
 <?php echo $this->endSection(); ?>
