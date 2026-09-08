@@ -579,7 +579,7 @@ class ItemController extends BaseController
         // On passe null si c'est un superadmin pour qu'il voit tout, sinon on passe son ID
         $deletedItems = $this->model->getDeletedItems($isSuperAdmin ? null : $userId);
         
-        return view('deleted_items', ['deletedItems' => $deletedItems]);
+        return view('items/deleted_items', ['deletedItems' => $deletedItems]);
     }
 
     public function restore($id)
