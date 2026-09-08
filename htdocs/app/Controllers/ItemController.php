@@ -544,6 +544,81 @@ class ItemController extends BaseController
         $data = $this->request->getPost();
         $data['id_user'] = auth()->id();
         
+        try {
+            $client = \Config\Services::curlrequest([
+                'timeout' => 8,
+                'http_errors' => false,
+                'allow_redirects' => true,
+                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'headers' => [
+                    'Accept-Language' => 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+                    'Cookie' => 'CONSENT=YES+cb.20210328-17-p0.en+FX+478;'
+                ]
+            ]);
+
+            // --- MAGIE 1 : YouTube ---
+            if ($data['type'] === 'youtube' && !str_contains($data['source_url'], 'feeds/videos.xml')) {
+                $response = $client->get($data['source_url']);
+                $html = (string) $response->getBody();
+                
+                if (
+                    preg_match('/"channelId":"(UC[\w-]{22})"/', $html, $matches) || 
+                    preg_match('/<meta itemprop="channelId" content="(UC[\w-]{22})">/', $html, $matches) || 
+                    preg_match('/<meta itemprop="identifier" content="(UC[\w-]{22})">/', $html, $matches) ||
+                    preg_match('/channel\/(UC[\w-]{22})/', $html, $matches)
+                ) {
+                    $data['source_url'] = "https://www.youtube.com/feeds/videos.xml?channel_id=" . $matches[1];
+                } else {
+                    return redirect()->back()->withInput()->with('error', "Impossible de trouver l'ID de la chaîne YouTube.");
+                }
+            }
+            
+            // --- MAGIE 2 : Flux RSS (Anime/Série/Autre site web) ---
+            elseif ($data['type'] === 'rss') {
+                $response = $client->get($data['source_url']);
+                $html = (string) $response->getBody();
+
+                if (
+                    preg_match('/<link[^>]*type=["\']application\/(rss|atom)\+xml["\'][^>]*href=["\']([^"\']+)["\']/i', $html, $matches) ||
+                    preg_match('/<link[^>]*href=["\']([^"\']+)["\'][^>]*type=["\']application\/(rss|atom)\+xml["\']/i', $html, $matches)
+                ) {
+                    $extractedUrl = $matches[2]; 
+                    if (str_starts_with($extractedUrl, '/')) {
+                        $parsedUrl = parse_url($data['source_url']);
+                        $extractedUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . $extractedUrl;
+                    }
+                    $data['source_url'] = html_entity_decode($extractedUrl);
+                }
+            }
+            
+            // --- MAGIE 3 : Surveillance de la saison d'après ---
+            elseif ($data['type'] === 'next_season') {
+                $targetUrl = '';
+                $url = $data['source_url'];
+                
+                // Cas 1 : s=4, saison-4, season/4, etc... (le chiffre est après)
+                if (preg_match('/(s=|saison[\-\/]?|season[\-\/]?)(\d+)/i', $url, $matches)) {
+                    $nextSeason = ((int)$matches[2]) + 1;
+                    $targetUrl = str_replace($matches[1] . $matches[2], $matches[1] . $nextSeason, $url);
+                } 
+                // Cas 2 : 4-saison, 4_season, etc... (le chiffre est avant)
+                elseif (preg_match('/(\d+)([\-\_]?saison|[\-\_]?season)/i', $url, $matches)) {
+                    $nextSeason = ((int)$matches[1]) + 1;
+                    $targetUrl = str_replace($matches[1] . $matches[2], $nextSeason . $matches[2], $url);
+                }
+
+                if ($targetUrl !== '') {
+                    // On enregistre l'URL devinée dans last_item_id pour la surveiller !
+                    $data['last_item_id'] = $targetUrl;
+                } else {
+                    return redirect()->back()->withInput()->with('error', "Impossible de détecter un numéro de saison dans l'URL. Essayez un lien qui contient 's=4' ou '4-saison'.");
+                }
+            }
+            
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', "Erreur lors de la lecture du lien : " . $e->getMessage());
+        }
+        
         $model = new \App\Models\AutomationModel();
         $model->insert($data);
         

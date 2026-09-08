@@ -130,56 +130,101 @@ class CronController extends BaseController
         $newCardsCount = 0;
 
         foreach ($automations as $auto) {
-            try {
-                // Lecture du flux RSS (YouTube ou autre)
-                $rss = @simplexml_load_file($auto['source_url']);
-                if ($rss) {
-                    $latestItem = null;
-                    $link = '';
-                    $title = '';
+            
+            // --- AUTOMATISATION YOUTUBE & RSS ---
+            if ($auto['type'] === 'youtube' || $auto['type'] === 'rss') {
+                try {
+                    $rss = @simplexml_load_file($auto['source_url']);
+                    if ($rss) {
+                        $latestItem = null;
+                        $link = '';
+                        $title = '';
 
-                    // Format RSS Standard
-                    if (isset($rss->channel->item[0])) {
-                        $latestItem = $rss->channel->item[0];
-                        $link = (string)$latestItem->link;
-                        $title = (string)$latestItem->title;
+                        if (isset($rss->channel->item[0])) {
+                            $latestItem = $rss->channel->item[0];
+                            $link = (string)$latestItem->link;
+                            $title = (string)$latestItem->title;
+                        } elseif (isset($rss->entry[0])) {
+                            $latestItem = $rss->entry[0];
+                            $link = (string)$latestItem->link['href'];
+                            $title = (string)$latestItem->title;
+                        }
+
+                        if ($link && $link !== $auto['last_item_id']) {
+                            $itemData = [
+                                'id_user' => $auto['id_user'],
+                                'id_division' => $auto['id_division'],
+                                'sous_categorie' => $auto['sous_categorie'],
+                                'titre' => $title,
+                                'lien' => $link,
+                                'status' => 'À voir',
+                                'is_public' => 0,
+                                'description' => 'Ajout automatique (' . strtoupper($auto['type']) . ')',
+                                'position' => 0
+                            ];
+                            $itemModel->insert($itemData);
+                            $newCardsCount++;
+                            $automationModel->update($auto['id'], ['last_item_id' => $link]);
+                        }
                     }
-                    // Format Atom (YouTube)
-                    elseif (isset($rss->entry[0])) {
-                        $latestItem = $rss->entry[0];
-                        $link = (string)$latestItem->link['href'];
-                        $title = (string)$latestItem->title;
+                } catch (\Exception $e) {
+                    // Ignore silentieusement
+                }
+            } 
+            
+            // --- AUTOMATISATION SURVEILLANCE DE SAISON ---
+            elseif ($auto['type'] === 'next_season' && !empty($auto['last_item_id'])) {
+                $targetUrl = $auto['last_item_id'];
+                
+                try {
+                    $response = $client->get($targetUrl);
+                    $statusCode = $response->getStatusCode();
+                    $html = (string) $response->getBody();
+
+                    // Vérification anti faux-positifs (pages qui retournent 200 OK mais affichent "Erreur 404")
+                    $is404 = false;
+                    $badWords = ['page not found', '404', 'introuvable', 'n\'existe pas', 'aucun résultat'];
+                    foreach ($badWords as $word) {
+                        if (stripos($html, $word) !== false) {
+                            $is404 = true; 
+                            break;
+                        }
                     }
 
-                    // Si c'est un nouvel item (lien différent du dernier check)
-                    if ($link && $link !== $auto['last_item_id']) {
+                    if ($statusCode === 200 && !$is404) {
+                        // On essaie d'extraire le vrai titre de la page pour la carte
+                        $titre = "Nouvelle saison disponible !";
+                        if (preg_match('/<title>(.*?)<\/title>/i', $html, $matchesTitle)) {
+                            // On nettoie un peu le titre des trucs parasites
+                            $titre = trim(str_replace(['Voir', 'Streaming', 'VF', 'VOSTFR', 'Gratuit'], '', $matchesTitle[1]));
+                        }
+
                         $itemData = [
                             'id_user' => $auto['id_user'],
                             'id_division' => $auto['id_division'],
                             'sous_categorie' => $auto['sous_categorie'],
-                            'titre' => $title,
-                            'lien' => $link,
+                            'titre' => $titre,
+                            'lien' => $targetUrl,
                             'status' => 'À voir',
-                            'is_public' => 0, // Privé par défaut pour les auto-ajouts
-                            'description' => 'Ajout automatique (' . strtoupper($auto['type']) . ')',
+                            'is_public' => 0,
+                            'description' => 'Détecté automatiquement ! La nouvelle saison est sortie sur votre site.',
                             'position' => 0
                         ];
                         $itemModel->insert($itemData);
                         $newCardsCount++;
 
-                        // Mise à jour de l'automatisation pour ne pas le remettre à chaque scan
-                        $automationModel->update($auto['id'], ['last_item_id' => $link]);
+                        // Le travail est fait, on supprime cette règle !
+                        $automationModel->delete($auto['id']);
                     }
+                } catch (\Exception $e) {
+                    // Timeout ou 404 pure, on ne fait rien, la saison n'est juste pas encore sortie !
                 }
-            } catch (\Exception $e) {
-                // Ignore silentieusement si le lien est temporairement down
             }
         }
         // ============================================
 
         if ($deadCount > 0 || $newCardsCount > 0) {
             $audit = new AuditLogModel();
-            $uniqueDomainsCount = count($checkedDomains);
             $message = $isForced ? 'Scan FORCÉ' : 'Scan en arrière-plan';
             $audit->logAction('Maintenance Système', "{$message} : {$deadCount} lien(s) mort(s). {$newCardsCount} carte(s) générée(s) via automatisation.");
         }
@@ -188,9 +233,8 @@ class CronController extends BaseController
             'status' => 'executed',
             'forced' => $isForced,
             'total_cards' => $totalChecked,
-            'unique_domains' => count($checkedDomains),
-            'dead_count' => $deadCount,
             'new_automations' => $newCardsCount,
+            'dead_count' => $deadCount,
             'dead_links' => $deadLinksDetails,
         ]);
     }

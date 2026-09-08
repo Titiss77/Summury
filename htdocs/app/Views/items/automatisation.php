@@ -7,7 +7,7 @@
 
 <div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
     <h2 style="margin-bottom: 2rem;">Mes Automatisations</h2>
-    
+
     <?php if (session()->has('message')) { ?>
     <div class="alert alert-success"><?php echo session('message'); ?></div>
     <?php } ?>
@@ -19,23 +19,29 @@
         <div class="card-body">
             <h3>Ajouter une automatisation</h3>
             <p style="color: var(--text-muted); font-size: 0.9em;">
-                Le système scannera le lien RSS ou YouTube que vous fournissez à chaque maintenance (cron). S'il détecte une nouveauté, il l'ajoutera dans la catégorie choisie. <br>
-                <strong>Astuce YouTube :</strong> Mettez le lien du flux RSS de la chaine : <code>https://www.youtube.com/feeds/videos.xml?channel_id=ID_DE_LA_CHAINE</code>
+                Le système surveillera automatiquement le lien que vous lui donnez. S'il détecte une nouveauté, il
+                créera la carte dans la catégorie choisie. <br>
+                <strong>Pour une nouvelle saison :</strong> Collez le lien de la saison actuelle. Le système devinera
+                l'URL de la saison suivante (ex: <i>s=4</i> deviendra <i>s=5</i>) et vérifiera tous les jours si elle
+                est sortie !
             </p>
             <form action="<?php echo base_url('automatisation/save'); ?>" method="POST">
                 <?php echo csrf_field(); ?>
-                
+
                 <div class="form-group">
                     <label for="type" class="form-label">Type d'automatisation</label>
                     <select id="type" name="type" class="form-control" required>
-                        <option value="youtube">Chaîne YouTube</option>
-                        <option value="rss">Flux RSS (Anime/Série)</option>
+                        <option value="youtube">Chaîne YouTube (Nouvelle vidéo)</option>
+                        <option value="rss">Site Web (Nouvel article/épisode via RSS)</option>
+                        <option value="next_season">Surveillance de suite (Saison suivante)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="source_url" class="form-label">Lien (URL) du Flux RSS ou Chaîne</label>
-                    <input type="url" id="source_url" name="source_url" class="form-control" placeholder="https://..." required>
+                    <label for="source_url" class="form-label">Lien du site, de la chaîne ou de la saison
+                        actuelle</label>
+                    <input type="url" id="source_url" name="source_url" class="form-control"
+                        placeholder="ex: https://franime.fr/...s=4..." required>
                 </div>
 
                 <div class="form-group row">
@@ -50,7 +56,8 @@
                     </div>
                     <div class="col-half">
                         <label for="sous_categorie" class="form-label">Sous-catégorie (Optionnel)</label>
-                        <input type="text" id="sous_categorie" name="sous_categorie" class="form-control" placeholder="Ex: Vidéos à voir">
+                        <input type="text" id="sous_categorie" name="sous_categorie" class="form-control"
+                            placeholder="Ex: À regarder">
                     </div>
                 </div>
 
@@ -72,7 +79,7 @@
             <thead>
                 <tr>
                     <th>Type</th>
-                    <th>Lien Source</th>
+                    <th>Lien Surveillé</th>
                     <th>Dernier ajout</th>
                     <th>Actions</th>
                 </tr>
@@ -82,21 +89,32 @@
                 <tr>
                     <td>
                         <span class="status-badge active" style="text-transform: uppercase;">
-                            <?php echo esc($auto['type']); ?>
+                            <?php echo esc(str_replace('_', ' ', $auto['type'])); ?>
                         </span>
                     </td>
                     <td style="max-width: 200px; word-wrap: break-word; font-size: 0.9em;">
-                        <a href="<?php echo esc($auto['source_url']); ?>" target="_blank" style="color: var(--primary);">Ouvrir le lien</a>
-                    </td>
-                    <td>
-                        <?php if ($auto['last_item_id']) { ?>
-                            <span style="color: var(--success); font-size: 0.85em;">Actif</span>
+                        <?php if ($auto['type'] === 'next_season') { ?>
+                        <i>Cible :</i> <br>
+                        <a href="<?php echo esc($auto['last_item_id']); ?>" target="_blank"
+                            style="color: var(--primary); font-size: 0.85em;"><?php echo esc($auto['last_item_id']); ?></a>
                         <?php } else { ?>
-                            <span style="color: var(--text-muted); font-size: 0.85em;">En attente de scan</span>
+                        <a href="<?php echo esc($auto['source_url']); ?>" target="_blank"
+                            style="color: var(--primary);">Ouvrir le flux</a>
                         <?php } ?>
                     </td>
                     <td>
-                        <a href="<?php echo base_url('automatisation/delete/' . $auto['id']); ?>" class="btn-action btn-ban" onclick="return confirm('Supprimer cette règle ?');">Supprimer</a>
+                        <?php if ($auto['type'] === 'next_season') { ?>
+                        <span style="color: var(--warning); font-size: 0.85em;">En attente de la sortie</span>
+                        <?php } elseif ($auto['last_item_id']) { ?>
+                        <span style="color: var(--success); font-size: 0.85em;">Actif</span>
+                        <?php } else { ?>
+                        <span style="color: var(--text-muted); font-size: 0.85em;">En attente de scan</span>
+                        <?php } ?>
+                    </td>
+                    <td>
+                        <a href="<?php echo base_url('automatisation/delete/' . $auto['id']); ?>"
+                            class="btn-action btn-ban"
+                            onclick="return confirm('Supprimer cette règle ?');">Supprimer</a>
                     </td>
                 </tr>
                 <?php } ?>
