@@ -38,6 +38,7 @@ class Filters extends BaseFilters
         'pagecache' => PageCache::class,
         'performance' => PerformanceMetrics::class,
         'minifier' => HtmlMinifier::class,
+        'errorlogger'   => \App\Filters\ErrorLogger::class,
     ];
 
     /**
@@ -82,6 +83,7 @@ class Filters extends BaseFilters
                 // 'honeypot',
                 // 'secureheaders',
                 'minifier',
+                'errorlogger',
             ],
         ]
     : [
@@ -93,6 +95,7 @@ class Filters extends BaseFilters
         'after' => [
             // 'honeypot',
             // 'secureheaders',
+            'errorlogger',
         ],
     ];
 
