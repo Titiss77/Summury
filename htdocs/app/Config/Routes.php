@@ -42,6 +42,8 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('items/restore-all', 'ItemController::restoreAll');
     $routes->get('items/empty-trash', 'ItemController::emptyTrash');
 
+    $routes->get('automatisation', 'ItemController::automatisation');
+
     // NOUVELLES ROUTES : Profil utilisateur
     $routes->get('profile', 'ProfileController::index');
     $routes->post('profile/update-password', 'ProfileController::updatePassword');

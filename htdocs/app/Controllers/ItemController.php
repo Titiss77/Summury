@@ -38,7 +38,7 @@ class ItemController extends BaseController
             'subCategories' => $subCategories,
             'statuts' => $this->statutModel->orderBy('ordre', 'ASC')->findAll(),
             'item' => null,
-            'view' => 'item_form',
+            'view' => 'items/item_form',
             'redirect_url' => $this->request->getUserAgent()->getReferrer() ?? site_url('/'),
         ];
 
@@ -46,7 +46,7 @@ class ItemController extends BaseController
             $data['item'] = $this->model->find($id);
         }
 
-        return view('item_form', $data);
+        return view('items/item_form', $data);
     }
 
     public function save()
@@ -397,7 +397,7 @@ class ItemController extends BaseController
 
     public function checkToGlobal()
     {
-        return view('global_items', ['items' => $this->model->checkToGlobal()]);
+        return view('items/global_items', ['items' => $this->model->checkToGlobal()]);
     }
 
     public function turnToAdmin($id)
@@ -580,7 +580,7 @@ class ItemController extends BaseController
         // On passe null si c'est un superadmin pour qu'il voit tout, sinon on passe son ID
         $deletedItems = $this->model->getDeletedItems($isSuperAdmin ? null : $userId);
         
-        return view('deleted_items', ['deletedItems' => $deletedItems]);
+        return view('items/deleted_items', ['deletedItems' => $deletedItems]);
     }
 
     public function restore($id)
@@ -661,5 +661,10 @@ class ItemController extends BaseController
         }
         
         return redirect()->back()->with('message', "Vos cartes supprimées ont été vidées définitivement.");
+    }
+
+    public function automatisation()
+    {
+        return view('items/automatisation');
     }
 }

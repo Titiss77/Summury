@@ -63,6 +63,7 @@
     </a>
     <?php } ?>
     <!-- Conteneur vertical pour les boutons d'ajout et de corbeille -->
+    <a href="<?php echo base_url('automatisation'); ?>" class="btn btn-cancel" style="margin: 0;">Automatisations</a>
     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
         <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success" style="margin: 0;">+ Ajouter une
             carte</a>
