@@ -182,8 +182,24 @@
                                 <?php } ?>
                                 <?php foreach ($items as $item) {
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
+                                    
+                                    // 1. On calcule si la sortie est dans le futur AVANT de générer la carte
+                                    $isFuture = false;
+                                    $dateSortieFormatted = '';
+                                    $textColor = '';
+                                    if (!empty($item->date_sortie)) {
+                                        $timezone = new DateTimeZone('Europe/Paris');
+                                        $dateSortie = new DateTime($item->date_sortie, $timezone);
+                                        $now = new DateTime('now', $timezone);
+                                        if ($dateSortie > $now) {
+                                            $isFuture = true;
+                                            $dateSortieFormatted = $dateSortie->format('d/m/Y H:i');
+                                            $textColor = 'color: var(--danger);';
+                                        }
+                                    }
                                     ?>
-                                <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : (!empty($item->episode) ? 'needs-dispo-check' : ''); ?>"
+                                <!-- 2. On empêche l'ajout de 'needs-dispo-check' si $isFuture est true -->
+                                <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ((!empty($item->episode) && !$isFuture) ? 'needs-dispo-check' : ''); ?>"
                                     data-id="<?php echo esc($item->id); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
                                     <?php if ($canDragItem) { ?>
@@ -194,31 +210,16 @@
                                     <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank"
                                         class="card-link-block">
                                         <div class="card-body">
-                                            <?php
-                                            $isFuture = false;
-                                            $dateSortieFormatted = '';
-                                            $textColor = '';
-                                            if (!empty($item->date_sortie)) {
-                                                $timezone = new DateTimeZone('Europe/Paris');
-                                                $dateSortie = new DateTime($item->date_sortie, $timezone);
-                                                $now = new DateTime('now', $timezone);
-                                                if ($dateSortie > $now) {
-                                                    $isFuture = true;
-                                                    $dateSortieFormatted = $dateSortie->format('d/m/Y H:i');
-                                                    $textColor = 'color: var(--danger);';
-                                                }
-                                            }
-                                            ?>
                                             <div class="date-container" id="date-container-<?php echo $item->id; ?>">
                                                 <?php if ($isFuture) { ?>
                                                 <p class="card-date" style="<?php echo $textColor; ?>">Sortie le :
                                                     <?php echo $dateSortieFormatted; ?></p>
                                                 <?php } ?>
                                             </div>
-
                                             <?php
                                             $isCheckable = false;
-                                            if (!empty($item->episode) && isset($supportedDomains) && is_array($supportedDomains)) {
+                                            // 3. On empêche d'afficher "Vérification..." si la carte est dans le futur
+                                            if (!empty($item->episode) && !$isFuture && isset($supportedDomains) && is_array($supportedDomains)) {
                                                 foreach ($supportedDomains as $domain) {
                                                     if (str_contains($item->getFinalLink(), $domain)) {
                                                         $isCheckable = true;
