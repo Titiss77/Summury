@@ -194,11 +194,77 @@ class ItemController extends BaseController
         $item = $this->model->find($id);
         if ($item) {
             $newEpisode = (int) $item->episode + 1;
-            $this->model->update($id, ['episode' => $newEpisode]);
-            (new AuditLogModel())->logAction('Incrémentation Rapide', "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode}.");
+            $newSaison = (int) $item->saison;
+            $totalEpisodes = (int) $item->total_episodes;
+            
+            $updateData = [];
+
+            // Si on dépasse le nombre max d'épisodes de la saison actuelle
+            if ($totalEpisodes > 0 && $newEpisode > $totalEpisodes) {
+                $newEpisode = 1;
+                $newSaison++;
+                $updateData['saison'] = $newSaison;
+                
+                // Recalcul du nombre max d'épisodes de la NOUVELLE saison via l'API TMDB 
+                // (Réutilisation de la logique de ta fonction search)
+                $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
+                $client = \Config\Services::curlrequest([
+                    'timeout' => 5,
+                    'http_errors' => false,
+                    'verify' => false
+                ]);
+                
+                try {
+                    $url = 'https://api.themoviedb.org/3/search/multi?query='.urlencode($item->titre)."&api_key={$apiKey}&language=fr-FR";
+                    $response = $client->get($url);
+                    
+                    if ($response->getStatusCode() === 200) {
+                        $body = json_decode($response->getBody(), true);
+                        if (!empty($body['results'])) {
+                            foreach ($body['results'] as $result) {
+                                // On isole spécifiquement les séries TV
+                                if (isset($result['media_type']) && $result['media_type'] === 'tv' && isset($result['id'])) {
+                                    $tvUrl = "https://api.themoviedb.org/3/tv/{$result['id']}?api_key={$apiKey}&language=fr-FR";
+                                    $tvResponse = $client->get($tvUrl);
+                                    
+                                    if ($tvResponse->getStatusCode() === 200) {
+                                        $tvBody = json_decode($tvResponse->getBody(), true);
+                                        if (isset($tvBody['seasons'])) {
+                                            foreach ($tvBody['seasons'] as $season) {
+                                                // On cherche la correspondance avec la nouvelle saison
+                                                if ($season['season_number'] == $newSaison) {
+                                                    $updateData['total_episodes'] = $season['episode_count'];
+                                                    break 2; // On stoppe les boucles dès qu'on a trouvé
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Si l'API échoue ou est hors ligne, on ignore silencieusement
+                    // La saison et l'épisode seront quand même mis à jour en base
+                }
+            }
+
+            $updateData['episode'] = $newEpisode;
+            $this->model->update($id, $updateData);
+            
+            // Adaptation des logs pour refléter le changement de saison
+            $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode}";
+            if (isset($updateData['saison'])) {
+                $logMessage .= " (Saison {$newSaison})";
+            }
+            (new \App\Models\AuditLogModel())->logAction('Incrémentation Rapide', $logMessage);
 
             if ($this->request->isAJAX()) {
-                return $this->response->setJSON(['success' => true, 'new_episode' => $newEpisode, 'csrf_token' => csrf_hash()]);
+                return $this->response->setJSON([
+                    'success' => true, 
+                    'new_episode' => $newEpisode, 
+                    'csrf_token' => csrf_hash()
+                ]);
             }
         }
         return redirect()->back();
