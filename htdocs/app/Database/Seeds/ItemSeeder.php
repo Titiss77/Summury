@@ -11,7 +11,7 @@ class ItemSeeder extends Seeder
         $itemData = [
             [
                 'id' => 1,
-                'id_user' => 2,
+                'id_user' => 3,
                 'id_division' => 1,
                 'sous_categorie' => null,
                 'titre' => 'One Piece',
