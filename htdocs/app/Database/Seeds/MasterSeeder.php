@@ -20,7 +20,7 @@ class MasterSeeder extends Seeder
 
         // 2. Tables enfants (dépendent des parents)
         $this->call('DivisionSeeder'); // Dépend de Header
-        // $this->call('ItemSeeder');  // Dépend de Users et Division
+        $this->call('ItemSeeder');  // Dépend de Users et Division
 
         // Réactiver les vérifications
         // $this->db->enableForeignKeyChecks();
