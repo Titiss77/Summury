@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\ItemModel;
 use App\Models\SiteConfigModel;
+use App\Models\ItemRevisionModel;
 
 class HomeController extends BaseController
 {
@@ -62,6 +63,14 @@ class HomeController extends BaseController
         $siteConfigModel = new SiteConfigModel();
         // On récupère uniquement la colonne 'domain' des sites actifs
         $supportedDomains = $siteConfigModel->where('is_active', 1)->findColumn('domain') ?? [];
+        
+        $pendingRevisionIds = [];
+        if (auth()->loggedIn()) {
+            $revModel = new ItemRevisionModel();
+            // On récupère uniquement la colonne des ID originaux des cartes en attente
+            $pendingRevisionIds = $revModel->where('revision_status', 'pending')
+                                           ->findColumn('original_item_id') ?? [];
+        }
 
         return view('home', [
             'headersWithNoLogin' => $headersWithNoLogin,
@@ -70,7 +79,8 @@ class HomeController extends BaseController
             'currentHeaderId' => $headerId,
             'pendingCount' => $pendingCount,
             'toAdminCount' => $toAdminCount,
-            'supportedDomains' => $supportedDomains, // Transmis à la vue
+            'supportedDomains' => $supportedDomains,
+            'pendingRevisionIds' => $pendingRevisionIds, // <-- NOUVELLE LIGNE À AJOUTER
         ]);
     }
 
