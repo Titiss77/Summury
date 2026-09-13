@@ -43,7 +43,7 @@ class ItemSeeder extends Seeder
                 'is_public'      => 0,
                 'description'    => "Dans un monde ravagé par des titans mangeurs d'hommes, Eren Yeager cherche à exterminer ces créatures.",
                 'date_sortie'    => null,
-                'image'          => 'https://image.tmdb.org/t/p/w500/aiy35Evcofzl7hASZZvsFgltleg.jpg',
+                'image'          => 'https://image.tmdb.org/t/p/w500/cEnxvrGIGwLz7ZfCx3g8oULJxrr.jpg',
                 'lien'           => null,
                 'link_status'    => 'ok',
                 'saison'         => null,
@@ -63,10 +63,10 @@ class ItemSeeder extends Seeder
                 'titre'          => 'Spider-Man: Beyond the Spider-Verse',
                 'titre_original' => null,
                 'status'         => 'À voir',
-                'is_public'      => 1,
+                'is_public'      => 2,
                 'description'    => "La conclusion très attendue de la trilogie animée Spider-Verse de Miles Morales.",
                 'date_sortie'    => '2026-11-15 00:00:00', // Date future (en rouge sur ton site)
-                'image'          => 'https://image.tmdb.org/t/p/w500/8c4a8kE7PizaGQQnditMmI1xbRp.jpg',
+                'image'          => 'https://image.tmdb.org/t/p/w500/9KAe39xqyZnv9J4W3DRGdQqX82h.jpg',
                 'lien'           => null,
                 'link_status'    => null,
                 'saison'         => null,
@@ -86,10 +86,10 @@ class ItemSeeder extends Seeder
                 'titre'          => 'The Last of Us',
                 'titre_original' => null,
                 'status'         => 'En pause',
-                'is_public'      => 0, // 0 = Privée
+                'is_public'      => 1, // 0 = Privée
                 'description'    => "Vingt ans après la destruction de la civilisation moderne, Joel est chargé de faire sortir Ellie, 14 ans, d'une zone de quarantaine.",
                 'date_sortie'    => null,
-                'image'          => 'https://image.tmdb.org/t/p/w500/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg',
+                'image'          => 'https://image.tmdb.org/t/p/w500/4pMd9VAdqm96KA2W4X8yetgc7EF.jpg',
                 'lien'           => 'https://www.primevideo.com/',
                 'link_status'    => 'ok',
                 'saison'         => 1,
@@ -109,7 +109,7 @@ class ItemSeeder extends Seeder
                 'titre'          => 'Berserk',
                 'titre_original' => 'ベルセルク',
                 'status'         => 'En cours',
-                'is_public'      => 1,
+                'is_public'      => 0,
                 'description'    => "Guts, le guerrier noir, erre dans un monde cauchemardesque en quête de vengeance.",
                 'date_sortie'    => null,
                 'image'          => null, // Va forcer l'affichage de la div "Aperçu"
@@ -126,7 +126,7 @@ class ItemSeeder extends Seeder
 
             // 6. Un utilitaire web / lien (Sans saison ni épisode)
             [
-                'id_user'        => 3,
+                'id_user'        => 1,
                 'id_division'    => 11, // Utilitaires Web
                 'sous_categorie' => 'Base de données',
                 'titre'          => 'MyAnimeList',
