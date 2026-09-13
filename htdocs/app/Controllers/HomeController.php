@@ -50,12 +50,10 @@ class HomeController extends BaseController
 
         if (auth()->loggedIn() && auth()->user()->inGroup('admin', 'superadmin')) {
             $pendingCount = $model->where('is_public', 2)->countAllResults();
-            $toAdminCount = $model->where('id_division >=', 5)
-                ->where('id_division <', 11)
+            $toAdminCount = $model->where('id_division <', 11)
                 ->where('is_public', 1)
                 ->where('id_user !=', 1)
-                ->countAllResults()
-            ;
+                ->countAllResults();
         }
 
         // ==========================================

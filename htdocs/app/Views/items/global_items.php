@@ -9,7 +9,6 @@
 </div>
 <div class="cards-grid">
     <?php foreach ($items as $item) { ?>
-    <?php if (1 != $item->id_user) { ?>
     <div class="card fade-in <?php echo 'Terminé' === $item->status ? 'status-completed' : ''; ?>"
         data-id="<?php echo esc($item->id); ?>">
         <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank" class="card-link-block">
@@ -107,7 +106,6 @@
                 admin</a>
         </div>
     </div>
-    <?php } ?>
     <?php } ?>
 </div>
 <?php echo $this->endSection(); ?>

@@ -102,7 +102,10 @@ class ItemModel extends Model
 
     public function checkToGlobal()
     {
-        return $this->db->query('SELECT * FROM `item` WHERE id_division >= 5 AND id_division < 11 AND is_public = 1 AND deleted_at IS NULL;')->getCustomResultObject(Item::class);
+        return $this->where('id_division <', 11)
+                    ->where('is_public', 1)
+                    ->where('id_user !=', 1)
+                    ->findAll();
     }
     
     public function getDeletedItems($userId = null)
