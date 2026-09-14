@@ -4,7 +4,6 @@
 window.showToast = function(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
-
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerText = message;
@@ -47,7 +46,6 @@ window.copierLien = function(lien) {
             alert('Lien copié !');
         }
     }
-
     function notifierErreur() {
         if (typeof showToast === 'function') {
             showToast('Erreur lors de la copie du lien.', 'danger');
@@ -73,7 +71,6 @@ window.copierLien = function(lien) {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-
         try {
             let successful = document.execCommand('copy');
             if (successful) {
@@ -85,7 +82,6 @@ window.copierLien = function(lien) {
             console.error('Erreur Fallback :', err);
             notifierErreur();
         }
-
         document.body.removeChild(textArea);
     }
 }
@@ -94,7 +90,6 @@ window.copierLien = function(lien) {
 // INITIALISATION DES ELEMENTS DU DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-
     // --- Gestion des paramètres d'URL (URL Hash cleaner) ---
     const currentUrl = new URL(window.location.href);
     if (currentUrl.searchParams.has('open') || currentUrl.hash) {
@@ -191,7 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
 
             const itemId = button.getAttribute('data-id');
-            // NOUVEAU : On récupère les infos de la catégorie depuis le bouton
             const divisionId = button.getAttribute('data-division');
             const subCategory = button.getAttribute('data-sub');
 
@@ -209,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-
                 const data = await response.json();
                 
                 if (data.success) {
@@ -221,25 +214,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         counterSpan.style.color = '';
                         counterSpan.style.transform = 'scale(1)';
                         
-                        // NOUVEAU : On reconstruit l'URL avec les bons paramètres au lieu d'un reload simple
                         const currentUrl = new URL(window.location.href.split('?')[0].split('#')[0]);
                         
                         if (divisionId) {
                             currentUrl.searchParams.set('open', divisionId);
-                            currentUrl.hash = 'div-' + divisionId; // Fait défiler jusqu'à la division
+                            currentUrl.hash = 'div-' + divisionId; 
                         }
                         if (subCategory) {
                             currentUrl.searchParams.set('subopen', subCategory);
                         }
                         
-                        // On redirige vers l'URL modifiée (ce qui recharge la page au bon endroit)
                         window.location.href = currentUrl.toString();
                         
                     }, 400);
 
                     if (data.csrf_token) siteConfig.csrfToken = data.csrf_token; 
                     if (typeof showToast === 'function') showToast('Épisode ajouté avec succès !', 'success');
-
                 } else {
                     console.error("Erreur renvoyée par PHP :", data);
                 }
@@ -284,30 +274,36 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // 7. RECHERCHE EN DIRECT (Live Search)
+    // 7. RECHERCHE EN DIRECT (Live Search avec Debounce)
     // ==========================================
     const searchInput = document.getElementById('liveSearch');
     if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const term = e.target.value.trim().toLowerCase();
-            const cards = document.querySelectorAll('.searchable-card, .card');
-            
-            cards.forEach(card => {
-                const title = card.querySelector('.card-title, .search-target-title')?.innerText.toLowerCase() || '';
-                const desc = card.querySelector('.card-desc, .search-target-desc')?.innerText.toLowerCase() || '';
-                
-                if (title.includes(term) || desc.includes(term)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+        let debounceTimer; // Variable pour stocker le délai
 
-            if (term !== '') {
-                document.querySelectorAll('details.division-section, details.subcategory-details').forEach(d => {
-                    d.setAttribute('open', 'open');
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(debounceTimer); // Annule le filtrage précédent si l'utilisateur tape vite
+            
+            debounceTimer = setTimeout(() => {
+                const term = e.target.value.trim().toLowerCase();
+                const cards = document.querySelectorAll('.searchable-card, .card');
+                
+                cards.forEach(card => {
+                    const title = card.querySelector('.card-title, .search-target-title')?.innerText.toLowerCase() || '';
+                    const desc = card.querySelector('.card-desc, .search-target-desc')?.innerText.toLowerCase() || '';
+                    
+                    if (title.includes(term) || desc.includes(term)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
                 });
-            }
+
+                if (term !== '') {
+                    document.querySelectorAll('details.division-section, details.subcategory-details').forEach(d => {
+                        d.setAttribute('open', 'open');
+                    });
+                }
+            }, 300); // 300ms de pause requise avant l'exécution du filtre
         });
     }
 
@@ -435,7 +431,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
-            // Le typeSelectionne est envoyé mais le serveur PHP gère maintenant tout en format unifié
             const url = `${baseUrl}item/search?q=${encodeURIComponent(titreInput)}&type=${typeSelectionne}`;
 
             try {
@@ -454,14 +449,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 let listeResultats = [];
 
-                // Nouvelle logique de parsing pour le format unifié
                 if (data.unified && data.unified.length > 0) {
                     listeResultats = data.unified.map(item => ({
                         titre: item.titre,
                         imageThumb: item.imageThumb,
                         imageLarge: item.imageLarge,
                         description: item.description ? (item.description.length > limitCut ? item.description.substring(0, limitCut) + "..." : item.description) : "",
-                        info: item.info, // Contient déjà la valeur formattée, ex: "1999 - ANIME" ou "1997 - MANGA"
+                        info: item.info, 
                         lien: item.lien,
                         total_episodes: item.total_episodes,
                         total_saisons: item.total_saisons,
@@ -522,7 +516,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (res.total_episodes && totalEpField) totalEpField.value = res.total_episodes;
                             if (res.total_saisons && totalSaisonField) totalSaisonField.value = res.total_saisons;
 
-                            // -- Sauvegarde des donnees de saisons pour ajustement automatique --
                             window.currentSeasonsData = res.seasons_data || null;
                             if (window.currentSeasonsData && saisonInput && saisonInput.value) {
                                 if (window.currentSeasonsData[saisonInput.value]) {
@@ -539,7 +532,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         resultsContainer.appendChild(divItem);
                     });
-
                 } else {
                     statusTxt.innerText = 'Aucun résultat';
                     resultsContainer.style.display = 'none';
@@ -621,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
-                btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
+                btn.innerHTML = '⚙️ Analyse en cours... Veuillez patienter...';
                 
                 const cronUrl = siteConfig.cronUrl.includes('?') ? siteConfig.cronUrl + '&force=1' : siteConfig.cronUrl + '?force=1';
 
@@ -654,17 +646,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const champTotalEp = document.getElementById('total_episodes');
     const champTotalSaisons = document.getElementById('total_saisons');
     
-    let isFetchingSeasons = false; // Flag pour éviter le spam de l'API
+    let isFetchingSeasons = false; 
     let fetchSeasonsTimeout = null;
 
     if (champSaison && champTotalEp) {
         
-        // Changement de 'change' en 'input' pour une réaction instantanée sans avoir à cliquer en dehors
         champSaison.addEventListener('input', function() {
             const numSaison = this.value;
             if (!numSaison) return;
 
-            // 1. Si on a déjà les données de la session en cours (après un clic sur Auto-remplir)
             if (window.currentSeasonsData && window.currentSeasonsData[numSaison] !== undefined) {
                 champTotalEp.value = window.currentSeasonsData[numSaison];
                 
@@ -675,11 +665,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 2. Si on édite la carte (page rechargée), on récupère les données unifiées en fond
             const titreInput = document.getElementById('titre');
             if (titreInput && titreInput.value.trim() !== '') {
                 
-                clearTimeout(fetchSeasonsTimeout); // Debounce
+                clearTimeout(fetchSeasonsTimeout); 
                 
                 fetchSeasonsTimeout = setTimeout(async () => {
                     if (isFetchingSeasons) return;
@@ -688,11 +677,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     const titre = titreInput.value.trim();
                     const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
                     
-                    // On récupère le format unifié
                     const url = `${baseUrl}item/search?q=${encodeURIComponent(titre)}&type=serie`;
 
                     try {
-                        // Indication visuelle discrète que le chargement est en cours
                         champTotalEp.style.transition = 'opacity 0.3s';
                         champTotalEp.style.opacity = '0.5';
 
@@ -700,23 +687,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         const data = await response.json();
 
                         if (data.unified && data.unified.length > 0) {
-                            // On prend le premier résultat valide qui contient bien les saisons
                             const bestMatch = data.unified.find(r => r.seasons_data !== null);
-
                             if (bestMatch && bestMatch.seasons_data) {
                                 
-                                // On met en cache pour éviter de refaire l'appel si l'utilisateur change encore la saison
                                 window.currentSeasonsData = bestMatch.seasons_data;
                                 
                                 if (window.currentSeasonsData[numSaison] !== undefined) {
                                     champTotalEp.value = window.currentSeasonsData[numSaison];
                                     
-                                    // Feedback visuel de succès
                                     champTotalEp.style.color = 'var(--success)';
                                     setTimeout(() => champTotalEp.style.color = '', 800);
                                 }
                                 
-                                // Si le total de saisons était vide, on le remplit aussi
                                 if (bestMatch.total_saisons && champTotalSaisons && !champTotalSaisons.value) {
                                     champTotalSaisons.value = bestMatch.total_saisons;
                                 }
@@ -728,8 +710,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         champTotalEp.style.opacity = '1';
                         isFetchingSeasons = false;
                     }
-
-                }, 500); // 500ms d'attente après la dernière frappe avant d'interroger le serveur
+                }, 500); 
             }
         });
     }
@@ -737,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }); // Fin DOMContentLoaded
 
 // ==========================================
-// 11. VERIFICATION DE DISPONIBILITE EN DIRECT
+// 11. VERIFICATION DE DISPONIBILITE EN DIRECT (Système de file d'attente / Batch)
 // ==========================================
 window.addEventListener('load', function() {
     
@@ -748,19 +729,33 @@ window.addEventListener('load', function() {
         }, 5000);
     }
 
-    const cardsToCheck = document.querySelectorAll('.needs-dispo-check');
-    
-    // --- On récupère dynamiquement les domaines supportés transmis par PHP ---
+    const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));
     const supportedDomains = window.siteSupportedDomains || [];
     
-    cardsToCheck.forEach(async function(card) {
+    // Fonction qui lance les vérifications par lots (Batching)
+    // Cela évite de saturer le serveur de requêtes simultanées
+    async function processBatch(cards, batchSize = 3) {
+        for (let i = 0; i < cards.length; i += batchSize) {
+            const batch = cards.slice(i, i + batchSize);
+            
+            // Exécute 3 requêtes en même temps max
+            await Promise.all(batch.map(card => checkCardDispo(card, supportedDomains)));
+            
+            // On ajoute une micro pause (300ms) entre chaque groupe de 3 pour laisser souffler PHP
+            if (i + batchSize < cards.length) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+        }
+    }
+
+    // Fonction unitaire traitant UNE SEULE carte
+    async function checkCardDispo(card, supportedDomains) {
         const itemId = card.getAttribute('data-id');
         const url = card.getAttribute('data-url');
         const statusDiv = document.getElementById(`live-status-${itemId}`);
         const dateContainer = document.getElementById(`date-container-${itemId}`);
 
         const isSupported = url && supportedDomains.some(domain => url.includes(domain));
-
         if (!isSupported) {
             if (statusDiv) statusDiv.style.display = 'none';
             return;
@@ -807,20 +802,17 @@ window.addEventListener('load', function() {
                 disponible: data.disponible
             }));
 
-            // Mise à jour de l'interface
             applyDispoResult(data.disponible, statusDiv, dateContainer);
 
         } catch (err) {
             console.error("Erreur réseau/Fetch pour la carte " + itemId, err);
             if (statusDiv) statusDiv.style.display = 'none';
         }
-    });
+    }
 
-    // Fonction utilitaire pour appliquer l'affichage (Mutualisée pour le cache et les requêtes)
+    // Fonction utilitaire pour appliquer l'affichage
     function applyDispoResult(disponible, statusDiv, dateContainer) {
-        if (statusDiv) {
-            statusDiv.style.display = 'none';
-        }
+        if (statusDiv) statusDiv.style.display = 'none';
         
         if (disponible) {
             if (dateContainer) dateContainer.style.display = 'none'; 
@@ -834,4 +826,8 @@ window.addEventListener('load', function() {
         }
     }
 
+    // Démarrage de la file d'attente
+    if (cardsToCheck.length > 0) {
+        processBatch(cardsToCheck, 3);
+    }
 });

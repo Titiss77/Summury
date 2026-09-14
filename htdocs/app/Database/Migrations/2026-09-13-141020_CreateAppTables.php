@@ -1,8 +1,8 @@
-<?php
+<?php 
 
-namespace App\Database\Migrations;
+namespace App\Database\Migrations; 
 
-use CodeIgniter\Database\Migration;
+use CodeIgniter\Database\Migration; 
 
 class CreateAppTables extends Migration
 {
@@ -23,6 +23,7 @@ class CreateAppTables extends Migration
             'nom'       => ['type' => 'VARCHAR', 'constraint' => 255],
         ]);
         $this->forge->addPrimaryKey('id');
+        $this->forge->addKey('id_header'); // <-- OPTIMISATION : Ajout de l'index
         $this->forge->addForeignKey('id_header', 'header', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('division');
 
@@ -71,6 +72,12 @@ class CreateAppTables extends Migration
             'deleted_at'     => ['type' => 'DATETIME', 'null' => true], // Soft deletes
         ]);
         $this->forge->addPrimaryKey('id');
+        
+        // <-- OPTIMISATIONS : Ajout des index pour accélérer les requêtes
+        $this->forge->addKey('id_user');       
+        $this->forge->addKey('is_public');     
+        $this->forge->addKey('id_division');   
+        
         $this->forge->addForeignKey('id_user', 'users', 'id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('id_division', 'division', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('item');
@@ -123,7 +130,6 @@ class CreateAppTables extends Migration
             'code_erreur' => ['type' => 'INT', 'constraint' => 11, 'null' => true],
         ]);
         $this->forge->addPrimaryKey('id');
-        // FK optionnelle, mais pratique si l'item est supprimé ça nettoie les logs de cron :
         $this->forge->addForeignKey('item_id', 'item', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('cron_logs');
 
