@@ -25,12 +25,19 @@ class ItemModel extends Model
 
     public function getItemsGroupedByHeaderAndDivision($userId = null, $headerId = null)
     {
+        // Système de cache SQL
+        $cache = \Config\Services::cache();
+        $cacheKey = 'items_grouped_' . ($userId ?? 'public') . '_' . ($headerId ?? 'all');
+
+        if ($cachedData = $cache->get($cacheKey)) {
+            return $cachedData;
+        }
+
         $builder = $this->db->table('item i')
             ->select('h.nom AS header_nom, d.nom AS division_nom, i.*')
             ->join('division d', 'i.id_division = d.id')
             ->join('header h', 'd.id_header = h.id')
-            ->where('i.id_user !=', 0)->where('i.deleted_at IS NULL')
-        ;
+            ->where('i.id_user !=', 0)->where('i.deleted_at IS NULL');
 
         if (null === $userId) {
             $builder->where('i.is_public', 1);
@@ -60,33 +67,41 @@ class ItemModel extends Model
             if (!isset($groupedData[$header][$division][$subCat])) {
                 $groupedData[$header][$division][$subCat] = [];
             }
-
             $groupedData[$header][$division][$subCat][] = $item;
         }
 
+        // Sauvegarde pour 5 minutes
+        $cache->save($cacheKey, $groupedData, 300);
         return $groupedData;
     }
 
-    // Nouvelle méthode pour ne récupérer que les onglets contenant des cartes
     public function getActiveHeaders($userId = null)
     {
+        $cache = \Config\Services::cache();
+        $cacheKey = 'active_headers_' . ($userId ?? 'public');
+
+        if ($cachedData = $cache->get($cacheKey)) {
+            return $cachedData;
+        }
+
         $builder = $this->db->table('header h')
             ->select('h.*')
-            ->distinct() // Pour ne pas récupérer la catégorie en double si elle a plusieurs cartes
+            ->distinct()
             ->join('division d', 'd.id_header = h.id')
             ->join('item i', 'i.id_division = d.id')
             ->where('i.deleted_at IS NULL')
             ->where('i.id_user !=', 0);
 
-        // On filtre selon ce que la personne a le droit de voir
         if (null === $userId) {
-            $builder->where('i.is_public', 1); // Visiteur = Uniquement publique
+            $builder->where('i.is_public', 1); 
         } else {
-            // Utilisateur co = Ses propres cartes OU les cartes publiques
             $builder->groupStart()->where('i.id_user', $userId)->orWhere('i.is_public', 1)->groupEnd();
         }
 
-        return $builder->orderBy('h.id', 'ASC')->get()->getResultArray();
+        $result = $builder->orderBy('h.id', 'ASC')->get()->getResultArray();
+        $cache->save($cacheKey, $result, 300);
+        
+        return $result;
     }
 
     public function getDivisions()
@@ -96,16 +111,12 @@ class ItemModel extends Model
 
     public function getHeaders()
     {
-        // On garde cette méthode intacte pour que le formulaire de création continue d'afficher TOUTES les catégories
         return $this->db->table('header')->orderBy('id', 'ASC')->get()->getResultArray();
     }
 
     public function checkToGlobal()
     {
-        return $this->where('id_division <', 11)
-                    ->where('is_public', 1)
-                    ->where('id_user !=', 1)
-                    ->findAll();
+        return $this->where('id_division <', 11)->where('is_public', 1)->where('id_user !=', 1)->findAll();
     }
     
     public function getDeletedItems($userId = null)
@@ -115,16 +126,11 @@ class ItemModel extends Model
             ->join('users u', 'i.id_user = u.id', 'left')
             ->where('i.deleted_at IS NOT NULL');
 
-        // Si le contrôleur a passé un ID (c'est-à-dire que ce n'est pas un admin)
-        // on filtre pour n'afficher que ses cartes.
-        // Si l'ID est null (passé par l'admin), on ne filtre pas.
         if ($userId !== null) {
             $builder->where('i.id_user', $userId);
         }
 
-        // On trie par date de suppression de la plus récente à la plus ancienne
         $builder->orderBy('i.deleted_at', 'DESC');
-
         return $builder->get()->getCustomResultObject(Item::class);
     }
 }
