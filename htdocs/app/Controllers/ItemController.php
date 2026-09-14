@@ -524,17 +524,20 @@ class ItemController extends BaseController
     public function checkDispo()
     {
         $urlCible = $this->request->getGet('urlCible');
-        log_message('debug', 'CheckDispo - Démarrage. URL ciblée : ' . $urlCible);
-
         if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
-            log_message('error', 'CheckDispo - Échec : URL invalide ou vide.');
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
         $siteConfigModel = new SiteConfigModel();
-        $sites = $siteConfigModel->where('is_active', 1)->findAll();
-        $currentConfig = null;
+        // Utilisation du cache pour éviter des requêtes BDD répétées sur les configurations de sites
+        $cache = \Config\Services::cache();
+        $sites = $cache->get('active_sites_config');
+        if (!$sites) {
+            $sites = $siteConfigModel->where('is_active', 1)->findAll();
+            $cache->save('active_sites_config', $sites, 3600);
+        }
 
+        $currentConfig = null;
         foreach ($sites as $config) {
             if (false !== stripos($urlCible, $config['domain'])) {
                 $currentConfig = $config;
@@ -543,43 +546,33 @@ class ItemController extends BaseController
         }
 
         if (!$currentConfig) {
-            log_message('error', 'CheckDispo - Aucun domaine supporté trouvé en BDD pour : ' . $urlCible);
-            return $this->response->setJSON(['success' => false, 'error' => 'Domaine non support .']);
+            return $this->response->setJSON(['success' => false, 'error' => 'Domaine non supporté.']);
         }
-
-        log_message('debug', 'CheckDispo - Configuration BDD trouvée pour le domaine : ' . $currentConfig['domain']);
 
         preg_match($currentConfig['regex_episode'], $urlCible, $matches);
         $episodeExtrait = $matches[1] ?? null;
-        log_message('debug', 'CheckDispo - Épisode extrait via Regex : ' . ($episodeExtrait ?? 'Aucun'));
-
         $indicateursPageInvalide = json_decode($currentConfig['indicateurs_page_invalide'], true) ?? [];
         $indicateursLecteur = json_decode($currentConfig['indicateurs_lecteur'], true) ?? [];
 
         try {
             $client = Services::curlrequest([
-                'timeout' => 8, 'connect_timeout' => 5, 'http_errors' => false,
-                'allow_redirects' => true, 'verify' => false,
+                'timeout' => 3, 'connect_timeout' => 2, // Timeouts réduits drastiquement pour ne pas bloquer
+                'http_errors' => false, 'allow_redirects' => true, 'verify' => false,
                 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
-
-            log_message('debug', 'CheckDispo - Envoi de la requête cURL...');
+            
             $response = $client->get($urlCible);
             $statusCode = $response->getStatusCode();
-            log_message('debug', 'CheckDispo - Statut HTTP reçu du site cible : ' . $statusCode);
-
+            
             if (404 === $statusCode) {
-                log_message('info', 'CheckDispo - Page 404 détectée par cURL.');
                 return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']]);
             }
 
             $html = (string) $response->getBody();
             $estSurFicheAnime = false;
-
             foreach ($indicateursPageInvalide as $indicator) {
                 if (false !== stripos($html, $indicator)) {
                     $estSurFicheAnime = true;
-                    log_message('debug', 'CheckDispo - Indicateur de PAGE INVALIDE détecté : ' . $indicator);
                     break;
                 }
             }
@@ -589,21 +582,17 @@ class ItemController extends BaseController
                 $indicatorFinal = $episodeExtrait ? str_replace('{ep}', (string) $episodeExtrait, $indicator) : $indicator;
                 if (false !== stripos($html, $indicatorFinal)) {
                     $lecteurPresent = true;
-                    log_message('debug', 'CheckDispo - Indicateur de LECTEUR détecté : ' . $indicatorFinal);
                     break;
                 }
             }
 
-            log_message('debug', 'CheckDispo - Résultat final : estSurFicheAnime = ' . ($estSurFicheAnime ? 'Vrai' : 'Faux') . ', lecteurPresent = ' . ($lecteurPresent ? 'Vrai' : 'Faux'));
-
             return $this->response->setJSON([
                 'success' => true,
                 'disponible' => !$estSurFicheAnime && $lecteurPresent,
-                'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent, 'episodeDetecte' => $episodeExtrait],
+                'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent],
             ]);
         } catch (\Throwable $e) {
-            log_message('error', 'CheckDispo - Exception interceptée (Timeout ou autre) : ' . $e->getMessage());
-            return $this->response->setJSON(['success' => false, 'error' => 'Erreur Interne : '.$e->getMessage()]);
+            return $this->response->setJSON(['success' => false, 'error' => 'Timeout']);
         }
     }
 
