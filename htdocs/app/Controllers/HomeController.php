@@ -10,25 +10,23 @@ class HomeController extends BaseController
 {
     public function __construct()
     {
+        // Charge explicitement le helper auth de Shield pour que la fonction auth() soit reconnue
         helper('auth');
     }
 
     public function index()
     {
-        if (!auth()->loggedIn()) {
-            // Met en cache la page pendant 5 minutes (300 secondes) pour les visiteurs
-            $this->cachePage(300); 
-        }
-
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
+        // On utilise la nouvelle méthode pour n'afficher que les onglets utiles
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
 
         if (!empty($headersWithNoLogin)) {
             return redirect()->to('categorie/'.$headersWithNoLogin[0]['id']);
         }
+
         if (!empty($headersWithLogin)) {
             return redirect()->to('categorie/'.$headersWithLogin[0]['id']);
         }
@@ -38,20 +36,19 @@ class HomeController extends BaseController
 
     public function categorie($headerId)
     {
-        if (!auth()->loggedIn()) {
-            // Cache la page des catégories pour les visiteurs
-            $this->cachePage(300); 
-        }
-
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
+        // On utilise la nouvelle méthode pour n'afficher que les onglets utiles
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
-        $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
         
+    
+        $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
+
         $pendingCount = 0;
         $toAdminCount = 0;
+
         if (auth()->loggedIn() && auth()->user()->inGroup('admin', 'superadmin')) {
             $pendingCount = $model->where('is_public', 2)->countAllResults();
             $toAdminCount = $model->where('id_division <', 11)
@@ -60,12 +57,17 @@ class HomeController extends BaseController
                 ->countAllResults();
         }
 
+        // ==========================================
+        // Récupération des domaines supportés en BDD
+        // ==========================================
         $siteConfigModel = new SiteConfigModel();
+        // On récupère uniquement la colonne 'domain' des sites actifs
         $supportedDomains = $siteConfigModel->where('is_active', 1)->findColumn('domain') ?? [];
         
         $pendingRevisionIds = [];
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
+            // On récupère uniquement la colonne des ID originaux des cartes en attente
             $pendingRevisionIds = $revModel->where('revision_status', 'pending')
                                            ->findColumn('original_item_id') ?? [];
         }
@@ -78,19 +80,17 @@ class HomeController extends BaseController
             'pendingCount' => $pendingCount,
             'toAdminCount' => $toAdminCount,
             'supportedDomains' => $supportedDomains,
-            'pendingRevisionIds' => $pendingRevisionIds,
+            'pendingRevisionIds' => $pendingRevisionIds, // <-- NOUVELLE LIGNE À AJOUTER
         ]);
     }
 
     public function legal()
     {
-        $this->cachePage(86400); // 24h
         return view('rgpd/legal');
     }
     
     public function privacy()
     {
-        $this->cachePage(86400); // 24h
         return view('rgpd/privacy');
     }
 }
