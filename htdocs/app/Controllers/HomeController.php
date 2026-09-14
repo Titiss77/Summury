@@ -27,7 +27,12 @@ class HomeController extends BaseController
             return redirect()->to('categorie/'.$headersWithLogin[0]['id']);
         }
 
-        return view('home', ['headersWithNoLogin' => $headersWithNoLogin, 'headersWithLogin' => $headersWithLogin, 'groupedItems' => [], 'supportedDomains' => []]);
+        return view('home', [
+            'headersWithNoLogin' => $headersWithNoLogin, 
+            'headersWithLogin' => $headersWithLogin, 
+            'groupedItems' => [], 
+            'supportedDomains' => []
+        ]);
     }
 
     public function categorie($headerId)
@@ -35,14 +40,23 @@ class HomeController extends BaseController
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
+        // OPTIMISATION : Mise en cache pour les visiteurs non connectés (5 minutes)
+        $cacheKey = 'home_category_' . $headerId . '_' . ($userId ?? 'guest');
+        $cache = \Config\Services::cache();
+        
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
-        $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
+        
+        if (!$groupedItems = $cache->get($cacheKey)) {
+            $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
+            $cache->save($cacheKey, $groupedItems, 300);
+        }
         
         $pendingTotal = 0;
         $toAdminCount = 0;
         $pendingRevisionIds = [];
 
+        // Les calculs lourds ne sont faits que si l'utilisateur est connecté
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
