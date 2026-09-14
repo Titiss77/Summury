@@ -1,5 +1,4 @@
 <?php declare(strict_types=1);
-
 namespace App\Controllers;
 
 use App\Models\ItemModel;
@@ -10,7 +9,6 @@ class HomeController extends BaseController
 {
     public function __construct()
     {
-        // Charge explicitement le helper auth de Shield pour que la fonction auth() soit reconnue
         helper('auth');
     }
 
@@ -19,14 +17,12 @@ class HomeController extends BaseController
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
-        // On utilise la nouvelle méthode pour n'afficher que les onglets utiles
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
 
         if (!empty($headersWithNoLogin)) {
             return redirect()->to('categorie/'.$headersWithNoLogin[0]['id']);
         }
-
         if (!empty($headersWithLogin)) {
             return redirect()->to('categorie/'.$headersWithLogin[0]['id']);
         }
@@ -39,48 +35,42 @@ class HomeController extends BaseController
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
-        // On utilise la nouvelle méthode pour n'afficher que les onglets utiles
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
-        
-    
         $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
-
-        $pendingCount = 0;
-        $toAdminCount = 0;
-
-        if (auth()->loggedIn() && auth()->user()->inGroup('admin', 'superadmin')) {
-            $pendingCount = $model->where('is_public', 2)->countAllResults();
-            $toAdminCount = $model->where('id_division <', 11)
-                ->where('is_public', 1)
-                ->where('id_user !=', 1)
-                ->countAllResults();
-        }
-
-        // ==========================================
-        // Récupération des domaines supportés en BDD
-        // ==========================================
-        $siteConfigModel = new SiteConfigModel();
-        // On récupère uniquement la colonne 'domain' des sites actifs
-        $supportedDomains = $siteConfigModel->where('is_active', 1)->findColumn('domain') ?? [];
         
+        $pendingTotal = 0;
+        $toAdminCount = 0;
         $pendingRevisionIds = [];
+
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
-            // On récupère uniquement la colonne des ID originaux des cartes en attente
-            $pendingRevisionIds = $revModel->where('revision_status', 'pending')
-                                           ->findColumn('original_item_id') ?? [];
+            $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
+            
+            if (auth()->user()->inGroup('admin', 'superadmin')) {
+                $pendingItemsCount = $model->where('is_public', 2)->countAllResults();
+                $pendingRevisionsCount = $revModel->where('revision_status', 'pending')->countAllResults();
+                $pendingTotal = $pendingItemsCount + $pendingRevisionsCount;
+                
+                $toAdminCount = $model->where('id_division <', 11)
+                    ->where('is_public', 1)
+                    ->where('id_user !=', 1)
+                    ->countAllResults();
+            }
         }
+
+        $siteConfigModel = new SiteConfigModel();
+        $supportedDomains = $siteConfigModel->where('is_active', 1)->findColumn('domain') ?? [];
 
         return view('home', [
             'headersWithNoLogin' => $headersWithNoLogin,
             'headersWithLogin' => $headersWithLogin,
             'groupedItems' => $groupedItems,
             'currentHeaderId' => $headerId,
-            'pendingCount' => $pendingCount,
+            'pendingTotal' => $pendingTotal,
             'toAdminCount' => $toAdminCount,
             'supportedDomains' => $supportedDomains,
-            'pendingRevisionIds' => $pendingRevisionIds, // <-- NOUVELLE LIGNE À AJOUTER
+            'pendingRevisionIds' => $pendingRevisionIds,
         ]);
     }
 
