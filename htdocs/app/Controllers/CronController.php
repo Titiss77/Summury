@@ -165,6 +165,7 @@ class CronController extends BaseController
                                 $itemModel->insert([
                                     'id_user' => $channel['user_id'],
                                     'id_division' => 5, // 5 = Correspond à la division Vidéos
+                                    'sous_categorie' => $channel['channel_name'], // Ajout du nom de la chaîne en sous-catégorie
                                     'titre' => (string)$latestVideo->title,
                                     'status' => 'À voir',
                                     'is_public' => 0, // Optionnel : tu peux forcer à 1 ou 2 selon tes règles

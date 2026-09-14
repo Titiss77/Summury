@@ -47,6 +47,8 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     // YouTube RSS Automation
     $routes->get('youtube/add', 'YoutubeController::add');
     $routes->post('youtube/save', 'YoutubeController::save');
+    // Ajoute la route de suppression juste en dessous
+    $routes->get('youtube/delete/(:num)', 'YoutubeController::delete/$1');
 });
 
 // --------------------------------------------------------------------
