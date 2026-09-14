@@ -1,12 +1,11 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
 use App\Models\AuditLogModel;
 use App\Models\CronLogModel;
 use App\Models\ItemModel;
+use App\Models\YoutubeChannelModel;
 use Config\Services;
 
 class CronController extends BaseController
@@ -14,10 +13,8 @@ class CronController extends BaseController
     public function run()
     {
         ini_set('max_execution_time', '0');
-
         $cronModel = new CronLogModel();
         $lastRunRow = $cronModel->orderBy('last_run', 'DESC')->first();
-
         $now = time();
         $shouldRun = false;
         $isForced = '1' === $this->request->getGet('force');
@@ -36,21 +33,17 @@ class CronController extends BaseController
         }
 
         $cronModel->truncate();
-
         $itemModel = new ItemModel();
         $items = $itemModel->where('lien !=', '')->where('lien IS NOT NULL')->findAll();
-
         $client = Services::curlrequest([
             'timeout' => 10,
-            'connect_timeout' => 5,  // NOUVEAU : Force l'arrêt rapide si le DNS est introuvable
+            'connect_timeout' => 5,
             'http_errors' => false,
             'allow_redirects' => true,
-            'verify' => false,  // NOUVEAU CRUCIAL : Ignore les erreurs HTTPS/SSL des sites morts
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'verify' => false,
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             'headers' => [
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language' => 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-                'Upgrade-Insecure-Requests' => '1',
             ],
         ]);
 
@@ -61,32 +54,22 @@ class CronController extends BaseController
         $checkedDomains = [];
 
         foreach ($items as $item) {
-            // 1. Formatage du lien complet pour l'affichage (Lien avec épisodes et saisons remplacés)
             $ep = $item->episode ?: '1';
             $ep2 = str_pad((string) $ep, 2, '0', STR_PAD_LEFT);
             $s = $item->saison ?: '1';
             $s2 = str_pad((string) $s, 2, '0', STR_PAD_LEFT);
+            $urlToTest = str_replace(['{ep}', '{ep2}', '{s}', '{s2}'], [$ep, $ep2, $s, $s2], $item->lien);
 
-            $urlToTest = str_replace(
-                ['{ep}', '{ep2}', '{s}', '{s2}'],
-                [$ep, $ep2, $s, $s2],
-                $item->lien
-            );
-
-            // 2. Extraction du domaine principal pour le test serveur (ex: https://sushiscan.net)
             $parsedUrl = parse_url($item->lien);
-
             if (!isset($parsedUrl['host'])) {
                 continue;
             }
 
             $scheme = $parsedUrl['scheme'] ?? 'https';
             $domainToTest = $scheme.'://'.$parsedUrl['host'];
-
             ++$totalChecked;
             $statusCode = null;
 
-            // 3. Vérification du domaine (avec cache pour ne pas tester 10 fois sushiscan.net)
             if (array_key_exists($domainToTest, $checkedDomains)) {
                 $statusCode = $checkedDomains[$domainToTest];
             } else {
@@ -94,26 +77,22 @@ class CronController extends BaseController
                     $response = $client->get($domainToTest);
                     $statusCode = $response->getStatusCode();
                 } catch (\Throwable $e) {
-                    // On attrape les crashs réseau profonds et on définit le code sur 0
                     $statusCode = 0;
                 }
                 $checkedDomains[$domainToTest] = $statusCode;
             }
 
-            // 4. Si le DOMAINE est mort, on flague la carte et on enregistre son LIEN COMPLET
             if (0 === $statusCode || 404 === $statusCode) {
                 $itemModel->update($item->id, ['link_status' => 'dead']);
                 ++$deadCount;
-
                 $cronModel->insert([
                     'task_name' => 'check_dead_links',
                     'last_run' => $currentTimestamp,
                     'item_id' => $item->id,
                     'titre' => $item->titre,
-                    'url_testee' => $urlToTest,  // <-- CORRECTION : Affiche le vrai lien de la carte (ex: /chainsaw-man-chapitre-52)
+                    'url_testee' => $urlToTest,
                     'code_erreur' => $statusCode,
                 ]);
-
                 $deadLinksDetails[] = [
                     'id' => $item->id,
                     'titre' => $item->titre,
@@ -131,9 +110,6 @@ class CronController extends BaseController
             $cronModel->insert([
                 'task_name' => 'check_dead_links',
                 'last_run' => $currentTimestamp,
-                'item_id' => null,
-                'titre' => 'Aucun lien mort détecté',
-                'url_testee' => null,
                 'code_erreur' => 200,
             ]);
         }
@@ -142,16 +118,80 @@ class CronController extends BaseController
             $audit = new AuditLogModel();
             $uniqueDomainsCount = count($checkedDomains);
             $message = $isForced ? 'Scan FORCÉ de liens' : 'Scan de liens en arrière-plan';
-            $audit->logAction('Maintenance Système', "{$message} : {$uniqueDomainsCount} domaines uniques testés pour {$totalChecked} cartes. {$deadCount} carte(s) impactée(s).");
+            $audit->logAction('Maintenance Système', "{$message} : {$uniqueDomainsCount} domaines uniques testés. {$deadCount} carte(s) impactée(s).");
         }
 
         return $this->response->setJSON([
             'status' => 'executed',
             'forced' => $isForced,
             'total_cards' => $totalChecked,
-            'unique_domains' => count($checkedDomains),
-            'dead_count' => $deadCount,
-            'dead_links' => $deadLinksDetails,
+            'dead_count' => $deadCount
         ]);
+    }
+
+    public function youtube()
+    {
+        ini_set('max_execution_time', '0');
+        $channelModel = new YoutubeChannelModel();
+        $itemModel = new ItemModel();
+        $channels = $channelModel->findAll();
+        
+        $client = Services::curlrequest([
+            'timeout' => 10,
+            'verify' => false,
+        ]);
+
+        $addedCount = 0;
+
+        foreach ($channels as $channel) {
+            $url = 'https://www.youtube.com/feeds/videos.xml?channel_id=' . $channel['channel_id'];
+            
+            try {
+                $response = $client->get($url, ['http_errors' => false]);
+                if ($response->getStatusCode() === 200) {
+                    $xml = simplexml_load_string($response->getBody());
+                    
+                    if ($xml && isset($xml->entry[0])) {
+                        $latestVideo = $xml->entry[0];
+                        $videoId = str_replace('yt:video:', '', (string)$latestVideo->id);
+                        
+                        // Si une nouvelle vidéo est détectée
+                        if ($channel['last_video_id'] !== $videoId) {
+                            $videoLink = 'https://www.youtube.com/watch?v=' . $videoId;
+                            $existing = $itemModel->where('lien', $videoLink)->first();
+                            
+                            // Si la carte n'existe pas déjà sur le site
+                            if (!$existing) {
+                                $itemModel->insert([
+                                    'id_user' => $channel['user_id'],
+                                    'id_division' => 5, // 5 = Correspond à la division Vidéos
+                                    'titre' => (string)$latestVideo->title,
+                                    'status' => 'À voir',
+                                    'is_public' => 0, // Optionnel : tu peux forcer à 1 ou 2 selon tes règles
+                                    'description' => 'Sortie récente de ' . $channel['channel_name'],
+                                    'image' => 'https://img.youtube.com/vi/' . $videoId . '/mqdefault.jpg',
+                                    'lien' => $videoLink,
+                                    'link_status' => 'ok',
+                                    'position' => 0
+                                ]);
+                                $addedCount++;
+                            }
+                            
+                            // Mise à jour de la mémoire du cron
+                            $channelModel->update($channel['id'], ['last_video_id' => $videoId]);
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Ignore les échecs silencieusement pour passer à la chaîne suivante
+                continue; 
+            }
+        }
+
+        if ($addedCount > 0) {
+            (new AuditLogModel())->logAction('CRON YouTube', "{$addedCount} nouvelle(s) vidéo(s) ajoutée(s) depuis le flux RSS.");
+        }
+
+        return $this->response->setJSON(['status' => 'executed', 'videos_added' => $addedCount]);
     }
 }

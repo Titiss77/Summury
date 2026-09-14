@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 use CodeIgniter\Router\RouteCollection;
 use CodeIgniter\Shield\Config\Auth;
@@ -12,12 +10,12 @@ use CodeIgniter\Shield\Config\Auth;
 // --------------------------------------------------------------------
 $routes->get('/', 'HomeController::index');
 $routes->get('categorie/(:num)', 'HomeController::categorie/$1');
-
 $routes->get('legal', 'HomeController::legal');
 $routes->get('privacy', 'HomeController::privacy');
 
-// Route silencieuse pour la tâche de fond (Pseudo-Cron)
+// Routes silencieuses pour les tâches de fond (Pseudo-Cron)
 $routes->get('cron/run', 'CronController::run');
+$routes->get('cron/youtube', 'CronController::youtube');
 
 // --------------------------------------------------------------------
 // Routes protégées par session (Utilisateurs connectés normaux)
@@ -36,15 +34,19 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/check-dispo', 'ItemController::checkDispo');
     $routes->get('items/deleted', 'ItemController::viewDeleted');
     
-    // Nouvelles routes pour gérer la corbeille
+    // Corbeille
     $routes->get('item/restore/(:num)', 'ItemController::restore/$1');
     $routes->get('item/permanent-delete/(:num)', 'ItemController::permanentDelete/$1');
     $routes->get('items/restore-all', 'ItemController::restoreAll');
     $routes->get('items/empty-trash', 'ItemController::emptyTrash');
-
-    // NOUVELLES ROUTES : Profil utilisateur
+    
+    // Profil utilisateur
     $routes->get('profile', 'ProfileController::index');
     $routes->post('profile/update-password', 'ProfileController::updatePassword');
+
+    // YouTube RSS Automation
+    $routes->get('youtube/add', 'YoutubeController::add');
+    $routes->post('youtube/save', 'YoutubeController::save');
 });
 
 // --------------------------------------------------------------------
