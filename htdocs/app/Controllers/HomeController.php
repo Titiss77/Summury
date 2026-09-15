@@ -63,8 +63,9 @@ class HomeController extends BaseController
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
             
-            // mais qui datent de moins de 7 jours.
-            $passedReleases = $model->where('id_user', $userId)
+            // mais qui datent de moins de 7 jours.eferfsfr
+            $passedReleases = $model->join('division d', 'id_division = d.id')
+                                    ->where('id_user', $userId)
                                     ->where('date_sortie IS NOT NULL')
                                     ->where('date_sortie <=', date('Y-m-d H:i:s'))
                                     ->where('date_sortie >=', date('Y-m-d H:i:s', strtotime('-3 days')))
