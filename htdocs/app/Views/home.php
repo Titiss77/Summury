@@ -38,8 +38,8 @@
     <span class="release-badge" data-key="<?php echo $releaseKey; ?>"
         style="display: none; font-size: 0.75rem; color: var(--success); border: 1px solid var(--success); background-color: var(--success-bg); padding: 4px 10px; border-radius: var(--radius-pill); cursor: pointer; transition: opacity 0.2s;"
         title="Cliquez pour masquer">
-        Nouveau : <?php echo htmlspecialchars($release->nom); ?> ->
-        <strong><?php echo htmlspecialchars($release->titre); ?></strong>
+        🟢 <strong><?php echo htmlspecialchars($release->titre ?? ''); ?></strong>
+        (<?php echo htmlspecialchars($release->nom ?? ''); ?>)
     </span>
     <?php } ?>
 </div>
