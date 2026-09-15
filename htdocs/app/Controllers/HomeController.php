@@ -64,11 +64,13 @@ class HomeController extends BaseController
             $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
             
             // mais qui datent de moins de 7 jours.eferfsfr
-            $passedReleases = $model->join('division d', 'id_division = d.id')
-                                    ->where('id_user', $userId)
-                                    ->where('date_sortie IS NOT NULL')
-                                    ->where('date_sortie <=', date('Y-m-d H:i:s'))
-                                    ->where('date_sortie >=', date('Y-m-d H:i:s', strtotime('-7 days')))
+            // Requête sécurisée avec Select pour éviter les collisions d'ID
+            $passedReleases = $model->select('item.*, d.nom')
+                                    ->join('division d', 'item.id_division = d.id')
+                                    ->where('item.id_user', $userId)
+                                    ->where('item.date_sortie IS NOT NULL')
+                                    ->where('item.date_sortie <=', date('Y-m-d H:i:s'))
+                                    ->where('item.date_sortie >=', date('Y-m-d H:i:s', strtotime('-7 days')))
                                     ->findAll();
             
             if (auth()->user()->inGroup('admin', 'superadmin')) {
