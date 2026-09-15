@@ -68,7 +68,7 @@ class HomeController extends BaseController
                                     ->where('id_user', $userId)
                                     ->where('date_sortie IS NOT NULL')
                                     ->where('date_sortie <=', date('Y-m-d H:i:s'))
-                                    ->where('date_sortie >=', date('Y-m-d H:i:s', strtotime('-3 days')))
+                                    ->where('date_sortie >=', date('Y-m-d H:i:s', strtotime('-7 days')))
                                     ->findAll();
             
             if (auth()->user()->inGroup('admin', 'superadmin')) {
