@@ -30,7 +30,49 @@
     </p>
 </div>
 <?php } else { ?>
-<!-- ACTIONS ADMIN & USER CONNECTÉ -->
+
+<!-- NOTIFICATIONS GLOBALES DE SORTIES (Dates dépassées) -->
+<?php if (!empty($passedReleases)) { ?>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 2rem;">
+    <?php foreach ($passedReleases as $release) { 
+        // On crée une clé unique combinant l'ID et la date exacte
+        $releaseKey = $release->id . '_' . strtotime($release->date_sortie);
+    ?>
+    <span class="release-badge" data-key="<?php echo $releaseKey; ?>"
+        style="display: none; font-size: 0.75rem; color: var(--success); border: 1px solid var(--success); background-color: var(--success-bg); padding: 4px 10px; border-radius: var(--radius-pill); cursor: pointer; transition: opacity 0.2s;"
+        title="Cliquez pour masquer">
+        Sortie atteinte : <strong><?php echo htmlspecialchars($release->titre); ?></strong>
+    </span>
+    <?php } ?>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Récupère l'historique des clics dans le navigateur
+    let dismissed = JSON.parse(localStorage.getItem('dismissedReleases') || '[]');
+    const badges = document.querySelectorAll('.release-badge');
+
+    badges.forEach(function(badge) {
+        const key = badge.getAttribute('data-key');
+
+        // Si cette date précise n'a pas encore été fermée par l'utilisateur
+        if (!dismissed.includes(key)) {
+            badge.style.display = 'inline-block'; // On l'affiche
+            badge.classList.add('fade-in');
+
+            // Événement au clic
+            badge.addEventListener('click', function() {
+                this.style.display = 'none';
+                dismissed.push(key);
+                localStorage.setItem('dismissedReleases', JSON.stringify(dismissed));
+            });
+        }
+    });
+});
+</script>
+<?php } ?>
+
+<!-- ACTIONS ADMIN & USER CONNECTÉ  -->
 <div class="actions-container" style="align-items: flex-start;">
     <?php if (auth()->user()->inGroup('superadmin')) { ?>
     <a href="<?php echo base_url('users'); ?>" class="btn btn-warning" style="margin-right: 15px;">Gérer les
@@ -235,7 +277,8 @@
                                             <h4 class="card-title search-target-title"
                                                 style="<?php echo $textColor; ?>">
                                                 <?php echo htmlspecialchars($item->titre); ?></h4>
-                                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
+                                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">
+                                                Status :
                                                 <?php echo htmlspecialchars($item->status); ?></p>
 
                                             <?php                                             
