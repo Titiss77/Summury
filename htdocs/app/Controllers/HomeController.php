@@ -63,10 +63,11 @@ class HomeController extends BaseController
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
             
-            // Requête pour récupérer TOUTES les cartes de l'utilisateur dont la date est dépassée
+            // mais qui datent de moins de 7 jours.
             $passedReleases = $model->where('id_user', $userId)
                                     ->where('date_sortie IS NOT NULL')
                                     ->where('date_sortie <=', date('Y-m-d H:i:s'))
+                                    ->where('date_sortie >=', date('Y-m-d H:i:s', strtotime('-3 days')))
                                     ->findAll();
             
             if (auth()->user()->inGroup('admin', 'superadmin')) {
