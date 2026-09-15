@@ -283,6 +283,7 @@ details[open].division-section .division-title {
     content-visibility: auto;
     /* Permet au navigateur de ne rendre que ce qui est visible */
     contain-intrinsic-size: auto 200px;
+    padding: 10px;
 }
 
 @keyframes slideDown {
