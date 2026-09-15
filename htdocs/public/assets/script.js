@@ -685,14 +685,18 @@ window.addEventListener('load', function() {
     const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));     
     const supportedDomains = window.siteSupportedDomains || [];          
           
-    async function processBatch(cards, batchSize = 2) {         
-        for (let i = 0; i < cards.length; i += batchSize) {             
-            const batch = cards.slice(i, i + batchSize);                          
-            await Promise.all(batch.map(card => checkCardDispo(card, supportedDomains)));                          
-            if (i + batchSize < cards.length) {                 
-                await new Promise(resolve => setTimeout(resolve, 500)); 
-            }         
-        }     
+    // On passe de 2 à 5 requêtes simultanées
+    async function processBatch(cards, batchSize = 5) {
+        for (let i = 0; i < cards.length; i += batchSize) {
+            const batch = cards.slice(i, i + batchSize);
+            
+            await Promise.all(batch.map(card => checkCardDispo(card, supportedDomains)));
+            
+            if (i + batchSize < cards.length) {
+                // On réduit la pause de 500ms à 150ms
+                await new Promise(resolve => setTimeout(resolve, 150));
+            }
+        }
     }     
 
     async function checkCardDispo(card, supportedDomains) {         
@@ -743,6 +747,8 @@ window.addEventListener('load', function() {
             if (dateContainer.innerHTML.trim() === '') {                 
                 dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Épisode non disponible.</p>`;             }         }     }     
 
-    if (cardsToCheck.length > 0) {         
-        setTimeout(() => processBatch(cardsToCheck, 2), 1000);     } 
+    if (cardsToCheck.length > 0) {
+        // On démarre plus vite (500ms au lieu de 1000ms après le chargement de la page)
+        setTimeout(() => processBatch(cardsToCheck, 5), 500);
+    }
 });
