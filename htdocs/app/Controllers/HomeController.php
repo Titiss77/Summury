@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Models\ItemModel;
@@ -17,12 +18,16 @@ class HomeController extends BaseController
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
+        // Empêche le navigateur de garder l'HTML en cache (Bfcache)
+        $this->response->noCache();
+
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
 
         if (!empty($headersWithNoLogin)) {
             return redirect()->to('categorie/'.$headersWithNoLogin[0]['id']);
         }
+
         if (!empty($headersWithLogin)) {
             return redirect()->to('categorie/'.$headersWithLogin[0]['id']);
         }
@@ -40,23 +45,19 @@ class HomeController extends BaseController
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
         
-        // OPTIMISATION : Mise en cache pour les visiteurs non connectés (5 minutes)
-        $cacheKey = 'home_category_' . $headerId . '_' . ($userId ?? 'guest');
-        $cache = \Config\Services::cache();
-        
+        // Empêche le navigateur de garder l'HTML en cache (Bfcache) pour un affichage en temps réel
+        $this->response->noCache();
+
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
         
-        if (!$groupedItems = $cache->get($cacheKey)) {
-            $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
-            $cache->save($cacheKey, $groupedItems, 300);
-        }
+        // Requête directe sans passer par le cache serveur
+        $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
         
         $pendingTotal = 0;
         $toAdminCount = 0;
         $pendingRevisionIds = [];
 
-        // Les calculs lourds ne sont faits que si l'utilisateur est connecté
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
