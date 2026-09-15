@@ -30,12 +30,9 @@
     </p>
 </div>
 <?php } else { ?>
-
-<!-- NOTIFICATIONS GLOBALES DE SORTIES (Dates dépassées) -->
 <?php if (!empty($passedReleases)) { ?>
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 2rem;">
     <?php foreach ($passedReleases as $release) { 
-        // On crée une clé unique combinant l'ID et la date exacte
         $releaseKey = $release->id . '_' . strtotime($release->date_sortie);
     ?>
     <span class="release-badge" data-key="<?php echo $releaseKey; ?>"
@@ -49,19 +46,15 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Récupère l'historique des clics dans le navigateur
     let dismissed = JSON.parse(localStorage.getItem('dismissedReleases') || '[]');
     const badges = document.querySelectorAll('.release-badge');
 
     badges.forEach(function(badge) {
         const key = badge.getAttribute('data-key');
 
-        // Si cette date précise n'a pas encore été fermée par l'utilisateur
         if (!dismissed.includes(key)) {
-            badge.style.display = 'inline-block'; // On l'affiche
+            badge.style.display = 'inline-block';
             badge.classList.add('fade-in');
-
-            // Événement au clic
             badge.addEventListener('click', function() {
                 this.style.display = 'none';
                 dismissed.push(key);
