@@ -4,28 +4,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Meta title, description et Open Graph (Points 6 et 7) -->
     <title><?php echo env('SITENAME'); ?></title>
-    <!-- DNS Prefetch / Preconnect pour accélérer le chargement des images externes -->
+    <meta name="description"
+        content="Votre tableau de bord personnel pour centraliser et suivre votre progression sur vos œuvres préférées.">
+    <meta property="og:title" content="<?php echo env('SITENAME'); ?>">
+    <meta property="og:description" content="Centralisez et suivez votre progression sur vos œuvres préférées.">
+    <meta property="og:image" content="<?php echo base_url('favicon.ico'); ?>">
+    <meta property="og:url" content="<?php echo base_url(); ?>">
+    <meta property="og:type" content="website">
+
+    <!-- Favicon (Point 8) -->
+    <link rel="icon" type="image/x-icon" href="<?php echo base_url('favicon.ico'); ?>">
+    <link rel="apple-touch-icon" href="<?php echo base_url('favicon.ico'); ?>">
+
     <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
     <link rel="preconnect" href="https://cdn.myanimelist.net" crossorigin>
     <link rel="dns-prefetch" href="https://image.tmdb.org">
     <link rel="dns-prefetch" href="https://cdn.myanimelist.net">
 
+    <!-- Analytics Placeholder (Point 19) -->
+    <!-- À remplacer par ton script Google Analytics ou Plausible si besoin -->
     <script>
-    /* Theme Sombre */
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'TAG_ID_ICI');
+    </script>
+
+    <script>
     if (localStorage.getItem('theme') === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.setAttribute('data-bs-theme', 'dark');
     }
     </script>
-
     <?php
-    // Cache-busting intelligent : Ne met à jour la version que si le fichier a été modifié
     $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
     $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
     $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
     ?>
-
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v='.$rootCssVersion); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v='.$styleCssVersion); ?>">
 
@@ -34,31 +55,29 @@
     <meta id="meta-theme-color" name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
 
     <script>
-    /* Configuration Globale (Sécurisée contre la minification) */
+    /* Configuration Globale SÉCURISÉE (Clé API retirée - Point 3) */
     window.siteConfig = {
         "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
         "updateOrderUrl": "<?php echo base_url('items/update-order'); ?>",
         "cronUrl": "<?php echo base_url('cron/run'); ?>",
         "csrfHeader": "<?php echo csrf_header(); ?>",
-        "csrfToken": "<?php echo csrf_hash(); ?>",
-        "tmdbApiKey": "9774091bee3bd236f4438cd6d8caa8d8"
+        "csrfToken": "<?php echo csrf_hash(); ?>"
     };
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
-        defer>
-    </script>
+        defer></script>
     <script src="<?php echo base_url('assets/script.js?v='.$scriptJsVersion); ?>" defer></script>
 </head>
 
 <body>
     <div id="toast-container" class="toast-container"></div>
+
     <header class="main-header">
         <h1>
             <a href="<?php echo base_url('/'); ?>" style="color:inherit;">
-                <!-- Décodage asynchrone pour le logo -->
                 <img class="logo-site" src="<?php echo base_url('favicon.ico'); ?>"
                     alt="<?php echo env('SITENAME'); ?> Logo" decoding="async"><?php echo env('SITENAME'); ?>
             </a>
@@ -75,11 +94,8 @@
             </button>
             <?php if (auth()->loggedIn()) { ?>
             <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
-            <a href="<?php echo base_url('audit'); ?>" class="logs">
-                logs
-            </a>
+            <a href="<?php echo base_url('audit'); ?>" class="logs">logs</a>
             <?php } ?>
-
             <a href="<?php echo base_url('profile'); ?>" class="welcome-text"
                 style="text-decoration: none; display: flex; align-items: center; gap: 5px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
@@ -98,14 +114,8 @@
         </div>
     </header>
 
-    <?php 
-    // Modification : on affiche le menu des headers même si l'utilisateur n'est pas connecté
-    if (isset($headersWithNoLogin) && !empty($headersWithNoLogin)) { 
-    ?>
-    <?php 
-    // Modification : on affiche le menu des headers même si l'utilisateur n'est pas connecté
-    if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { 
-    ?>
+    <?php if (isset($headersWithNoLogin) && !empty($headersWithNoLogin)) { ?>
+    <?php if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithLogin as $h) { ?>
         <a href="<?php echo base_url('categorie/'.$h['id']); ?>"
@@ -136,8 +146,6 @@
         style="margin-top: 4rem; padding: 3rem 0 1.5rem; background: var(--bg-card); border-top: 1px solid var(--border-color);">
         <div class="container"
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-
-            <!-- Colonne 1 : Logo & Présentation -->
             <div>
                 <h3
                     style="color: var(--text-main); font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
@@ -146,11 +154,9 @@
                 </h3>
                 <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
                     Votre tableau de bord personnel pour centraliser et suivre votre progression sur vos œuvres
-                    préférées (Films, Séries, Animés, Mangas).
+                    préférées.
                 </p>
             </div>
-
-            <!-- Colonne 2 : Navigation Rapide -->
             <div>
                 <h4 style="color: var(--text-main); font-size: 1rem; margin-bottom: 1rem;">Navigation</h4>
                 <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem;"
@@ -165,21 +171,17 @@
                     <?php } ?>
                 </ul>
             </div>
-
-            <!-- Colonne 3 : Informations & Légal -->
             <div>
                 <h4 style="color: var(--text-main); font-size: 1rem; margin-bottom: 1rem;">Informations</h4>
                 <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem;"
                     class="footer-links">
                     <li><a href="<?php echo base_url('legal'); ?>">Mentions légales</a></li>
+                    <li><a href="<?php echo base_url('cgu'); ?>">CGU</a></li>
                     <li><a href="<?php echo base_url('privacy'); ?>">Politique de confidentialité</a></li>
-                    <li><a href="mailto:contact@ton-domaine.com">Contactez-nous</a></li>
+                    <li><a href="mailto:<?php echo env('EMAILPRO'); ?>">Contactez-nous</a></li>
                 </ul>
             </div>
-
         </div>
-
-        <!-- Copyright (Ton code d'origine centré) -->
         <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid rgba(128, 128, 128, 0.1);">
             <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
                 &copy; <?php echo date('Y'); ?> <?php echo env('SITENAME'); ?>. Tous droits réservés.
@@ -187,24 +189,42 @@
         </div>
     </footer>
 
+    <!-- Bannière de Cookies (Point 5) -->
+    <div id="cookie-banner"
+        style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--bg-card); border: 1px solid var(--border-color); padding: 15px 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); z-index: 9999; flex-direction: row; align-items: center; gap: 20px; width: 90%; max-width: 600px;">
+        <p style="margin: 0; font-size: 0.9rem; color: var(--text-main);">
+            Nous utilisons des cookies techniques strictement nécessaires au fonctionnement du site. En continuant, vous
+            acceptez leur utilisation. <a href="<?php echo base_url('privacy'); ?>" style="color: var(--primary);">En
+                savoir plus</a>.
+        </p>
+        <button id="accept-cookies" class="btn btn-primary"
+            style="padding: 8px 16px; white-space: nowrap;">Compris</button>
+    </div>
+
     <script>
     document.addEventListener("DOMContentLoaded", function() {
-        /* Interception des Flashdata de CodeIgniter 4 pour lancer des Toasts automatiquement */
+        /* Toasts System */
         <?php if (session()->getFlashdata('success')) { ?>
         if (typeof showToast === 'function') showToast(
-            <?php echo json_encode(session()->getFlashdata('success')); ?>,
-            "success");
+            <?php echo json_encode(session()->getFlashdata('success')); ?>, "success");
         <?php } ?>
         <?php if (session()->getFlashdata('error')) { ?>
         if (typeof showToast === 'function') showToast(
-            <?php echo json_encode(session()->getFlashdata('error')); ?>,
-            "danger");
+            <?php echo json_encode(session()->getFlashdata('error')); ?>, "danger");
         <?php } ?>
         <?php if (session()->getFlashdata('message')) { ?>
         if (typeof showToast === 'function') showToast(
-            <?php echo json_encode(session()->getFlashdata('message')); ?>,
-            "info");
+            <?php echo json_encode(session()->getFlashdata('message')); ?>, "info");
         <?php } ?>
+
+        /* Cookie Banner Logic */
+        if (!localStorage.getItem('cookies_accepted')) {
+            document.getElementById('cookie-banner').style.display = 'flex';
+        }
+        document.getElementById('accept-cookies').addEventListener('click', function() {
+            localStorage.setItem('cookies_accepted', 'true');
+            document.getElementById('cookie-banner').style.display = 'none';
+        });
     });
     </script>
 </body>
