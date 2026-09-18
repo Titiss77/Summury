@@ -12,7 +12,6 @@ $routes->get('/', 'HomeController::index');
 $routes->get('categorie/(:num)', 'HomeController::categorie/$1');
 $routes->get('legal', 'HomeController::legal');
 $routes->get('privacy', 'HomeController::privacy');
-$routes->get('cgu', 'HomeController::cgu'); // AJOUT ICI POUR LES CGU
 
 // Routes silencieuses pour les tâches de fond (Pseudo-Cron)
 $routes->get('cron/run', 'CronController::run');
@@ -25,16 +24,13 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/form/(:num)', 'ItemController::form/$1');
     $routes->post('item/save', 'ItemController::save');
     $routes->get('item/delete/(:num)', 'ItemController::delete/$1');
-    
     $routes->post('item/increment-episode/(:num)', 'ItemController::incrementEpisode/$1');
     $routes->post('item/increment-saison/(:num)', 'ItemController::incrementSaison/$1');
     $routes->post('items/update-order', 'ItemController::updateOrder');
-    
     $routes->get('items/check-to-global', 'ItemController::checkToGlobal');
     $routes->get('item/turn/(:num)', 'ItemController::turnToAdmin/$1');
     $routes->get('item/search', 'ItemController::search');
     $routes->get('item/check-dispo', 'ItemController::checkDispo');
-    
     $routes->get('items/deleted', 'ItemController::viewDeleted');
     
     // Corbeille
