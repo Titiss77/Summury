@@ -15,7 +15,6 @@ $routes->get('privacy', 'HomeController::privacy');
 
 // Routes silencieuses pour les tâches de fond (Pseudo-Cron)
 $routes->get('cron/run', 'CronController::run');
-$routes->get('cron/youtube', 'CronController::youtube');
 
 // --------------------------------------------------------------------
 // Routes protégées par session (Utilisateurs connectés normaux)
@@ -43,12 +42,6 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     // Profil utilisateur
     $routes->get('profile', 'ProfileController::index');
     $routes->post('profile/update-password', 'ProfileController::updatePassword');
-
-    // YouTube RSS Automation
-    $routes->get('youtube/add', 'YoutubeController::add');
-    $routes->post('youtube/save', 'YoutubeController::save');
-    // Ajoute la route de suppression juste en dessous
-    $routes->get('youtube/delete/(:num)', 'YoutubeController::delete/$1');
 });
 
 // --------------------------------------------------------------------

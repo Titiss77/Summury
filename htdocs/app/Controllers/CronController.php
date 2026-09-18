@@ -5,7 +5,6 @@ namespace App\Controllers;
 use App\Models\AuditLogModel;
 use App\Models\CronLogModel;
 use App\Models\ItemModel;
-use App\Models\YoutubeChannelModel;
 use Config\Services;
 
 class CronController extends BaseController
@@ -127,84 +126,5 @@ class CronController extends BaseController
             'total_cards' => $totalChecked,
             'dead_count' => $deadCount
         ]);
-    }
-
-    public function youtube()
-    {
-        ini_set('max_execution_time', '0');
-        $channelModel = new \App\Models\YoutubeChannelModel();
-        $itemModel = new \App\Models\ItemModel();
-        $channels = $channelModel->findAll();
-        
-        $client = \Config\Services::curlrequest([
-            'timeout' => 10,
-            'verify' => false,
-        ]);
-
-        $addedCount = 0;
-
-        foreach ($channels as $channel) {
-            $url = 'https://www.youtube.com/feeds/videos.xml?channel_id=' . $channel['channel_id'];
-            
-            try {
-                $response = $client->get($url, ['http_errors' => false]);
-                if ($response->getStatusCode() === 200) {
-                    $xml = simplexml_load_string($response->getBody());
-                    
-                    if ($xml && isset($xml->entry[0])) {
-                        $latestVideo = $xml->entry[0];
-                        $videoId = str_replace('yt:video:', '', (string)$latestVideo->id);
-                        
-                        // Si une nouvelle vidéo est détectée dans le flux
-                        if ($channel['last_video_id'] !== $videoId) {
-                            
-                            // --- ASTUCE ANTI-SHORTS ---
-                            // On fait une requête HEAD (très légère) sans suivre les redirections
-                            $shortCheck = $client->request('HEAD', 'https://www.youtube.com/shorts/' . $videoId, [
-                                'http_errors' => false,
-                                'allow_redirects' => false
-                            ]);
-
-                            // Si YouTube redirige (Code différent de 200), c'est une vidéo classique !
-                            if ($shortCheck->getStatusCode() !== 200) {
-                                $videoLink = 'https://www.youtube.com/watch?v=' . $videoId;
-                                $existing = $itemModel->where('lien', $videoLink)->first();
-                                
-                                // Si la carte n'existe pas déjà sur le site
-                                if (!$existing) {
-                                    $itemModel->insert([
-                                        'id_user' => $channel['user_id'],
-                                        'id_division' => 5, // 5 = Correspond à la division Vidéos
-                                        'sous_categorie' => $channel['channel_name'], 
-                                        'titre' => (string)$latestVideo->title,
-                                        'status' => 'À voir',
-                                        'is_public' => 0, 
-                                        'description' => 'Sortie récente de ' . $channel['channel_name'],
-                                        'image' => 'https://img.youtube.com/vi/' . $videoId . '/mqdefault.jpg',
-                                        'lien' => $videoLink,
-                                        'link_status' => 'ok',
-                                        'position' => 0
-                                    ]);
-                                    $addedCount++;
-                                }
-                            }
-                            
-                            // On met à jour la mémoire du cron pour ne pas reboucler indéfiniment
-                            // (On le fait même si c'était un Short, pour dire "j'ai vu cette nouveauté, on passe")
-                            $channelModel->update($channel['id'], ['last_video_id' => $videoId]);
-                        }
-                    }
-                }
-            } catch (\Throwable $e) {
-                // Ignore les échecs silencieusement pour passer à la chaîne suivante
-                continue; 
-            }
-        }
-
-        if ($addedCount > 0) {
-            (new \App\Models\AuditLogModel())->logAction('CRON YouTube', "{$addedCount} nouvelle(s) vidéo(s) classique(s) ajoutée(s) depuis le flux RSS.");
-        }
-
-        return $this->response->setJSON(['status' => 'executed', 'videos_added' => $addedCount]);
     }
 }

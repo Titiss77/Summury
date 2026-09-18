@@ -102,9 +102,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <?php if (empty($groupedItems)) { ?>
 <?php if (auth()->loggedIn()) { ?>
 <div class="empty-state">
-    <!-- NOUVEAU BOUTON YOUTUBE -->
-    <a href="<?php echo base_url('youtube/add'); ?>" class="btn"
-        style="background-color: var(--danger); color: white; margin: 0;">Flux RSS Youtube</a>
     <h2>Vous n'avez pas encore de cartes.</h2>
     <p>Commencez par en ajouter une !</p>
     <br>
@@ -127,12 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
-    <h2 class="header-title"><?php echo htmlspecialchars($headerName); ?>
-        <?php if (auth()->loggedIn() && $headerName === 'Vidéos') { ?>
-        <a href="<?php echo base_url('youtube/add'); ?>" class="btn"
-            style="background-color: var(--danger); color: white; margin: 0;">Flux RSS Youtube</a>
-        <?php } ?>
-    </h2>
+    <h2 class="header-title"><?php echo htmlspecialchars($headerName); ?></h2>
 
     <?php foreach ($divisions as $divisionName => $subCategories) {         
         $currentDivisionId = null;         
