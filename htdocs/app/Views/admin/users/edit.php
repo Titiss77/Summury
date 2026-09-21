@@ -45,8 +45,8 @@
                     class="text-muted">(laisser
                     vide
                     pour conserver l'actuel)</small></label>
-            <input type="password" class="form-control" id="floatingPasswordInput" name="password" inputmode="text"
-                autocomplete="current-password" placeholder="<?php echo lang('Auth.password'); ?>" required>
+            <input type="password" class="form-control" id="floatingPasswordInput" name="new_password" inputmode="text"
+                autocomplete="new-password" placeholder="<?php echo lang('Auth.password'); ?>">
             <button type="button" class="password-toggle password-toggle2"
                 aria-label="Afficher le mot de passe"></button>
         </div>
