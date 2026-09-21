@@ -4,8 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Meta title, description et Open Graph (Points 6 et 7) -->
     <title><?php echo env('SITENAME'); ?></title>
     <meta name="description"
         content="Votre tableau de bord personnel pour centraliser et suivre votre progression sur vos œuvres préférées.">
@@ -15,7 +13,6 @@
     <meta property="og:url" content="<?php echo base_url(); ?>">
     <meta property="og:type" content="website">
 
-    <!-- Favicon (Point 8) -->
     <link rel="icon" type="image/x-icon" href="<?php echo base_url('favicon.ico'); ?>">
     <link rel="apple-touch-icon" href="<?php echo base_url('favicon.ico'); ?>">
 
@@ -24,8 +21,6 @@
     <link rel="dns-prefetch" href="https://image.tmdb.org">
     <link rel="dns-prefetch" href="https://cdn.myanimelist.net">
 
-    <!-- Analytics Placeholder (Point 19) -->
-    <!-- À remplacer par ton script Google Analytics ou Plausible si besoin -->
     <script>
     window.dataLayer = window.dataLayer || [];
 
@@ -42,6 +37,7 @@
         document.documentElement.setAttribute('data-bs-theme', 'dark');
     }
     </script>
+
     <?php
     $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
     $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
@@ -55,7 +51,7 @@
     <meta id="meta-theme-color" name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
 
     <script>
-    /* Configuration Globale SÉCURISÉE (Clé API retirée - Point 3) */
+    /* Configuration Globale SÉCURISÉE */
     window.siteConfig = {
         "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
         "updateOrderUrl": "<?php echo base_url('items/update-order'); ?>",
@@ -64,7 +60,6 @@
         "csrfToken": "<?php echo csrf_hash(); ?>"
     };
     </script>
-
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
@@ -74,7 +69,6 @@
 
 <body>
     <div id="toast-container" class="toast-container"></div>
-
     <header class="main-header">
         <h1>
             <a href="<?php echo base_url('/'); ?>" style="color:inherit;">
@@ -182,14 +176,14 @@
                 </ul>
             </div>
         </div>
-        <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid rgba(128, 128, 128, 0.1);">
+        <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
             <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
                 &copy; <?php echo date('Y'); ?> <?php echo env('SITENAME'); ?>. Tous droits réservés.
             </p>
         </div>
     </footer>
 
-    <!-- Bannière de Cookies (Point 5) -->
+    <!-- Bannière de Cookies -->
     <div id="cookie-banner"
         style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--bg-card); border: 1px solid var(--border-color); padding: 15px 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); z-index: 9999; flex-direction: row; align-items: center; gap: 20px; width: 90%; max-width: 600px;">
         <p style="margin: 0; font-size: 0.9rem; color: var(--text-main);">
@@ -221,6 +215,7 @@
         if (!localStorage.getItem('cookies_accepted')) {
             document.getElementById('cookie-banner').style.display = 'flex';
         }
+
         document.getElementById('accept-cookies').addEventListener('click', function() {
             localStorage.setItem('cookies_accepted', 'true');
             document.getElementById('cookie-banner').style.display = 'none';

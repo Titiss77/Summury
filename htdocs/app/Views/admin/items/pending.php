@@ -1,6 +1,5 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
-
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
 </div>
@@ -18,7 +17,7 @@
 
     <?php if (empty($pendingItems) && empty($pendingRevisions)) { ?>
     <div class="empty-state">
-        <p>🎉 Super, aucune carte ni modification n'est en attente d'inspection !</p>
+        <p>✅ Super, aucune carte ni modification n'est en attente d'inspection !</p>
     </div>
     <?php } else { ?>
 
@@ -43,7 +42,7 @@
                             <a href="<?php echo base_url('item/form/'.$item->id); ?>"
                                 class="btn-action btn-edit">Examiner</a>
                             <a href="<?php echo base_url('items/approve/'.$item->id); ?>" class="btn-action"
-                                style="background:var(--success); color:white;">Valider</a>
+                                style="background:var(--success); color:#fff;">Valider</a>
                             <a href="<?php echo base_url('items/reject/'.$item->id); ?>" class="btn-action btn-ban"
                                 onclick="return confirm('Refuser cette carte ? Elle redeviendra privée.')">Refuser</a>
                         </div>
@@ -72,70 +71,73 @@
                 <tr>
                     <td>
                         <strong><?php echo esc($revision['original_titre']); ?></strong><br>
-                        <small style="color: #666;">ID Original:
+                        <small style="color: var(--text-muted);">ID Original:
                             <?php echo esc($revision['original_item_id']); ?></small>
                     </td>
                     <td>
                         <?php if (!empty($revision['changes'])) { ?>
                         <ul style="list-style: none; padding: 0; margin: 0;">
                             <?php foreach ($revision['changes'] as $change) { ?>
-                            <li style="margin-bottom: 12px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
-                                <strong style="color: #444; font-size: 0.9em;"><?php echo esc($change['label']); ?>
+                            <li
+                                style="margin-bottom: 12px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;">
+                                <strong
+                                    style="color: var(--text-main); font-size: 0.9em;"><?php echo esc($change['label']); ?>
                                     :</strong><br>
-
                                 <?php if ('image' === $change['field']) { ?>
                                 <div style="display: flex; gap: 15px; align-items: center; margin-top: 5px;">
                                     <div style="text-align: center;">
                                         <?php if (!empty($change['old'])) { ?>
                                         <img src="<?php echo esc($change['old']); ?>" alt="Ancienne"
-                                            style="max-height: 60px; border-radius: var(--radius-md); border: 1px solid #ddd; opacity: 0.5;">
+                                            style="max-height: 60px; border-radius: var(--radius-md); border: 1px solid var(--border-color); opacity: 0.5;">
                                         <?php } else { ?>
                                         <span
-                                            style="color: #dc3545; font-size: 0.85em; text-decoration: line-through;">Aucune</span>
+                                            style="color: var(--danger); font-size: 0.85em; text-decoration: line-through;">Aucune</span>
                                         <?php } ?>
-                                        <div style="font-size: 0.75em; color: #999;">Ancienne</div>
+                                        <div style="font-size: 0.75em; color: var(--text-muted);">Ancienne</div>
                                     </div>
-                                    <span style="font-weight: bold; color: #aaa; font-size: 1.2em;">➔</span>
+                                    <span
+                                        style="font-weight: bold; color: var(--text-muted); font-size: 1.2em;">➡️</span>
                                     <div style="text-align: center;">
                                         <?php if (!empty($change['new'])) { ?>
                                         <img src="<?php echo esc($change['new']); ?>" alt="Nouvelle"
-                                            style="max-height: 60px; border-radius: var(--radius-md); border: 2px solid var(--success, #28a745);">
+                                            style="max-height: 60px; border-radius: var(--radius-md); border: 2px solid var(--success);">
                                         <?php } else { ?>
                                         <span
-                                            style="color: #28a745; font-weight: bold; font-size: 0.85em;">Supprimée</span>
+                                            style="color: var(--success); font-weight: bold; font-size: 0.85em;">Supprimée</span>
                                         <?php } ?>
-                                        <div style="font-size: 0.75em; color: #999;">Nouvelle</div>
+                                        <div style="font-size: 0.75em; color: var(--text-muted);">Nouvelle</div>
                                     </div>
                                 </div>
                                 <?php } else { ?>
                                 <span
-                                    style="color: #dc3545; text-decoration: line-through; font-size: 0.9em; background-color: #fdf2f2; padding: 1px 4px; border-radius: 3px;">
+                                    style="color: var(--danger); text-decoration: line-through; font-size: 0.9em; background-color: var(--danger-bg); padding: 1px 4px; border-radius: 3px;">
                                     <?php echo !empty($change['old']) ? esc($change['old']) : '<em>Vide</em>'; ?>
                                 </span>
                                 <br>
                                 <span
-                                    style="color: #28a745; font-weight: bold; font-size: 0.95em; background-color: #f3faf4; padding: 1px 4px; border-radius: 3px; display: inline-block; margin-top: 2px;">
-                                    ➔ <?php echo !empty($change['new']) ? esc($change['new']) : '<em>Vide</em>'; ?>
+                                    style="color: var(--success); font-weight: bold; font-size: 0.95em; background-color: var(--success-bg); padding: 1px 4px; border-radius: 3px; display: inline-block; margin-top: 2px;">
+                                    🚀 <?php echo !empty($change['new']) ? esc($change['new']) : '<em>Vide</em>'; ?>
                                 </span>
                                 <?php } ?>
                             </li>
                             <?php } ?>
                         </ul>
                         <?php } else { ?>
-                        <span style="color: #888; font-style: italic; font-size: 0.9em;">Aucun changement détecté sur
+                        <span style="color: var(--text-muted); font-style: italic; font-size: 0.9em;">Aucun changement
+                            détecté sur
                             les valeurs.</span>
                         <?php } ?>
                     </td>
                     <td>
                         <span
-                            style="background: var(--primary); color: white; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.85em;">
+                            style="background: var(--primary); color: #fff; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.85em;">
                             <?php echo esc($revision['author_name']); ?>
                         </span>
                     </td>
                     <td>
                         <div class="action-links">
                             <a href="<?php echo base_url('items/approve-revision/'.$revision['id']); ?>"
-                                class="btn-action" style="background:var(--success); color:white;"
+                                class="btn-action" style="background:var(--success); color:#fff;"
                                 onclick="return confirm('Approuver cette modification ? Elle écrasera la version publique actuelle.')">Approuver</a>
                             <a href="<?php echo base_url('items/reject-revision/'.$revision['id']); ?>"
                                 class="btn-action btn-ban"
@@ -151,5 +153,4 @@
 
     <?php } ?>
 </div>
-
 <?php echo $this->endSection(); ?>

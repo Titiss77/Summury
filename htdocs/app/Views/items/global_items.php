@@ -3,10 +3,12 @@
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
 </div>
+
 <div style="margin-bottom: 2.5rem;">
     <h2>Cartes intéressantes</h2>
     <p style="color: var(--text-muted);">Voici les cartes publiques qui ne viennent pas de l'admin.</p>
 </div>
+
 <div class="cards-grid">
     <?php foreach ($items as $item) { ?>
     <div class="card fade-in <?php echo 'Terminé' === $item->status ? 'status-completed' : ''; ?>"
@@ -23,7 +25,7 @@
             $now = new DateTime('now', $timezone);
             if ($dateSortie > $now) {
                 $isFuture = true;
-                $dateSortieFormatted = $dateSortie->format('d/m/Y   H:i');
+                $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
                 $textColor = 'color: var(--danger);';
             }
         }
@@ -36,16 +38,18 @@
                 <?php } ?>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
                     <?php echo htmlspecialchars($item->status); ?></p>
+
                 <?php
         $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
         $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
         if ($isPendingNew || $hasPendingRevision) {
             ?>
                 <div
-                    style="background-color: var(--warning, #ffc107); color: #000; padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
+                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                     <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>
                 </div>
                 <?php } ?>
+
                 <?php if (!empty($item->description)) { ?>
                 <p class="card-desc search-target-desc"><?php echo htmlspecialchars($item->description); ?></p>
                 <?php } ?>
@@ -68,7 +72,6 @@
                         } ?>
                     </div>
                     <?php } ?>
-
                     <?php if (!empty($item->episode)) { ?>
                     <div style="display: flex; flex-direction: column; align-items: center;">
                         <span class="badge badge-episode">
