@@ -102,11 +102,11 @@ if (isset($subCategories) && is_array($subCategories)) {
 
         <div class="form-group">
             <label for="description" class="form-label">Description</label>
-            <?php 
+            <?php
             $descLen = isset($item) ? mb_strlen($item->description ?? '') : 0;
-            // Si la description dépasse 250, on ne met pas l'attribut (ou on met 1777), sinon 250
-            $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
-            ?>
+// Si la description dépasse 250, on ne met pas l'attribut (ou on met 1777), sinon 250
+$maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
+?>
             <textarea id="description" name="description" class="form-control" rows="1"
                 <?php echo $maxLimitAttr; ?>><?php echo isset($item) ? esc($item->description) : ''; ?></textarea>
             <small id="char-count"

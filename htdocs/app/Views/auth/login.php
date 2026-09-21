@@ -48,7 +48,9 @@
             <div class="form-check" style="margin-top: 1rem; margin-bottom: 2rem;">
                 <label class="form-check-label" style="display: flex; align-items: center; gap: 8px;">
                     <input type="checkbox" name="remember" class="form-check-input"
-                        <?php if (old('remember', true)) { echo 'checked'; } ?>>
+                        <?php if (old('remember', true)) {
+                            echo 'checked';
+                        } ?>>
                     Se souvenir de moi
                 </label>
             </div>

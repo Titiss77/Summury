@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -124,7 +126,7 @@ class CronController extends BaseController
             'status' => 'executed',
             'forced' => $isForced,
             'total_cards' => $totalChecked,
-            'dead_count' => $deadCount
+            'dead_count' => $deadCount,
         ]);
     }
 }

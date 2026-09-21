@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
@@ -8,7 +10,7 @@ class MasterSeeder extends Seeder
 {
     public function run(): void
     {
-        // Désactiver temporairement les vérifications de clés étrangères si nécessaire 
+        // Désactiver temporairement les vérifications de clés étrangères si nécessaire
         // (utile si tu vides/TRUNCATE tes tables dans tes seeders)
         // $this->db->disableForeignKeyChecks();
 

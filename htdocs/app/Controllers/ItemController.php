@@ -1,14 +1,17 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
 use App\Entities\Item;
 use App\Models\AuditLogModel;
+use App\Models\CronLogModel;
 use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
 use App\Models\SiteConfigModel;
-use Config\Services;
 use App\Models\StatutModel;
+use Config\Services;
 
 class ItemController extends BaseController
 {
@@ -33,7 +36,7 @@ class ItemController extends BaseController
         }
 
         $data = [
-            'headers' => [], 
+            'headers' => [],
             'divisions' => $this->model->getDivisions(),
             'subCategories' => $subCategories,
             'statuts' => $this->statutModel->orderBy('ordre', 'ASC')->findAll(),
@@ -107,6 +110,7 @@ class ItemController extends BaseController
                 $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
                 if (!$canEdit) {
                     $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
+
                     return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
                 }
 
@@ -166,6 +170,7 @@ class ItemController extends BaseController
             }
 
             $subParam = !empty($data['sous_categorie']) ? '&subopen='.urlencode($data['sous_categorie']) : '';
+
             return redirect()->to($backUrl.$separator.'open='.$data['id_division'].$subParam.'#div-'.$data['id_division']);
         }
     }
@@ -189,6 +194,7 @@ class ItemController extends BaseController
                 return redirect()->to($backUrl.$separator.'open='.$id_div.'#div-'.$id_div);
             }
         }
+
         return redirect()->back();
     }
 
@@ -201,49 +207,50 @@ class ItemController extends BaseController
             $newSaison = (int) $item->saison;
             $totalEpisodes = (int) $item->total_episodes;
             $totalSaisons = (int) $item->total_saisons;
-            
+
             $updateData = [];
 
             if ($totalEpisodes > 0 && $newEpisode > $totalEpisodes) {
                 if ($totalSaisons > 0 && $newSaison >= $totalSaisons) {
                     $updateData['status'] = 'Terminé';
-                    $newEpisode = $totalEpisodes; 
+                    $newEpisode = $totalEpisodes;
                     $updateData['episode'] = $newEpisode;
-                    
+
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Statut passé à Terminé";
                 } else {
                     $newEpisode = 1;
-                    $newSaison++;
+                    ++$newSaison;
                     $updateData['saison'] = $newSaison;
                     $updateData['episode'] = $newEpisode;
-                    
+
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode} (Saison {$newSaison})";
-                    
+
                     $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
-                    $client = \Config\Services::curlrequest([
+                    $client = Services::curlrequest([
                         'timeout' => 5,
                         'http_errors' => false,
-                        'verify' => false
+                        'verify' => false,
                     ]);
-                    
+
                     try {
                         $url = 'https://api.themoviedb.org/3/search/multi?query='.urlencode($item->titre)."&api_key={$apiKey}&language=fr-FR";
                         $response = $client->get($url);
-                        
-                        if ($response->getStatusCode() === 200) {
+
+                        if (200 === $response->getStatusCode()) {
                             $body = json_decode($response->getBody(), true);
                             if (!empty($body['results'])) {
                                 foreach ($body['results'] as $result) {
-                                    if (isset($result['media_type']) && $result['media_type'] === 'tv' && isset($result['id'])) {
+                                    if (isset($result['media_type']) && 'tv' === $result['media_type'] && isset($result['id'])) {
                                         $tvUrl = "https://api.themoviedb.org/3/tv/{$result['id']}?api_key={$apiKey}&language=fr-FR";
                                         $tvResponse = $client->get($tvUrl);
-                                        
-                                        if ($tvResponse->getStatusCode() === 200) {
+
+                                        if (200 === $tvResponse->getStatusCode()) {
                                             $tvBody = json_decode($tvResponse->getBody(), true);
                                             if (isset($tvBody['seasons'])) {
                                                 foreach ($tvBody['seasons'] as $season) {
                                                     if ($season['season_number'] == $newSaison) {
                                                         $updateData['total_episodes'] = $season['episode_count'];
+
                                                         break 2;
                                                     }
                                                 }
@@ -262,17 +269,18 @@ class ItemController extends BaseController
             }
 
             $this->model->update($id, $updateData);
-            (new \App\Models\AuditLogModel())->logAction('Incrémentation Rapide', $logMessage);
+            (new AuditLogModel())->logAction('Incrémentation Rapide', $logMessage);
 
             if ($this->request->isAJAX()) {
                 return $this->response->setJSON([
-                    'success' => true, 
-                    'new_episode' => $newEpisode, 
+                    'success' => true,
+                    'new_episode' => $newEpisode,
                     'status' => $updateData['status'] ?? $item->status,
-                    'csrf_token' => csrf_hash()
+                    'csrf_token' => csrf_hash(),
                 ]);
             }
         }
+
         return redirect()->back();
     }
 
@@ -289,6 +297,7 @@ class ItemController extends BaseController
                 return $this->response->setJSON(['success' => true, 'new_saison' => $newSaison, 'csrf_token' => csrf_hash()]);
             }
         }
+
         return redirect()->back();
     }
 
@@ -314,6 +323,7 @@ class ItemController extends BaseController
             if (filter_var($query, FILTER_VALIDATE_URL)) {
                 $metaData = $this->scrapeOpenGraph($query);
                 $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
+
                 return $this->response->setJSON($body);
             }
 
@@ -416,6 +426,7 @@ class ItemController extends BaseController
                                 foreach ($m['relationships'] as $rel) {
                                     if ('cover_art' === $rel['type'] && isset($rel['attributes']['fileName'])) {
                                         $fileName = $rel['attributes']['fileName'];
+
                                         break;
                                     }
                                 }
@@ -442,8 +453,8 @@ class ItemController extends BaseController
             }
 
             $finalBody = ['unified' => $unifiedResults];
-            return $this->response->setJSON($finalBody);
 
+            return $this->response->setJSON($finalBody);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erreur de recherche : '.$e->getMessage()]);
         }
@@ -462,6 +473,7 @@ class ItemController extends BaseController
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
             $this->model->update($id, ['id_user' => 1]);
             (new AuditLogModel())->logAction('Transfert Carte', "La carte ID {$id} ('{$item->titre}') a été transférée à l'admin.");
+
             return redirect()->back()->with('message', "La carte a été transférée à l'admin avec succès.");
         }
 
@@ -508,7 +520,7 @@ class ItemController extends BaseController
         }
 
         $siteConfigModel = new SiteConfigModel();
-        
+
         // Requête directe sans cache
         $sites = $siteConfigModel->where('is_active', 1)->findAll();
 
@@ -516,6 +528,7 @@ class ItemController extends BaseController
         foreach ($sites as $config) {
             if (false !== stripos($urlCible, $config['domain'])) {
                 $currentConfig = $config;
+
                 break;
             }
         }
@@ -532,14 +545,14 @@ class ItemController extends BaseController
 
         try {
             $client = Services::curlrequest([
-                'timeout' => 3, 'connect_timeout' => 2, 
+                'timeout' => 3, 'connect_timeout' => 2,
                 'http_errors' => false, 'allow_redirects' => true, 'verify' => false,
                 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
-            
+
             $response = $client->get($urlCible);
             $statusCode = $response->getStatusCode();
-            
+
             if (404 === $statusCode) {
                 return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']]);
             }
@@ -550,6 +563,7 @@ class ItemController extends BaseController
             foreach ($indicateursPageInvalide as $indicator) {
                 if (false !== stripos($html, $indicator)) {
                     $estSurFicheAnime = true;
+
                     break;
                 }
             }
@@ -559,6 +573,7 @@ class ItemController extends BaseController
                 $indicatorFinal = $episodeExtrait ? str_replace('{ep}', (string) $episodeExtrait, $indicator) : $indicator;
                 if (false !== stripos($html, $indicatorFinal)) {
                     $lecteurPresent = true;
+
                     break;
                 }
             }
@@ -568,10 +583,99 @@ class ItemController extends BaseController
                 'disponible' => !$estSurFicheAnime && $lecteurPresent,
                 'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent],
             ]);
-
         } catch (\Throwable $e) {
             return $this->response->setJSON(['success' => false, 'error' => 'Timeout']);
         }
+    }
+
+    public function viewDeleted()
+    {
+        $userId = auth()->id();
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
+
+        $deletedItems = $this->model->getDeletedItems($isSuperAdmin ? null : $userId);
+
+        return view('items/deleted_items', ['deletedItems' => $deletedItems]);
+    }
+
+    public function restore($id)
+    {
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
+
+        $item = $this->model->withDeleted()->find($id);
+
+        if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
+            $this->model->builder()->where('id', $id)->update(['deleted_at' => null]);
+
+            (new AuditLogModel())->logAction('Restauration', "La carte ID {$id} ('{$item->titre}') a été restaurée de la corbeille.");
+
+            return redirect()->back()->with('message', "La carte '{$item->titre}' a été restaurée avec succès.");
+        }
+
+        return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de restaurer cette carte.");
+    }
+
+    public function permanentDelete($id)
+    {
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
+
+        $item = $this->model->withDeleted()->find($id);
+
+        if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
+            $titre = $item->titre;
+
+            $this->model->delete($id, true);
+            (new CronLogModel())->where('item_id', $id)->delete();
+
+            (new AuditLogModel())->logAction('Suppression Définitive', "La carte ID {$id} ('{$titre}') a été détruite définitivement.");
+
+            return redirect()->back()->with('message', "La carte '{$titre}' a été définitivement supprimée de la base de données.");
+        }
+
+        return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de supprimer définitivement cette carte.");
+    }
+
+    public function restoreAll()
+    {
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
+        $userId = auth()->id();
+
+        $builder = $this->model->builder()->where('deleted_at IS NOT NULL');
+
+        if (!$isSuperAdmin) {
+            $builder->where('id_user', $userId);
+        }
+
+        $builder->update(['deleted_at' => null]);
+
+        (new AuditLogModel())->logAction('Restauration Globale', 'Toutes les cartes de la corbeille ont été restaurées.');
+
+        return redirect()->back()->with('message', 'Vos cartes ont été restaurées avec succès.');
+    }
+
+    public function emptyTrash()
+    {
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
+        $userId = auth()->id();
+
+        $query = $this->model->onlyDeleted();
+
+        if (!$isSuperAdmin) {
+            $query->where('id_user', $userId);
+        }
+
+        $itemsToDelete = $query->findAll();
+
+        if (!empty($itemsToDelete)) {
+            $itemIds = array_column($itemsToDelete, 'id');
+
+            (new CronLogModel())->whereIn('item_id', $itemIds)->delete();
+            $this->model->builder()->whereIn('id', $itemIds)->delete();
+
+            (new AuditLogModel())->logAction('Vidage Corbeille', 'La corbeille a été vidée définitivement ('.count($itemIds).' cartes détruites).');
+        }
+
+        return redirect()->back()->with('message', 'Vos cartes supprimées ont été vidées définitivement.');
     }
 
     private function scrapeOpenGraph(string $url): ?array
@@ -610,92 +714,5 @@ class ItemController extends BaseController
         }
 
         return $data;
-    }
-    
-    public function viewDeleted()
-    {
-        $userId = auth()->id();
-        $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        
-        $deletedItems = $this->model->getDeletedItems($isSuperAdmin ? null : $userId);
-        
-        return view('items/deleted_items', ['deletedItems' => $deletedItems]);
-    }
-
-    public function restore($id)
-    {
-        $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        
-        $item = $this->model->withDeleted()->find($id);
-
-        if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
-            $this->model->builder()->where('id', $id)->update(['deleted_at' => null]);
-            
-            (new \App\Models\AuditLogModel())->logAction('Restauration', "La carte ID {$id} ('{$item->titre}') a été restaurée de la corbeille.");
-            return redirect()->back()->with('message', "La carte '{$item->titre}' a été restaurée avec succès.");
-        }
-
-        return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de restaurer cette carte.");
-    }
-
-    public function permanentDelete($id)
-    {
-        $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        
-        $item = $this->model->withDeleted()->find($id);
-
-        if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
-            $titre = $item->titre;
-            
-            $this->model->delete($id, true);
-            (new \App\Models\CronLogModel())->where('item_id', $id)->delete();
-            
-            (new \App\Models\AuditLogModel())->logAction('Suppression Définitive', "La carte ID {$id} ('{$titre}') a été détruite définitivement.");
-            return redirect()->back()->with('message', "La carte '{$titre}' a été définitivement supprimée de la base de données.");
-        }
-
-        return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de supprimer définitivement cette carte.");
-    }
-
-    public function restoreAll()
-    {
-        $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        $userId = auth()->id();
-
-        $builder = $this->model->builder()->where('deleted_at IS NOT NULL');
-        
-        if (!$isSuperAdmin) {
-            $builder->where('id_user', $userId);
-        }
-        
-        $builder->update(['deleted_at' => null]);
-        
-        (new \App\Models\AuditLogModel())->logAction('Restauration Globale', "Toutes les cartes de la corbeille ont été restaurées.");
-        return redirect()->back()->with('message', "Vos cartes ont été restaurées avec succès.");
-    }
-
-    public function emptyTrash()
-    {
-        $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        $userId = auth()->id();
-
-        $query = $this->model->onlyDeleted();
-        
-        if (!$isSuperAdmin) {
-            $query->where('id_user', $userId);
-        }
-
-        $itemsToDelete = $query->findAll();
-        
-        if (!empty($itemsToDelete)) {
-            $itemIds = array_column($itemsToDelete, 'id');
-            
-            (new \App\Models\CronLogModel())->whereIn('item_id', $itemIds)->delete();
-            $this->model->builder()->whereIn('id', $itemIds)->delete();
-            
-            (new \App\Models\AuditLogModel())->logAction('Vidage Corbeille', "La corbeille a été vidée définitivement (" . count($itemIds) . " cartes détruites).");
-        }
-        
-        return redirect()->back()->with('message', "Vos cartes supprimées ont été vidées définitivement.");
     }
 }

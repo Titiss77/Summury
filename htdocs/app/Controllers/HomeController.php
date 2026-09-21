@@ -1,10 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
 use App\Models\ItemModel;
-use App\Models\SiteConfigModel;
 use App\Models\ItemRevisionModel;
+use App\Models\SiteConfigModel;
 
 class HomeController extends BaseController
 {
@@ -17,9 +19,9 @@ class HomeController extends BaseController
     {
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
-        
+
         $this->response->noCache();
-        
+
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
 
@@ -29,12 +31,12 @@ class HomeController extends BaseController
         if (!empty($headersWithLogin)) {
             return redirect()->to('categorie/'.$headersWithLogin[0]['id']);
         }
-        
+
         return view('home', [
-            'headersWithNoLogin' => $headersWithNoLogin, 
-            'headersWithLogin' => $headersWithLogin, 
-            'groupedItems' => [], 
-            'supportedDomains' => []
+            'headersWithNoLogin' => $headersWithNoLogin,
+            'headersWithLogin' => $headersWithLogin,
+            'groupedItems' => [],
+            'supportedDomains' => [],
         ]);
     }
 
@@ -42,14 +44,14 @@ class HomeController extends BaseController
     {
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
-        
+
         $this->response->noCache();
-        
+
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
-        
+
         $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
-        
+
         $pendingTotal = 0;
         $toAdminCount = 0;
         $pendingRevisionIds = [];
@@ -58,28 +60,31 @@ class HomeController extends BaseController
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
-            
+
             $passedReleases = $model->select('item.*, d.nom')
-                                    ->join('division d', 'item.id_division = d.id')
-                                    ->where('item.id_user', $userId)
-                                    ->where('item.date_sortie IS NOT NULL')
-                                    ->where('item.date_sortie <=', date('Y-m-d H:i:s'))
-                                    ->where('item.date_sortie >=', date('Y-m-d H:i:s', strtotime('-7 days')))
-                                    ->findAll();
-                                    
+                ->join('division d', 'item.id_division = d.id')
+                ->where('item.id_user', $userId)
+                ->where('item.date_sortie IS NOT NULL')
+                ->where('item.date_sortie <=', date('Y-m-d H:i:s'))
+                ->where('item.date_sortie >=', date('Y-m-d H:i:s', strtotime('-7 days')))
+                ->findAll()
+            ;
+
             if (auth()->user()->inGroup('admin', 'superadmin')) {
                 $pendingItemsCount = $model->where('is_public', 2)->countAllResults();
                 $pendingRevisionsCount = $revModel->where('revision_status', 'pending')->countAllResults();
                 $pendingTotal = $pendingItemsCount + $pendingRevisionsCount;
-                
+
                 $toAdminCount = $model->where('id_division <', 11)
                     ->where('is_public', 1)
                     ->where('id_user !=', 1)
-                    ->countAllResults();
+                    ->countAllResults()
+                ;
             }
         }
         $siteConfigModel = new SiteConfigModel();
         $supportedDomains = $siteConfigModel->where('is_active', 1)->findColumn('domain') ?? [];
+
         return view('home', [
             'headersWithNoLogin' => $headersWithNoLogin,
             'headersWithLogin' => $headersWithLogin,
@@ -97,7 +102,7 @@ class HomeController extends BaseController
     {
         return view('rgpd/legal');
     }
-    
+
     public function privacy()
     {
         return view('rgpd/privacy');

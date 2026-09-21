@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -76,7 +78,8 @@ class ItemModel extends Model
             ->join('division d', 'd.id_header = h.id')
             ->join('item i', 'i.id_division = d.id')
             ->where('i.deleted_at IS NULL')
-            ->where('i.id_user !=', 0);
+            ->where('i.id_user !=', 0)
+        ;
 
         // On filtre selon ce que la personne a le droit de voir
         if (null === $userId) {
@@ -103,22 +106,24 @@ class ItemModel extends Model
     public function checkToGlobal()
     {
         return $this->where('id_division <', 11)
-                    ->where('is_public', 1)
-                    ->where('id_user !=', 1)
-                    ->findAll();
+            ->where('is_public', 1)
+            ->where('id_user !=', 1)
+            ->findAll()
+        ;
     }
-    
+
     public function getDeletedItems($userId = null)
     {
         $builder = $this->db->table('item i')
             ->select('u.username AS author_name, i.*')
             ->join('users u', 'i.id_user = u.id', 'left')
-            ->where('i.deleted_at IS NOT NULL');
+            ->where('i.deleted_at IS NOT NULL')
+        ;
 
         // Si le contrôleur a passé un ID (c'est-à-dire que ce n'est pas un admin)
         // on filtre pour n'afficher que ses cartes.
         // Si l'ID est null (passé par l'admin), on ne filtre pas.
-        if ($userId !== null) {
+        if (null !== $userId) {
             $builder->where('i.id_user', $userId);
         }
 

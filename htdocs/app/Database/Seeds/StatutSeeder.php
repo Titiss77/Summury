@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
@@ -10,27 +12,27 @@ class StatutSeeder extends Seeder
     {
         $statutsData = [
             [
-                'nom'   => 'À voir',
+                'nom' => 'À voir',
                 'ordre' => 2,
             ],
             [
-                'nom'   => 'Aucun',
+                'nom' => 'Aucun',
                 'ordre' => 1,
             ],
             [
-                'nom'   => 'En cours',
+                'nom' => 'En cours',
                 'ordre' => 3,
             ],
             [
-                'nom'   => 'En pause',
+                'nom' => 'En pause',
                 'ordre' => 4,
             ],
             [
-                'nom'   => 'Terminé',
+                'nom' => 'Terminé',
                 'ordre' => 5,
             ],
         ];
-        
+
         $this->db->table('statuts')->insertBatch($statutsData);
     }
 }

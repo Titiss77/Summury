@@ -54,13 +54,17 @@
                         <?php if (!empty($item->saison)) { ?>
                         <div style="display: flex; flex-direction: column; align-items: center;">
                             <span class="badge badge-season">S. <span
-                                    id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) { echo ' / '.htmlspecialchars($item->total_saisons); } ?></span>
+                                    id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) {
+                                        echo ' / '.htmlspecialchars($item->total_saisons);
+                                    } ?></span>
                         </div>
                         <?php } ?>
                         <?php if (!empty($item->episode)) { ?>
                         <div style="display: flex; flex-direction: column; align-items: center;">
                             <span class="badge badge-episode">Ép. <span
-                                    id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) { echo ' / '.htmlspecialchars($item->total_episodes); } ?></span>
+                                    id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
+                                        echo ' / '.htmlspecialchars($item->total_episodes);
+                                    } ?></span>
                         </div>
                         <?php } ?>
                     </div>
@@ -77,11 +81,11 @@
 
             <!-- NOUVELLES ACTIONS POUR LA CORBEILLE -->
             <div class="card-actions-bottom" style="justify-content: space-between;">
-                <a href="<?php echo base_url('item/restore/' . $item->id); ?>" class="btn-icon btn-edit-sm"
+                <a href="<?php echo base_url('item/restore/'.$item->id); ?>" class="btn-icon btn-edit-sm"
                     style="color: var(--success); font-weight: bold;">
                     Restaurer
                 </a>
-                <a href="<?php echo base_url('item/permanent-delete/' . $item->id); ?>"
+                <a href="<?php echo base_url('item/permanent-delete/'.$item->id); ?>"
                     onclick="return confirm('Êtes-vous sûr de vouloir détruire définitivement cette carte ?');"
                     class="btn-icon btn-delete-sm" style="color: var(--danger);">
                     Détruire

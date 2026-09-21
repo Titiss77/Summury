@@ -3,4 +3,6 @@
 /htdocs/.env
 /htdocs/writable/cache
 /htdocs/writable/logs
+/htdocs/.php-cs-fixer.cache
+/htdocs/.php-cs-fixer.php
 *.sql*

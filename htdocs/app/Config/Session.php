@@ -44,7 +44,7 @@ class Session extends BaseConfig
      */
     /**
      * @var int
-     * Expire après 30jours (2592000 secondes)
+     *          Expire après 30jours (2592000 secondes)
      */
     public int $expiration = 2592000;
 
