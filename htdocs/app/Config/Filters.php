@@ -31,6 +31,9 @@ class Filters extends BaseFilters
         'performance' => PerformanceMetrics::class,
         'minifier' => HtmlMinifier::class,
         'errorlogger' => ErrorLogger::class,
+        'antiinspect'   => \App\Filters\AntiInspectFilter::class,
+        'headercloaker' => \App\Filters\HeaderCloaker::class,
+        'emailobfuscator' => \App\Filters\EmailObfuscator::class,
     ];
 
     public array $required = [
@@ -53,9 +56,11 @@ class Filters extends BaseFilters
                 // 'invalidchars',
             ],
             'after' => [
-                'honeypot', // ACTIVE ANTI-SPAM (Point 18)
-                // 'secureheaders',
-                'minifier',
+                'honeypot',
+                'headercloaker',   // 1. Modifie les en-têtes
+                'antiinspect',     // 2. Injecte le JS de blocage
+                'emailobfuscator', // 3. Encode les emails
+                'minifier',        // 4. Compresse le tout (ton filtre actuel)
                 'errorlogger',
             ],
         ]
