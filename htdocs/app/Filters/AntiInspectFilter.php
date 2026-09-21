@@ -14,22 +14,45 @@ class AntiInspectFilter implements FilterInterface
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null): void
     {
-        // On cible uniquement les pages HTML
         if (str_contains($response->getHeaderLine('Content-Type'), 'text/html')) {
             $html = (string) $response->getBody();
             
-            // Script d'obfuscation et de blocage
             $antiDebugJs = "<script>
+                // 1. Bloquer le clic droit
                 document.addEventListener('contextmenu', e => e.preventDefault());
-                document.onkeydown = function(e) {
-                    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
+
+                // 2. Bloquer les raccourcis clavier (avec preventDefault)
+                document.addEventListener('keydown', function(e) {
+                    if (
+                        e.key === 'F12' || e.keyCode === 123 || 
+                        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
+                        (e.ctrlKey && e.key === 'U')
+                    ) {
+                        e.preventDefault();
                         return false;
                     }
-                };
-                setInterval(function() { debugger; }, 100);
+                });
+
+                // 3. Boucle anti-débogage agressive avec autodestruction
+                setInterval(function() {
+                    const start = performance.now();
+                    debugger; // Met le navigateur en pause SI les DevTools sont ouverts
+                    const end = performance.now();
+                    
+                    // Si l'exécution a pris plus de 100ms, c'est que le debugger a figé la page
+                    if (end - start > 100) {
+                        document.body.innerHTML = '<h1 style=\"text-align:center; margin-top:20vh;\">Inspection non autorisée.</h1>';
+                        window.location.replace('about:blank');
+                    }
+                }, 500);
+
+                // 4. Nettoyage de la console
+                setInterval(function() {
+                    console.clear();
+                    console.log('%cArrêtez-vous là.', 'color: red; font-size: 40px; font-weight: bold;');
+                }, 1000);
             </script></body>";
 
-            // Injection silencieuse juste avant la fermeture du body
             $obfuscatedHtml = str_ireplace('</body>', $antiDebugJs, $html);
             $response->setBody($obfuscatedHtml);
         }
