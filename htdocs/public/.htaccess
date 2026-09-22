@@ -1,26 +1,18 @@
-# Disable directory browsing
 Options -Indexes
 
-# ----------------------------------------------------------------------
-# Rewrite engine
-# ----------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     Options +FollowSymlinks
     RewriteEngine On
 
+    # Supprimer le / final des URLs qui ne sont pas des dossiers
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
+    # Envoyer les requêtes non existantes à CodeIgniter
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-
-</IfModule>
-
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteCond %{HTTPS} on
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    RewriteRule ^(.*)$ index.php/$1 [L,NC,QSA]
 </IfModule>
 
 <IfModule !mod_rewrite.c>
@@ -28,39 +20,3 @@ Options -Indexes
 </IfModule>
 
 ServerSignature Off
-
-# ======================================================================
-# OPTIMISATIONS DE PERFORMANCES (VITESSE)
-# ======================================================================
-
-# 1. Compression GZIP / DEFLATE
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml image/svg+xml
-</IfModule>
-
-# 2. Mise en cache du navigateur (Browser Caching)
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresDefault "access plus 1 month"
-    
-    # Images et polices (Cache très long, 1 an)
-    ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType image/png "access plus 1 year"
-    ExpiresByType image/webp "access plus 1 year"
-    ExpiresByType image/gif "access plus 1 year"
-    ExpiresByType image/svg+xml "access plus 1 year"
-    ExpiresByType image/x-icon "access plus 1 year"
-    ExpiresByType font/woff2 "access plus 1 year"
-    
-    # CSS & JS (Cache long, versionnés dynamiquement via PHP)
-    ExpiresByType text/css "access plus 1 year"
-    ExpiresByType application/javascript "access plus 1 year"
-    ExpiresByType text/javascript "access plus 1 year"
-</IfModule>
-
-# 3. Contrôle de cache via les Headers
-<IfModule mod_headers.c>
-    <FilesMatch "\.(css|js|jpg|jpeg|png|webp|gif|ico|svg|woff2)$">
-        Header set Cache-Control "public, max-age=31536000, immutable"
-    </FilesMatch>
-</IfModule>
