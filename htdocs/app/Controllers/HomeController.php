@@ -19,23 +19,31 @@ class HomeController extends BaseController
     {
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
-
         $this->response->noCache();
-
+        
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
 
-        if (!empty($headersWithNoLogin)) {
+        // Si un paramètre de redirection d'hébergeur est présent (comme ?i=1), 
+        // on évite la redirection automatique pour casser la boucle infinie.
+        if (!empty($headersWithNoLogin) && !$this->request->getGet('i')) {
             return redirect()->to('categorie/'.$headersWithNoLogin[0]['id']);
         }
-        if (!empty($headersWithLogin)) {
+        if (!empty($headersWithLogin) && !$this->request->getGet('i') && empty($headersWithNoLogin)) {
             return redirect()->to('categorie/'.$headersWithLogin[0]['id']);
         }
 
+        $headerId = !empty($headersWithNoLogin) ? $headersWithNoLogin[0]['id'] : (!empty($headersWithLogin) ? $headersWithLogin[0]['id'] : null);
+        
+        $groupedItems = $headerId ? $model->getItemsGroupedByHeaderAndDivision($userId, $headerId) : [];
+        
+        // ... (conservez le reste du chargement des variables si besoin ou déléguez à categorie)
+        
         return view('home', [
             'headersWithNoLogin' => $headersWithNoLogin,
             'headersWithLogin' => $headersWithLogin,
-            'groupedItems' => [],
+            'groupedItems' => $groupedItems,
+            'currentHeaderId' => $headerId,
             'supportedDomains' => [],
         ]);
     }
