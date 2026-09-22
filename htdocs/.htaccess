@@ -6,11 +6,11 @@
     Options +FollowSymlinks
     RewriteEngine On
 
-    # Redirection HTTPS unique et propre
+    # Rediriger vers HTTPS uniquement si la connexion est en HTTP
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Redirection vers public/ si nécessaire
-    RewriteCond %{REQUEST_URI} !^/public/
+    # Redirection interne vers le dossier public/ de CodeIgniter
+    RewriteCond %{URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
