@@ -57,10 +57,10 @@ class Filters extends BaseFilters
             ],
             'after' => [
                 'honeypot',
-                'headercloaker',   // 1. Modifie les en-têtes
-                'antiinspect',     // 2. Injecte le JS de blocage
-                'emailobfuscator', // 3. Encode les emails
-                'minifier',        // 4. Compresse le tout (ton filtre actuel)
+                //'headercloaker',   // 1. Modifie les en-têtes
+                //'antiinspect',     // 2. Injecte le JS de blocage
+                //'emailobfuscator', // 3. Encode les emails
+                //'minifier',        // 4. Compresse le tout (ton filtre actuel)
                 'errorlogger',
             ],
         ]
