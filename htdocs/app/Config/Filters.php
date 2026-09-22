@@ -38,7 +38,7 @@ class Filters extends BaseFilters
 
     public array $required = [
         'before' => [
-            //'forcehttps',
+            'forcehttps', // Géré via .htaccess maintenant
             'pagecache',
         ],
         'after' => [
