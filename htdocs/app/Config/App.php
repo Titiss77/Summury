@@ -224,19 +224,4 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
-
-    /**
-     * Constructeur pour paramétrage dynamique selon l'environnement
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        // On force le HTTPS uniquement en environnement de production
-        if (ENVIRONMENT === 'production') {
-            $this->forceGlobalSecureRequests = true;
-        } else {
-            $this->forceGlobalSecureRequests = false;
-        }
-    }
 }

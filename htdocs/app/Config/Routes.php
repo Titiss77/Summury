@@ -18,6 +18,7 @@ $routes->get('cgu', 'HomeController::cgu'); // AJOUT ICI POUR LES CGU
 
 // Routes silencieuses pour les tâches de fond (Pseudo-Cron)
 $routes->get('cron/run', 'CronController::run');
+$routes->get('item/check-dispo', 'ItemController::checkDispo');
 
 // --------------------------------------------------------------------
 // Routes protégées par session (Utilisateurs connectés normaux)
@@ -35,7 +36,6 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('items/check-to-global', 'ItemController::checkToGlobal');
     $routes->get('item/turn/(:num)', 'ItemController::turnToAdmin/$1');
     $routes->get('item/search', 'ItemController::search');
-    $routes->get('item/check-dispo', 'ItemController::checkDispo');
 
     $routes->get('items/deleted', 'ItemController::viewDeleted');
 
