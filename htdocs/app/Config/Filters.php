@@ -34,6 +34,7 @@ class Filters extends BaseFilters
         'antiinspect'   => \App\Filters\AntiInspectFilter::class,
         'headercloaker' => \App\Filters\HeaderCloaker::class,
         'emailobfuscator' => \App\Filters\EmailObfuscator::class,
+        'htmlobfuscator' => \App\Filters\HtmlObfuscator::class,
     ];
 
     public array $required = [
@@ -61,6 +62,7 @@ class Filters extends BaseFilters
                 'antiinspect',     // 2. Injecte le JS de blocage
                 'emailobfuscator', // 3. Encode les emails
                 'minifier',        // 4. Compresse le tout (ton filtre actuel)
+                'htmlobfuscator',  // 5. Encode le HTML en Base64
                 'errorlogger',
             ],
         ]
