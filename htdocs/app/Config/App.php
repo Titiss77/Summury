@@ -182,7 +182,30 @@ class App extends BaseConfig
      *
      * @var array<string, string>
      */
-    public array $proxyIPs = [];
+    public array $proxyIPs = [
+        '173.245.48.0/20'   => 'CF-Connecting-IP',
+        '103.21.244.0/22'   => 'CF-Connecting-IP',
+        '103.22.200.0/22'   => 'CF-Connecting-IP',
+        '103.31.4.0/22'     => 'CF-Connecting-IP',
+        '141.101.64.0/18'   => 'CF-Connecting-IP',
+        '108.162.192.0/18'  => 'CF-Connecting-IP',
+        '190.93.240.0/20'   => 'CF-Connecting-IP',
+        '188.114.96.0/20'   => 'CF-Connecting-IP',
+        '197.234.240.0/22'  => 'CF-Connecting-IP',
+        '198.41.128.0/17'   => 'CF-Connecting-IP',
+        '162.158.0.0/15'    => 'CF-Connecting-IP',
+        '104.16.0.0/13'     => 'CF-Connecting-IP',
+        '104.24.0.0/14'     => 'CF-Connecting-IP',
+        '172.64.0.0/13'     => 'CF-Connecting-IP',
+        '131.0.72.0/22'     => 'CF-Connecting-IP',
+        '2400:cb00::/32'    => 'CF-Connecting-IP',
+        '2606:4700::/32'    => 'CF-Connecting-IP',
+        '2803:f800::/32'    => 'CF-Connecting-IP',
+        '2405:b500::/32'    => 'CF-Connecting-IP',
+        '2405:8100::/32'    => 'CF-Connecting-IP',
+        '2a06:98c0::/29'    => 'CF-Connecting-IP',
+        '2c0f:f248::/32'    => 'CF-Connecting-IP'
+    ];
 
     /**
      * --------------------------------------------------------------------------
