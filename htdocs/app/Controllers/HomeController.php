@@ -83,7 +83,7 @@ class HomeController extends BaseController
                 $pendingRevisionsCount = $revModel->where('revision_status', 'pending')->countAllResults();
                 $pendingTotal = $pendingItemsCount + $pendingRevisionsCount;
 
-                $toAdminCount = $model->where('id_division <', 11)
+                $toAdminCount = $model->where('id_division <=', 11)
                     ->where('is_public', 1)
                     ->where('id_user !=', 1)
                     ->countAllResults()

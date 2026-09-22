@@ -462,7 +462,23 @@ class ItemController extends BaseController
 
     public function checkToGlobal()
     {
-        return view('items/global_items', ['items' => $this->model->checkToGlobal()]);
+        $revisionModel = new \App\Models\ItemRevisionModel();
+        $siteConfigModel = new \App\Models\SiteConfigModel();
+
+        $pendingRevisionIds = [];
+        if (auth()->loggedIn()) {
+            $pendingRevisionIds = $revisionModel->where('revision_status', 'pending')
+                                                ->findColumn('original_item_id') ?? [];
+        }
+
+        $supportedDomains = $siteConfigModel->where('is_active', 1)
+                                            ->findColumn('domain') ?? [];
+
+        return view('items/global_items', [
+            'items'              => $this->model->checkToGlobal(),
+            'pendingRevisionIds' => $pendingRevisionIds,
+            'supportedDomains'   => $supportedDomains,
+        ]);
     }
 
     public function turnToAdmin($id)

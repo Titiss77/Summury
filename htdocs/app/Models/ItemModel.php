@@ -105,11 +105,11 @@ class ItemModel extends Model
 
     public function checkToGlobal()
     {
-        return $this->where('id_division <', 11)
+        return $this->where('id_division <=', 11)
             ->where('is_public', 1)
             ->where('id_user !=', 1)
-            ->findAll()
-        ;
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
     }
 
     public function getDeletedItems($userId = null)
