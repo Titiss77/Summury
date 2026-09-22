@@ -699,45 +699,60 @@ window.addEventListener('load', function() {
         }
     }     
 
-    async function checkCardDispo(card, supportedDomains) {         
-        const itemId = card.getAttribute('data-id');         
-        const url = card.getAttribute('data-url');         
-        const statusDiv = document.getElementById(`live-status-${itemId}`);         
-        const dateContainer = document.getElementById(`date-container-${itemId}`);         
-        const isSupported = url && supportedDomains.some(domain => url.includes(domain));         
+    async function checkCardDispo(card, supportedDomains) {
+        const itemId = card.getAttribute('data-id');
+        const url = card.getAttribute('data-url');
+        const statusDiv = document.getElementById(`live-status-${itemId}`);
+        const dateContainer = document.getElementById(`date-container-${itemId}`);
+        const isSupported = url && supportedDomains.some(domain => url.includes(domain));
         
-        if (!isSupported) {             
-            if (statusDiv) statusDiv.style.display = 'none';             
-            return;         
-        }         
+        if (!isSupported) {
+            if (statusDiv) statusDiv.style.display = 'none';
+            return;
+        }
         
-        const cacheKey = `dispo_check_${itemId}_${url}`;         
-        const cachedResult = sessionStorage.getItem(cacheKey);         
-        if (cachedResult) {             
-            const cacheData = JSON.parse(cachedResult);             
-            const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;                          
-            if (ageInMinutes < 60) {                 
-                applyDispoResult(cacheData.disponible, statusDiv, dateContainer);                 
-                return;              
-            }         
-        }         
+        const cacheKey = `dispo_check_${itemId}_${url}`;
         
-        try {             
-            const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';                          
-            const response = await fetch(`${baseUrl}item/check-dispo?urlCible=${encodeURIComponent(url)}`, {                 
-                method: 'GET',                 
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }             });                          
-                          
-            if (!response.ok) return;                          
-            const data = await response.json();             
-            if (!data.success) return;             
+        // 1. Lecture sécurisée du sessionStorage
+        try {
+            const cachedResult = sessionStorage.getItem(cacheKey);
+            if (cachedResult) {
+                const cacheData = JSON.parse(cachedResult);
+                const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;
+                if (ageInMinutes < 60) {
+                    applyDispoResult(cacheData.disponible, statusDiv, dateContainer);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("sessionStorage bloqué par le navigateur, contournement en cours...");
+        }
+
+        try {
+            const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
+            const response = await fetch(`${baseUrl}item/check-dispo?urlCible=${encodeURIComponent(url)}`, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
             
-            sessionStorage.setItem(cacheKey, JSON.stringify({                 
-                timestamp: Date.now(),                 
-                disponible: data.disponible             }));             
-            applyDispoResult(data.disponible, statusDiv, dateContainer);         } catch (err) {             
-            if (statusDiv) statusDiv.style.display = 'none';         
-        }     
+            if (!response.ok) return;
+            const data = await response.json();
+            if (!data.success) return;
+
+            // 2. Écriture sécurisée du sessionStorage
+            try {
+                sessionStorage.setItem(cacheKey, JSON.stringify({
+                    timestamp: Date.now(),
+                    disponible: data.disponible
+                }));
+            } catch (e) {
+                // On ignore l'erreur silencieusement, la donnée ne sera juste pas mise en cache
+            }
+
+            applyDispoResult(data.disponible, statusDiv, dateContainer);
+        } catch (err) {
+            if (statusDiv) statusDiv.style.display = 'none';
+        }
     }     
 
     function applyDispoResult(disponible, statusDiv, dateContainer) {         
