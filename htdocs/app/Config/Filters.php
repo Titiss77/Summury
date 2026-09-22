@@ -31,52 +31,38 @@ class Filters extends BaseFilters
         'performance' => PerformanceMetrics::class,
         'minifier' => HtmlMinifier::class,
         'errorlogger' => ErrorLogger::class,
-        'antiinspect'   => \App\Filters\AntiInspectFilter::class,
+
+        'antiinspect' => \App\Filters\AntiInspectFilter::class,
         'headercloaker' => \App\Filters\HeaderCloaker::class,
         'emailobfuscator' => \App\Filters\EmailObfuscator::class,
     ];
 
+    /*
+     * Les filtres PageCache et PerformanceMetrics étaient exécutés
+     * automatiquement sur toutes les requêtes.
+     *
+     * Ils ajoutent du traitement inutile à chaque page.
+     *
+     * La Debug Toolbar est uniquement activée lorsque CI_DEBUG est actif.
+     */
     public array $required = [
+        'before' => [],
+        'after' => CI_DEBUG ? ['toolbar'] : [],
+    ];
+
+    public array $globals = [
         'before' => [
-            //'forcehttps',
-            'pagecache',
+            'honeypot',
+            'csrf',
         ],
+
         'after' => [
-            'pagecache',
-            'performance',
-            'toolbar',
+            'honeypot',
+            'errorlogger',
         ],
     ];
 
-    public array $globals = ENVIRONMENT === 'production'
-        ? [
-            'before' => [
-                'honeypot', // ACTIVE ANTI-SPAM (Point 18)
-                'csrf',
-                // 'invalidchars',
-            ],
-            'after' => [
-                'honeypot',
-                //'headercloaker',   // 1. Modifie les en-têtes
-                //'antiinspect',     // 2. Injecte le JS de blocage
-                //'emailobfuscator', // 3. Encode les emails
-                //'minifier',        // 4. Compresse le tout (ton filtre actuel)
-                'errorlogger',
-            ],
-        ]
-        : [
-            'before' => [
-                'honeypot', // ACTIVE ANTI-SPAM
-                'csrf',
-                // 'invalidchars',
-            ],
-            'after' => [
-                'honeypot', // ACTIVE ANTI-SPAM
-                // 'secureheaders',
-                'errorlogger',
-            ],
-        ];
-
     public array $methods = [];
+
     public array $filters = [];
 }
