@@ -9,7 +9,4 @@
     # Redirection HTTPS propre (si inactif)
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-    # Redirection invisible vers le dossier public de CodeIgniter
-    RewriteRule ^(.*)$ public/$1 [L,NC]
 </IfModule>
