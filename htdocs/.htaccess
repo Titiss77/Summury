@@ -6,10 +6,10 @@
     Options +FollowSymlinks
     RewriteEngine On
 
-    # Forcer HTTPS uniquement si la requête est en HTTP
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Envoyer les requêtes vers CodeIgniter public/
+    RewriteRule ^public(?:/|$) - [L]
+
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

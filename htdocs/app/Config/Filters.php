@@ -52,7 +52,7 @@ class Filters extends BaseFilters
         ? [
             'before' => [
                 'honeypot', // ACTIVE ANTI-SPAM (Point 18)
-                // 'csrf',
+                'csrf',
                 // 'invalidchars',
             ],
             'after' => [
@@ -67,7 +67,7 @@ class Filters extends BaseFilters
         : [
             'before' => [
                 'honeypot', // ACTIVE ANTI-SPAM
-                // 'csrf',
+                'csrf',
                 // 'invalidchars',
             ],
             'after' => [
