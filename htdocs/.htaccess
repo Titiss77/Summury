@@ -1,4 +1,3 @@
-# Bloquer l'accès aux fichiers sensibles
 <FilesMatch "^\.env|\.sql$">
     Require all denied
 </FilesMatch>
@@ -7,14 +6,11 @@
     Options +FollowSymlinks
     RewriteEngine On
 
-    # Redirection HTTPS propre
-    RewriteCond %{HTTPS} on
+    # Redirection HTTPS unique et propre
+    RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Redirection vers public/ si nécessaire
+    RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
-
-</IfModule>
-
-# Options de performance (GZIP et Cache)
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml image/svg+xml
 </IfModule>
