@@ -39,7 +39,7 @@ class ItemController extends BaseController
             'headers' => [],
             'divisions' => $this->model->getDivisions(),
             'subCategories' => $subCategories,
-            'statuts' => $this->statutModel->orderBy('ordre', 'ASC')->findAll(),
+            'statuts' => $this->statutModel->where('nom !=', 'Public')->orderBy('ordre', 'ASC')->findAll(),
             'item' => null,
             'view' => 'items/item_form',
             'redirect_url' => $this->request->getUserAgent()->getReferrer() ?? site_url('/'),
@@ -145,6 +145,12 @@ class ItemController extends BaseController
                     $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
 
                     return redirect()->to($backUrl.$separator.'open='.$existing->id_division.'#div-'.$existing->id_division)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
+                }
+
+                // --- NOUVEAU BLOC À AJOUTER ---
+                // Si la carte était publique (1) et qu'elle passe en privée (0)
+                if (in_array($existing->is_public, [1]) && 0 == $data['is_public']) {
+                    $data['status'] = 'Aucun';
                 }
 
                 $item = new Item($data);
