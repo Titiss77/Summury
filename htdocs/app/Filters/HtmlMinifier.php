@@ -17,9 +17,15 @@ class HtmlMinifier implements FilterInterface
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null): void
     {
-        // On s'assure qu'on ne modifie que les pages HTML (pas les JSON, images, etc.)
-        if (str_contains($response->getHeaderLine('Content-Type'), 'text/html')) {
-            $html = $response->getBody();
+        // 1. On récupère le header s'il a été forcé, sinon on interroge la méthode native de CI4, sinon on assume du HTML par défaut
+        $contentType = $response->getHeaderLine('Content-Type');
+        if (empty($contentType) && method_exists($response, 'getContentType')) {
+            $contentType = $response->getContentType();
+        }
+
+        // 2. On effectue la vérification sur la variable corrigée
+        if (str_contains($contentType ?: 'text/html', 'text/html')) {
+            $html = (string) $response->getBody();
 
             // Expressions régulières pour nettoyer le code
             $search = [
@@ -39,7 +45,7 @@ class HtmlMinifier implements FilterInterface
             $minifiedHtml = preg_replace($search, $replace, $html);
 
             // On remplace le corps de la réponse par le HTML minifié
-            $response->setBody($minifiedHtml);
+            $response->setBody($html);
         }
     }
 }

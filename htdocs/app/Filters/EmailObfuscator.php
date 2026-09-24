@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Filters;
 
@@ -8,13 +10,18 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class EmailObfuscator implements FilterInterface
 {
-    public function before(RequestInterface $request, $arguments = null): void
-    {
-    }
+    public function before(RequestInterface $request, $arguments = null): void {}
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null): void
     {
-        if (str_contains($response->getHeaderLine('Content-Type'), 'text/html')) {
+        // 1. On récupère le header s'il a été forcé, sinon on interroge la méthode native de CI4, sinon on assume du HTML par défaut
+        $contentType = $response->getHeaderLine('Content-Type');
+        if (empty($contentType) && method_exists($response, 'getContentType')) {
+            $contentType = $response->getContentType();
+        }
+
+        // 2. On effectue la vérification sur la variable corrigée
+        if (str_contains($contentType ?: 'text/html', 'text/html')) {
             $html = (string) $response->getBody();
 
             // Recherche automatique d'emails via Regex
@@ -24,9 +31,10 @@ class EmailObfuscator implements FilterInterface
                     $email = $matches[0];
                     $obfuscated = '';
                     // Convertit chaque caractère en entité HTML (ex: a -> &#97;)
-                    for ($i = 0; $i < strlen($email); $i++) {
-                        $obfuscated .= '&#' . ord($email[$i]) . ';';
+                    for ($i = 0; $i < strlen($email); ++$i) {
+                        $obfuscated .= '&#'.ord($email[$i]).';';
                     }
+
                     return $obfuscated;
                 },
                 $html

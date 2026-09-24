@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Config;
 
+use App\Filters\AntiInspectFilter;
+use App\Filters\EmailObfuscator;
 use App\Filters\ErrorLogger;
+use App\Filters\HeaderCloaker;
 use App\Filters\HtmlMinifier;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
@@ -31,9 +34,9 @@ class Filters extends BaseFilters
         'performance' => PerformanceMetrics::class,
         'minifier' => HtmlMinifier::class,
         'errorlogger' => ErrorLogger::class,
-        'antiinspect' => \App\Filters\AntiInspectFilter::class,
-        'headercloaker' => \App\Filters\HeaderCloaker::class,
-        'emailobfuscator' => \App\Filters\EmailObfuscator::class,
+        'antiinspect' => AntiInspectFilter::class,
+        'headercloaker' => HeaderCloaker::class,
+        'emailobfuscator' => EmailObfuscator::class,
     ];
 
     /*
@@ -61,7 +64,7 @@ class Filters extends BaseFilters
                 'honeypot',
                 'csrf',
             ],
-    
+
             'after' => [
                 'antiinspect',
                 'headercloaker',
@@ -76,8 +79,11 @@ class Filters extends BaseFilters
                 'honeypot',
                 'csrf',
             ],
-    
             'after' => [
+                'antiinspect',
+                'headercloaker',
+                'emailobfuscator',
+                'minifier',
                 'honeypot',
                 'errorlogger',
             ],
