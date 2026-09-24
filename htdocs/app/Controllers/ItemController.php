@@ -164,6 +164,13 @@ class ItemController extends BaseController
                 }
 
                 $item = new Item($data);
+
+                if (!empty($data['saison']) && !empty($data['episode'])) {
+                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                    $item->episode_global = $globalData['episode_global'];
+                    $item->total_episodes_global = $globalData['total_episodes_global'];
+                }
+                
                 $this->model->save($item);
 
                 $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
@@ -294,6 +301,13 @@ class ItemController extends BaseController
             }
 
             $this->model->update($id, $updateData);
+
+            $updatedItem = $this->model->find($id);
+            if ($updatedItem) {
+                $globalData = $this->syncGlobalEpisodesWithTMDB($updatedItem);
+                $this->model->update($id, $globalData);
+            }
+
             (new AuditLogModel())->logAction('Incrémentation Rapide', $logMessage);
 
             if ($this->request->isAJAX()) {
@@ -784,5 +798,67 @@ class ItemController extends BaseController
         }
 
         return $data;
+    }
+
+    /**
+     * Interroge TMDB pour calculer les compteurs globaux (épisodes vus au total et total de la série).
+     */
+    private function syncGlobalEpisodesWithTMDB(Item $item): array
+    {
+        $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
+        $client = \Config\Services::curlrequest([
+            'timeout' => 5,
+            'http_errors' => false,
+            'verify' => false,
+        ]);
+
+        $episodeGlobal = (int) $item->episode;
+        $totalEpisodesGlobal = null;
+        $currentSaison = (int) $item->saison;
+
+        try {
+            // 1. Chercher la série
+            $url = 'https://api.themoviedb.org/3/search/multi?query='.urlencode($item->titre)."&api_key={$apiKey}&language=fr-FR";
+            $response = $client->get($url);
+            
+            if ($response->getStatusCode() === 200) {
+                $body = json_decode($response->getBody(), true);
+                
+                if (!empty($body['results'])) {
+                    foreach ($body['results'] as $result) {
+                        if (isset($result['media_type']) && $result['media_type'] === 'tv' && isset($result['id'])) {
+                            // 2. Récupérer les détails de la série
+                            $tvUrl = "https://api.themoviedb.org/3/tv/{$result['id']}?api_key={$apiKey}&language=fr-FR";
+                            $tvResponse = $client->get($tvUrl);
+                            
+                            if ($tvResponse->getStatusCode() === 200) {
+                                $tvBody = json_decode($tvResponse->getBody(), true);
+                                
+                                $totalEpisodesGlobal = $tvBody['number_of_episodes'] ?? null;
+                                
+                                // 3. Additionner les épisodes des saisons précédentes (en ignorant les saisons 0 qui sont des spéciaux)
+                                if (isset($tvBody['seasons']) && $currentSaison > 1) {
+                                    $previousEpisodes = 0;
+                                    foreach ($tvBody['seasons'] as $season) {
+                                        if ($season['season_number'] > 0 && $season['season_number'] < $currentSaison) {
+                                            $previousEpisodes += $season['episode_count'];
+                                        }
+                                    }
+                                    $episodeGlobal = $previousEpisodes + (int) $item->episode;
+                                }
+                            }
+                            break; // On s'arrête au premier résultat TV valide
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Silence ou log de l'erreur
+        }
+
+        return [
+            'episode_global' => $episodeGlobal,
+            'total_episodes_global' => $totalEpisodesGlobal
+        ];
     }
 }

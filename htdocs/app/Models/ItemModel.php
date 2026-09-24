@@ -20,6 +20,7 @@ class ItemModel extends Model
         'id_user', 'id_division', 'sous_categorie', 'titre', 'titre_original', 'status',
         'is_public', 'description', 'date_sortie', 'image', 'lien',
         'link_status', 'saison', 'total_saisons', 'episode', 'total_episodes', 'position',
+        'episode_global', 'total_episodes_global'
     ];
 
     // Active la corbeille au lieu de la suppression définitive (Soft Deletes)
@@ -167,16 +168,32 @@ class ItemModel extends Model
     }
 
     /**
-     * Récupère le total global des épisodes visionnés et restants (toutes œuvres confondues).
+     * Récupère le total global des épisodes visionnés et restants de manière intelligente.
      */
     public function getGlobalEpisodesStats(int $userId)
     {
-        return $this->select('SUM(episode) as total_vus, SUM(total_episodes - episode) as total_restants')
-                    ->where('id_user', $userId)
-                    ->where('total_episodes IS NOT NULL')
-                    ->where('episode IS NOT NULL')
-                    ->where('total_episodes >= episode') // Sécurité anti-nombres négatifs
-                    ->first();
+        return $this->select('
+            SUM(
+                CASE 
+                    WHEN status = "Terminé" THEN COALESCE(episode_global, episode, 0)
+                    ELSE COALESCE(episode_global, episode, 1) - 1 
+                END
+            ) as total_vus, 
+            
+            SUM(
+                CASE 
+                    WHEN status = "Terminé" THEN 0
+                    WHEN COALESCE(total_episodes_global, total_episodes) IS NOT NULL THEN 
+                        COALESCE(total_episodes_global, total_episodes) - COALESCE(episode_global, episode, 1) + 1
+                    ELSE 0
+                END
+            ) as total_restants
+        ')
+        ->where('id_user', $userId)
+        ->where('status !=', 'À voir') // On ignore les œuvres pas encore commencées
+        ->where('episode IS NOT NULL')
+        ->where('total_episodes IS NOT NULL')
+        ->first();
     }
 
     /**
@@ -184,10 +201,11 @@ class ItemModel extends Model
      */
     public function getInProgressSeriesStats(int $userId)
     {
-        return $this->select('titre, episode, total_episodes, saison, total_saisons, (total_episodes - episode + 1) as reste_ep, (total_saisons - saison + 1) as reste_s')
+        // vu_global = episode_global - 1
+        // reste_global = total_episodes_global - episode_global + 1
+        return $this->select('titre, (episode_global - 1) as vu_global, total_episodes_global, saison, total_saisons, (total_episodes_global - episode_global + 1) as reste_global, (total_saisons - saison + 1) as reste_s')
                     ->where('id_user', $userId)
                     ->where('status', 'En cours')
-                    ->where('total_episodes IS NOT NULL')
                     ->findAll();
     }
 }

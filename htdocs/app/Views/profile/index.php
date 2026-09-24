@@ -70,10 +70,30 @@
                     <tbody>
                         <?php foreach ($inProgressSeries as $series) { ?>
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px;"><strong><?php echo esc($series->titre); ?></strong></td>
-                            <td style="padding: 12px; text-align: center;">
-                                <span class="badge badge-episode"><?php echo esc($series->reste_ep); ?></span>
+                            <!-- Colonne 1 : Titre -->
+                            <td style="padding: 12px;">
+                                <strong><?php echo esc($series->titre); ?></strong>
                             </td>
+
+                            <!-- Colonne 2 : Épisodes restants (Vue globale) -->
+                            <td style="padding: 12px; text-align: center;">
+                                <?php if (isset($series->vu_global) && isset($series->reste_global)) { ?>
+                                <span
+                                    style="font-size: 0.9em; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                                    (Vu : <?php echo esc($series->vu_global); ?>)
+                                </span>
+                                <span class="badge badge-episode"
+                                    style="background-color: var(--warning); color: var(--text-main);">
+                                    Reste : <?php echo esc($series->reste_global); ?>
+                                </span>
+                                <?php } else { ?>
+                                <span style="color: var(--text-muted); font-size: 0.85em; font-style: italic;">
+                                    Non synchronisé
+                                </span>
+                                <?php } ?>
+                            </td>
+
+                            <!-- Colonne 3 : Saisons restantes -->
                             <td style="padding: 12px; text-align: center;">
                                 <?php if (!empty($series->total_saisons) && !empty($series->saison)) { ?>
                                 <span class="badge badge-season"><?php echo esc($series->reste_s); ?></span>
