@@ -63,6 +63,9 @@ class Filters extends BaseFilters
             ],
     
             'after' => [
+                'antiinspect',
+                'headercloaker',
+                'emailobfuscator',
                 'minifier',
                 'honeypot',
                 'errorlogger',
