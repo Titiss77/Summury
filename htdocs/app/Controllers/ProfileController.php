@@ -26,14 +26,14 @@ class ProfileController extends BaseController
         $statusTermine = $itemModel->where('id_user', $user->id)->where('status', 'Terminé')->countAllResults();
         $statusAucun = $itemModel->where('id_user', $user->id)->where('status', 'Aucun')->countAllResults();
 
+        $episodesStats = $itemModel->getGlobalEpisodesStats($user->id);
+        $inProgressSeries = $itemModel->getInProgressSeriesStats($user->id);
+
         $data = [
-            'user' => $user,
-            'totalItems' => $totalItems,
-            'publicItems' => $publicItems,
-            'statusAVoir' => $statusAVoir,
             'user'          => $user,
             'totalItems'    => $totalItems,
             'publicItems'   => $publicItems,
+            'statusAVoir'   => $statusAVoir,
             'statusEnCours' => $statusEnCours,
             'statusEnPause' => $statusEnPause,
             'statusTermine' => $statusTermine,
