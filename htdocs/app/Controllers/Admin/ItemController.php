@@ -63,6 +63,7 @@ class ItemController extends BaseController
         $item = $itemModel->find($id);
         if ($item) {
             $itemModel->update($id, ['is_public' => 1]);
+            $itemModel->update($id, ['status' => "Public"]);
             (new AuditLogModel())->logAction('Modération : Approbation Carte', "Le SuperAdmin a validé la nouvelle publication de la carte ID {$id} ('{$item->titre}').");
         }
 
