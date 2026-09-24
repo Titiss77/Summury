@@ -32,63 +32,61 @@
         </div>
     </div>
 
+    <!-- 1. Ajoute les badges globaux à ton conteneur flex existant (vers la ligne 28) -->
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+        <p style="margin: 0;"><strong>Total de cartes en lignes:</strong> <span
+                class="badge badge-episode"><?php echo esc($totalItems); ?></span></p>
+        <p style="margin: 0;"><strong>Vos cartes publiques :</strong> <span
+                class="badge badge-season"><?php echo esc($publicItems); ?></span></p>
+
+        <!-- Nouveaux compteurs -->
+        <p style="margin: 0;"><strong>Épisodes visionnés :</strong> <span class="badge"
+                style="background-color: var(--primary); color: #fff; padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalVus); ?></span>
+        </p>
+        <p style="margin: 0;"><strong>Épisodes restants à voir :</strong> <span class="badge"
+                style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalRestants); ?></span>
+        </p>
+    </div>
+
+    <!-- 2. Ajoute la nouvelle section détaillant les œuvres en cours -->
     <div class="card shadow-card" style="margin-bottom: 2rem;">
         <div class="card-body">
-            <h3 style="margin-top: 0;">Mes Statistiques</h3>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
-                <p style="margin: 0;"><strong>Total de cartes en lignes:</strong> <span
-                        class="badge badge-episode"><?php echo esc($totalItems); ?></span></p>
-                <p style="margin: 0;"><strong>Vos cartes publiques :</strong> <span
-                        class="badge badge-season"><?php echo esc($publicItems); ?></span></p>
-            </div>
+            <h3 style="margin-top: 0; margin-bottom: 15px;">Détail de progression (En cours)</h3>
 
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 0 0 20px 0;">
-            <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 1rem; color: var(--text-main);">Répartition par
-                statut</h4>
-
-            <!-- Dashboard de statistiques dynamiques basé sur les statuts -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 15px;">
-                <div
-                    style="background: var(--bg-body); padding: 15px 10px; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border-color);">
-                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--info); line-height: 1;">
-                        <?php echo esc($statusAVoir); ?></div>
-                    <div
-                        style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-top: 8px; font-weight: 500;">
-                        À voir</div>
-                </div>
-                <div
-                    style="background: var(--bg-body); padding: 15px 10px; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border-color);">
-                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--primary); line-height: 1;">
-                        <?php echo esc($statusEnCours); ?></div>
-                    <div
-                        style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-top: 8px; font-weight: 500;">
-                        En cours</div>
-                </div>
-                <div
-                    style="background: var(--bg-body); padding: 15px 10px; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border-color);">
-                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--warning); line-height: 1;">
-                        <?php echo esc($statusEnPause); ?></div>
-                    <div
-                        style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-top: 8px; font-weight: 500;">
-                        En pause</div>
-                </div>
-                <div
-                    style="background: var(--bg-body); padding: 15px 10px; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border-color);">
-                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--success); line-height: 1;">
-                        <?php echo esc($statusTermine); ?></div>
-                    <div
-                        style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-top: 8px; font-weight: 500;">
-                        Terminé</div>
-                </div>
-                <div
-                    style="background: var(--bg-body); padding: 15px 10px; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border-color);">
-                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--text-muted); line-height: 1;">
-                        <?php echo esc($statusAucun); ?></div>
-                    <div
-                        style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-top: 8px; font-weight: 500;">
-                        Aucun</div>
-                </div>
+            <?php if (empty($inProgressSeries)) { ?>
+            <p style="color: var(--text-muted);">Aucune série ou animé en cours de visionnage avec un total d'épisodes
+                défini.</p>
+            <?php } else { ?>
+            <div class="admin-table-container fade-in">
+                <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr
+                            style="background-color: var(--bg-body); border-bottom: 2px solid var(--border-color); color: var(--text-main);">
+                            <th style="padding: 12px; text-align: left;">Titre</th>
+                            <th style="padding: 12px; text-align: center;">Épisodes restants</th>
+                            <th style="padding: 12px; text-align: center;">Saisons restantes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($inProgressSeries as $series) { ?>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 12px;"><strong><?php echo esc($series->titre); ?></strong></td>
+                            <td style="padding: 12px; text-align: center;">
+                                <span class="badge badge-episode"><?php echo esc($series->reste_ep); ?></span>
+                            </td>
+                            <td style="padding: 12px; text-align: center;">
+                                <?php if (!empty($series->total_saisons) && !empty($series->saison)) { ?>
+                                <span class="badge badge-season"><?php echo esc($series->reste_s); ?></span>
+                                <?php } else { ?>
+                                <span style="color: var(--text-muted);">-</span>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
             </div>
+            <?php } ?>
         </div>
     </div>
 

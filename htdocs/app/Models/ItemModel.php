@@ -165,4 +165,29 @@ class ItemModel extends Model
 
         return $builder->get()->getCustomResultObject(Item::class);
     }
+
+    /**
+     * Récupère le total global des épisodes visionnés et restants (toutes œuvres confondues).
+     */
+    public function getGlobalEpisodesStats(int $userId)
+    {
+        return $this->select('SUM(episode) as total_vus, SUM(total_episodes - episode) as total_restants')
+                    ->where('id_user', $userId)
+                    ->where('total_episodes IS NOT NULL')
+                    ->where('episode IS NOT NULL')
+                    ->where('total_episodes >= episode') // Sécurité anti-nombres négatifs
+                    ->first();
+    }
+
+    /**
+     * Récupère le détail des séries "En cours" avec le calcul exact des épisodes/saisons restants.
+     */
+    public function getInProgressSeriesStats(int $userId)
+    {
+        return $this->select('titre, episode, total_episodes, saison, total_saisons, (total_episodes - episode + 1) as reste_ep, (total_saisons - saison + 1) as reste_s')
+                    ->where('id_user', $userId)
+                    ->where('status', 'En cours')
+                    ->where('total_episodes IS NOT NULL')
+                    ->findAll();
+    }
 }

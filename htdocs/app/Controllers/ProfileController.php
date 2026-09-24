@@ -31,10 +31,18 @@ class ProfileController extends BaseController
             'totalItems' => $totalItems,
             'publicItems' => $publicItems,
             'statusAVoir' => $statusAVoir,
+            'user'          => $user,
+            'totalItems'    => $totalItems,
+            'publicItems'   => $publicItems,
             'statusEnCours' => $statusEnCours,
             'statusEnPause' => $statusEnPause,
             'statusTermine' => $statusTermine,
-            'statusAucun' => $statusAucun,
+            'statusAucun'   => $statusAucun,
+
+            // Nouvelles variables injectées vers la vue
+            'totalVus'         => $episodesStats->total_vus ?? 0,
+            'totalRestants'    => $episodesStats->total_restants ?? 0,
+            'inProgressSeries' => $inProgressSeries,
         ];
 
         return view('profile/index', $data);
