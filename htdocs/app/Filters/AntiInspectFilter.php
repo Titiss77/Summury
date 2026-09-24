@@ -62,7 +62,7 @@ class AntiInspectFilter implements FilterInterface
 
             $obfuscatedHtml = str_ireplace('</body>', $antiDebugJs, $html);
 
-            $response->setBody($html);
+            $response->setBody($obfuscatedHtml);
         }
     }
 }

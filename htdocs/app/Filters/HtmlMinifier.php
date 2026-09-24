@@ -45,7 +45,7 @@ class HtmlMinifier implements FilterInterface
             $minifiedHtml = preg_replace($search, $replace, $html);
 
             // On remplace le corps de la réponse par le HTML minifié
-            $response->setBody($html);
+            $response->setBody($minifiedHtml);
         }
     }
 }
