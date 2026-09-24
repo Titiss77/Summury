@@ -31,7 +31,6 @@ class Filters extends BaseFilters
         'performance' => PerformanceMetrics::class,
         'minifier' => HtmlMinifier::class,
         'errorlogger' => ErrorLogger::class,
-
         'antiinspect' => \App\Filters\AntiInspectFilter::class,
         'headercloaker' => \App\Filters\HeaderCloaker::class,
         'emailobfuscator' => \App\Filters\EmailObfuscator::class,
@@ -50,18 +49,36 @@ class Filters extends BaseFilters
         'after' => CI_DEBUG ? ['toolbar'] : [],
     ];
 
-    public array $globals = [
-        'before' => [
-            'honeypot',
-            'csrf',
-        ],
-
-        'after' => [
-            'minifier',
-            'honeypot',
-            'errorlogger',
-        ],
-    ];
+    /**
+     * List of filter aliases that are always
+     * applied before and after every request.
+     *
+     * @var array<string, array<string, array<string, string>>>|array<string, list<string>>
+     */
+    public array $globals = ENVIRONMENT === 'production'
+        ? [
+            'before' => [
+                'honeypot',
+                'csrf',
+            ],
+    
+            'after' => [
+                'minifier',
+                'honeypot',
+                'errorlogger',
+            ],
+        ]
+        : [
+            'before' => [
+                'honeypot',
+                'csrf',
+            ],
+    
+            'after' => [
+                'honeypot',
+                'errorlogger',
+            ],
+        ];
 
     public array $methods = [];
 
