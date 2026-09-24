@@ -1,11 +1,10 @@
 :root {
-    /* Palette de couleurs "Premium Frost" (Lumineux, aéré et luxueux) */
+    /* Palette de couleurs "Premium Frost" */
     --primary: #c8a468;
     --primary-hover: #836b42;
-    --primary-light: rgba(79, 70, 229, 0.1);
+    --primary-light: rgba(200, 164, 104, 0.1);
 
     --bg-body: #f8f9fa;
-    /* Fond légèrement grisé pour faire ressortir les cartes blanches */
     --bg-card: #ffffff;
 
     --text-main: #0f172a;
@@ -17,7 +16,7 @@
     --success-text: #047857;
 
     --info: #c8a468;
-    --info-bg: rgba(59, 130, 246, 0.1);
+    --info-bg: rgba(200, 164, 104, 0.1);
     --info-text: #8d754a;
 
     --danger: #ef4444;
@@ -25,17 +24,17 @@
     --danger-bg: rgba(239, 68, 68, 0.1);
     --danger-text: #b91c1c;
 
-    --warning: rgb(245, 158, 11, 0.5);
-    --warning-hover: rgb(217, 119, 6, 0.5);
+    --warning: rgba(245, 158, 11, 0.5);
+    --warning-hover: rgba(217, 119, 6, 0.5);
 
-    /* Ombres Modernes (Plus douces, étalées et réalistes) */
+    /* Ombres Modernes */
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 10px 15px -3px rgba(255, 0, 0, 0.05);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
-    --shadow-hover: 0 4px 6px 6px rgba(79, 70, 229, 0.08);
+    --shadow-hover: 0 10px 20px rgba(200, 164, 104, 0.15);
 
-    /* Arrondis (Plus généreux) */
+    /* Arrondis */
     --radius-sm: 0.5rem;
     --radius-md: 0.85rem;
     --radius-lg: 1.25rem;
@@ -51,34 +50,32 @@
     --icon-font-size: 0.8rem;
 }
 
-/* =========================================
-   THÈME SOMBRE (DARK MODE)
-   ========================================= */
+/* Thème Sombre (Dark Mode) */
 [data-theme="dark"] {
-        --primary: #c8a468;
-        --primary-hover: #836b42;
-        --primary-light: rgba(200, 164, 104, 0.1);
-    
-        --bg-body: #0f0f0f;
-        --bg-card: #131313;
-    
-        --text-main: #FFFFFF;
-        --text-muted: #8C857D;
-        --border-color: #25201B;
+    --primary: #c8a468;
+    --primary-hover: #836b42;
+    --primary-light: rgba(200, 164, 104, 0.1);
 
-        --shadow-sm: 0 4px 6px -1px rgb(200, 164, 104, 0.3);
-        --shadow-hover: 0 4px 6px 6px rgb(29, 24, 16);
+    --bg-body: #0f0f0f;
+    --bg-card: #131313;
 
-        --success: #0b7d57;
-        --success-bg: rgba(16, 185, 129, 0.1);
-        --success-text: #21d29f;
-    
-        --info: #c8a468;
-        --info-bg: rgba(59, 130, 246, 0.1);
-        --info-text: #8d754a;
-    
-        --danger: #ef4444;
-        --danger-hover: #dc2626;
-        --danger-bg: rgba(239, 68, 68, 0.1);
-        --danger-text: #b91c1c;
+    --text-main: #FFFFFF;
+    --text-muted: #8C857D;
+    --border-color: #25201B;
+
+    --shadow-sm: 0 4px 6px -1px rgba(200, 164, 104, 0.05);
+    --shadow-hover: 0 8px 15px rgba(29, 24, 16, 0.8);
+
+    --success: #0b7d57;
+    --success-bg: rgba(16, 185, 129, 0.1);
+    --success-text: #21d29f;
+
+    --info: #c8a468;
+    --info-bg: rgba(200, 164, 104, 0.1);
+    --info-text: #8d754a;
+
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --danger-bg: rgba(239, 68, 68, 0.1);
+    --danger-text: #ff6b6b;
 }

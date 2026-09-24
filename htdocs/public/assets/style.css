@@ -1,6 +1,4 @@
-/* =========================================
-   BASE & RESET
-   ========================================= */
+/* Base & Container */
 * {
     box-sizing: border-box;
 }
@@ -33,9 +31,7 @@ a:hover {
     padding: 0 24px;
 }
 
-/* =========================================
-   HEADER (Navigation Globale Flottante)
-   ========================================= */
+/* Header & Navigation Globale */
 .main-header {
     display: flex;
     justify-content: space-between;
@@ -60,7 +56,6 @@ a:hover {
 }
 
 .main-header h1 {
-    color: var(--text-main);
     font-weight: 800;
     font-size: 1.4rem;
     letter-spacing: -0.03em;
@@ -98,7 +93,6 @@ html[data-theme="dark"] .logo-site {
     font-size: var(--card-desc-font-size);
 }
 
-/* Bouton Dark Mode */
 .btn-theme {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -119,9 +113,7 @@ html[data-theme="dark"] .logo-site {
     transform: translateY(-2px);
 }
 
-/* =========================================
-   MENU DES CATÉGORIES (ONGLETS PILULES)
-   ========================================= */
+/* Navigation par Catégories (Onglets) */
 .category-nav {
     display: flex;
     gap: 12px;
@@ -161,9 +153,7 @@ html[data-theme="dark"] .logo-site {
     box-shadow: var(--shadow-md);
 }
 
-/* =========================================
-   ACTIONS CONTAINER
-   ========================================= */
+/* Conteneur d'Actions Admin / Globaux */
 .actions-container {
     display: flex;
     justify-content: flex-end;
@@ -171,9 +161,7 @@ html[data-theme="dark"] .logo-site {
     gap: 15px;
 }
 
-/* =========================================
-MENUS DÉROULANTS (Blocs Modernes)
-========================================= */
+/* Sections & Menus Déroulants */
 .division-section {
     margin-bottom: 1.5rem;
     background: var(--bg-card);
@@ -182,8 +170,6 @@ MENUS DÉROULANTS (Blocs Modernes)
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
     overflow: hidden;
-    contain: layout style;
-    /* Isole le rendu de la section pour accélérer l'ouverture */
 }
 
 .division-section:hover {
@@ -202,7 +188,6 @@ MENUS DÉROULANTS (Blocs Modernes)
     cursor: pointer;
     list-style: none;
     padding: 1.25rem 1.5rem;
-    background: transparent;
     transition: background-color 0.2s ease;
 }
 
@@ -236,16 +221,13 @@ details[open].division-section .toggle-icon {
 
 details[open].division-section .division-title {
     border-bottom: 1px solid var(--border-color);
-    background-color: rgba(128, 128, 128, 0.02);
 }
 
 .division-body {
     padding: 1.5rem;
 }
 
-/* =========================================
-   SOUS-CATÉGORIES
-   ========================================= */
+/* Sous-catégories */
 .subcategory-details>summary {
     list-style: none;
     padding: 0.5rem 0;
@@ -274,48 +256,34 @@ details[open].division-section .division-title {
     color: var(--text-main);
 }
 
-.subcategory-details[open]>.cards-grid {
-    /* Animation supprimée pour éliminer la latence à l'ouverture */
-    transform: none;
-}
-
 .subcategory-details {
     content-visibility: auto;
-    /* Permet au navigateur de ne rendre que ce qui est visible */
     contain-intrinsic-size: auto 200px;
     padding: 10px;
 }
 
-@keyframes slideDown {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.drag-handle-sub {
+.drag-handle-sub,
+.drag-handle {
     cursor: grab;
     color: var(--text-muted);
-    font-size: 1.1rem;
-    padding-right: 5px;
     transition: color 0.2s ease;
 }
 
-.drag-handle-sub:hover {
+.drag-handle-sub {
+    font-size: 1.1rem;
+    padding-right: 5px;
+}
+
+.drag-handle-sub:hover,
+.drag-handle:hover {
     color: var(--primary);
 }
 
-/* =========================================
-   GRILLE & CARTES
-   ========================================= */
+/* Grille Fluide & Cartes */
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    /* Grid 100% Fluide et Responsive sans besoin de Media Queries complexes */
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 24px;
     min-height: 50px;
     padding-top: 15px;
@@ -346,12 +314,10 @@ details[open].division-section .division-title {
 }
 
 .card-body {
-    padding: 1.5rem;
-    padding-right: 1rem;
+    padding: 1.5rem 1rem 1.5rem 1.5rem;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    min-width: 0;
 }
 
 .card-date {
@@ -415,6 +381,7 @@ details[open].division-section .division-title {
     background-color: var(--text-muted);
 }
 
+/* Badges */
 .card-badges {
     display: flex;
     gap: 8px;
@@ -476,9 +443,7 @@ details[open].division-section .division-title {
     color: var(--danger);
 }
 
-/* =========================================
-   BOUTONS GLOBAUX
-   ========================================= */
+/* Boutons Globaux */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -493,7 +458,6 @@ details[open].division-section .division-title {
     border: none;
     font-family: inherit;
     position: relative;
-    margin-bottom: 0;
 }
 
 .btn:active {
@@ -517,6 +481,7 @@ details[open].division-section .division-title {
 .btn-warning {
     background-color: var(--bg-card);
     color: var(--text-main);
+    border: 1px solid var(--border-color);
 }
 
 .btn-info {
@@ -591,13 +556,10 @@ details[open].division-section .division-title {
 }
 
 .btn-suppr:hover {
-    font-size: 0.85rem;
     color: var(--text-main);
 }
 
-/* =========================================
-   FORMULAIRES
-   ========================================= */
+/* Formulaires d'Ajout/Edition */
 .form-container {
     max-width: 600px;
     margin: 3rem auto;
@@ -657,7 +619,6 @@ details[open].division-section .division-title {
     box-shadow: 0 0 0 4px var(--primary-light);
 }
 
-/* Input Mot de passe */
 .password-wrapper {
     position: relative;
 }
@@ -673,7 +634,6 @@ details[open].division-section .division-title {
     cursor: pointer;
     z-index: 10;
     font-size: 1.2rem;
-    transition: color 0.2s;
 }
 
 .password-toggle:hover {
@@ -704,9 +664,7 @@ textarea.form-control {
     border-top: 1px solid var(--border-color);
 }
 
-/* =========================================
-   MESSAGES & ALERTS & ÉTATS VIDES
-   ========================================= */
+/* Etats vides, Images & Alertes */
 .empty-state {
     text-align: center;
     padding: 5rem 2rem;
@@ -759,9 +717,7 @@ textarea.form-control {
     box-shadow: var(--shadow-sm);
 }
 
-/* =========================================
-   TABLEAU D'ADMINISTRATION
-   ========================================= */
+/* Tableaux d'Admin */
 .admin-table-container {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -783,7 +739,6 @@ textarea.form-control {
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     border-bottom: 1px solid var(--border-color);
     background: rgba(128, 128, 128, 0.02);
 }
@@ -795,10 +750,6 @@ textarea.form-control {
     vertical-align: middle;
 }
 
-.admin-table tbody tr {
-    transition: var(--transition);
-}
-
 .admin-table tbody tr:hover {
     background-color: rgba(128, 128, 128, 0.02);
 }
@@ -807,16 +758,12 @@ textarea.form-control {
     border-bottom: none;
 }
 
-/* =========================================
-   BADGES & ACTIONS
-   ========================================= */
 .status-badge {
     display: inline-block;
     padding: 0.35rem 0.8rem;
     border-radius: var(--radius-pill);
     font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 0.02em;
 }
 
 .status-badge.active {
@@ -841,7 +788,6 @@ textarea.form-control {
     font-size: 0.8rem;
     font-weight: 600;
     transition: var(--transition);
-    text-decoration: none;
 }
 
 .btn-edit {
@@ -852,7 +798,6 @@ textarea.form-control {
 .btn-edit:hover {
     background: var(--info);
     color: var(--text-main);
-    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 }
 
@@ -864,13 +809,10 @@ textarea.form-control {
 .btn-ban:hover {
     background: var(--danger);
     color: var(--text-main);
-    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 }
 
-/* =========================================
-   TOASTS (Notifications)
-   ========================================= */
+/* Toasts de Notifications */
 .toast-container {
     position: fixed;
     bottom: 25px;
@@ -889,7 +831,7 @@ textarea.form-control {
     box-shadow: var(--shadow-lg);
     font-weight: 600;
     font-size: 0.95rem;
-    transition: opacity 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: opacity 0.4s ease, transform 0.4s ease;
     border-left: 6px solid transparent;
     transform: translateX(120%);
     opacity: 0;
@@ -912,12 +854,9 @@ textarea.form-control {
     border-left-color: var(--info);
 }
 
-/* =========================================
-   FOOTER
-   ========================================= */
+/* Footer */
 .footer-links a {
     color: var(--text-muted);
-    text-decoration: none;
     font-size: 0.9rem;
     transition: var(--transition);
 }
@@ -939,9 +878,7 @@ html[data-theme="dark"] .logo-footer {
     filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
 }
 
-/* =========================================
-   ANIMATIONS & RESPONSIVE
-   ========================================= */
+/* Utilitaires & Animations */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -975,50 +912,130 @@ html[data-theme="dark"] .logo-footer {
     align-items: center;
 }
 
-@media (max-width: 768px) {
-    .main-header .container {
-        flex-direction: column;
-        gap: 15px;
+/* =========================================
+   RÈGLES RESPONSIVES (MEDIA QUERIES)
+   ========================================= */
+
+/* Tablettes (Paysage) & Petits Écrans (1024px et moins) */
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 16px;
+        text-align: center;
     }
 
-    .cards-grid {
-        grid-template-columns: 1fr;
+    .form-container {
+        padding: 2.5rem;
+    }
+}
+
+/* Tablettes (Portrait) (768px et moins) */
+@media (max-width: 768px) {
+    .actions-container {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 12px;
+    }
+
+    .actions-container .btn,
+    .actions-container>div,
+    .actions-container a {
+        width: 100%;
+        margin: 0 !important;
+    }
+
+    /* Centre le texte du lien "Cartes supprimées" quand les boutons sont à 100% */
+    .btn-suppr {
+        text-align: center;
+        display: block;
+        padding-top: 5px;
     }
 
     .form-group.row {
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 0;
+    }
+
+    .form-group.row .col-half {
+        margin-bottom: 1.5rem;
+        width: 100%;
+    }
+
+    .form-group.row .col-half:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        margin: 0;
+    }
+}
+
+/* Mobiles (576px et moins) */
+@media (max-width: 576px) {
+
+    /* CORRECTION ICI : L'en-tête s'empile proprement verticalement */
+    .main-header {
+        flex-direction: column;
+        align-items: center;
+        padding: 15px 20px;
+        gap: 15px;
+    }
+
+    .user-nav {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        /* Permet aux liens de passer à la ligne si besoin */
+        gap: 15px;
+    }
+
+    .category-nav {
+        padding-bottom: 5px;
+        margin-bottom: 25px;
+        /* Ajoute un peu de marge visuelle sur les côtés pour le scroll horizontal */
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .division-title {
+        font-size: 1rem;
+        padding: 1rem;
     }
 
     .form-container {
         padding: 1.5rem;
         margin: 1.5rem auto;
-        border-radius: var(--radius-lg);
+        border-radius: var(--radius-md);
     }
 
-    .main-header {
-        padding: 12px 20px;
-    }
-
-    .main-header h1 {
-        font-size: 1.2rem;
-        text-align: center;
-    }
-
-    .user-nav {
-        font-size: smaller;
-        text-align: center;
+    .card-actions-bottom {
+        flex-direction: column;
         gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
+        padding: 1rem;
     }
 
-    .actions-container {
-        flex-wrap: wrap;
+    .card-actions-bottom .btn-icon {
+        width: 100%;
         justify-content: center;
+        background: var(--bg-body);
+        padding: 10px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
     }
 
-    .logs {
-        display: none;
+    .toast-container {
+        right: 15px;
+        left: 15px;
+        bottom: 15px;
+    }
+
+    .toast {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
