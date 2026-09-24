@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -11,15 +9,21 @@ use Config\Services;
 
 class CronController extends BaseController
 {
+    /**
+     * Exécute la vérification des liens morts en arrière-plan.
+     */
     public function run()
     {
         ini_set('max_execution_time', '0');
+
         $cronModel = new CronLogModel();
         $lastRunRow = $cronModel->orderBy('last_run', 'DESC')->first();
         $now = time();
         $shouldRun = false;
+        
         $isForced = '1' === $this->request->getGet('force');
 
+        // Vérifie si le délai de 7 jours s'est écoulé ou si l'exécution est forcée
         if (!$lastRunRow) {
             $shouldRun = true;
         } else {
@@ -34,8 +38,11 @@ class CronController extends BaseController
         }
 
         $cronModel->truncate();
+
         $itemModel = new ItemModel();
         $items = $itemModel->where('lien !=', '')->where('lien IS NOT NULL')->findAll();
+
+        // Configuration du client HTTP pour le scraping
         $client = Services::curlrequest([
             'timeout' => 10,
             'connect_timeout' => 5,
@@ -54,14 +61,15 @@ class CronController extends BaseController
         $deadLinksDetails = [];
         $checkedDomains = [];
 
+        // Parcours de toutes les cartes contenant un lien
         foreach ($items as $item) {
             $ep = $item->episode ?: '1';
             $ep2 = str_pad((string) $ep, 2, '0', STR_PAD_LEFT);
             $s = $item->saison ?: '1';
             $s2 = str_pad((string) $s, 2, '0', STR_PAD_LEFT);
             $urlToTest = str_replace(['{ep}', '{ep2}', '{s}', '{s2}'], [$ep, $ep2, $s, $s2], $item->lien);
-
             $parsedUrl = parse_url($item->lien);
+
             if (!isset($parsedUrl['host'])) {
                 continue;
             }
@@ -71,6 +79,7 @@ class CronController extends BaseController
             ++$totalChecked;
             $statusCode = null;
 
+            // Système de cache par domaine pour éviter de requêter le même domaine en boucle
             if (array_key_exists($domainToTest, $checkedDomains)) {
                 $statusCode = $checkedDomains[$domainToTest];
             } else {
@@ -83,6 +92,7 @@ class CronController extends BaseController
                 $checkedDomains[$domainToTest] = $statusCode;
             }
 
+            // Marquage de la carte si le lien est identifié comme mort
             if (0 === $statusCode || 404 === $statusCode) {
                 $itemModel->update($item->id, ['link_status' => 'dead']);
                 ++$deadCount;
@@ -101,12 +111,14 @@ class CronController extends BaseController
                     'code_erreur' => $statusCode,
                 ];
             } else {
+                // Rétablissement du statut si le lien refonctionne
                 if ('dead' === $item->link_status) {
                     $itemModel->update($item->id, ['link_status' => 'ok']);
                 }
             }
         }
 
+        // Enregistrement d'un log global si aucun lien mort n'a été trouvé
         if (0 === $deadCount) {
             $cronModel->insert([
                 'task_name' => 'check_dead_links',
