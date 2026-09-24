@@ -6,6 +6,9 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * Gère les différents statuts possibles pour les cartes (À voir, En cours, etc.).
+ */
 class StatutModel extends Model
 {
     protected $table = 'statuts';

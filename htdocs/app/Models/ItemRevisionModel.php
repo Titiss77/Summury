@@ -6,6 +6,9 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * Gère les brouillons (drafts) et propositions de modifications pour les cartes publiques.
+ */
 class ItemRevisionModel extends Model
 {
     protected $table = 'item_revisions';
@@ -18,6 +21,9 @@ class ItemRevisionModel extends Model
     ];
     protected $useTimestamps = false;
 
+    /**
+     * Récupère la liste des modifications en attente d'approbation par la modération.
+     */
     public function getPendingRevisions()
     {
         return $this->db->table('item_revisions ir')

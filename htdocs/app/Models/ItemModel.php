@@ -7,6 +7,9 @@ namespace App\Models;
 use App\Entities\Item;
 use CodeIgniter\Model;
 
+/**
+ * Modèle principal gérant les cartes (Items) de l'application.
+ */
 class ItemModel extends Model
 {
     protected $table = 'item';
@@ -18,6 +21,8 @@ class ItemModel extends Model
         'is_public', 'description', 'date_sortie', 'image', 'lien',
         'link_status', 'saison', 'total_saisons', 'episode', 'total_episodes', 'position',
     ];
+
+    // Active la corbeille au lieu de la suppression définitive (Soft Deletes)
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;
     protected $dateFormat = 'datetime';
@@ -25,19 +30,31 @@ class ItemModel extends Model
     protected $updatedField = 'updated_at';
     protected $deletedField = 'deleted_at';
 
+    /**
+     * Récupère les cartes triées et structurées par Onglet (Header) > Division > Sous-catégorie.
+     *
+     * @param null|mixed $userId
+     * @param null|mixed $headerId
+     */
     public function getItemsGroupedByHeaderAndDivision($userId = null, $headerId = null)
     {
         $builder = $this->db->table('item i')
             ->select('h.nom AS header_nom, d.nom AS division_nom, i.*')
             ->join('division d', 'i.id_division = d.id')
             ->join('header h', 'd.id_header = h.id')
-            ->where('i.id_user !=', 0)->where('i.deleted_at IS NULL')
+            ->where('i.id_user !=', 0)
+            ->where('i.deleted_at IS NULL')
         ;
 
+        // Filtre de visibilité : Cartes publiques pour les visiteurs, ou mixtes pour le propriétaire
         if (null === $userId) {
             $builder->where('i.is_public', 1);
         } else {
-            $builder->groupStart()->where('i.id_user', $userId)->orWhere('i.is_public', 1)->groupEnd();
+            $builder->groupStart()
+                ->where('i.id_user', $userId)
+                ->orWhere('i.is_public', 1)
+                ->groupEnd()
+            ;
         }
 
         if (null !== $headerId) {
@@ -47,6 +64,7 @@ class ItemModel extends Model
         $builder->orderBy('h.id', 'ASC')->orderBy('d.id', 'ASC')->orderBy('i.position', 'ASC');
         $results = $builder->get()->getCustomResultObject(Item::class);
 
+        // Structuration des données pour l'affichage dans la vue
         $groupedData = [];
         foreach ($results as $item) {
             $header = $item->header_nom;
@@ -62,56 +80,75 @@ class ItemModel extends Model
             if (!isset($groupedData[$header][$division][$subCat])) {
                 $groupedData[$header][$division][$subCat] = [];
             }
-
             $groupedData[$header][$division][$subCat][] = $item;
         }
 
         return $groupedData;
     }
 
-    // Nouvelle méthode pour ne récupérer que les onglets contenant des cartes
+    /**
+     * Récupère uniquement les onglets (Headers) contenant au moins une carte visible.
+     *
+     * @param null|mixed $userId
+     */
     public function getActiveHeaders($userId = null)
     {
         $builder = $this->db->table('header h')
             ->select('h.*')
-            ->distinct() // Pour ne pas récupérer la catégorie en double si elle a plusieurs cartes
+            ->distinct()
             ->join('division d', 'd.id_header = h.id')
             ->join('item i', 'i.id_division = d.id')
             ->where('i.deleted_at IS NULL')
             ->where('i.id_user !=', 0)
         ;
 
-        // On filtre selon ce que la personne a le droit de voir
         if (null === $userId) {
-            $builder->where('i.is_public', 1); // Visiteur = Uniquement publique
+            $builder->where('i.is_public', 1);
         } else {
-            // Utilisateur co = Ses propres cartes OU les cartes publiques
-            $builder->groupStart()->where('i.id_user', $userId)->orWhere('i.is_public', 1)->groupEnd();
+            $builder->groupStart()
+                ->where('i.id_user', $userId)
+                ->orWhere('i.is_public', 1)
+                ->groupEnd()
+            ;
         }
 
         return $builder->orderBy('h.id', 'ASC')->get()->getResultArray();
     }
 
+    /**
+     * Récupère toutes les divisions (pour les formulaires).
+     */
     public function getDivisions()
     {
         return $this->db->table('division')->orderBy('id', 'ASC')->get()->getResultArray();
     }
 
+    /**
+     * Récupère tous les onglets, même vides (pour les formulaires).
+     */
     public function getHeaders()
     {
-        // On garde cette méthode intacte pour que le formulaire de création continue d'afficher TOUTES les catégories
         return $this->db->table('header')->orderBy('id', 'ASC')->get()->getResultArray();
     }
 
+    /**
+     * Récupère les cartes publiques appartenant à des utilisateurs standards (transférables à l'admin).
+     */
     public function checkToGlobal()
     {
         return $this->where('id_division <=', 11)
             ->where('is_public', 1)
-            ->where('id_user !=', 1)
+            ->where('id_user !=', 1) // On exclut celles déjà possédées par le SuperAdmin
             ->orderBy('created_at', 'DESC')
-            ->findAll();
+            ->findAll()
+        ;
     }
 
+    /**
+     * Récupère la liste des cartes placées dans la corbeille.
+     *
+     * @param null|mixed $userId
+     */
     public function getDeletedItems($userId = null)
     {
         $builder = $this->db->table('item i')
@@ -120,14 +157,10 @@ class ItemModel extends Model
             ->where('i.deleted_at IS NOT NULL')
         ;
 
-        // Si le contrôleur a passé un ID (c'est-à-dire que ce n'est pas un admin)
-        // on filtre pour n'afficher que ses cartes.
-        // Si l'ID est null (passé par l'admin), on ne filtre pas.
         if (null !== $userId) {
             $builder->where('i.id_user', $userId);
         }
 
-        // On trie par date de suppression de la plus récente à la plus ancienne
         $builder->orderBy('i.deleted_at', 'DESC');
 
         return $builder->get()->getCustomResultObject(Item::class);

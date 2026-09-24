@@ -6,11 +6,16 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * Gère les signalements (ex: liens morts ou erreurs signalés par la communauté).
+ */
 class ReportModel extends Model
 {
     protected $table = 'reports';
     protected $primaryKey = 'id';
     protected $returnType = 'array';
     protected $allowedFields = ['item_id', 'user_id', 'type', 'description', 'status'];
-    protected $useTimestamps = true; // Gère automatiquement created_at et updated_at
+
+    // Gère automatiquement les colonnes created_at et updated_at
+    protected $useTimestamps = true;
 }

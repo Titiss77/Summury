@@ -6,12 +6,14 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * Modèle regroupant les configurations de scraping/disponibilité pour les domaines supportés.
+ */
 class SiteConfigModel extends Model
 {
     protected $table = 'sites_config';
     protected $primaryKey = 'id';
     protected $returnType = 'array';
-
     protected $allowedFields = [
         'domain',
         'regex_episode',
@@ -19,6 +21,5 @@ class SiteConfigModel extends Model
         'indicateurs_lecteur',
         'is_active',
     ];
-
     protected $useTimestamps = false;
 }

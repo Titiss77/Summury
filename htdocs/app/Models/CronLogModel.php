@@ -6,6 +6,9 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
+/**
+ * Historise les exécutions des tâches planifiées (ex: vérification des liens morts).
+ */
 class CronLogModel extends Model
 {
     protected $table = 'cron_logs';
