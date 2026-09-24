@@ -98,10 +98,11 @@
                     </tbody>
                 </table>
             </div>
-            <p style="margin: 0;"><strong>Épisodes visionnés :</strong> <span class="badge"
+            <h3 style="margin-top: 0; margin-bottom: 15px;">Toutes les cartes En Cours :</h3>
+            <p style="margin: 0 0 0 2rem;">Épisodes visionnés : <span class="badge"
                     style="background-color: var(--primary); color: #fff; padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalVus); ?></span>
             </p>
-            <p style="margin: 0;"><strong>Épisodes restants à voir :</strong> <span class="badge"
+            <p style="margin: 0 0 0 2rem;">Épisodes restants à voir : <span class="badge"
                     style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalRestants); ?></span>
             </p>
             <?php } ?>

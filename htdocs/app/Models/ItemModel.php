@@ -190,7 +190,7 @@ class ItemModel extends Model
             ) as total_restants
         ')
         ->where('id_user', $userId)
-        ->where('status !=', 'À voir') // On ignore les œuvres pas encore commencées
+        ->where('status =', 'En Cours') // On ignore les œuvres pas encore commencées
         ->where('episode IS NOT NULL')
         ->where('total_episodes IS NOT NULL')
         ->first();
