@@ -1,5 +1,6 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
 </div>
@@ -8,6 +9,7 @@
     <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;">
         <h2 style="margin: 0;">Corbeille</h2>
+
         <?php if (!empty($deletedItems)) { ?>
         <div style="display: flex; gap: 10px;">
             <a href="<?php echo base_url('items/restore-all'); ?>" class="btn btn-success"
@@ -32,9 +34,10 @@
     <div class="cards-grid">
         <?php foreach ($deletedItems as $item) { ?>
         <div class="card fade-in" data-id="<?php echo esc($item->id); ?>" style="opacity: 0.8; filter: grayscale(20%);">
+
             <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank" class="card-link-block">
                 <div class="card-body">
-                    <!-- Date de suppression au format badge -->
+                    <!-- Indication visuelle de la suppression -->
                     <div style="margin-bottom: 10px;">
                         <span
                             style="background-color: var(--danger-bg); color: var(--danger); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
@@ -59,6 +62,7 @@
                                     } ?></span>
                         </div>
                         <?php } ?>
+
                         <?php if (!empty($item->episode)) { ?>
                         <div style="display: flex; flex-direction: column; align-items: center;">
                             <span class="badge badge-episode">Ép. <span
@@ -79,7 +83,6 @@
                 <?php } ?>
             </a>
 
-            <!-- NOUVELLES ACTIONS POUR LA CORBEILLE -->
             <div class="card-actions-bottom" style="justify-content: space-between;">
                 <a href="<?php echo base_url('item/restore/'.$item->id); ?>" class="btn-icon btn-edit-sm"
                     style="color: var(--success); font-weight: bold;">
@@ -96,4 +99,5 @@
     </div>
     <?php } ?>
 </div>
+
 <?php echo $this->endSection(); ?>

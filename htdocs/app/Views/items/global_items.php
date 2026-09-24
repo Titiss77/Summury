@@ -7,36 +7,40 @@
 
 <div style="margin-bottom: 2.5rem;">
     <h2>Cartes intéressantes</h2>
-    <p style="color: var(--text-muted);">Voici les cartes publiques qui ne viennent pas de l'admin.</p>
+    <p style="color: var(--text-muted);">Voici les cartes publiques créées par la communauté. (Non vérifiées par
+        l'Admin).</p>
 </div>
 
-<?php if (empty($items)): ?>
+<?php if (empty($items)) { ?>
 <div class="empty-state">
     <h3 style="color: var(--text-main);">Aucune carte publique à transférer.</h3>
     <p>Les cartes partagées par les utilisateurs apparaîtront ici.</p>
 </div>
-<?php else: ?>
+<?php } else { ?>
 <div class="cards-grid">
     <?php foreach ($items as $item) { ?>
     <div class="card fade-in <?php echo 'Terminé' === $item->status ? 'status-completed' : ''; ?>"
         data-id="<?php echo esc($item->id); ?>">
+
         <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank" class="card-link-block">
             <div class="card-body">
                 <?php
-                    $isFuture = false;
-                    $dateSortieFormatted = '';
-                    $textColor = '';
-                    if (!empty($item->date_sortie)) {
-                        $timezone = new DateTimeZone('Europe/Paris');
-                        $dateSortie = new DateTime($item->date_sortie, $timezone);
-                        $now = new DateTime('now', $timezone);
-                        if ($dateSortie > $now) {
-                            $isFuture = true;
-                            $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
-                            $textColor = 'color: var(--danger);';
-                        }
-                    }
-                    ?>
+                        $isFuture = false;
+        $dateSortieFormatted = '';
+        $textColor = '';
+
+        if (!empty($item->date_sortie)) {
+            $timezone = new DateTimeZone('Europe/Paris');
+            $dateSortie = new DateTime($item->date_sortie, $timezone);
+            $now = new DateTime('now', $timezone);
+            if ($dateSortie > $now) {
+                $isFuture = true;
+                $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
+                $textColor = 'color: var(--danger);';
+            }
+        }
+        ?>
+
                 <h4 class="card-title search-target-title" style="<?php echo $textColor; ?>">
                     <?php echo htmlspecialchars($item->titre); ?></h4>
 
@@ -49,10 +53,11 @@
                     <?php echo htmlspecialchars($item->status); ?></p>
 
                 <?php
-                    $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-                    $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
-                    if ($isPendingNew || $hasPendingRevision) {
-                        ?>
+            $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+        $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
+
+        if ($isPendingNew || $hasPendingRevision) {
+            ?>
                 <div
                     style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                     <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>
@@ -69,17 +74,17 @@
                         <span class="badge badge-season">
                             Saison <span
                                 id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) {
-                                        echo ' / '.htmlspecialchars($item->total_saisons);
-                                    } ?>
+                                    echo ' / '.htmlspecialchars($item->total_saisons);
+                                } ?>
                         </span>
                         <?php if (!empty($item->total_saisons) && !empty($item->saison)) {
-                                $saisons_restantes = max(0, $item->total_saisons - $item->saison);
-                                if ($saisons_restantes > 0) {
-                                    echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$saisons_restantes} restantes)</span>";
-                                } else {
-                                    echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminée</span>";
-                                }
-                            } ?>
+                            $saisons_restantes = max(0, $item->total_saisons - $item->saison);
+                            if ($saisons_restantes > 0) {
+                                echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$saisons_restantes} restantes)</span>";
+                            } else {
+                                echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminée</span>";
+                            }
+                        } ?>
                     </div>
                     <?php } ?>
 
@@ -88,21 +93,23 @@
                         <span class="badge badge-episode">
                             Ép. <span
                                 id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
-                                        echo ' / '.htmlspecialchars($item->total_episodes);
-                                    } ?>
+                                    echo ' / '.htmlspecialchars($item->total_episodes);
+                                } ?>
+
                             <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                             <button type="button" class="btn-increment btn-increment-episode"
                                 data-id="<?php echo $item->id; ?>">+1</button>
                             <?php } ?>
                         </span>
+
                         <?php if (!empty($item->total_episodes) && !empty($item->episode)) {
-                                $restants = max(0, $item->total_episodes - $item->episode);
-                                if ($restants > 0) {
-                                    echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$restants} restants)</span>";
-                                } else {
-                                    echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminé</span>";
-                                }
-                            } ?>
+                            $restants = max(0, $item->total_episodes - $item->episode);
+                            if ($restants > 0) {
+                                echo "<span style='font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 500;'>({$restants} restants)</span>";
+                            } else {
+                                echo "<span style='font-size: 0.75rem; color: var(--success); display: block; margin-top: 4px; font-weight: 500;'>Terminé</span>";
+                            }
+                        } ?>
                     </div>
                     <?php } ?>
                 </div>
@@ -118,13 +125,13 @@
         </a>
 
         <div class="card-actions-bottom">
-            <a href="<?php echo base_url('item/turn/'.esc($item->id)); ?>" class="btn-icon btn-edit-sm">Passer en
-                admin</a>
+            <a href="<?php echo base_url('item/turn/'.esc($item->id)); ?>" class="btn-icon btn-edit-sm">S'approprier la
+                carte (Admin)</a>
         </div>
     </div>
     <?php } ?>
 </div>
-<?php endif; ?>
+<?php } ?>
 
 <script>
 window.siteSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;

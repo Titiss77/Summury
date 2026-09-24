@@ -1,19 +1,22 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
 <div class="form-container card">
-    <h2 class="header-title"><?php echo isset($item) ? '✏️ Modifier la carte' : '+ Ajouter une carte'; ?></h2>
+    <h2 class="header-title"><?php echo isset($item) ? '📝 Modifier la carte' : '+ Ajouter une carte'; ?></h2>
 
     <form action="<?php echo base_url('item/save'); ?>" method="POST">
+        <!-- Sauvegarde de l'URL précédente pour rediriger l'utilisateur au bon endroit -->
         <input type="hidden" name="redirect_url" value="<?php echo esc($redirect_url); ?>">
         <?php echo csrf_field(); ?>
         <input type="hidden" name="id" value="<?php echo isset($item) ? esc($item->id) : ''; ?>">
 
+        <!-- Bouton API d'auto-remplissage via TMDB / Mangadex -->
         <div style="text-align: right; margin-bottom: 10px;">
-            <button type="button" id="btn-api-search" class="btn btn-primary btn-sm">🔍 Auto-remplir</button>
+            <button type="button" id="btn-api-search" class="btn btn-primary btn-sm">🪄 Auto-remplir</button>
             <small id="api-status" style="display:none; color: var(--success);"></small>
         </div>
 
@@ -21,6 +24,8 @@
             <label for="titre" class="form-label">Titre *</label>
             <input type="text" id="titre" name="titre" class="form-control"
                 value="<?php echo isset($item) ? esc($item->titre) : ''; ?>" required>
+
+            <!-- Conteneur pour afficher les résultats de l'API -->
             <div id="api-results-container"
                 style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); max-height: 350px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-top: 5px;">
             </div>
@@ -47,6 +52,7 @@
                     <?php
                     $itemSub = isset($item) ? $item->sous_categorie : '';
 $found = false;
+
 if (isset($subCategories) && is_array($subCategories)) {
     foreach ($subCategories as $sub) {
         $selected = ($itemSub === $sub) ? 'selected' : '';
@@ -59,12 +65,15 @@ if (isset($subCategories) && is_array($subCategories)) {
     }
 }
 ?>
+
                     <?php if ($itemSub && !$found) { ?>
                     <option value="<?php echo esc($itemSub); ?>" selected><?php echo esc($itemSub); ?></option>
                     <?php } ?>
+
                     <option value="__NEW__" style="font-weight: bold; color: var(--primary);">+ Créer une nouvelle...
                     </option>
                 </select>
+                <!-- Champ masqué qui s'affiche si l'utilisateur veut créer une nouvelle sous-catégorie -->
                 <input type="text" id="sous_categorie_new" name="sous_categorie_new" class="form-control"
                     style="display: none; margin-top: 10px;" placeholder="Nom de la nouvelle sous-catégorie">
             </div>
@@ -78,11 +87,11 @@ if (isset($subCategories) && is_array($subCategories)) {
                     <?php foreach ($statuts as $statut) { ?>
                     <option value="<?php echo esc($statut['nom']); ?>"
                         <?php echo ($statut['nom'] == $currentStatus) ? 'selected' : ''; ?>>
-                        <?php echo esc($statut['nom']); ?>
-                    </option>
+                        <?php echo esc($statut['nom']); ?></option>
                     <?php } ?>
                 </select>
             </div>
+
             <div class="col-half" style="display: flex; align-items: flex-end; padding-bottom: 5px;">
                 <div>
                     <input type="checkbox" id="is_public" name="is_public" value="1"
@@ -103,8 +112,8 @@ if (isset($subCategories) && is_array($subCategories)) {
         <div class="form-group">
             <label for="description" class="form-label">Description</label>
             <?php
-            $descLen = isset($item) ? mb_strlen($item->description ?? '') : 0;
-// Si la description dépasse 250, on ne met pas l'attribut (ou on met 1777), sinon 250
+                $descLen = isset($item) ? mb_strlen($item->description ?? '') : 0;
+// Limite native de HTML, supprimée si le contenu existant la dépasse pour éviter les bugs
 $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
 ?>
             <textarea id="description" name="description" class="form-control" rows="1"
@@ -140,12 +149,14 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
                     style="color: var(--primary); text-decoration: underline; font-weight: 500;">MyAnimeList</a>.<br>
                 Format recommandé : <strong>400x600 (Ratio 2:3)</strong>.
             </small>
+
             <div style="display: flex; gap: 15px; align-items: flex-start;">
                 <div style="flex-grow: 1;">
                     <input type="text" id="img" name="image" class="form-control"
                         value="<?php echo htmlspecialchars($item->image ?? ''); ?>"
                         placeholder="https://exemple.com/image.jpg">
                 </div>
+                <!-- Box d'aperçu dynamique de l'image -->
                 <div
                     style="flex-shrink: 0; width: 80px; height: 120px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg-body); transition: var(--transition);position: relative; top: -40px;">
                     <img id="img-preview" src="<?php echo htmlspecialchars($item->image ?? ''); ?>" alt="Aperçu"
@@ -158,12 +169,15 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
 
         <div class="form-group">
             <label for="lien" class="form-label">Lien (URL) :</label>
-            <small style="user-select: text;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                    fill="var(--warning)" class="bi bi-lightbulb-fill" viewBox="0 0 16 16">
+            <small style="user-select: text;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--warning)"
+                    class="bi bi-lightbulb-fill" viewBox="0 0 16 16">
                     <path
                         d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5" />
-                </svg> Astuce : <b>{s}</b> = saison, <b>{ep}</b> = épisode normal (1). <br>Utilise <b>{ep2}</b>,
-                <b>{ep3}</b> ou <b>{ep4}</b> pour forcer les zéros (ex: <b>01</b>, <b>001</b>, <b>0001</b>).
+                </svg>
+                Astuce : <b>{s}</b> = saison, <b>{ep}</b> = épisode normal (1). <br>
+                Utilise <b>{ep2}</b>, <b>{ep3}</b> ou <b>{ep4}</b> pour forcer les zéros (ex: <b>01</b>, <b>001</b>,
+                <b>0001</b>).
             </small>
             <input type="text" id="lien" name="lien" class="form-control"
                 value="<?php echo htmlspecialchars($item->lien ?? ''); ?>">

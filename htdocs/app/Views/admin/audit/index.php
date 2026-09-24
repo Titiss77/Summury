@@ -1,5 +1,6 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
 </div>
@@ -28,8 +29,7 @@
                 <?php if (empty($logs)) { ?>
                 <tr>
                     <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Aucun
-                        historique
-                        disponible.</td>
+                        historique disponible.</td>
                 </tr>
                 <?php } else { ?>
                 <?php foreach ($logs as $log) { ?>
@@ -37,6 +37,7 @@
                     <td style="padding: 12px; font-size: 0.9em; color: var(--text-muted);">
                         <?php echo date('d/m/Y H:i:s', strtotime($log['created_at'])); ?>
                     </td>
+
                     <td style="padding: 12px;">
                         <?php if ($log['username']) { ?>
                         <span
@@ -47,12 +48,15 @@
                         <span style="color: var(--text-muted); font-style: italic;">Système / Invité</span>
                         <?php } ?>
                     </td>
+
                     <td style="padding: 12px; font-weight: bold; color: var(--text-main);">
                         <?php echo esc($log['action']); ?>
                     </td>
+
                     <td style="padding: 12px; font-size: 0.9em; color: var(--text-muted);">
                         <?php echo esc($log['details']); ?>
                     </td>
+
                     <td style="padding: 12px; font-size: 0.85em; font-family: monospace; color: var(--text-muted);">
                         <?php echo esc($log['ip_address']); ?>
                     </td>
@@ -63,4 +67,5 @@
         </table>
     </div>
 </div>
+
 <?php echo $this->endSection(); ?>

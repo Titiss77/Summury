@@ -16,11 +16,13 @@
     <link rel="icon" type="image/x-icon" href="<?php echo base_url('favicon.ico'); ?>">
     <link rel="apple-touch-icon" href="<?php echo base_url('favicon.ico'); ?>">
 
+    <!-- Préconnexion aux API externes pour optimiser le chargement des images -->
     <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
     <link rel="preconnect" href="https://cdn.myanimelist.net" crossorigin>
     <link rel="dns-prefetch" href="https://image.tmdb.org">
     <link rel="dns-prefetch" href="https://cdn.myanimelist.net">
 
+    <!-- Analytics (à configurer) -->
     <script>
     window.dataLayer = window.dataLayer || [];
 
@@ -31,6 +33,7 @@
     gtag('config', 'TAG_ID_ICI');
     </script>
 
+    <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
     <script>
     if (localStorage.getItem('theme') === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -38,20 +41,22 @@
     }
     </script>
 
+    <!-- Gestion du cache des assets (force le rechargement si le fichier a été modifié) -->
     <?php
-    $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
+        $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
     $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
     $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
     ?>
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v='.$rootCssVersion); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v='.$styleCssVersion); ?>">
 
+    <!-- Sécurité CSRF pour les requêtes AJAX -->
     <meta name="csrf-token" content="<?php echo csrf_hash(); ?>">
     <meta name="csrf-header" content="<?php echo csrf_header(); ?>">
     <meta id="meta-theme-color" name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
 
+    <!-- Variables globales exposées pour les scripts JS (ex: Drag & Drop, API) -->
     <script>
-    /* Configuration Globale SÉCURISÉE */
     window.siteConfig = {
         "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
         "updateOrderUrl": "<?php echo base_url('items/update-order'); ?>",
@@ -60,6 +65,7 @@
         "csrfToken": "<?php echo csrf_hash(); ?>"
     };
     </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
@@ -69,6 +75,7 @@
 
 <body>
     <div id="toast-container" class="toast-container"></div>
+
     <header class="main-header">
         <h1>
             <a href="<?php echo base_url('/'); ?>" style="color:inherit;">
@@ -76,6 +83,7 @@
                     alt="<?php echo env('SITENAME'); ?> Logo" decoding="async"><?php echo env('SITENAME'); ?>
             </a>
         </h1>
+
         <div class="user-nav">
             <button id="theme-toggle" class="btn-theme" aria-label="Toggle Theme">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -86,6 +94,8 @@
                         d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z" />
                 </svg>
             </button>
+
+            <!-- Navigation conditionnelle selon l'état de connexion -->
             <?php if (auth()->loggedIn()) { ?>
             <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
             <a href="<?php echo base_url('audit'); ?>" class="logs">logs</a>
@@ -108,6 +118,7 @@
         </div>
     </header>
 
+    <!-- Onglets de navigation principaux (Headers) -->
     <?php if (isset($headersWithNoLogin) && !empty($headersWithNoLogin)) { ?>
     <?php if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { ?>
     <nav class="category-nav container">
@@ -132,6 +143,7 @@
     <nav class="category-nav container"></nav>
     <?php } ?>
 
+    <!-- Conteneur principal injectant le contenu des vues enfants -->
     <main class="container">
         <?php echo $this->renderSection('content'); ?>
     </main>
@@ -183,7 +195,7 @@
         </div>
     </footer>
 
-    <!-- Bannière de consentement (Identifiants modifiés pour éviter les bloqueurs de pubs) -->
+    <!-- Bannière de consentement pour les cookies essentiels -->
     <div id="site-consent-box"
         style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--bg-card); border: 1px solid var(--border-color); padding: 15px 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); z-index: 9999; flex-direction: row; align-items: center; gap: 20px; width: 90%; max-width: 600px;">
         <p style="margin: 0; font-size: 0.9rem; color: var(--text-main);">
@@ -195,16 +207,14 @@
             style="padding: 8px 16px; white-space: nowrap;">Compris</button>
     </div>
 
-    <!-- Script de gestion exécuté immédiatement -->
+    <!-- Script de gestion du consentement (Local Storage) -->
     <script>
     (function() {
         var banner = document.getElementById('site-consent-box');
         var btn = document.getElementById('btn-understand-consent');
-
         if (!localStorage.getItem('site_consent_ok')) {
             banner.style.display = 'flex';
         }
-
         btn.addEventListener('click', function() {
             localStorage.setItem('site_consent_ok', 'true');
             banner.style.display = 'none';
@@ -212,10 +222,9 @@
     })();
     </script>
 
-    <!-- Script des notifications conservé dans le DOMContentLoaded -->
+    <!-- Système de notifications (Toasts) via Flashdata de CodeIgniter -->
     <script>
     document.addEventListener("DOMContentLoaded", function() {
-        /* Toasts System */
         <?php if (session()->getFlashdata('success')) { ?>
         if (typeof showToast === 'function') showToast(
             <?php echo json_encode(session()->getFlashdata('success')); ?>, "success");

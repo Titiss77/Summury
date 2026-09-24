@@ -1,7 +1,8 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <?php if (!auth()->loggedIn()) { ?>
-<!-- NOUVELLE LANDING PAGE (Visiteurs) -->
+<!-- VUE VISITEURS : Présentation et invitation à créer un compte -->
 <div class="landing-hero fade-in shadow-card"
     style="text-align: center; padding: 5rem 2rem; background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-card) 100%); border-radius: var(--radius-md); margin-bottom: 3rem; border: 1px solid var(--border-color);">
     <h2
@@ -29,6 +30,9 @@
     </p>
 </div>
 <?php } else { ?>
+<!-- VUE UTILISATEUR CONNECTÉ : Notifications de sorties et actions -->
+
+<!-- Badges de sorties d'œuvres passées récemment -->
 <?php if (!empty($passedReleases)) { ?>
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 2rem;">
     <?php foreach ($passedReleases as $release) {
@@ -37,11 +41,12 @@
     <span class="release-badge" data-key="<?php echo $releaseKey; ?>"
         style="display: none; font-size: 0.75rem; color: var(--success); border: 1px solid var(--success); background-color: var(--success-bg); padding: 4px 10px; border-radius: var(--radius-pill); cursor: pointer; transition: opacity 0.2s;"
         title="Cliquez pour masquer">
-        ✨ <strong><?php echo htmlspecialchars($release->titre ?? ''); ?></strong>
+        🚀 <strong><?php echo htmlspecialchars($release->titre ?? ''); ?></strong>
         (<?php echo htmlspecialchars($release->nom ?? ''); ?>)
     </span>
     <?php } ?>
 </div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     let dismissed = JSON.parse(localStorage.getItem('dismissedReleases') || '[]');
@@ -61,7 +66,8 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 <?php } ?>
-<!-- ACTIONS ADMIN & USER CONNECTÉ -->
+
+<!-- Boutons d'actions Admin et Ajout de carte -->
 <div class="actions-container" style="align-items: flex-start;">
     <?php if (auth()->user()->inGroup('superadmin')) { ?>
     <a href="<?php echo base_url('users'); ?>" class="btn btn-warning" style="margin-right: 15px;">Gérer les
@@ -83,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
         <?php } ?>
     </a>
     <?php } ?>
-    <!-- Conteneur vertical pour les boutons d'ajout et de corbeille -->
+
     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
         <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success" style="margin: 0;">+ Ajouter une
             carte</a>
@@ -92,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 <?php } ?>
 
+<!-- AFFICHAGE DES CARTES (État vide ou Grille) -->
 <?php if (empty($groupedItems)) { ?>
 <?php if (auth()->loggedIn()) { ?>
 <div class="empty-state">
@@ -108,15 +115,22 @@ document.addEventListener("DOMContentLoaded", function() {
 <?php } ?>
 <?php } else { ?>
 
+<!-- Barre de recherche locale -->
 <div class="search-container" style="margin-bottom: 2rem;">
     <input type="text" id="liveSearch" class="form-control" placeholder="Rechercher une œuvre... (titre, description)"
         autocomplete="off">
 </div>
-<?php $openDivision = $_GET['open'] ?? null; ?>
-<?php $openSub = $_GET['subopen'] ?? null; ?>
+
+<?php
+    $openDivision = $_GET['open'] ?? null;
+    $openSub = $_GET['subopen'] ?? null;
+    ?>
+
+<!-- Boucle principale d'affichage : Header > Division > Sous-catégories > Cartes -->
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
     <h2 class="header-title"><?php echo htmlspecialchars($headerName); ?></h2>
+
     <?php foreach ($divisions as $divisionName => $subCategories) {
         $currentDivisionId = null;
         foreach ($subCategories as $items) {
@@ -126,6 +140,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 break;
             }
         }
+
         $isOpen = ($openDivision && $openDivision == $currentDivisionId) ? 'open' : '';
         $hasMultipleGroups = count($subCategories) > 1;
         ?>
@@ -134,14 +149,16 @@ document.addEventListener("DOMContentLoaded", function() {
             <span class="toggle-icon">&#x25B6;</span> <?php echo htmlspecialchars($divisionName); ?>
         </summary>
         <div class="division-body sortable-division" data-division-id="<?php echo $currentDivisionId; ?>">
+
             <?php foreach ($subCategories as $subCatName => $items) {
                 $isSansSub = ('Sans sous-catégorie' === $subCatName);
                 $displayTitle = $isSansSub ? 'Autres cartes' : $subCatName;
                 $opacity = $isSansSub ? '0.6' : '0.9';
                 $lineOpacity = $isSansSub ? '0.4' : '0.7';
                 $useDetails = (!$isSansSub || $hasMultipleGroups);
-                $canDragSub = false;
 
+                // Vérification des droits pour le Drag & Drop
+                $canDragSub = false;
                 if (auth()->loggedIn()) {
                     $isSuperAdmin = auth()->user()->inGroup('superadmin');
                     $currentUserId = (int) auth()->id();
@@ -154,9 +171,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 }
                 ?>
+
             <div class="subcategory-wrapper">
-                <?php if ($useDetails) { ?>
-                <?php
+                <?php if ($useDetails) {
                     $isSubOpen = '';
                     if ('open' === $isOpen) {
                         if ($openSub && $openSub === $subCatName) {
@@ -203,12 +220,13 @@ document.addEventListener("DOMContentLoaded", function() {
                                 style="padding-top: <?php echo $hasMultipleGroups ? '0' : '15px'; ?>;">
                                 <?php } ?>
 
+                                <!-- Affichage individuel des cartes -->
                                 <?php foreach ($items as $item) {
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
-
                                     $isFuture = false;
                                     $dateSortieFormatted = '';
                                     $textColor = '';
+
                                     if (!empty($item->date_sortie)) {
                                         $timezone = new DateTimeZone('Europe/Paris');
                                         $dateSortie = new DateTime($item->date_sortie, $timezone);
@@ -220,6 +238,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         }
                                     }
                                     ?>
+
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ((!empty($item->episode) && !$isFuture) ? 'needs-dispo-check' : ''); ?>"
                                     data-id="<?php echo esc($item->id); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
@@ -228,6 +247,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         style="cursor: grab; text-align: center; color: var(--text-muted); padding: 5px; touch-action: none;"
                                         title="Déplacer cette carte">&#x2630;</div>
                                     <?php } ?>
+
                                     <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank"
                                         class="card-link-block">
                                         <div class="card-body">
@@ -237,6 +257,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     <?php echo $dateSortieFormatted; ?></p>
                                                 <?php } ?>
                                             </div>
+
+                                            <!-- Vérification asynchrone de la disponibilité du lien -->
                                             <?php
                                                 $isCheckable = false;
                                     if (!empty($item->episode) && !$isFuture && isset($supportedDomains) && is_array($supportedDomains)) {
@@ -248,8 +270,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                             }
                                         }
                                     }
-                                    if ('Terminé' !== $item->status && $isCheckable) {
-                                        ?>
+                                    if ('Terminé' !== $item->status && $isCheckable) { ?>
                                             <div class="live-status" id="live-status-<?php echo $item->id; ?>"
                                                 style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
                                                 Vérification...</div>
@@ -258,15 +279,14 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <h4 class="card-title search-target-title"
                                                 style="<?php echo $textColor; ?>">
                                                 <?php echo htmlspecialchars($item->titre); ?></h4>
-                                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">
-                                                Status :
+                                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
                                                 <?php echo htmlspecialchars($item->status); ?></p>
 
+                                            <!-- Étiquette si brouillon ou en attente d'approbation -->
                                             <?php
-                                        $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+                                    $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
                                     $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
-                                    if ($isPendingNew || $hasPendingRevision) {
-                                        ?>
+                                    if ($isPendingNew || $hasPendingRevision) { ?>
                                             <div
                                                 style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                                                 <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>
@@ -277,6 +297,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <p class="card-desc search-target-desc">
                                                 <?php echo htmlspecialchars($item->description); ?></p>
                                             <?php } ?>
+
+                                            <!-- Badges Saisons / Episodes -->
                                             <div class="card-badges">
                                                 <?php if (!empty($item->saison)) { ?>
                                                 <div
@@ -287,6 +309,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             } ?></span>
                                                 </div>
                                                 <?php } ?>
+
                                                 <?php if (!empty($item->episode)) { ?>
                                                 <div
                                                     style="display: flex; flex-direction: column; align-items: center;">
@@ -306,6 +329,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <?php } ?>
                                             </div>
                                         </div>
+
                                         <?php if (!empty($item->image)) { ?>
                                         <div class="card-image">
                                             <img src="<?php echo htmlspecialchars($item->image); ?>"
@@ -315,6 +339,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <?php } ?>
                                     </a>
 
+                                    <!-- Boutons d'édition (Propriétaire uniquement) -->
                                     <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                     <div class="card-actions-bottom">
                                         <a href="<?php echo base_url('item/form/'.$item->id); ?>"
@@ -343,7 +368,9 @@ document.addEventListener("DOMContentLoaded", function() {
 <?php } ?>
 <?php } ?>
 
+<!-- Passage de la liste des domaines supportés au script JS global -->
 <script>
 window.siteSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
 </script>
+
 <?php echo $this->endSection(); ?>

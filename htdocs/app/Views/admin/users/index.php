@@ -1,6 +1,7 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
 
+<!-- Implémentation de Simple DataTables pour trier et paginer les utilisateurs (JS) -->
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
 
@@ -27,6 +28,7 @@
                 <tr class="<?php echo $user->isBanned() ? 'user-banned' : ''; ?>">
                     <td><?php echo esc($user->id); ?></td>
                     <td><strong><?php echo esc($user->username); ?></strong></td>
+
                     <td>
                         <?php if ($user->isBanned()) { ?>
                         <span class="status-badge banned">Suspendu</span>
@@ -34,7 +36,9 @@
                         <span class="status-badge active">Actif</span>
                         <?php } ?>
                     </td>
+
                     <td><?php echo esc($user->email); ?></td>
+
                     <td>
                         <div class="action-links">
                             <a href="<?php echo base_url('users/edit/'.$user->id); ?>"

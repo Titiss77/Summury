@@ -1,16 +1,11 @@
 <?php echo $this->extend(config('Auth')->views['layout']); ?>
-
-<?php echo $this->section('title'); ?><?php echo lang('Auth.register'); ?> <?php echo $this->endSection(); ?>
-
+<?php echo $this->section('title'); ?><?php echo lang('Auth.register'); ?><?php echo $this->endSection(); ?>
 <?php echo $this->section('content'); ?>
+
 <div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 20px;">
-
-    <!-- Utilisation de form-container avec une largeur restreinte -->
     <div class="form-container fade-in" style="width: 100%; max-width: 480px; margin: 0; padding: 2.5rem 2rem;">
-
         <h2 class="header-title" style="font-size: 1.8rem; margin-bottom: 2rem;">Créer un compte</h2>
 
-        <!-- Alertes d'erreurs -->
         <?php if (null !== session('error')) { ?>
         <div class="alert alert-danger" role="alert"><?php echo esc(session('error')); ?></div>
         <?php } elseif (null !== session('errors')) { ?>
@@ -70,6 +65,6 @@
             </p>
         </form>
     </div>
-
 </div>
+
 <?php echo $this->endSection(); ?>

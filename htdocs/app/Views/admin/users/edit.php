@@ -38,13 +38,11 @@
             </select>
         </div>
 
-        <?php /* BLOC : Réservé au superadmin */ ?>
+        <!-- BLOC DE SÉCURITÉ : La redéfinition du mot de passe est exclusive au SuperAdmin -->
         <?php if (auth()->user()->inGroup('superadmin')) { ?>
         <div class="form-floating form-floating2 mb-3 password-wrapper">
             <label for="floatingPasswordInput" class="form-label">Nouveau mot de passe <small
-                    class="text-muted">(laisser
-                    vide
-                    pour conserver l'actuel)</small></label>
+                    class="text-muted">(laisser vide pour conserver l'actuel)</small></label>
             <input type="password" class="form-control" id="floatingPasswordInput" name="new_password" inputmode="text"
                 autocomplete="new-password" placeholder="<?php echo lang('Auth.password'); ?>">
             <button type="button" class="password-toggle password-toggle2"
@@ -58,4 +56,5 @@
         </div>
     </form>
 </div>
+
 <?php echo $this->endSection(); ?>

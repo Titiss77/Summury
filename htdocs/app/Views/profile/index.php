@@ -1,5 +1,6 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
 </div>
@@ -23,7 +24,6 @@
     </div>
     <?php } ?>
 
-    <!-- Informations du compte -->
     <div class="card shadow-card" style="margin-bottom: 2rem;">
         <div class="card-body">
             <h3 style="margin-top: 0;">Informations du compte</h3>
@@ -32,11 +32,9 @@
         </div>
     </div>
 
-    <!-- Statistiques -->
     <div class="card shadow-card" style="margin-bottom: 2rem;">
         <div class="card-body">
             <h3 style="margin-top: 0;">Mes Statistiques</h3>
-
             <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
                 <p style="margin: 0;"><strong>Total de cartes en lignes:</strong> <span
                         class="badge badge-episode"><?php echo esc($totalItems); ?></span></p>
@@ -45,9 +43,10 @@
             </div>
 
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 0 0 20px 0;">
-
             <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 1rem; color: var(--text-main);">Répartition par
                 statut</h4>
+
+            <!-- Dashboard de statistiques dynamiques basé sur les statuts -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 15px;">
                 <div
                     style="background: var(--bg-body); padding: 15px 10px; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border-color);">
@@ -93,10 +92,10 @@
         </div>
     </div>
 
-    <!-- Changement de mot de passe -->
     <div class="card shadow-card">
         <div class="card-body">
             <h3 style="margin-top: 0;">Changer mon mot de passe</h3>
+
             <form action="<?php echo base_url('profile/update-password'); ?>" method="POST" style="margin-top: 15px;">
                 <?php echo csrf_field(); ?>
 
@@ -105,12 +104,14 @@
                     <input type="password" id="current_password" name="current_password" class="form-control" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
+
                 <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
                     <label for="new_password" class="form-label">Nouveau mot de passe</label>
                     <input type="password" id="new_password" name="new_password" class="form-control" required
                         minlength="8">
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
+
                 <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
                     <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
                     <input type="password" id="confirm_password" name="confirm_password" class="form-control" required
@@ -125,4 +126,5 @@
         </div>
     </div>
 </div>
+
 <?php echo $this->endSection(); ?>

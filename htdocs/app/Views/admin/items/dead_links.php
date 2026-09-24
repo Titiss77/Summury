@@ -1,10 +1,12 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+
     <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <div>
@@ -12,6 +14,8 @@
             <p style="margin: 5px 0 0 0;">Ces cartes possèdent des URL identifiées comme rompues lors du dernier cycle
                 de maintenance automatique.</p>
         </div>
+
+        <!-- Bouton pour forcer le job cron sans attendre le cycle hebdomadaire -->
         <button id="btn-force-cron" class="btn"
             style="background-color: var(--primary); color: #fff; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
             🔄 Relancer la vérification (Forcer le scan)
@@ -25,11 +29,11 @@
     <div class="alert alert-danger" style="margin-bottom: 20px;"><?php echo session('error'); ?></div>
     <?php } ?>
 
+    <!-- Outil de mise à jour des noms de domaines en masse -->
     <div
         style="background: var(--bg-body); padding: 15px 20px; border-radius: var(--radius-md); margin-bottom: 25px; border: 1px solid var(--border-color);">
-        <h4 style="margin-top: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-            🌍 Migration de Domaine
-        </h4>
+        <h4 style="margin-top: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">🌐 Migration
+            de Domaine</h4>
         <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px;">
             Un site a changé d'adresse (ex: <em>https://sushiscan.net</em> devient <em>https://sushiscan.fr</em>) ? <br>
             Sélectionnez l'ancien domaine et entrez la nouvelle adresse. Le système mettra à jour tous les liens
@@ -46,9 +50,12 @@
                 <option value="<?php echo esc($domain); ?>"><?php echo esc($domain); ?></option>
                 <?php } ?>
             </select>
-            <span style="font-weight: bold; color: var(--text-muted);">➡️</span>
+
+            <span style="font-weight: bold; color: var(--text-muted);">👉</span>
+
             <input type="text" name="new_domain" placeholder="Nouveau domaine (ex: https://site.fr)" required
                 style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-card); color: var(--text-main);">
+
             <button type="submit" class="btn"
                 style="background: var(--success); color: #fff; border: none; padding: 10px 15px; border-radius: var(--radius-md); cursor: pointer; font-weight: bold;"
                 onclick="return confirm('⚠️ Attention : Cette action va chercher TOUTES les cartes contenant l\'ancien domaine et les modifier. Êtes-vous sûr ?')">
@@ -77,10 +84,12 @@
                 <?php foreach ($deadItems as $item) { ?>
                 <tr style="background-color: var(--danger-bg); border-bottom: 1px solid var(--border-color);">
                     <td style="padding: 12px;"><strong><?php echo esc($item['titre']); ?></strong></td>
+
                     <td
                         style="padding: 12px; max-width: 400px; word-break: break-all; font-family: monospace; font-size: 0.85em; color: var(--danger);">
                         <?php echo esc($item['url_testee']); ?>
                     </td>
+
                     <td style="padding: 12px;">
                         <div class="action-links" style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <a href="<?php echo base_url('item/form/'.$item['item_id']); ?>"
@@ -100,4 +109,5 @@
     </div>
     <?php } ?>
 </div>
+
 <?php echo $this->endSection(); ?>
