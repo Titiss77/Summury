@@ -64,7 +64,6 @@ class Filters extends BaseFilters
                 'honeypot',
                 'csrf',
             ],
-
             'after' => [
                 'antiinspect',
                 'headercloaker',
@@ -80,10 +79,6 @@ class Filters extends BaseFilters
                 'csrf',
             ],
             'after' => [
-                'antiinspect',
-                'headercloaker',
-                'emailobfuscator',
-                'minifier',
                 'honeypot',
                 'errorlogger',
             ],
