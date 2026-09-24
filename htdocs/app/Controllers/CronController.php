@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -20,7 +22,7 @@ class CronController extends BaseController
         $lastRunRow = $cronModel->orderBy('last_run', 'DESC')->first();
         $now = time();
         $shouldRun = false;
-        
+
         $isForced = '1' === $this->request->getGet('force');
 
         // Vérifie si le délai de 7 jours s'est écoulé ou si l'exécution est forcée

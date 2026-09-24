@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -21,7 +23,7 @@ class HomeController extends BaseController
         $model = new ItemModel();
         $userId = auth()->loggedIn() ? auth()->id() : null;
         $this->response->noCache();
-                 
+
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
 
@@ -36,7 +38,7 @@ class HomeController extends BaseController
 
         $headerId = !empty($headersWithNoLogin) ? $headersWithNoLogin[0]['id'] : (!empty($headersWithLogin) ? $headersWithLogin[0]['id'] : null);
         $groupedItems = $headerId ? $model->getItemsGroupedByHeaderAndDivision($userId, $headerId) : [];
-                 
+
         return view('home', [
             'headersWithNoLogin' => $headersWithNoLogin,
             'headersWithLogin' => $headersWithLogin,
@@ -48,6 +50,8 @@ class HomeController extends BaseController
 
     /**
      * Affiche les cartes d'une catégorie spécifique.
+     *
+     * @param mixed $headerId
      */
     public function categorie($headerId)
     {
@@ -58,7 +62,7 @@ class HomeController extends BaseController
         $headersWithNoLogin = $model->getActiveHeaders($userId);
         $headersWithLogin = $model->getHeaders($userId);
         $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
-        
+
         $pendingTotal = 0;
         $toAdminCount = 0;
         $pendingRevisionIds = [];
@@ -68,7 +72,7 @@ class HomeController extends BaseController
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
-            
+
             // Cartes dont la date de sortie vient de passer dans les 7 derniers jours
             $passedReleases = $model->select('item.*, d.nom')
                 ->join('division d', 'item.id_division = d.id')
@@ -83,7 +87,7 @@ class HomeController extends BaseController
                 $pendingItemsCount = $model->where('is_public', 2)->countAllResults();
                 $pendingRevisionsCount = $revModel->where('revision_status', 'pending')->countAllResults();
                 $pendingTotal = $pendingItemsCount + $pendingRevisionsCount;
-                
+
                 $toAdminCount = $model->where('id_division <=', 11)
                     ->where('is_public', 1)
                     ->where('id_user !=', 1)

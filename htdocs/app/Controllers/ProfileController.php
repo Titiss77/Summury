@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -14,16 +16,16 @@ class ProfileController extends BaseController
     {
         $user = auth()->user();
         $itemModel = new ItemModel();
-        
+
         $totalItems = $itemModel->where('id_user', $user->id)->countAllResults();
         $publicItems = $itemModel->where('id_user', $user->id)->where('is_public', 1)->countAllResults();
-        
+
         $statusAVoir = $itemModel->where('id_user', $user->id)->where('status', 'À voir')->countAllResults();
         $statusEnCours = $itemModel->where('id_user', $user->id)->where('status', 'En cours')->countAllResults();
         $statusEnPause = $itemModel->where('id_user', $user->id)->where('status', 'En pause')->countAllResults();
         $statusTermine = $itemModel->where('id_user', $user->id)->where('status', 'Terminé')->countAllResults();
         $statusAucun = $itemModel->where('id_user', $user->id)->where('status', 'Aucun')->countAllResults();
-        
+
         $data = [
             'user' => $user,
             'totalItems' => $totalItems,
@@ -34,7 +36,7 @@ class ProfileController extends BaseController
             'statusTermine' => $statusTermine,
             'statusAucun' => $statusAucun,
         ];
-        
+
         return view('profile/index', $data);
     }
 
@@ -56,25 +58,25 @@ class ProfileController extends BaseController
         $users = auth()->getProvider();
         $user = auth()->user();
         $currentPassword = $this->request->getPost('current_password');
-        
+
         $credentials = [
             'email' => $user->email,
             'password' => $currentPassword,
         ];
-        
+
         $authenticator = auth('session')->getAuthenticator();
         $result = $authenticator->check($credentials);
-        
+
         if (!$result->isOK()) {
             return redirect()->back()->with('error', 'Le mot de passe actuel est incorrect.');
         }
 
         $user->password = $this->request->getPost('new_password');
         $users->save($user);
-        
+
         $audit = new AuditLogModel();
         $audit->logAction('Modification Profil', "L'utilisateur ID {$user->id} a modifié son mot de passe.");
-        
+
         return redirect()->to('profile')->with('message', 'Votre mot de passe a été mis à jour avec succès.');
     }
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
@@ -15,12 +17,12 @@ class AuditController extends BaseController
     {
         $auditModel = new AuditLogModel();
         $reportModel = new ReportModel();
-        
+
         $data = [
             'logs' => $auditModel->getRecentLogs(200),
             'pendingReportsCount' => $reportModel->where('status', 'pending')->countAllResults(),
         ];
-        
+
         return view('admin/audit/index', $data);
     }
 }
