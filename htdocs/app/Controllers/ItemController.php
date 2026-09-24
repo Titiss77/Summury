@@ -147,7 +147,6 @@ class ItemController extends BaseController
                     return redirect()->to($backUrl.$separator.'open='.$existing->id_division.'#div-'.$existing->id_division)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
                 }
 
-                // --- NOUVEAU BLOC À AJOUTER ---
                 // Si la carte était publique (1) et qu'elle passe en privée (0)
                 if (in_array($existing->is_public, [1]) && 0 == $data['is_public']) {
                     $data['status'] = 'Aucun';
