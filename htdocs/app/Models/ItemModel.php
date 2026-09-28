@@ -190,7 +190,8 @@ class ItemModel extends Model
             ) as total_restants
         ')
         ->where('id_user', $userId)
-        ->where('status =', 'En Cours') // On ignore les œuvres pas encore commencées
+        ->whereIn('status', ['En cours', 'En pause'])
+        ->whereIn('id_division', ['1', '4'])
         ->where('episode IS NOT NULL')
         ->where('total_episodes IS NOT NULL')
         ->first();
@@ -205,7 +206,8 @@ class ItemModel extends Model
         // reste_global = total_episodes_global - episode_global + 1
         return $this->select('titre, (episode_global - 1) as vu_global, total_episodes_global, saison, total_saisons, (total_episodes_global - episode_global + 1) as reste_global, (total_saisons - saison + 1) as reste_s')
                     ->where('id_user', $userId)
-                    ->where('status', 'En cours')
+                    ->whereIn('status', ['En cours', 'En pause'])
+                    ->whereIn('id_division', ['1', '4'])
                     ->findAll();
     }
 }

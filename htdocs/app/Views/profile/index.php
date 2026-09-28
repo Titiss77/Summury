@@ -43,7 +43,7 @@
     <!-- 2. Ajoute la nouvelle section détaillant les œuvres en cours -->
     <div class="card shadow-card" style="margin-bottom: 2rem;">
         <div class="card-body">
-            <h3 style="margin-top: 0; margin-bottom: 15px;">Détail de progression (En cours)</h3>
+            <h3 style="margin-top: 0; margin-bottom: 15px;">Détail de progression (En cours ou En Pause)</h3>
 
             <?php if (empty($inProgressSeries)) { ?>
             <p style="color: var(--text-muted);">Aucune série ou animé en cours de visionnage avec un total d'épisodes
@@ -98,7 +98,7 @@
                     </tbody>
                 </table>
             </div>
-            <h3 style="margin-top: 0; margin-bottom: 15px;">Toutes les cartes En Cours :</h3>
+            <h3 style="margin-top: 0; margin-bottom: 15px;">Toutes les cartes :</h3>
             <p style="margin: 0 0 0 2rem;">Épisodes visionnés : <span class="badge"
                     style="background-color: var(--primary); color: #fff; padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalVus); ?></span>
             </p>
