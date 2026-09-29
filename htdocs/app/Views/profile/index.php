@@ -70,10 +70,6 @@
                             <!-- Colonne 2 : Épisodes restants (Vue globale) -->
                             <td style="padding: 12px; text-align: center;">
                                 <?php if (isset($series->vu_global) && isset($series->reste_global)) { ?>
-                                <span
-                                    style="font-size: 0.9em; color: var(--text-muted); display: block; margin-bottom: 4px;">
-                                    (Vu : <?php echo esc($series->vu_global); ?>)
-                                </span>
                                 <span class="badge badge-episode"
                                     style="background-color: var(--warning); color: var(--text-main);">
                                     Reste : <?php echo esc($series->reste_global); ?>
@@ -98,12 +94,11 @@
                     </tbody>
                 </table>
             </div>
-            <h3 style="margin-top: 0; margin-bottom: 15px;">Toutes les cartes :</h3>
-            <p style="margin: 0 0 0 2rem;">Épisodes visionnés : <span class="badge"
-                    style="background-color: var(--primary); color: #fff; padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalVus); ?></span>
+            <p style="margin: 0 0 0 1rem;">Épisodes restants : <span class="badge"
+                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalEpisodes); ?></span>
             </p>
-            <p style="margin: 0 0 0 2rem;">Épisodes restants à voir : <span class="badge"
-                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalRestants); ?></span>
+            <p style="margin: 0 0 0 1rem;">Saisons restantes : <span class="badge"
+                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalSeries); ?></span>
             </p>
             <?php } ?>
         </div>

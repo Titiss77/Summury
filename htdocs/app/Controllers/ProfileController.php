@@ -40,8 +40,8 @@ class ProfileController extends BaseController
             'statusAucun'   => $statusAucun,
 
             // Nouvelles variables injectées vers la vue
-            'totalVus'         => $episodesStats->total_vus ?? 0,
-            'totalRestants'    => $episodesStats->total_restants ?? 0,
+            'totalSeries'         => $episodesStats->total_series ?? 0,
+            'totalEpisodes'    => $episodesStats->total_episodes ?? 0,
             'inProgressSeries' => $inProgressSeries,
         ];
 
