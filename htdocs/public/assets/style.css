@@ -944,6 +944,12 @@ html[data-theme="dark"] .logo-footer {
 /* Option survolée ou sélectionnée */
 .choices__list--dropdown .choices__item--selectable.is-highlighted {
     background-color: var(--primary-light) !important;
+
+    color: var(--primary) !important;
+}
+
+.choices__list--dropdown .choices__item--selectable.is-selected {
+    background-color: var(--bg-body) !important;
     color: var(--primary) !important;
 }
 
