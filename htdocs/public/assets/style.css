@@ -612,13 +612,6 @@ details[open].division-section .division-title {
     transition: var(--transition);
 }
 
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary);
-    background-color: var(--bg-card);
-    box-shadow: 0 0 0 4px var(--primary-light);
-}
-
 .password-wrapper {
     position: relative;
 }
@@ -910,6 +903,74 @@ html[data-theme="dark"] .logo-footer {
     font-weight: 600;
     display: flex;
     align-items: center;
+}
+
+/* =========================================
+   CHOICES.JS - ADAPTATION AU THÈME SOMBRE
+   ========================================= */
+
+/* Le champ principal (remplace .form-control) */
+.choices__inner {
+    background-color: var(--bg-body) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.5rem 1.2rem !important;
+    min-height: auto !important;
+    font-size: 1rem !important;
+}
+
+.choices[data-type*="select-one"] .choices__inner {
+    padding-bottom: 0.5rem !important;
+}
+
+/* Le menu déroulant contenant les options */
+.choices__list--dropdown {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-md) !important;
+    color: var(--text-main) !important;
+    margin-top: 5px;
+    /* Petit espace sous le champ */
+}
+
+/* Les options individuelles */
+.choices__list--dropdown .choices__item {
+    color: var(--text-main) !important;
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease;
+}
+
+/* Option survolée ou sélectionnée */
+.choices__list--dropdown .choices__item--selectable.is-highlighted {
+    background-color: var(--primary-light) !important;
+    color: var(--primary) !important;
+}
+
+/* Effet lors du clic/focus (remplace le focus rouge/bleu) */
+.choices.is-focused .choices__inner {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px var(--primary-light) !important;
+    background-color: var(--primary-light) !important;
+        color: var(--primary) !important;
+}
+
+/* Texte de l'option actuellement affichée */
+.choices__inner .choices__item {
+    color: var(--text-main) !important;
+}
+
+/* Retrait de la ligne sous l'élément actif par défaut dans Choices */
+.choices__list--dropdown .choices__item--selectable {
+    padding-right: 1rem;
+}
+
+/* Bloquer strictement l'apparition du menu natif blanc */
+select.choices__input,
+select.form-control[hidden] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 /* =========================================

@@ -669,6 +669,18 @@ document.addEventListener('DOMContentLoaded', function() {
              }
         });
     }
+
+    // ==========================================
+    // INITIALISATION DE CHOICES.JS (Menus déroulants)
+    // ==========================================
+    const selects = document.querySelectorAll('select.form-control');
+    selects.forEach(select => {
+        new Choices(select, {
+            searchEnabled: false, // Met à true si tu veux une barre de recherche dans le menu
+            itemSelectText: '',   // Masque le texte par défaut "Press to select"
+            shouldSort: false     // Garde l'ordre défini dans ton HTML
+        });
+    });
 });
 
 // ========================================== //
