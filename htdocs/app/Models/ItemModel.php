@@ -173,15 +173,11 @@ class ItemModel extends Model
     public function getGlobalEpisodesStats(int $userId)
     {
         return $this->select('
-            SUM(
-                CASE 
-                    WHEN status = "Terminé" THEN 0
-                    WHEN COALESCE(total_episodes_global, total_episodes) IS NOT NULL THEN 
-                        COALESCE(total_episodes_global, total_episodes) - COALESCE(episode_global, episode, 1) + 1
-                    ELSE 0
-                END
-            ) as total_episodes,
-            SUM(total_saisons-saison) as total_series
+        SUM(CASE WHEN status = "Terminé" 
+            THEN 0 WHEN COALESCE(total_episodes_global, total_episodes) IS NOT NULL 
+            THEN COALESCE(total_episodes_global, total_episodes) - COALESCE(episode_global, episode, 1) + 1 
+            ELSE 0 END) as total_episodes, 
+        SUM(total_saisons-saison+1) as total_series
         ')
         ->where('id_user', $userId)
         ->whereIn('status', ['En cours', 'En pause'])
