@@ -76,6 +76,7 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
         defer></script>
     <script src="<?php echo base_url('assets/script.js?v='.$scriptJsVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/media-autofill.js?v=1'); ?>" defer></script>
 </head>
 
 <body>

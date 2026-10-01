@@ -8,20 +8,20 @@ use CodeIgniter\Shield\Config\Auth;
 // @var RouteCollection $routes
 
 // --------------------------------------------------------------------
-// Pages publiques (accessibles sans être connecté)
+// Pages publiques
 // --------------------------------------------------------------------
 $routes->get('/', 'HomeController::index');
 $routes->get('categorie/(:num)', 'HomeController::categorie/$1');
 $routes->get('legal', 'HomeController::legal');
 $routes->get('privacy', 'HomeController::privacy');
-$routes->get('cgu', 'HomeController::cgu'); // AJOUT ICI POUR LES CGU
+$routes->get('cgu', 'HomeController::cgu');
 
-// Routes silencieuses pour les tâches de fond (Pseudo-Cron)
+// Routes silencieuses pour les tâches de fond
 $routes->get('cron/run', 'CronController::run');
 $routes->get('item/check-dispo', 'ItemController::checkDispo');
 
 // --------------------------------------------------------------------
-// Routes protégées par session (Utilisateurs connectés normaux)
+// Routes protégées par session
 // --------------------------------------------------------------------
 $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('item/form', 'ItemController::form');
@@ -35,7 +35,9 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
 
     $routes->get('items/check-to-global', 'ItemController::checkToGlobal');
     $routes->get('item/turn/(:num)', 'ItemController::turnToAdmin/$1');
-    $routes->get('item/search', 'ItemController::search');
+
+    // Nouveau moteur de recherche multi-sources.
+    $routes->get('item/search', 'MediaSearchController::search');
 
     $routes->get('items/deleted', 'ItemController::viewDeleted');
 
@@ -51,9 +53,9 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
 });
 
 // --------------------------------------------------------------------
-// Routes d'Administration (Restreintes par Session ET Rôle Shield)
+// Routes d'administration
 // --------------------------------------------------------------------
-$routes->group('users', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function ($routes): void {
+$routes->group('users', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function ($routes): void {
     $routes->get('/', 'UserController::index');
     $routes->get('edit/(:num)', 'UserController::edit/$1');
     $routes->post('update/(:num)', 'UserController::update/$1');
@@ -61,7 +63,7 @@ $routes->group('users', ['namespace' => 'App\Controllers\Admin', 'filter' => 'gr
     $routes->get('unban/(:num)', 'UserController::unban/$1');
 });
 
-$routes->group('items', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function ($routes): void {
+$routes->group('items', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function ($routes): void {
     $routes->get('pending', 'ItemController::pending');
     $routes->get('approve/(:num)', 'ItemController::approve/$1');
     $routes->get('reject/(:num)', 'ItemController::reject/$1');
@@ -72,12 +74,12 @@ $routes->group('items', ['namespace' => 'App\Controllers\Admin', 'filter' => 'gr
     $routes->post('bulk-update-domain', 'ItemController::bulkUpdateDomain');
 });
 
-$routes->group('audit', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function ($routes): void {
+$routes->group('audit', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function ($routes): void {
     $routes->get('/', 'AuditController::index');
 });
 
 // --------------------------------------------------------------------
-// Routes par défaut de Shield (Login, Register, etc.)
+// Routes par défaut de Shield
 // --------------------------------------------------------------------
 if (class_exists(Auth::class)) {
     service('auth')->routes($routes);
