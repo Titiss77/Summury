@@ -102,7 +102,7 @@
             if (description.length > limitCut) description = description.substring(0, limitCut) + '...';
             setField('description', description, true);
 
-            if (res.lien) setField('lien', res.lien, true);
+            if (res.lien) setField('lien', res.lien, false);
 
             if (res.total_episodes !== '' && res.total_episodes !== null && res.total_episodes !== undefined) {
                 setField('total_episodes', String(res.total_episodes), true);

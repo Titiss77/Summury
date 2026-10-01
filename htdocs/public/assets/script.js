@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (res.description) document.getElementById('description').value = res.description;
                                                          
                             const inputLien = document.getElementById('lien');
-                            if (res.lien && inputLien) inputLien.value = res.lien;
+                            if (res.lien && inputLien && !inputLien.value.trim()) inputLien.value = res.lien;
                             const totalEpField = document.getElementById('total_episodes');
                             const totalSaisonField = document.getElementById('total_saisons');
                             const saisonInput = document.getElementById('saison');
