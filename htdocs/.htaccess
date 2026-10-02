@@ -24,6 +24,13 @@
     # NE PAS REECRIRE PUBLIC SUR LUI-MÊME
     # ==========================================================
 
+    # Redirect explicit /public URLs to their short form.
+    # THE_REQUEST distinguishes browser requests from internal rewrites,
+    # which prevents a redirect loop.
+    RewriteCond %{THE_REQUEST} \s/+public(?:/|[?\s]) [NC]
+    RewriteRule ^public(?:/(.*))?$ /$1 [R=301,L,NE]
+
+    # Allow the internal rewrite to the public directory.
     RewriteRule ^public(?:/|$) - [L]
 
 
