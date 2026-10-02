@@ -129,7 +129,7 @@
     <?php if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithLogin as $h) { ?>
-        <a href="<?php echo base_url('categorie/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/'.$h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
@@ -138,7 +138,7 @@
     <?php } else { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithNoLogin as $h) { ?>
-        <a href="<?php echo base_url('categorie/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/'.$h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
