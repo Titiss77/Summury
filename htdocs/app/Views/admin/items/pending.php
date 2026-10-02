@@ -41,7 +41,7 @@
                     <td><?php echo esc($item->description); ?></td>
                     <td>
                         <div class="action-links">
-                            <a href="<?php echo base_url('item/form/'.$item->id); ?>"
+                            <a href="<?php echo base_url('m/'.$item->id); ?>"
                                 class="btn-action btn-edit">Examiner</a>
                             <a href="<?php echo base_url('items/approve/'.$item->id); ?>" class="btn-action"
                                 style="background:var(--success); color:#fff;">Valider</a>

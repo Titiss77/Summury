@@ -176,7 +176,7 @@
                     <li><a href="<?php echo base_url('/'); ?>">Accueil</a></li>
                     <?php if (auth()->loggedIn()) { ?>
                     <li><a href="<?php echo base_url('profile'); ?>">Mon Profil</a></li>
-                    <li><a href="<?php echo base_url('item/form'); ?>">Ajouter une carte</a></li>
+                    <li><a href="<?php echo base_url('m'); ?>">Ajouter une carte</a></li>
                     <?php } else { ?>
                     <li><a href="<?php echo base_url('login'); ?>">Connexion</a></li>
                     <li><a href="<?php echo base_url('register'); ?>">Créer un compte</a></li>

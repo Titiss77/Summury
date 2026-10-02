@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <?php } ?>
 
     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-        <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success" style="margin: 0;">+ Ajouter une
+        <a href="<?php echo base_url('m'); ?>" class="btn btn-success" style="margin: 0;">+ Ajouter une
             carte</a>
         <a href="<?php echo base_url('items/deleted'); ?>" class="btn-suppr">Cartes supprimées</a>
     </div>
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <h2>Vous n'avez pas encore de cartes.</h2>
     <p>Commencez par en ajouter une !</p>
     <br>
-    <a href="<?php echo base_url('item/form'); ?>" class="btn btn-success">+ Ajouter une carte</a>
+    <a href="<?php echo base_url('m'); ?>" class="btn btn-success">+ Ajouter une carte</a>
 </div>
 <?php } else { ?>
 <div class="empty-state" style="margin-top: 2rem;">
@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <!-- Boutons d'édition (Propriétaire uniquement) -->
                                     <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                     <div class="card-actions-bottom">
-                                        <a href="<?php echo base_url('item/form/'.$item->id); ?>"
+                                        <a href="<?php echo base_url('m/'.$item->id); ?>"
                                             class="btn-icon btn-edit-sm">Modifier</a>
                                         <a href="<?php echo base_url('item/delete/'.$item->id); ?>"
                                             onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');"

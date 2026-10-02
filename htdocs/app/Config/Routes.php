@@ -28,8 +28,8 @@ $routes->get('item/check-dispo', 'ItemController::checkDispo');
 // Routes protégées par session
 // --------------------------------------------------------------------
 $routes->group('', ['filter' => 'session'], static function ($routes): void {
-    $routes->get('item/form', 'ItemController::form');
-    $routes->get('item/form/(:num)', 'ItemController::form/$1');
+    $routes->get('m', 'ItemController::form');
+    $routes->get('m/(:num)', 'ItemController::form/$1');
     $routes->post('item/save', 'ItemController::save');
     $routes->get('item/delete/(:num)', 'ItemController::delete/$1');
 

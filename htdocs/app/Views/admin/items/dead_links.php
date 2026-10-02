@@ -92,7 +92,7 @@
 
                     <td style="padding: 12px;">
                         <div class="action-links" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <a href="<?php echo base_url('item/form/'.$item['item_id']); ?>"
+                            <a href="<?php echo base_url('m/'.$item['item_id']); ?>"
                                 class="btn-action btn-edit">Mettre à jour manuellement</a>
                             <a href="<?php echo esc($item['url_testee']); ?>" target="_blank" class="btn-action"
                                 style="background: var(--text-muted); color: #fff;">Tester</a>
