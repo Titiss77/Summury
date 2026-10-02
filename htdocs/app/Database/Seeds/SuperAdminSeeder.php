@@ -58,7 +58,7 @@ class SuperAdminSeeder extends Seeder
             [27, 6, 'Payant', 'Prime Video', 'https://cdn.prod.website-files.com/63f46dc8ada663b2260ad042/651e7514b3a51ee790163981_Amazon%20-%20Prime%20Video%20(2).jpg', 'https://www.primevideo.com/', 'dead', '', 1, null],
             [28, 11, null, 'ClipDrop', '', 'https://clipdrop.co/', 'ok', 'Administrer des images', 6, null],
             [30, 11, null, 'Durable', '', 'https://app.durable.co/dashboard', 'dead', "G\u{00E9}n\u{00E9}rer des sites web", 7, '2026-09-07 22:29:15'],
-            [31, 11, null, 'Fotor', null, 'https://www.fotor.com/', 'ok', 'conceptions et \u{00E9}ditions d’images', 8, null],
+            [31, 11, null, 'Fotor', null, 'https://www.fotor.com/', 'ok', "conceptions et \u{00E9}ditions d'images", 8, null],
             [32, 11, 'IA', 'Krea.ai', '', 'https://www.krea.ai/apps/image/realtime', 'ok', 'G\u{00E9}n\u{00E9}rer des Images', 3, null],
             [33, 11, null, 'obfuscator', null, 'https://obfuscator.io/', 'ok', 'crypter les scripts javascripts', 9, null],
             [38, 11, 'IA', 'Gemini', '', 'https://gemini.google.com/app?hl=fr', 'ok', '', 1, null],
