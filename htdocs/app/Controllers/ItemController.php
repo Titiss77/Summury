@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Entities\Item;
+use App\Libraries\ExternalUrlGuard;
 use App\Models\AuditLogModel;
 use App\Models\CronLogModel;
 use App\Models\ItemModel;
@@ -29,6 +30,14 @@ class ItemController extends BaseController
      */
     public function form($id = null)
     {
+        $item = null;
+        if (null !== $id) {
+            $item = $this->model->find($id);
+            if (!$this->canManageItem($item)) {
+                throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+            }
+        }
+
         $userId = auth()->loggedIn() ? auth()->id() : null;
         $subCategories = [];
 
@@ -43,14 +52,10 @@ class ItemController extends BaseController
             'divisions' => $this->model->getDivisions(),
             'subCategories' => $subCategories,
             'statuts' => $this->statutModel->where('nom !=', 'Public')->orderBy('ordre', 'ASC')->findAll(),
-            'item' => null,
+            'item' => $item,
             'view' => 'items/item_form',
             'redirect_url' => $this->request->getUserAgent()->getReferrer() ?? site_url('/'),
         ];
-
-        if (null !== $id) {
-            $data['item'] = $this->model->find($id);
-        }
 
         return view('items/item_form', $data);
     }
@@ -67,8 +72,18 @@ class ItemController extends BaseController
 
             $rules = [
                 'titre' => 'required|max_length[100]',
-                'id_division' => 'required|numeric',
+                'id' => 'permit_empty|is_natural_no_zero|is_not_unique[item.id]',
+                'id_division' => 'required|is_natural_no_zero|is_not_unique[division.id]',
                 'status' => 'required|is_not_unique[statuts.nom]',
+                'saison' => 'permit_empty|is_natural',
+                'total_saisons' => 'permit_empty|is_natural',
+                'episode' => 'permit_empty|is_natural',
+                'total_episodes' => 'permit_empty|is_natural',
+                'sous_categorie_select' => 'permit_empty|max_length[255]',
+                'sous_categorie_new' => 'permit_empty|max_length[255]',
+                'image' => 'permit_empty|max_length[255]',
+                'lien' => 'permit_empty|max_length[255]',
+                'date_sortie' => 'permit_empty|valid_date[Y-m-d\\TH:i]',
             ];
 
             if (!$this->validate($rules)) {
@@ -85,7 +100,8 @@ class ItemController extends BaseController
             $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
 
             // Formatage des données optionnelles
-            $data['date_sortie'] = empty($this->request->getPost('date_sortie')) ? null : $this->request->getPost('date_sortie');
+            $releaseDate = $this->request->getPost('date_sortie');
+            $data['date_sortie'] = empty($releaseDate) ? null : str_replace('T', ' ', (string) $releaseDate).':00';
             $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
             $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
             $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
@@ -162,7 +178,17 @@ class ItemController extends BaseController
 
                 $item = new Item($data);
 
-                if (!empty($data['saison']) && !empty($data['episode'])) {
+                $progressChanged = !$existing;
+                if ($existing) {
+                    foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
+                        if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
+                            $progressChanged = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($progressChanged && !empty($data['saison']) && !empty($data['episode'])) {
                     $globalData = $this->syncGlobalEpisodesWithTMDB($item);
                     $item->episode_global = $globalData['episode_global'];
                     $item->total_episodes_global = $globalData['total_episodes_global'];
@@ -234,6 +260,18 @@ class ItemController extends BaseController
         $item = $this->model->find($id);
 
         if ($item) {
+            if (!$this->canManageItem($item)) {
+                if ($this->request->isAJAX()) {
+                    return $this->response->setStatusCode(403)->setJSON([
+                        'success' => false,
+                        'error' => 'Vous ne pouvez pas modifier cette carte.',
+                        'csrf_token' => csrf_hash(),
+                    ]);
+                }
+
+                return redirect()->back()->with('error', 'Vous ne pouvez pas modifier cette carte.');
+            }
+
             $newEpisode = (int) $item->episode + 1;
             $newSaison = (int) $item->saison;
             $totalEpisodes = (int) $item->total_episodes;
@@ -260,7 +298,6 @@ class ItemController extends BaseController
                     $client = Services::curlrequest([
                         'timeout' => 5,
                         'http_errors' => false,
-                        'verify' => false,
                     ]);
 
                     try {
@@ -286,10 +323,17 @@ class ItemController extends BaseController
 
             $this->model->update($id, $updateData);
 
-            $updatedItem = $this->model->find($id);
-            if ($updatedItem) {
-                $globalData = $this->syncGlobalEpisodesWithTMDB($updatedItem);
-                $this->model->update($id, $globalData);
+            $wasComplete = "Termin\u{00E9}" === $item->status;
+            if (!empty($updateData['saison'])) {
+                $updatedItem = $this->model->find($id);
+                if ($updatedItem) {
+                    $this->model->update($id, $this->syncGlobalEpisodesWithTMDB($updatedItem));
+                }
+            } else {
+                $this->model->update($id, [
+                    'episode_global' => (int) ($item->episode_global ?? $item->episode ?? 0) + ($wasComplete ? 0 : 1),
+                    'total_episodes_global' => $item->total_episodes_global ?? $item->total_episodes,
+                ]);
             }
 
             (new AuditLogModel())->logAction('Incrémentation Rapide', $logMessage);
@@ -315,6 +359,18 @@ class ItemController extends BaseController
     {
         $item = $this->model->find($id);
         if ($item) {
+            if (!$this->canManageItem($item)) {
+                if ($this->request->isAJAX()) {
+                    return $this->response->setStatusCode(403)->setJSON([
+                        'success' => false,
+                        'error' => 'Vous ne pouvez pas modifier cette carte.',
+                        'csrf_token' => csrf_hash(),
+                    ]);
+                }
+
+                return redirect()->back()->with('error', 'Vous ne pouvez pas modifier cette carte.');
+            }
+
             $newSaison = (int) $item->saison + 1;
             $this->model->update($id, ['saison' => $newSaison]);
 
@@ -343,7 +399,6 @@ class ItemController extends BaseController
             'timeout' => 8,
             'connect_timeout' => 5,
             'http_errors' => false,
-            'verify' => false,
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/site',
         ]);
 
@@ -571,7 +626,13 @@ class ItemController extends BaseController
     {
         $urlCible = $this->request->getGet('urlCible');
 
-        if (empty($urlCible) || !filter_var($urlCible, FILTER_VALIDATE_URL)) {
+        if (!is_string($urlCible) || !ExternalUrlGuard::isPublicHttpUrl($urlCible)) {
+            return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
+        }
+
+        $urlParts = parse_url((string) $urlCible);
+        $host = strtolower(rtrim((string) ($urlParts['host'] ?? ''), '.'));
+        if ($host === '') {
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
@@ -580,7 +641,11 @@ class ItemController extends BaseController
         $currentConfig = null;
 
         foreach ($sites as $config) {
-            if (false !== stripos($urlCible, $config['domain'])) {
+            $configuredDomain = trim((string) $config['domain']);
+            $configuredHost = parse_url(str_contains($configuredDomain, '://') ? $configuredDomain : 'https://'.$configuredDomain, PHP_URL_HOST);
+            $configuredHost = strtolower(rtrim((string) $configuredHost, '.'));
+
+            if ($configuredHost !== '' && ($host === $configuredHost || str_ends_with($host, '.'.$configuredHost))) {
                 $currentConfig = $config;
                 break;
             }
@@ -590,7 +655,8 @@ class ItemController extends BaseController
             return $this->response->setJSON(['success' => false, 'error' => 'Domaine non supporté.']);
         }
 
-        preg_match($currentConfig['regex_episode'], $urlCible, $matches);
+        $matches = [];
+        @preg_match($currentConfig['regex_episode'], (string) $urlCible, $matches);
         $episodeExtrait = $matches[1] ?? null;
 
         $indicateursPageInvalide = json_decode($currentConfig['indicateurs_page_invalide'], true) ?? [];
@@ -599,7 +665,7 @@ class ItemController extends BaseController
         try {
             $client = Services::curlrequest([
                 'timeout' => 3, 'connect_timeout' => 2,
-                'http_errors' => false, 'allow_redirects' => true, 'verify' => false,
+                'http_errors' => false, 'allow_redirects' => false,
                 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
 
@@ -726,7 +792,7 @@ class ItemController extends BaseController
 
         $itemsToDelete = $query->findAll();
         if (!empty($itemsToDelete)) {
-            $itemIds = array_column($itemsToDelete, 'id');
+            $itemIds = array_map(static fn (Item $item): int => (int) $item->id, $itemsToDelete);
             (new CronLogModel())->whereIn('item_id', $itemIds)->delete();
             $this->model->builder()->whereIn('id', $itemIds)->delete();
             (new AuditLogModel())->logAction('Vidage Corbeille', 'La corbeille a été vidée définitivement ('.count($itemIds).' cartes détruites).');
@@ -786,7 +852,6 @@ class ItemController extends BaseController
         $client = \Config\Services::curlrequest([
             'timeout' => 5,
             'http_errors' => false,
-            'verify' => false,
         ]);
 
         $episodeGlobal = (int) $item->episode;
@@ -874,5 +939,17 @@ class ItemController extends BaseController
             'episode_global' => $episodeGlobal,
             'total_episodes_global' => $totalEpisodesGlobal
         ];
+    }
+
+    private function canManageItem(?Item $item): bool
+    {
+        if (!$item || !auth()->loggedIn()) {
+            return false;
+        }
+
+        $user = auth()->user();
+
+        return (int) $item->id_user === (int) auth()->id()
+            || $user->inGroup('admin', 'superadmin');
     }
 }

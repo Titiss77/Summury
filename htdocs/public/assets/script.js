@@ -583,10 +583,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(data => {
                         if (data.status === 'executed') {
                             alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards +
-                                   '\nDomaines uniques interrogés : ' + data.unique_domains +
+                                   '\nURL uniques vérifiées : ' + data.unique_urls +
                                    '\nNouveaux liens rompus identifiés : ' + data.dead_count);
+                        } else if (data.status === 'running') {
+                            alert('Une vérification des liens est déjà en cours.');
+                        } else if (data.status === 'skipped') {
+                            alert('La vérification a déjà été effectuée cette semaine.');
                         } else {
-                            alert('Le scan a retourné un statut inattendu.');
+                            alert(data.message || 'Le scan a retourné un statut inattendu.');
                         }
                         window.location.reload();
                     })

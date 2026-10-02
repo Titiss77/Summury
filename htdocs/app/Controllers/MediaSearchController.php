@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Libraries\ExternalUrlGuard;
 use Config\Services;
 
 /**
@@ -23,10 +24,9 @@ class MediaSearchController extends BaseController
     public function __construct()
     {
         $this->client = Services::curlrequest([
-            'timeout' => 7,
-            'connect_timeout' => 4,
+            'timeout' => 3,
+            'connect_timeout' => 2,
             'http_errors' => false,
-            'verify' => false,
             'allow_redirects' => true,
             'user_agent' => 'Summury/1.0 CodeIgniter4 Media Search',
         ]);
@@ -38,15 +38,25 @@ class MediaSearchController extends BaseController
 
     public function search()
     {
-        $query = trim((string) $this->request->getGet('q'));
-        $type = strtolower(trim((string) $this->request->getGet('type')));
+        $rawQuery = $this->request->getGet('q');
+        $query = is_string($rawQuery) ? trim($rawQuery) : '';
+        $rawType = $this->request->getGet('type');
+        $type = is_string($rawType) ? strtolower(trim($rawType)) : '';
 
         if ($query === '') {
             return $this->response->setJSON(['unified' => []]);
         }
 
+        if (mb_strlen($query) > 200) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'Requête trop longue.']);
+        }
+
         // Une URL reste traitée comme avant : récupération des métadonnées OpenGraph.
         if (filter_var($query, FILTER_VALIDATE_URL)) {
+            if (!ExternalUrlGuard::isPublicHttpUrl($query)) {
+                return $this->response->setStatusCode(400)->setJSON(['error' => 'URL invalide.']);
+            }
+
             $metaData = $this->scrapeOpenGraph($query);
             return $this->response->setJSON($metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.']);
         }
@@ -177,7 +187,7 @@ class MediaSearchController extends BaseController
         return $results;
     }
 
-    private function searchTmdbSeries(string $query, int $limit = 8): array
+    private function searchTmdbSeries(string $query, int $limit = 8, int $detailLimit = 3): array
     {
         $data = $this->tmdbGet('/search/tv', [
             'query' => $query,
@@ -195,9 +205,9 @@ class MediaSearchController extends BaseController
 
             $title = (string) ($result['name'] ?? $result['original_name'] ?? 'Inconnu');
             $year = substr((string) ($result['first_air_date'] ?? ''), 0, 4);
-            $details = $this->tmdbGet('/tv/'.(int) ($result['id'] ?? 0), [
-                'language' => 'fr-FR',
-            ]);
+            $details = count($results) < $detailLimit
+                ? $this->tmdbGet('/tv/'.(int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
+                : [];
 
             $seasonsData = [];
             foreach ($details['seasons'] ?? [] as $season) {
@@ -260,7 +270,7 @@ class MediaSearchController extends BaseController
 
             $title = (string) ($result['title'] ?? $result['name'] ?? $result['original_name'] ?? 'Inconnu');
             $year = substr((string) ($result['release_date'] ?? $result['first_air_date'] ?? ''), 0, 4);
-            $details = $mediaType === 'tv'
+            $details = $mediaType === 'tv' && count($results) < 2
                 ? $this->tmdbGet('/tv/'.(int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
                 : [];
 
@@ -542,8 +552,10 @@ GRAPHQL;
 
     private function searchStreaming(string $query, int $limit = 8): array
     {
-        $movies = $this->searchTmdbMovies($query, 5);
-        $series = $this->searchTmdbSeries($query, 5);
+        // Les fournisseurs sont interrogés par titre : limiter les candidats
+        // évite une rafale de requêtes séquentielles pour une seule recherche.
+        $movies = $this->searchTmdbMovies($query, 2);
+        $series = $this->searchTmdbSeries($query, 2, 0);
         $results = array_merge($movies, $series);
 
         foreach ($results as &$result) {
@@ -746,9 +758,14 @@ GRAPHQL;
 
     private function scrapeOpenGraph(string $url): ?array
     {
+        if (!ExternalUrlGuard::isPublicHttpUrl($url)) {
+            return null;
+        }
+
         try {
             $response = $this->client->get($url, [
                 'headers' => ['Accept-Language' => 'fr-FR,fr;q=0.9,en;q=0.8'],
+                'allow_redirects' => false,
             ]);
             if ($response->getStatusCode() >= 400) {
                 return null;
@@ -797,4 +814,5 @@ GRAPHQL;
             return null;
         }
     }
+
 }

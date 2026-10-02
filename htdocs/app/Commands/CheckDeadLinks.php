@@ -44,7 +44,6 @@ class CheckDeadLinks extends BaseCommand
         $client = Services::curlrequest([
             'timeout' => 7,
             'connect_timeout' => 5,
-            'verify' => false,
             'http_errors' => false,
             'allow_redirects' => false,
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',

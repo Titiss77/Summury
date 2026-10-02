@@ -24,7 +24,6 @@ class ItemController extends BaseController
         $revisions = $revisionModel->getPendingRevisions();
 
         foreach ($revisions as &$revision) {
-            $original = $itemModel->asArray()->find($revision['original_item_id']);
             $changes = [];
             $fieldsToCompare = [
                 'titre' => 'Titre',
@@ -40,22 +39,20 @@ class ItemController extends BaseController
                 'date_sortie' => 'Date de sortie',
             ];
 
-            if ($original) {
-                foreach ($fieldsToCompare as $field => $label) {
-                    $oldValue = $original[$field] ?? '';
-                    $newValue = $revision[$field] ?? '';
+            foreach ($fieldsToCompare as $field => $label) {
+                $oldValue = $revision['original_'.$field] ?? '';
+                $newValue = $revision[$field] ?? '';
 
-                    if ('date_sortie' === $field && (!empty($oldValue) || !empty($newValue))) {
-                        $oldValue = $oldValue ? substr((string) $oldValue, 0, 10) : '';
-                        $newValue = $newValue ? substr((string) $newValue, 0, 10) : '';
-                    }
+                if ('date_sortie' === $field && (!empty($oldValue) || !empty($newValue))) {
+                    $oldValue = $oldValue ? substr((string) $oldValue, 0, 10) : '';
+                    $newValue = $newValue ? substr((string) $newValue, 0, 10) : '';
+                }
 
-                    if ((string) $oldValue !== (string) $newValue) {
-                        $changes[] = [
-                            'field' => $field, 'label' => $label,
-                            'old' => $oldValue, 'new' => $newValue,
-                        ];
-                    }
+                if ((string) $oldValue !== (string) $newValue) {
+                    $changes[] = [
+                        'field' => $field, 'label' => $label,
+                        'old' => $oldValue, 'new' => $newValue,
+                    ];
                 }
             }
             $revision['changes'] = $changes;

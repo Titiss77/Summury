@@ -27,7 +27,11 @@ class ItemRevisionModel extends Model
     public function getPendingRevisions()
     {
         return $this->db->table('item_revisions ir')
-            ->select('ir.*, u.username as author_name, i.titre as original_titre')
+            ->select('ir.*, u.username AS author_name')
+            ->select('i.titre AS original_titre, i.sous_categorie AS original_sous_categorie, i.status AS original_status')
+            ->select('i.image AS original_image, i.lien AS original_lien, i.description AS original_description')
+            ->select('i.saison AS original_saison, i.total_saisons AS original_total_saisons')
+            ->select('i.episode AS original_episode, i.total_episodes AS original_total_episodes, i.date_sortie AS original_date_sortie')
             ->join('users u', 'ir.id_user = u.id')
             ->join('item i', 'ir.original_item_id = i.id')
             ->where('ir.revision_status', 'pending')
