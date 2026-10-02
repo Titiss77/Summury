@@ -29,11 +29,11 @@ class HomeController extends BaseController
 
         // Évite la boucle infinie de redirection si un paramètre "i" est présent
         if (!empty($headersWithNoLogin) && !$this->request->getGet('i')) {
-            return redirect()->to('categorie/'.$headersWithNoLogin[0]['id']);
+            return redirect()->to('p/'.$headersWithNoLogin[0]['id']);
         }
 
         if (!empty($headersWithLogin) && !$this->request->getGet('i') && empty($headersWithNoLogin)) {
-            return redirect()->to('categorie/'.$headersWithLogin[0]['id']);
+            return redirect()->to('p/'.$headersWithLogin[0]['id']);
         }
 
         $headerId = !empty($headersWithNoLogin) ? $headersWithNoLogin[0]['id'] : (!empty($headersWithLogin) ? $headersWithLogin[0]['id'] : null);

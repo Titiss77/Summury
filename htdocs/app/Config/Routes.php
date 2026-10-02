@@ -11,7 +11,11 @@ use CodeIgniter\Shield\Config\Auth;
 // Pages publiques
 // --------------------------------------------------------------------
 $routes->get('/', 'HomeController::index');
-$routes->get('categorie/(:num)', 'HomeController::categorie/$1');
+$routes->get('p/(:num)', 'HomeController::categorie/$1');
+// Conserve les anciennes adresses et redirige vers la forme courte.
+$routes->get('categorie/(:num)', static function (string $id) {
+    return redirect()->to('p/'.$id);
+});
 $routes->get('legal', 'HomeController::legal');
 $routes->get('privacy', 'HomeController::privacy');
 $routes->get('cgu', 'HomeController::cgu');
