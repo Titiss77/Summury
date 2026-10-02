@@ -13,5 +13,6 @@ class MasterSeeder extends Seeder
     {
         $this->call('ReferenceDataSeeder');
         $this->call('SuperAdminSeeder');
+        $this->call('DemoDataSeeder');
     }
 }
