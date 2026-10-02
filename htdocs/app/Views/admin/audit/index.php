@@ -10,7 +10,7 @@
     <p>Historique des actions récentes effectuées sur la plateforme.</p>
 
     <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-        <a href="<?php echo base_url('items/dead-links'); ?>" class="btn btn-warning">Gérer les liens morts</a>
+        <a href="<?php echo base_url('a/d'); ?>" class="btn btn-warning">Gérer les liens morts</a>
     </div>
 
     <div class="admin-table-container fade-in" style="margin-top: 20px;">

@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const divisionId = button.getAttribute('data-division');
             const subCategory = button.getAttribute('data-sub');
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
-            const url = baseUrl + 'item/increment-episode/' + itemId;
+            const url = baseUrl + 'e/' + itemId;
             const counterSpan = document.getElementById(`ep-count-${itemId}`);
             try {
                 const response = await fetch(url, {
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 typeSelectionne = 'lien';
             }
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
-            const url = `${baseUrl}item/search?q=${encodeURIComponent(titreInput)}&type=${typeSelectionne}`;
+            const url = `${baseUrl}f?q=${encodeURIComponent(titreInput)}&type=${typeSelectionne}`;
             try {
                 const response = await fetch(url);
                 const data = await response.json();
@@ -635,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const titre = titreInput.value.trim();
                     const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
                                          
-                    const url = `${baseUrl}item/search?q=${encodeURIComponent(titre)}&type=serie`;
+                    const url = `${baseUrl}f?q=${encodeURIComponent(titre)}&type=serie`;
                     try {
                         champTotalEp.style.transition = 'opacity 0.3s';
                         champTotalEp.style.opacity = '0.5';
@@ -742,7 +742,7 @@ window.addEventListener('load', function() {
 
         try {
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
-            const response = await fetch(`${baseUrl}item/check-dispo?urlCible=${encodeURIComponent(url)}`, {
+            const response = await fetch(`${baseUrl}q?urlCible=${encodeURIComponent(url)}`, {
                 method: 'GET',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });

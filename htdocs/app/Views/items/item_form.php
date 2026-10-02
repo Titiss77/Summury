@@ -8,7 +8,7 @@
 <div class="form-container card">
     <h2 class="header-title"><?php echo isset($item) ? '📝 Modifier la carte' : '+ Ajouter une carte'; ?></h2>
 
-    <form action="<?php echo base_url('item/save'); ?>" method="POST">
+    <form action="<?php echo base_url('s'); ?>" method="POST">
         <!-- Sauvegarde de l'URL précédente pour rediriger l'utilisateur au bon endroit -->
         <input type="hidden" name="redirect_url" value="<?php echo esc($redirect_url); ?>">
         <?php echo csrf_field(); ?>

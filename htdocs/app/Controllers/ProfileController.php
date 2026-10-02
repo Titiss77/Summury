@@ -78,6 +78,6 @@ class ProfileController extends BaseController
         $audit = new AuditLogModel();
         $audit->logAction('Modification Profil', "L'utilisateur ID {$user->id} a modifié son mot de passe.");
 
-        return redirect()->to('profile')->with('message', 'Votre mot de passe a été mis à jour avec succès.');
+        return redirect()->to('p')->with('message', 'Votre mot de passe a été mis à jour avec succès.');
     }
 }

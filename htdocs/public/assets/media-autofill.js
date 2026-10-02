@@ -162,7 +162,7 @@
         container.style.display = 'none';
 
         const baseUrl = window.siteConfig.baseUrl.endsWith('/') ? window.siteConfig.baseUrl : window.siteConfig.baseUrl + '/';
-        const url = `${baseUrl}item/search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`;
+        const url = `${baseUrl}f?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`;
 
         try {
             const response = await fetch(url, {

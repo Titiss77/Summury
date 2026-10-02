@@ -62,7 +62,7 @@ class ItemController extends BaseController
     {
         if ($this->request->is('post')) {
             if (!auth()->loggedIn()) {
-                return redirect()->to('login');
+                return redirect()->to('z');
             }
 
             $rules = [

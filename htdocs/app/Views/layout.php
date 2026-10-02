@@ -64,8 +64,8 @@
     <script>
     window.siteConfig = {
         "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
-        "updateOrderUrl": "<?php echo base_url('items/update-order'); ?>",
-        "cronUrl": "<?php echo base_url('cron/run'); ?>",
+        "updateOrderUrl": "<?php echo base_url('o'); ?>",
+        "cronUrl": "<?php echo base_url('j'); ?>",
         "csrfHeader": "<?php echo csrf_header(); ?>",
         "csrfToken": "<?php echo csrf_hash(); ?>"
     };
@@ -104,9 +104,9 @@
             <!-- Navigation conditionnelle selon l'état de connexion -->
             <?php if (auth()->loggedIn()) { ?>
             <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
-            <a href="<?php echo base_url('audit'); ?>" class="logs">logs</a>
+            <a href="<?php echo base_url('a/l'); ?>" class="logs">logs</a>
             <?php } ?>
-            <a href="<?php echo base_url('profile'); ?>" class="welcome-text"
+            <a href="<?php echo base_url('p'); ?>" class="welcome-text"
                 style="text-decoration: none; display: flex; align-items: center; gap: 5px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
                     class="bi bi-person-circle" viewBox="0 0 16 16">
@@ -116,10 +116,10 @@
                 </svg>
                 <?php echo esc(auth()->user()->username); ?>
             </a>
-            <a href="<?php echo base_url('logout'); ?>" class="btn-logout">Déconnexion</a>
+            <a href="<?php echo base_url('x'); ?>" class="btn-logout">Déconnexion</a>
             <?php } else { ?>
-            <a href="<?php echo base_url('login'); ?>" class="btn-login">Connexion</a>
-            <a href="<?php echo base_url('register'); ?>" class="btn-register">Créer un compte</a>
+            <a href="<?php echo base_url('z'); ?>" class="btn-login">Connexion</a>
+            <a href="<?php echo base_url('y'); ?>" class="btn-register">Créer un compte</a>
             <?php } ?>
         </div>
     </header>
@@ -175,11 +175,11 @@
                     class="footer-links">
                     <li><a href="<?php echo base_url('/'); ?>">Accueil</a></li>
                     <?php if (auth()->loggedIn()) { ?>
-                    <li><a href="<?php echo base_url('profile'); ?>">Mon Profil</a></li>
+                    <li><a href="<?php echo base_url('p'); ?>">Mon Profil</a></li>
                     <li><a href="<?php echo base_url('m'); ?>">Ajouter une carte</a></li>
                     <?php } else { ?>
-                    <li><a href="<?php echo base_url('login'); ?>">Connexion</a></li>
-                    <li><a href="<?php echo base_url('register'); ?>">Créer un compte</a></li>
+                    <li><a href="<?php echo base_url('z'); ?>">Connexion</a></li>
+                    <li><a href="<?php echo base_url('y'); ?>">Créer un compte</a></li>
                     <?php } ?>
                 </ul>
             </div>
@@ -187,9 +187,9 @@
                 <h4 style="color: var(--text-main); font-size: 1rem; margin-bottom: 1rem;">Informations</h4>
                 <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem;"
                     class="footer-links">
-                    <li><a href="<?php echo base_url('legal'); ?>">Mentions légales</a></li>
-                    <li><a href="<?php echo base_url('cgu'); ?>">CGU</a></li>
-                    <li><a href="<?php echo base_url('privacy'); ?>">Politique de confidentialité</a></li>
+                    <li><a href="<?php echo base_url('l'); ?>">Mentions légales</a></li>
+                    <li><a href="<?php echo base_url('t'); ?>">CGU</a></li>
+                    <li><a href="<?php echo base_url('v'); ?>">Politique de confidentialité</a></li>
                     <li><a href="mailto:<?php echo env('EMAILPRO'); ?>">Contactez-nous</a></li>
                 </ul>
             </div>
@@ -206,7 +206,7 @@
         style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--bg-card); border: 1px solid var(--border-color); padding: 15px 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); z-index: 9999; flex-direction: row; align-items: center; gap: 20px; width: 90%; max-width: 600px;">
         <p style="margin: 0; font-size: 0.9rem; color: var(--text-main);">
             Nous utilisons des cookies techniques strictement nécessaires au fonctionnement du site. En continuant, vous
-            acceptez leur utilisation. <a href="<?php echo base_url('privacy'); ?>" style="color: var(--primary);">En
+            acceptez leur utilisation. <a href="<?php echo base_url('v'); ?>" style="color: var(--primary);">En
                 savoir plus</a>.
         </p>
         <button id="btn-understand-consent" class="btn btn-primary"

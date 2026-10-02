@@ -125,7 +125,7 @@
         </a>
 
         <div class="card-actions-bottom">
-            <a href="<?php echo base_url('item/turn/'.esc($item->id)); ?>" class="btn-icon btn-edit-sm">S'approprier la
+            <a href="<?php echo base_url('u/'.esc($item->id)); ?>" class="btn-icon btn-edit-sm">S'approprier la
                 carte (Admin)</a>
         </div>
     </div>

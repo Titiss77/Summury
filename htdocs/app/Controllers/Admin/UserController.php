@@ -36,7 +36,7 @@ class UserController extends BaseController
         $currentUser = auth()->user();
 
         if (!$user) {
-            return redirect()->to('users')->with('error', 'Utilisateur introuvable.');
+            return redirect()->to('a/u')->with('error', 'Utilisateur introuvable.');
         }
 
         // Protection : seul un SuperAdmin peut modifier un autre SuperAdmin
@@ -44,7 +44,7 @@ class UserController extends BaseController
             $audit = new AuditLogModel();
             $audit->logAction('Alerte Sécurité', "L'admin ID {$currentUser->id} a tenté d'accéder à la page d'édition du SuperAdmin ID {$id}.");
 
-            return redirect()->to('users')->with('error', 'Accréditation insuffisante pour modifier cette cible.');
+            return redirect()->to('a/u')->with('error', 'Accréditation insuffisante pour modifier cette cible.');
         }
 
         $availableGroups = config('AuthGroups')->groups;
@@ -74,11 +74,11 @@ class UserController extends BaseController
         $audit = new AuditLogModel();
 
         if (!$user) {
-            return redirect()->to('users')->with('error', 'Utilisateur introuvable.');
+            return redirect()->to('a/u')->with('error', 'Utilisateur introuvable.');
         }
 
         if ($user->inGroup('superadmin') && !$currentUser->inGroup('superadmin')) {
-            return redirect()->to('users')->with('error', 'Accréditation insuffisante pour modifier cette cible.');
+            return redirect()->to('a/u')->with('error', 'Accréditation insuffisante pour modifier cette cible.');
         }
 
         $availableGroups = implode(',', array_keys(config('AuthGroups')->groups));
@@ -126,7 +126,7 @@ class UserController extends BaseController
             if ('superadmin' === $newGroup && !$currentUser->inGroup('superadmin')) {
                 $audit->logAction('Alerte Sécurité', "Tentative d'élévation de privilèges vers SuperAdmin bloquée pour la cible ID {$id}.");
 
-                return redirect()->to('users')->with('error', 'Déploiement du grade Super Admin refusé.');
+                return redirect()->to('a/u')->with('error', 'Déploiement du grade Super Admin refusé.');
             }
             $user->syncGroups($newGroup);
             $logDetails .= "Nouveau groupe de sécurité assigné : [{$newGroup}].";
@@ -134,7 +134,7 @@ class UserController extends BaseController
 
         $audit->logAction('Modification Profil', $logDetails);
 
-        return redirect()->to('users')->with('message', 'Paramètres utilisateurs synchronisés.');
+        return redirect()->to('a/u')->with('message', 'Paramètres utilisateurs synchronisés.');
     }
 
     /**
@@ -150,21 +150,21 @@ class UserController extends BaseController
         $audit = new AuditLogModel();
 
         if (!$user) {
-            return redirect()->to('users')->with('error', 'Utilisateur introuvable.');
+            return redirect()->to('a/u')->with('error', 'Utilisateur introuvable.');
         }
 
         if ($id == $currentUser->id) {
-            return redirect()->to('users')->with('error', 'Auto-neutralisation impossible.');
+            return redirect()->to('a/u')->with('error', 'Auto-neutralisation impossible.');
         }
 
         if ($user->inGroup('superadmin') && !$currentUser->inGroup('superadmin')) {
-            return redirect()->to('users')->with('error', 'Accréditation insuffisante pour interdire ce profil.');
+            return redirect()->to('a/u')->with('error', 'Accréditation insuffisante pour interdire ce profil.');
         }
 
         $user->ban("Accès révoqué par l'administration.");
         $audit->logAction('Sanction : Bannissement', "Le compte ID {$id} ('{$user->username}') a été suspendu de la plateforme.");
 
-        return redirect()->to('users')->with('message', 'Le profil a été suspendu avec succès. Ses cartes ont été conservées.');
+        return redirect()->to('a/u')->with('message', 'Le profil a été suspendu avec succès. Ses cartes ont été conservées.');
     }
 
     /**
@@ -180,16 +180,16 @@ class UserController extends BaseController
         $audit = new AuditLogModel();
 
         if (!$user) {
-            return redirect()->to('users')->with('error', 'Utilisateur introuvable.');
+            return redirect()->to('a/u')->with('error', 'Utilisateur introuvable.');
         }
 
         if ($user->inGroup('superadmin') && !$currentUser->inGroup('superadmin')) {
-            return redirect()->to('users')->with('error', 'Accréditation insuffisante pour réhabiliter ce profil.');
+            return redirect()->to('a/u')->with('error', 'Accréditation insuffisante pour réhabiliter ce profil.');
         }
 
         $user->unBan();
         $audit->logAction('Réhabilitation Compte', "Le bannissement du compte ID {$id} ('{$user->username}') a été levé.");
 
-        return redirect()->to('users')->with('message', "Le compte a été réhabilité. L'utilisateur peut à nouveau se connecter et accorder ses cartes.");
+        return redirect()->to('a/u')->with('message', "Le compte a été réhabilité. L'utilisateur peut à nouveau se connecter et accorder ses cartes.");
     }
 }

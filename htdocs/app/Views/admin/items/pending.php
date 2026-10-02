@@ -43,9 +43,9 @@
                         <div class="action-links">
                             <a href="<?php echo base_url('m/'.$item->id); ?>"
                                 class="btn-action btn-edit">Examiner</a>
-                            <a href="<?php echo base_url('items/approve/'.$item->id); ?>" class="btn-action"
+                            <a href="<?php echo base_url('a/i/'.$item->id); ?>" class="btn-action"
                                 style="background:var(--success); color:#fff;">Valider</a>
-                            <a href="<?php echo base_url('items/reject/'.$item->id); ?>" class="btn-action btn-ban"
+                            <a href="<?php echo base_url('a/i/'.$item->id.'/x'); ?>" class="btn-action btn-ban"
                                 onclick="return confirm('Refuser cette carte ? Elle redeviendra privée.')">Refuser</a>
                         </div>
                     </td>
@@ -145,10 +145,10 @@
 
                     <td>
                         <div class="action-links">
-                            <a href="<?php echo base_url('items/approve-revision/'.$revision['id']); ?>"
+                            <a href="<?php echo base_url('a/v/'.$revision['id']); ?>"
                                 class="btn-action" style="background:var(--success); color:#fff;"
                                 onclick="return confirm('Approuver cette modification ? Elle écrasera la version publique actuelle.')">Approuver</a>
-                            <a href="<?php echo base_url('items/reject-revision/'.$revision['id']); ?>"
+                            <a href="<?php echo base_url('a/v/'.$revision['id'].'/x'); ?>"
                                 class="btn-action btn-ban"
                                 onclick="return confirm('Refuser cette modification ? Elle sera rejetée sans impacter la carte publique.')">Refuser</a>
                         </div>

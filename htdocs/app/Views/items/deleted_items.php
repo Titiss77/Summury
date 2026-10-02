@@ -12,11 +12,11 @@
 
         <?php if (!empty($deletedItems)) { ?>
         <div style="display: flex; gap: 10px;">
-            <a href="<?php echo base_url('items/restore-all'); ?>" class="btn btn-success"
+            <a href="<?php echo base_url('ra'); ?>" class="btn btn-success"
                 onclick="return confirm('Êtes-vous sûr de vouloir restaurer TOUTES les cartes de la corbeille ?');">
                 Tout restaurer
             </a>
-            <a href="<?php echo base_url('items/empty-trash'); ?>" class="btn"
+            <a href="<?php echo base_url('re'); ?>" class="btn"
                 style="background-color: var(--danger); color: #fff;"
                 onclick="return confirm('ATTENTION ACTION IRRÉVERSIBLE !\nÊtes-vous sûr de vouloir détruire DÉFINITIVEMENT toutes les cartes de cette page ?');">
                 Tout détruire
@@ -84,11 +84,11 @@
             </a>
 
             <div class="card-actions-bottom" style="justify-content: space-between;">
-                <a href="<?php echo base_url('item/restore/'.$item->id); ?>" class="btn-icon btn-edit-sm"
+                <a href="<?php echo base_url('rr/'.$item->id); ?>" class="btn-icon btn-edit-sm"
                     style="color: var(--success); font-weight: bold;">
                     Restaurer
                 </a>
-                <a href="<?php echo base_url('item/permanent-delete/'.$item->id); ?>"
+                <a href="<?php echo base_url('rd/'.$item->id); ?>"
                     onclick="return confirm('Êtes-vous sûr de vouloir détruire définitivement cette carte ?');"
                     class="btn-icon btn-delete-sm" style="color: var(--danger);">
                     Détruire

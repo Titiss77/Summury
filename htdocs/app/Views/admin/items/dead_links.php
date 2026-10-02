@@ -40,7 +40,7 @@
             associés en conservant les structures de chapitres/épisodes.
         </p>
 
-        <form action="<?php echo base_url('items/bulk-update-domain'); ?>" method="post"
+        <form action="<?php echo base_url('a/b'); ?>" method="post"
             style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <?php echo csrf_field(); ?>
             <select name="old_domain" required
@@ -96,7 +96,7 @@
                                 class="btn-action btn-edit">Mettre à jour manuellement</a>
                             <a href="<?php echo esc($item['url_testee']); ?>" target="_blank" class="btn-action"
                                 style="background: var(--text-muted); color: #fff;">Tester</a>
-                            <a href="<?php echo base_url('items/delete/'.$item['item_id']); ?>"
+                            <a href="<?php echo base_url('a/d/'.$item['item_id']); ?>"
                                 class="btn-action btn-ban"
                                 onclick="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cette carte ainsi que tout son historique ? Cette action est irréversible.')"
                                 style="background-color: var(--danger); color: #fff;">Supprimer la carte</a>

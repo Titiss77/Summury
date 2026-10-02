@@ -108,7 +108,7 @@
         <div class="card-body">
             <h3 style="margin-top: 0;">Changer mon mot de passe</h3>
 
-            <form action="<?php echo base_url('profile/update-password'); ?>" method="POST" style="margin-top: 15px;">
+            <form action="<?php echo base_url('pw'); ?>" method="POST" style="margin-top: 15px;">
                 <?php echo csrf_field(); ?>
 
                 <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
