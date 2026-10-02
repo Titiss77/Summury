@@ -71,7 +71,10 @@ class HomeController extends BaseController
         // Récupération des compteurs d'administration et des révisions pour les utilisateurs connectés
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
-            $pendingRevisionIds = $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? [];
+            $pendingRevisionIds = array_fill_keys(
+                array_map('intval', $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? []),
+                true,
+            );
 
             // Cartes dont la date de sortie vient de passer dans les 7 derniers jours
             $passedReleases = $model->select('item.*, d.nom')

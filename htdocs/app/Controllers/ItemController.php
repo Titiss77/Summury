@@ -494,9 +494,10 @@ class ItemController extends BaseController
 
         $pendingRevisionIds = [];
         if (auth()->loggedIn()) {
-            $pendingRevisionIds = $revisionModel->where('revision_status', 'pending')
-                ->findColumn('original_item_id') ?? []
-            ;
+            $pendingRevisionIds = array_fill_keys(
+                array_map('intval', $revisionModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? []),
+                true,
+            );
         }
 
         $supportedDomains = $siteConfigModel->where('is_active', 1)

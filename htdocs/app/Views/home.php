@@ -285,7 +285,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <!-- Étiquette si brouillon ou en attente d'approbation -->
                                             <?php
                                     $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-                                    $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
+                                    $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
                                     if ($isPendingNew || $hasPendingRevision) { ?>
                                             <div
                                                 style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">

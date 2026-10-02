@@ -17,27 +17,20 @@ class ProfileController extends BaseController
         $user = auth()->user();
         $itemModel = new ItemModel();
 
-        $totalItems = $itemModel->where('id_user', $user->id)->countAllResults();
-        $publicItems = $itemModel->where('id_user', $user->id)->where('is_public', 1)->countAllResults();
-
-        $statusAVoir = $itemModel->where('id_user', $user->id)->where('status', 'À voir')->countAllResults();
-        $statusEnCours = $itemModel->where('id_user', $user->id)->where('status', 'En cours')->countAllResults();
-        $statusEnPause = $itemModel->where('id_user', $user->id)->where('status', 'En pause')->countAllResults();
-        $statusTermine = $itemModel->where('id_user', $user->id)->where('status', 'Terminé')->countAllResults();
-        $statusAucun = $itemModel->where('id_user', $user->id)->where('status', 'Aucun')->countAllResults();
+        $counts = $itemModel->getUserDashboardCounts((int) $user->id);
 
         $episodesStats = $itemModel->getGlobalEpisodesStats($user->id);
         $inProgressSeries = $itemModel->getInProgressSeriesStats($user->id);
 
         $data = [
             'user'          => $user,
-            'totalItems'    => $totalItems,
-            'publicItems'   => $publicItems,
-            'statusAVoir'   => $statusAVoir,
-            'statusEnCours' => $statusEnCours,
-            'statusEnPause' => $statusEnPause,
-            'statusTermine' => $statusTermine,
-            'statusAucun'   => $statusAucun,
+            'totalItems'    => $counts['total_items'] ?? 0,
+            'publicItems'   => $counts['public_items'] ?? 0,
+            'statusAVoir'   => $counts['status_a_voir'] ?? 0,
+            'statusEnCours' => $counts['status_en_cours'] ?? 0,
+            'statusEnPause' => $counts['status_en_pause'] ?? 0,
+            'statusTermine' => $counts['status_termine'] ?? 0,
+            'statusAucun'   => $counts['status_aucun'] ?? 0,
 
             // Nouvelles variables injectées vers la vue
             'totalSeries'         => $episodesStats->total_series ?? 0,

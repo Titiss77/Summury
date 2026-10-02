@@ -200,4 +200,25 @@ class ItemModel extends Model
                     ->whereIn('id_division', ['1', '4'])
                     ->findAll();
     }
+
+    /**
+     * Retourne les compteurs du profil en une seule requête.
+     */
+    public function getUserDashboardCounts(int $userId): array
+    {
+        $row = $this->db->table($this->table)
+            ->select('COUNT(*) AS total_items', false)
+            ->select('SUM(CASE WHEN is_public = 1 THEN 1 ELSE 0 END) AS public_items', false)
+            ->select('SUM(CASE WHEN status = "À voir" THEN 1 ELSE 0 END) AS status_a_voir', false)
+            ->select('SUM(CASE WHEN status = "En cours" THEN 1 ELSE 0 END) AS status_en_cours', false)
+            ->select('SUM(CASE WHEN status = "En pause" THEN 1 ELSE 0 END) AS status_en_pause', false)
+            ->select('SUM(CASE WHEN status = "Terminé" THEN 1 ELSE 0 END) AS status_termine', false)
+            ->select('SUM(CASE WHEN status = "Aucun" THEN 1 ELSE 0 END) AS status_aucun', false)
+            ->where('id_user', $userId)
+            ->where('deleted_at IS NULL', null, false)
+            ->get()
+            ->getRowArray();
+
+        return array_map('intval', $row ?? []);
+    }
 }

@@ -54,7 +54,7 @@
 
                 <?php
             $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-        $hasPendingRevision = (isset($pendingRevisionIds) && in_array($item->id, $pendingRevisionIds));
+        $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
 
         if ($isPendingNew || $hasPendingRevision) {
             ?>
