@@ -979,6 +979,84 @@ select.form-control[hidden] {
     pointer-events: none !important;
 }
 
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile-container .header-title {
+    margin-bottom: 2rem;
+}
+
+.profile-card {
+    margin-bottom: 2rem;
+}
+
+.profile-card h3 {
+    margin-top: 0;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.profile-stats p,
+.profile-summary p {
+    margin: 0;
+}
+
+.profile-summary {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.profile-series-section+.profile-series-section {
+    margin-top: 35px;
+}
+
+.profile-series-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.profile-table-center {
+    text-align: center;
+}
+
+.profile-table-empty {
+    padding: 12px;
+    text-align: center;
+}
+
+.profile-empty {
+    color: var(--text-muted);
+}
+
+.profile-not-synced {
+    color: var(--text-muted);
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+.profile-password-form {
+    margin-top: 15px;
+}
+
+.profile-password-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.profile-password-form .form-actions {
+    margin-top: 2rem;
+    border-top: none;
+}
+
 /* =========================================
    RÈGLES RESPONSIVES (MEDIA QUERIES)
    ========================================= */

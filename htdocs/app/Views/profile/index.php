@@ -2,212 +2,307 @@
 <?php echo $this->section('content'); ?>
 
 <div class="actions-container">
-    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
+    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">
+        Retour aux cartes
+    </a>
 </div>
 
-<div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
-    <h2 class="header-title" style="margin-bottom: 2rem;">Mon Profil</h2>
+<div class="container profile-container">
 
-    <?php if (session()->has('message')) { ?>
-    <div class="alert alert-success"><?php echo session('message'); ?></div>
-    <?php } ?>
-    <?php if (session()->has('error')) { ?>
-    <div class="alert alert-danger"><?php echo session('error'); ?></div>
-    <?php } ?>
-    <?php if (session()->has('errors')) { ?>
+    <h2 class="header-title">Mon Profil</h2>
+
+    <?php if (session()->has('message')): ?>
+    <div class="alert alert-success">
+        <?php echo esc(session('message')); ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (session()->has('error')): ?>
     <div class="alert alert-danger">
-        <ul style="margin:0; padding-left:20px;">
-            <?php foreach (session('errors') as $error) { ?>
+        <?php echo esc(session('error')); ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (session()->has('errors')): ?>
+    <div class="alert alert-danger">
+        <ul>
+            <?php foreach (session('errors') as $error): ?>
             <li><?php echo esc($error); ?></li>
-            <?php } ?>
+            <?php endforeach; ?>
         </ul>
     </div>
-    <?php } ?>
+    <?php endif; ?>
 
-    <div class="card shadow-card" style="margin-bottom: 2rem;">
+
+    <!-- INFORMATIONS DU COMPTE -->
+    <div class="card shadow-card profile-card">
         <div class="card-body">
-            <h3 style="margin-top: 0;">Informations du compte</h3>
-            <p><strong>Nom d'utilisateur :</strong> <?php echo esc($user->username); ?></p>
-            <p><strong>Adresse e-mail :</strong> <?php echo esc($user->email); ?></p>
+
+            <h3>Informations du compte</h3>
+
+            <p>
+                <strong>Nom d'utilisateur :</strong>
+                <?php echo esc($user->username); ?>
+            </p>
+
+            <p>
+                <strong>Adresse e-mail :</strong>
+                <?php echo esc($user->email); ?>
+            </p>
+
         </div>
     </div>
 
-    <!-- 1. Ajoute les badges globaux à ton conteneur flex existant (vers la ligne 28) -->
-    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
-        <p style="margin: 0;"><strong>Total de cartes en lignes:</strong> <span
-                class="badge badge-episode"><?php echo esc($totalItems); ?></span></p>
-        <p style="margin: 0;"><strong>Vos cartes publiques :</strong> <span
-                class="badge badge-season"><?php echo esc($publicItems); ?></span></p>
+
+    <!-- STATISTIQUES DES CARTES -->
+    <div class="profile-stats">
+
+        <p>
+            <strong>Total de cartes en ligne :</strong>
+            <span class="badge badge-episode">
+                <?php echo esc($totalItems); ?>
+            </span>
+        </p>
+
+        <p>
+            <strong>Vos cartes publiques :</strong>
+            <span class="badge badge-season">
+                <?php echo esc($publicItems); ?>
+            </span>
+        </p>
+
     </div>
 
-    <!-- 2. Ajoute la nouvelle section détaillant les œuvres en cours -->
-    <div class="card shadow-card" style="margin-bottom: 2rem;">
+
+    <!-- SÉRIES -->
+    <?php
+    $hasSeries =
+        !empty($inProgressEnCoursSeries) ||
+        !empty($inProgressEnPauseSeries);
+    ?>
+
+    <div class="card shadow-card profile-card">
+
         <div class="card-body">
-            <?php if (empty($inProgressEnCoursSeries) && empty($inProgressEnPauseSeries)) { ?>
-            <p style="color: var(--text-muted);">Aucune série ou animé en cours de visionnage avec un total d'épisodes
-                défini.</p>
-            <?php } else { ?>
-            <h3 style="margin-top: 0; margin-bottom: 15px;">Séries en cours</h3>
-            <p style="margin: 0 0 0 1rem;">Épisodes restants : <span class="badge"
-                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalEpisodesEnCours); ?></span>
+
+            <?php if (!$hasSeries): ?>
+
+            <p class="profile-empty">
+                Aucune série ou animé en cours de visionnage avec
+                un total d'épisodes défini.
             </p>
-            <p style="margin: 0 0 0 1rem;">Saisons restantes : <span class="badge"
-                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalSeriesEnCours); ?></span>
-            </p>
-            <div class="admin-table-container fade-in">
-                <table class="admin-table" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr
-                            style="background-color: var(--bg-body); border-bottom: 2px solid var(--border-color); color: var(--text-main);">
-                            <th style="padding: 12px; text-align: left;">Titre</th>
-                            <th style="padding: 12px; text-align: center;">Épisodes restants</th>
-                            <th style="padding: 12px; text-align: center;">Saisons restantes</th>
-                        </tr>
-                    </thead>
-                    <?php if (empty($inProgressEnCoursSeries)) { ?>
-                    <tbody>
-                        <tr>
-                            <td colspan="3" style="padding: 12px; text-align: center;">
-                                Aucune série en cours
-                            </td>
-                        </tr>
-                    </tbody>
-                    <?php }?>
-                    <tbody>
-                        <?php foreach ($inProgressEnCoursSeries as $series) { ?>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <!-- Colonne 1 : Titre -->
-                            <td style="padding: 12px;">
-                                <strong><?php echo esc($series->titre); ?></strong>
-                            </td>
 
-                            <!-- Colonne 2 : Épisodes restants (Vue globale) -->
-                            <td style="padding: 12px; text-align: center;">
-                                <?php if (isset($series->vu_global) && isset($series->reste_global)) { ?>
-                                <span class="badge badge-episode"
-                                    style="background-color: var(--warning); color: var(--text-main);">
-                                    Reste : <?php echo esc($series->reste_global); ?>
-                                </span>
-                                <?php } else { ?>
-                                <span style="color: var(--text-muted); font-size: 0.85em; font-style: italic;">
-                                    Non synchronisé
-                                </span>
-                                <?php } ?>
-                            </td>
+            <?php else: ?>
 
-                            <!-- Colonne 3 : Saisons restantes -->
-                            <td style="padding: 12px; text-align: center;">
-                                <?php if (!empty($series->total_saisons) && !empty($series->saison)) { ?>
-                                <span class="badge badge-season"><?php echo esc($series->reste_s); ?></span>
-                                <?php } else { ?>
-                                <span style="color: var(--text-muted);">-</span>
-                                <?php } ?>
-                            </td>
-                        </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
+            <?php
+                $seriesSections = [
+                    [
+                        'title' => 'Séries en cours',
+                        'series' => $inProgressEnCoursSeries,
+                        'episodes' => $totalEpisodesEnCours,
+                        'seasons' => $totalSeriesEnCours,
+                        'empty' => 'Aucune série en cours',
+                    ],
+                    [
+                        'title' => 'Séries en pause',
+                        'series' => $inProgressEnPauseSeries,
+                        'episodes' => $totalEpisodesEnPause,
+                        'seasons' => $totalSeriesEnPause,
+                        'empty' => 'Aucune série en pause',
+                    ],
+                ];
+                ?>
+
+            <?php foreach ($seriesSections as $section): ?>
+
+            <section class="profile-series-section">
+
+                <h3>
+                    <?php echo esc($section['title']); ?>
+                </h3>
+
+                <div class="profile-summary">
+
+                    <p>
+                        Épisodes restants :
+                        <span class="badge badge-episode">
+                            <?php echo esc($section['episodes']); ?>
+                        </span>
+                    </p>
+
+                    <p>
+                        Saisons restantes :
+                        <span class="badge badge-season">
+                            <?php echo esc($section['seasons']); ?>
+                        </span>
+                    </p>
+
+                </div>
 
 
-            <h3 style="margin-top: 0; margin-bottom: 15px;">Séries en pause</h3>
-            <p style="margin: 0 0 0 1rem;">Épisodes restants : <span class="badge"
-                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalEpisodesEnPause); ?></span>
-            </p>
-            <p style="margin: 0 0 0 1rem;">Saisons restantes : <span class="badge"
-                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalSeriesEnPause); ?></span>
-            </p>
-            <div class="admin-table-container fade-in">
-                <table class="admin-table" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr
-                            style="background-color: var(--bg-body); border-bottom: 2px solid var(--border-color); color: var(--text-main);">
-                            <th style="padding: 12px; text-align: left;">Titre</th>
-                            <th style="padding: 12px; text-align: center;">Épisodes restants</th>
-                            <th style="padding: 12px; text-align: center;">Saisons restantes</th>
-                        </tr>
-                    </thead>
-                    <?php if (empty($inProgressEnPauseSeries)) { ?>
-                    <tbody>
-                        <tr>
-                            <td colspan="3" style="padding: 12px; text-align: center;">
-                                Aucune série en pause
-                            </td>
-                        </tr>
-                    </tbody>
-                    <?php }?>
-                    <tbody>
-                        <?php foreach ($inProgressEnPauseSeries as $series) { ?>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <!-- Colonne 1 : Titre -->
-                            <td style="padding: 12px;">
-                                <strong><?php echo esc($series->titre); ?></strong>
-                            </td>
+                <div class="admin-table-container fade-in">
 
-                            <!-- Colonne 2 : Épisodes restants (Vue globale) -->
-                            <td style="padding: 12px; text-align: center;">
-                                <?php if (isset($series->vu_global) && isset($series->reste_global)) { ?>
-                                <span class="badge badge-episode"
-                                    style="background-color: var(--warning); color: var(--text-main);">
-                                    Reste : <?php echo esc($series->reste_global); ?>
-                                </span>
-                                <?php } else { ?>
-                                <span style="color: var(--text-muted); font-size: 0.85em; font-style: italic;">
-                                    Non synchronisé
-                                </span>
-                                <?php } ?>
-                            </td>
+                    <table class="admin-table profile-series-table">
 
-                            <!-- Colonne 3 : Saisons restantes -->
-                            <td style="padding: 12px; text-align: center;">
-                                <?php if (!empty($series->total_saisons) && !empty($series->saison)) { ?>
-                                <span class="badge badge-season"><?php echo esc($series->reste_s); ?></span>
-                                <?php } else { ?>
-                                <span style="color: var(--text-muted);">-</span>
-                                <?php } ?>
-                            </td>
-                        </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
-            <?php } ?>
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Épisodes restants</th>
+                                <th>Saisons restantes</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <?php if (empty($section['series'])): ?>
+
+                            <tr>
+                                <td colspan="3" class="profile-table-empty">
+                                    <?php echo esc($section['empty']); ?>
+                                </td>
+                            </tr>
+
+                            <?php else: ?>
+
+                            <?php foreach ($section['series'] as $series): ?>
+
+                            <tr>
+
+                                <td>
+                                    <strong>
+                                        <?php echo esc($series->titre); ?>
+                                    </strong>
+                                </td>
+
+
+                                <td class="profile-table-center">
+
+                                    <?php if ($series->reste_global !== null): ?>
+
+                                    <span class="badge badge-episode">
+                                        Reste :
+                                        <?php echo esc($series->reste_global); ?>
+                                    </span>
+
+                                    <?php else: ?>
+
+                                    <span class="profile-not-synced">
+                                        Non synchronisé
+                                    </span>
+
+                                    <?php endif; ?>
+
+                                </td>
+
+
+                                <td class="profile-table-center">
+
+                                    <?php if ($series->reste_s !== null): ?>
+
+                                    <span class="badge badge-season">
+                                        <?php echo esc($series->reste_s); ?>
+                                    </span>
+
+                                    <?php else: ?>
+
+                                    <span class="profile-not-synced">
+                                        -
+                                    </span>
+
+                                    <?php endif; ?>
+
+                                </td>
+
+                            </tr>
+
+                            <?php endforeach; ?>
+
+                            <?php endif; ?>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <?php endforeach; ?>
+
+            <?php endif; ?>
+
         </div>
+
     </div>
 
-    <div class="card shadow-card">
-        <div class="card-body">
-            <h3 style="margin-top: 0;">Changer mon mot de passe</h3>
 
-            <form action="<?php echo base_url('pw'); ?>" method="POST" style="margin-top: 15px;">
+    <!-- MOT DE PASSE -->
+    <div class="card shadow-card profile-card">
+
+        <div class="card-body">
+
+            <h3>Changer mon mot de passe</h3>
+
+            <form action="<?php echo base_url('pw'); ?>" method="POST" class="profile-password-form">
+
                 <?php echo csrf_field(); ?>
 
-                <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
-                    <label for="current_password" class="form-label">Mot de passe actuel</label>
+
+                <div class="form-group password-wrapper">
+
+                    <label for="current_password" class="form-label">
+                        Mot de passe actuel
+                    </label>
+
                     <input type="password" id="current_password" name="current_password" class="form-control" required>
+
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+
                 </div>
 
-                <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
-                    <label for="new_password" class="form-label">Nouveau mot de passe</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" required
-                        minlength="8">
+
+                <div class="form-group password-wrapper">
+
+                    <label for="new_password" class="form-label">
+                        Nouveau mot de passe
+                    </label>
+
+                    <input type="password" id="new_password" name="new_password" class="form-control" minlength="8"
+                        required>
+
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+
                 </div>
 
-                <div class="form-group password-wrapper" style="margin-bottom: 1.5rem;">
-                    <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required
-                        minlength="8">
+
+                <div class="form-group password-wrapper">
+
+                    <label for="confirm_password" class="form-label">
+                        Confirmer le nouveau mot de passe
+                    </label>
+
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                        minlength="8" required>
+
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+
                 </div>
 
-                <div class="form-actions" style="margin-top: 2rem; border-top: none;">
-                    <button type="submit" class="btn btn-primary">Mettre à jour le mot de passe</button>
+
+                <div class="form-actions">
+
+                    <button type="submit" class="btn btn-primary">
+                        Mettre à jour le mot de passe
+                    </button>
+
                 </div>
+
             </form>
+
         </div>
+
     </div>
+
 </div>
 
 <?php echo $this->endSection(); ?>

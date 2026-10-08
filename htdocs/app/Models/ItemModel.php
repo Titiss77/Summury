@@ -16,15 +16,32 @@ class ItemModel extends Model
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = Item::class;
+
     protected $allowedFields = [
-        'id_user', 'id_division', 'sous_categorie', 'titre', 'titre_original', 'status',
-        'is_public', 'description', 'date_sortie', 'image', 'lien',
-        'link_status', 'saison', 'total_saisons', 'episode', 'total_episodes', 'position',
-        'episode_global', 'total_episodes_global'
+        'id_user',
+        'id_division',
+        'sous_categorie',
+        'titre',
+        'titre_original',
+        'status',
+        'is_public',
+        'description',
+        'date_sortie',
+        'image',
+        'lien',
+        'link_status',
+        'saison',
+        'total_saisons',
+        'episode',
+        'total_episodes',
+        'position',
+        'episode_global',
+        'total_episodes_global',
     ];
 
-    // Active la corbeille au lieu de la suppression définitive (Soft Deletes)
+    // Active la corbeille au lieu de la suppression définitive.
     protected $useSoftDeletes = true;
+
     protected $useTimestamps = true;
     protected $dateFormat = 'datetime';
     protected $createdField = 'created_at';
@@ -32,55 +49,55 @@ class ItemModel extends Model
     protected $deletedField = 'deleted_at';
 
     /**
-     * Récupère les cartes triées et structurées par Onglet (Header) > Division > Sous-catégorie.
+     * Récupère les cartes triées et structurées par Onglet > Division > Sous-catégorie.
      *
      * @param null|mixed $userId
      * @param null|mixed $headerId
      */
-    public function getItemsGroupedByHeaderAndDivision($userId = null, $headerId = null)
-    {
-        $builder = $this->db->table('item i')
+    public function getItemsGroupedByHeaderAndDivision(
+        $userId = null,
+        $headerId = null
+    ) {
+        $builder = $this->db
+            ->table('item i')
             ->select('h.nom AS header_nom, d.nom AS division_nom, i.*')
             ->join('division d', 'i.id_division = d.id')
             ->join('header h', 'd.id_header = h.id')
             ->where('i.id_user !=', 0)
-            ->where('i.deleted_at IS NULL')
-        ;
+            ->where('i.deleted_at IS NULL');
 
-        // Filtre de visibilité : Cartes publiques pour les visiteurs, ou mixtes pour le propriétaire
+        // Cartes publiques pour les visiteurs,
+        // cartes personnelles + publiques pour le propriétaire.
         if (null === $userId) {
             $builder->where('i.is_public', 1);
         } else {
-            $builder->groupStart()
-                ->where('i.id_user', $userId)
-                ->orWhere('i.is_public', 1)
-                ->groupEnd()
-            ;
+            $builder
+                ->groupStart()
+                    ->where('i.id_user', $userId)
+                    ->orWhere('i.is_public', 1)
+                ->groupEnd();
         }
 
         if (null !== $headerId) {
             $builder->where('h.id', $headerId);
         }
 
-        $builder->orderBy('h.id', 'ASC')->orderBy('d.id', 'ASC')->orderBy('i.position', 'ASC');
-        $results = $builder->get()->getCustomResultObject(Item::class);
+        $results = $builder
+            ->orderBy('h.id', 'ASC')
+            ->orderBy('d.id', 'ASC')
+            ->orderBy('i.position', 'ASC')
+            ->get()
+            ->getCustomResultObject(Item::class);
 
-        // Structuration des données pour l'affichage dans la vue
         $groupedData = [];
+
         foreach ($results as $item) {
             $header = $item->header_nom;
             $division = $item->division_nom;
-            $subCat = empty($item->sous_categorie) ? 'Sans sous-catégorie' : $item->sous_categorie;
+            $subCat = empty($item->sous_categorie)
+                ? 'Sans sous-catégorie'
+                : $item->sous_categorie;
 
-            if (!isset($groupedData[$header])) {
-                $groupedData[$header] = [];
-            }
-            if (!isset($groupedData[$header][$division])) {
-                $groupedData[$header][$division] = [];
-            }
-            if (!isset($groupedData[$header][$division][$subCat])) {
-                $groupedData[$header][$division][$subCat] = [];
-            }
             $groupedData[$header][$division][$subCat][] = $item;
         }
 
@@ -88,61 +105,72 @@ class ItemModel extends Model
     }
 
     /**
-     * Récupère uniquement les onglets (Headers) contenant au moins une carte visible.
+     * Récupère uniquement les onglets contenant au moins une carte visible.
      *
      * @param null|mixed $userId
      */
     public function getActiveHeaders($userId = null)
     {
-        $builder = $this->db->table('header h')
+        $builder = $this->db
+            ->table('header h')
             ->select('h.*')
             ->distinct()
             ->join('division d', 'd.id_header = h.id')
             ->join('item i', 'i.id_division = d.id')
             ->where('i.deleted_at IS NULL')
-            ->where('i.id_user !=', 0)
-        ;
+            ->where('i.id_user !=', 0);
 
         if (null === $userId) {
             $builder->where('i.is_public', 1);
         } else {
-            $builder->groupStart()
-                ->where('i.id_user', $userId)
-                ->orWhere('i.is_public', 1)
-                ->groupEnd()
-            ;
+            $builder
+                ->groupStart()
+                    ->where('i.id_user', $userId)
+                    ->orWhere('i.is_public', 1)
+                ->groupEnd();
         }
 
-        return $builder->orderBy('h.id', 'ASC')->get()->getResultArray();
+        return $builder
+            ->orderBy('h.id', 'ASC')
+            ->get()
+            ->getResultArray();
     }
 
     /**
-     * Récupère toutes les divisions (pour les formulaires).
+     * Récupère toutes les divisions.
      */
     public function getDivisions()
     {
-        return $this->db->table('division')->orderBy('id', 'ASC')->get()->getResultArray();
+        return $this->db
+            ->table('division')
+            ->orderBy('id', 'ASC')
+            ->get()
+            ->getResultArray();
     }
 
     /**
-     * Récupère tous les onglets, même vides (pour les formulaires).
+     * Récupère tous les onglets.
      */
     public function getHeaders()
     {
-        return $this->db->table('header')->orderBy('id', 'ASC')->get()->getResultArray();
+        return $this->db
+            ->table('header')
+            ->orderBy('id', 'ASC')
+            ->get()
+            ->getResultArray();
     }
 
     /**
-     * Récupère les cartes publiques appartenant à des utilisateurs standards (transférables à l'admin).
+     * Récupère les cartes publiques appartenant à des utilisateurs standards.
      */
     public function checkToGlobal()
     {
-        return $this->where('id_division <=', 11)
+        return $this
+            ->where('id_division <=', 11)
             ->where('is_public', 1)
-            ->where('id_user !=', 1) // On exclut celles déjà possédées par le SuperAdmin
+            ->where('id_user !=', 1)
             ->orderBy('created_at', 'DESC')
-            ->findAll()
-        ;
+            ->findAll();
     }
 
     /**
@@ -152,107 +180,232 @@ class ItemModel extends Model
      */
     public function getDeletedItems($userId = null)
     {
-        $builder = $this->db->table('item i')
+        $builder = $this->db
+            ->table('item i')
             ->select('u.username AS author_name, i.*')
             ->join('users u', 'i.id_user = u.id', 'left')
-            ->where('i.deleted_at IS NOT NULL')
-        ;
+            ->where('i.deleted_at IS NOT NULL');
 
         if (null !== $userId) {
             $builder->where('i.id_user', $userId);
         }
 
-        $builder->orderBy('i.deleted_at', 'DESC');
-
-        return $builder->get()->getCustomResultObject(Item::class);
+        return $builder
+            ->orderBy('i.deleted_at', 'DESC')
+            ->get()
+            ->getCustomResultObject(Item::class);
     }
 
     /**
-     * Récupère le total global des épisodes visionnés et restants de manière intelligente.
+     * Récupère toutes les statistiques nécessaires au profil
+     * avec UNE SEULE requête SQL.
      */
-    public function getGlobalEpisodesEnCoursStats(int $userId)
+    public function getUserProfileStats(int $userId): array
     {
-        return $this->select('
-        SUM(CASE WHEN status = "Terminé" 
-            THEN 0 WHEN COALESCE(total_episodes_global, total_episodes) IS NOT NULL 
-            THEN COALESCE(total_episodes_global, total_episodes) - COALESCE(episode_global, episode, 1) + 1 
-            ELSE 0 END) as total_episodes, 
-        SUM(total_saisons-saison+1) as total_series
-        ')
-        ->where('id_user', $userId)
-        ->whereIn('status', ['En cours'])
-        ->whereIn('id_division', ['1', '4'])
-        ->where('episode IS NOT NULL')
-        ->where('total_episodes IS NOT NULL')
-        ->first();
-    }
+        $syncedCondition = "
+            id_division IN (1, 4)
+            AND episode IS NOT NULL
+            AND total_episodes IS NOT NULL
+        ";
 
-    /**
-     * Récupère le total global des épisodes visionnés et restants de manière intelligente.
-     */
-    public function getGlobalEpisodesEnPauseStats(int $userId)
-    {
-        return $this->select('
-        SUM(CASE WHEN status = "Terminé" 
-            THEN 0 WHEN COALESCE(total_episodes_global, total_episodes) IS NOT NULL 
-            THEN COALESCE(total_episodes_global, total_episodes) - COALESCE(episode_global, episode, 1) + 1 
-            ELSE 0 END) as total_episodes, 
-        SUM(total_saisons-saison+1) as total_series
-        ')
-        ->where('id_user', $userId)
-        ->whereIn('status', ['En pause'])
-        ->whereIn('id_division', ['1', '4'])
-        ->where('episode IS NOT NULL')
-        ->where('total_episodes IS NOT NULL')
-        ->first();
-    }
+        $enCoursCondition = "
+            status = 'En cours'
+            AND {$syncedCondition}
+        ";
 
-    /**
-     * Récupère le détail des séries "En cours" avec le calcul exact des épisodes/saisons restants.
-     */
-    public function getInProgressSeriesEnCoursStats(int $userId)
-    {
-        // vu_global = episode_global - 1
-        // reste_global = total_episodes_global - episode_global + 1
-        return $this->select('titre, (episode_global - 1) as vu_global, total_episodes_global, saison, total_saisons, (total_episodes_global - episode_global + 1) as reste_global, (total_saisons - saison + 1) as reste_s')
-                    ->where('id_user', $userId)
-                    ->whereIn('status', ['En cours'])
-                    ->whereIn('id_division', ['1', '4'])
-                    ->findAll();
-    }
+        $enPauseCondition = "
+            status = 'En pause'
+            AND {$syncedCondition}
+        ";
 
-    /**
-     * Récupère le détail des séries "En cours" avec le calcul exact des épisodes/saisons restants.
-     */
-    public function getInProgressSeriesEnPauseStats(int $userId)
-    {
-        // vu_global = episode_global - 1
-        // reste_global = total_episodes_global - episode_global + 1
-        return $this->select('titre, (episode_global - 1) as vu_global, total_episodes_global, saison, total_saisons, (total_episodes_global - episode_global + 1) as reste_global, (total_saisons - saison + 1) as reste_s')
-                    ->where('id_user', $userId)
-                    ->whereIn('status', ['En pause'])
-                    ->whereIn('id_division', ['1', '4'])
-                    ->findAll();
-    }
-
-    /**
-     * Retourne les compteurs du profil en une seule requête.
-     */
-    public function getUserDashboardCounts(int $userId): array
-    {
-        $row = $this->db->table($this->table)
+        $row = $this->db
+            ->table($this->table)
             ->select('COUNT(*) AS total_items', false)
-            ->select('SUM(CASE WHEN is_public = 1 THEN 1 ELSE 0 END) AS public_items', false)
-            ->select('SUM(CASE WHEN status = "À voir" THEN 1 ELSE 0 END) AS status_a_voir', false)
-            ->select('SUM(CASE WHEN status = "En cours" THEN 1 ELSE 0 END) AS status_en_cours', false)
-            ->select('SUM(CASE WHEN status = "En pause" THEN 1 ELSE 0 END) AS status_en_pause', false)
-            ->select('SUM(CASE WHEN status = "Terminé" THEN 1 ELSE 0 END) AS status_termine', false)
-            ->select('SUM(CASE WHEN status = "Aucun" THEN 1 ELSE 0 END) AS status_aucun', false)
+
+            ->select(
+                'SUM(CASE WHEN is_public = 1 THEN 1 ELSE 0 END) AS public_items',
+                false
+            )
+
+            ->select(
+                'SUM(CASE WHEN status = "À voir" THEN 1 ELSE 0 END) AS status_a_voir',
+                false
+            )
+
+            ->select(
+                'SUM(CASE WHEN status = "En cours" THEN 1 ELSE 0 END) AS status_en_cours',
+                false
+            )
+
+            ->select(
+                'SUM(CASE WHEN status = "En pause" THEN 1 ELSE 0 END) AS status_en_pause',
+                false
+            )
+
+            ->select(
+                'SUM(CASE WHEN status = "Terminé" THEN 1 ELSE 0 END) AS status_termine',
+                false
+            )
+
+            ->select(
+                'SUM(CASE WHEN status = "Aucun" THEN 1 ELSE 0 END) AS status_aucun',
+                false
+            )
+
+            // Épisodes restants : EN COURS
+            ->select(
+                "SUM(
+                    CASE
+                        WHEN {$enCoursCondition}
+                        THEN
+                            COALESCE(total_episodes_global, total_episodes)
+                            - COALESCE(episode_global, episode, 1)
+                            + 1
+                        ELSE 0
+                    END
+                ) AS total_episodes_en_cours",
+                false
+            )
+
+            // Saisons restantes : EN COURS
+            ->select(
+                "SUM(
+                    CASE
+                        WHEN {$enCoursCondition}
+                        THEN total_saisons - saison + 1
+                        ELSE 0
+                    END
+                ) AS total_series_en_cours",
+                false
+            )
+
+            // Épisodes restants : EN PAUSE
+            ->select(
+                "SUM(
+                    CASE
+                        WHEN {$enPauseCondition}
+                        THEN
+                            COALESCE(total_episodes_global, total_episodes)
+                            - COALESCE(episode_global, episode, 1)
+                            + 1
+                        ELSE 0
+                    END
+                ) AS total_episodes_en_pause",
+                false
+            )
+
+            // Saisons restantes : EN PAUSE
+            ->select(
+                "SUM(
+                    CASE
+                        WHEN {$enPauseCondition}
+                        THEN total_saisons - saison + 1
+                        ELSE 0
+                    END
+                ) AS total_series_en_pause",
+                false
+            )
+
             ->where('id_user', $userId)
             ->where('deleted_at IS NULL', null, false)
             ->get()
             ->getRowArray();
 
-        return array_map('intval', $row ?? []);
+        $defaults = [
+            'total_items' => 0,
+            'public_items' => 0,
+            'status_a_voir' => 0,
+            'status_en_cours' => 0,
+            'status_en_pause' => 0,
+            'status_termine' => 0,
+            'status_aucun' => 0,
+            'total_series_en_cours' => 0,
+            'total_episodes_en_cours' => 0,
+            'total_series_en_pause' => 0,
+            'total_episodes_en_pause' => 0,
+        ];
+
+        $row = array_merge($defaults, $row ?? []);
+
+        return array_map('intval', $row);
+    }
+
+    /**
+     * Récupère toutes les séries en cours et en pause
+     * avec UNE SEULE requête SQL.
+     *
+     * Le découpage En cours / En pause est ensuite effectué
+     * en PHP afin d'éviter deux requêtes identiques.
+     */
+    public function getUserProfileSeries(int $userId): array
+    {
+        $rows = $this->db
+            ->table($this->table)
+            ->select(
+                'titre,
+                status,
+                episode_global,
+                total_episodes_global,
+                episode,
+                total_episodes,
+                saison,
+                total_saisons'
+            )
+            ->where('id_user', $userId)
+            ->whereIn('status', ['En cours', 'En pause'])
+            ->whereIn('id_division', [1, 4])
+            ->where('deleted_at IS NULL', null, false)
+            ->orderBy('position', 'ASC')
+            ->get()
+            ->getResult();
+
+        $series = [
+            'en_cours' => [],
+            'en_pause' => [],
+        ];
+
+        foreach ($rows as $row) {
+            // Calcul identique à l'ancien fonctionnement.
+            $row->vu_global = $row->episode_global !== null
+                ? (int) $row->episode_global - 1
+                : null;
+
+            if (
+                $row->total_episodes_global !== null ||
+                $row->total_episodes !== null
+            ) {
+                $totalEpisodes = $row->total_episodes_global
+                    ?? $row->total_episodes;
+
+                $episodeActuel = $row->episode_global
+                    ?? $row->episode
+                    ?? 1;
+
+                $row->reste_global = (int) $totalEpisodes
+                    - (int) $episodeActuel
+                    + 1;
+            } else {
+                $row->reste_global = null;
+            }
+
+            if (
+                $row->total_saisons !== null &&
+                $row->saison !== null
+            ) {
+                $row->reste_s = (int) $row->total_saisons
+                    - (int) $row->saison
+                    + 1;
+            } else {
+                $row->reste_s = null;
+            }
+
+            if ($row->status === 'En cours') {
+                $series['en_cours'][] = $row;
+            } else {
+                $series['en_pause'][] = $row;
+            }
+        }
+
+        return $series;
     }
 }

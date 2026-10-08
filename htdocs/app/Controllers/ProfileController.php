@@ -10,39 +10,43 @@ use App\Models\ItemModel;
 class ProfileController extends BaseController
 {
     /**
-     * Affiche le profil de l'utilisateur connecté ainsi que ses statistiques globales.
+     * Affiche le profil de l'utilisateur connecté.
      */
     public function index()
     {
         $user = auth()->user();
         $itemModel = new ItemModel();
+        $userId = (int) $user->id;
 
-        $counts = $itemModel->getUserDashboardCounts((int) $user->id);
-
-        $episodesEnCoursStats = $itemModel->getGlobalEpisodesEnCoursStats($user->id);
-        $episodesEnPauseStats = $itemModel->getGlobalEpisodesEnPauseStats($user->id);
-        
-        $inProgressEnCoursSeries = $itemModel->getInProgressSeriesEnCoursStats($user->id);
-        $inProgressEnPauseSeries = $itemModel->getInProgressSeriesEnPauseStats($user->id);
+        // 2 requêtes SQL seulement :
+        // 1. Tous les compteurs + statistiques globales
+        // 2. Liste des séries en cours / en pause
+        $stats = $itemModel->getUserProfileStats($userId);
+        $series = $itemModel->getUserProfileSeries($userId);
 
         $data = [
-            'user'          => $user,
-            'totalItems'    => $counts['total_items'] ?? 0,
-            'publicItems'   => $counts['public_items'] ?? 0,
-            'statusAVoir'   => $counts['status_a_voir'] ?? 0,
-            'statusEnCours' => $counts['status_en_cours'] ?? 0,
-            'statusEnPause' => $counts['status_en_pause'] ?? 0,
-            'statusTermine' => $counts['status_termine'] ?? 0,
-            'statusAucun'   => $counts['status_aucun'] ?? 0,
+            'user' => $user,
 
-            // Nouvelles variables injectées vers la vue
-            'totalSeriesEnCours'         => $episodesEnCoursStats->total_series ?? 0,
-            'totalSeriesEnPause'         => $episodesEnPauseStats->total_series ?? 0,
-            
-            'totalEpisodesEnCours'    => $episodesEnCoursStats->total_episodes ?? 0,
-            'totalEpisodesEnPause'    => $episodesEnPauseStats->total_episodes ?? 0,
-            'inProgressEnCoursSeries' => $inProgressEnCoursSeries,
-            'inProgressEnPauseSeries' => $inProgressEnPauseSeries,
+            // Cartes
+            'totalItems' => $stats['total_items'],
+            'publicItems' => $stats['public_items'],
+
+            // Statuts
+            'statusAVoir' => $stats['status_a_voir'],
+            'statusEnCours' => $stats['status_en_cours'],
+            'statusEnPause' => $stats['status_en_pause'],
+            'statusTermine' => $stats['status_termine'],
+            'statusAucun' => $stats['status_aucun'],
+
+            // Séries en cours
+            'totalSeriesEnCours' => $stats['total_series_en_cours'],
+            'totalEpisodesEnCours' => $stats['total_episodes_en_cours'],
+            'inProgressEnCoursSeries' => $series['en_cours'],
+
+            // Séries en pause
+            'totalSeriesEnPause' => $stats['total_series_en_pause'],
+            'totalEpisodesEnPause' => $stats['total_episodes_en_pause'],
+            'inProgressEnPauseSeries' => $series['en_pause'],
         ];
 
         return view('profile/index', $data);
@@ -60,31 +64,44 @@ class ProfileController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('errors', $this->validator->getErrors());
+            return redirect()->back()->with(
+                'errors',
+                $this->validator->getErrors()
+            );
         }
 
         $users = auth()->getProvider();
         $user = auth()->user();
-        $currentPassword = $this->request->getPost('current_password');
 
         $credentials = [
             'email' => $user->email,
-            'password' => $currentPassword,
+            'password' => $this->request->getPost('current_password'),
         ];
 
         $authenticator = auth('session')->getAuthenticator();
         $result = $authenticator->check($credentials);
 
         if (!$result->isOK()) {
-            return redirect()->back()->with('error', 'Le mot de passe actuel est incorrect.');
+            return redirect()->back()->with(
+                'error',
+                'Le mot de passe actuel est incorrect.'
+            );
         }
 
         $user->password = $this->request->getPost('new_password');
         $users->save($user);
 
         $audit = new AuditLogModel();
-        $audit->logAction('Modification Profil', "L'utilisateur ID {$user->id} a modifié son mot de passe.");
+        $audit->logAction(
+            'Modification Profil',
+            "L'utilisateur ID {$user->id} a modifié son mot de passe."
+        );
 
-        return redirect()->to('p')->with('message', 'Votre mot de passe a été mis à jour avec succès.');
+        return redirect()
+            ->to('p')
+            ->with(
+                'message',
+                'Votre mot de passe a été mis à jour avec succès.'
+            );
     }
 }
