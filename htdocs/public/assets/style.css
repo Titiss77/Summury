@@ -979,62 +979,181 @@ select.form-control[hidden] {
     pointer-events: none !important;
 }
 
+/* =========================================================
+   PROFIL - RESPONSIVE
+   Desktop / Tablette / Mobile
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   BASE
+   --------------------------------------------------------- */
+
 .profile-container {
+    width: min(800px, calc(100% - 40px));
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 20px 0;
+    box-sizing: border-box;
 }
 
 .profile-container .header-title {
-    margin-bottom: 2rem;
+    margin: 0 0 2rem !important;
 }
 
 .profile-card {
-    margin-bottom: 2rem;
+    margin-bottom: 2rem !important;
+}
+
+.profile-card:last-child {
+    margin-bottom: 0 !important;
+}
+
+.profile-card .card-body {
+    min-width: 0;
 }
 
 .profile-card h3 {
-    margin-top: 0;
+    margin-top: 0 !important;
 }
+
+.profile-container p {
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------------------------------------------------------
+   MESSAGES
+   --------------------------------------------------------- */
+
+.profile-container .alert ul {
+    margin: 0 !important;
+    padding-left: 20px !important;
+}
+
+.profile-container .alert li {
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------------------------------------------------------
+   STATISTIQUES
+   --------------------------------------------------------- */
 
 .profile-stats {
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 12px 24px;
     flex-wrap: wrap;
-    margin-bottom: 20px;
+    margin: 0 0 20px;
 }
 
-.profile-stats p,
-.profile-summary p {
-    margin: 0;
+.profile-stats p {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 !important;
+}
+
+.profile-stats .badge {
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   SECTION SÉRIES
+   --------------------------------------------------------- */
+
+.profile-series-section {
+    min-width: 0;
+}
+
+.profile-series-section+.profile-series-section {
+    margin-top: 36px;
+}
+
+.profile-series-section h3 {
+    margin: 0 0 15px !important;
 }
 
 .profile-summary {
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 8px 24px;
     flex-wrap: wrap;
-    margin-bottom: 15px;
+    margin: 0 0 16px;
 }
 
-.profile-series-section+.profile-series-section {
-    margin-top: 35px;
+.profile-summary p {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 0 1rem !important;
 }
+
+.profile-summary .badge {
+    padding: 3px 8px;
+    border-radius: var(--radius-md);
+    background-color: var(--warning);
+    color: var(--text-main);
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   TABLEAUX
+   --------------------------------------------------------- */
 
 .profile-series-table {
-    width: 100%;
-    border-collapse: collapse;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed;
+}
+
+.profile-series-table th,
+.profile-series-table td {
+    padding: 12px !important;
+}
+
+.profile-series-table th {
+    background-color: var(--bg-body) !important;
+    color: var(--text-main) !important;
+    border-bottom: 2px solid var(--border-color) !important;
+}
+
+.profile-series-table th:first-child,
+.profile-series-table td:first-child {
+    width: 45%;
+    text-align: left !important;
+}
+
+.profile-series-table th:nth-child(2),
+.profile-series-table td:nth-child(2),
+.profile-series-table th:nth-child(3),
+.profile-series-table td:nth-child(3) {
+    width: 27.5%;
+    text-align: center !important;
+}
+
+.profile-series-table tbody tr {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.profile-series-table tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+.profile-series-table td strong {
+    overflow-wrap: anywhere;
 }
 
 .profile-table-center {
-    text-align: center;
+    text-align: center !important;
+    vertical-align: middle;
 }
 
 .profile-table-empty {
-    padding: 12px;
-    text-align: center;
-}
-
-.profile-empty {
+    padding: 16px !important;
+    text-align: center !important;
     color: var(--text-muted);
 }
 
@@ -1044,17 +1163,345 @@ select.form-control[hidden] {
     font-style: italic;
 }
 
+.profile-series-table .badge {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   FORMULAIRE MOT DE PASSE
+   --------------------------------------------------------- */
+
 .profile-password-form {
-    margin-top: 15px;
+    margin-top: 15px !important;
 }
 
 .profile-password-form .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.5rem !important;
 }
 
 .profile-password-form .form-actions {
-    margin-top: 2rem;
-    border-top: none;
+    margin-top: 2rem !important;
+    border-top: none !important;
+}
+
+.profile-password-form .btn {
+    max-width: 100%;
+}
+
+.profile-password-form input {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MOBILE
+   ≤ 480px
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .profile-container {
+        width: calc(100% - 20px);
+        padding: 10px 0;
+    }
+
+    .profile-container .header-title {
+        font-size: 1.45rem;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .profile-card {
+        margin-bottom: 14px !important;
+        border-radius: var(--radius-md);
+    }
+
+    .profile-card .card-body {
+        padding: 15px !important;
+    }
+
+
+    /* ---------------------------------------------
+       INFORMATIONS DU COMPTE
+       --------------------------------------------- */
+
+    .profile-card p {
+        line-height: 1.5;
+    }
+
+
+    /* ---------------------------------------------
+       STATISTIQUES
+       --------------------------------------------- */
+
+    .profile-stats {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .profile-stats p {
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+        justify-content: space-between;
+        padding: 11px 13px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        background: var(--bg-body);
+    }
+
+
+    /* ---------------------------------------------
+       SÉRIES
+       --------------------------------------------- */
+
+    .profile-series-section h3 {
+        font-size: 1.2rem;
+        margin-bottom: 12px !important;
+    }
+
+    .profile-summary {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 7px;
+        margin-bottom: 14px;
+    }
+
+    .profile-summary p {
+        justify-content: space-between;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 11px;
+        margin: 0 !important;
+        border-radius: var(--radius-md);
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+    }
+
+
+    /* ---------------------------------------------
+       TABLEAU → CARTES
+       --------------------------------------------- */
+
+    .profile-series-table {
+        display: block;
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: auto;
+    }
+
+    .profile-series-table thead {
+        display: none;
+    }
+
+    .profile-series-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .profile-series-table tr {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+        padding: 12px;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--radius-md);
+        background: var(--bg-body);
+    }
+
+    .profile-series-table tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .profile-series-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100% !important;
+        box-sizing: border-box;
+        padding: 8px 0 !important;
+        border: none !important;
+        text-align: right !important;
+        vertical-align: middle;
+    }
+
+    .profile-series-table td:first-child {
+        display: block;
+        padding: 2px 0 10px !important;
+        margin-bottom: 4px;
+        border-bottom: 1px solid var(--border-color) !important;
+        text-align: left !important;
+        font-size: 1rem;
+    }
+
+    .profile-series-table td:nth-child(2)::before {
+        content: "Épisodes restants";
+    }
+
+    .profile-series-table td:nth-child(3)::before {
+        content: "Saisons restantes";
+    }
+
+    .profile-series-table td:nth-child(2)::before,
+    .profile-series-table td:nth-child(3)::before {
+        flex: 1;
+        min-width: 0;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: left;
+    }
+
+    .profile-series-table td:nth-child(2),
+    .profile-series-table td:nth-child(3) {
+        min-height: 34px;
+    }
+
+    .profile-series-table td:nth-child(2) .badge,
+    .profile-series-table td:nth-child(3) .badge {
+        flex-shrink: 0;
+    }
+
+    .profile-series-table td.profile-table-empty {
+        display: block;
+        padding: 8px 0 !important;
+        border: none !important;
+        text-align: center !important;
+    }
+
+    .profile-series-table td.profile-table-empty::before {
+        display: none;
+    }
+
+
+    /* ---------------------------------------------
+       MOT DE PASSE
+       --------------------------------------------- */
+
+    .profile-password-form {
+        margin-top: 10px !important;
+    }
+
+    .profile-password-form .form-group {
+        margin-bottom: 1.2rem !important;
+    }
+
+    .profile-password-form .form-label {
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .profile-password-form .form-control {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .profile-password-form .form-actions {
+        margin-top: 1.25rem !important;
+    }
+
+    .profile-password-form .btn {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 16px;
+    }
+
+
+    /* ---------------------------------------------
+       ALERTES
+       --------------------------------------------- */
+
+    .profile-container .alert {
+        margin-bottom: 12px;
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+}
+
+
+/* =========================================================
+   TRÈS PETITS TÉLÉPHONES
+   ≤ 360px
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+    .profile-container {
+        width: calc(100% - 14px);
+        padding: 7px 0;
+    }
+
+    .profile-card .card-body {
+        padding: 12px !important;
+    }
+
+    .profile-container .header-title {
+        font-size: 1.3rem;
+    }
+
+    .profile-series-table tr {
+        padding: 10px;
+    }
+
+    .profile-series-table td {
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+
+    .profile-series-table td:nth-child(2)::before,
+    .profile-series-table td:nth-child(3)::before {
+        font-size: 0.78rem;
+    }
+
+    .profile-series-table .badge {
+        font-size: 0.8rem;
+    }
+}
+
+
+/* =========================================================
+   ACCESSIBILITÉ / TOUCH
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+
+    .profile-container .btn,
+    .profile-container button,
+    .profile-container input {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .profile-password-form .password-toggle {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
+
+/* =========================================================
+   MODE PAYSAGE SUR PETIT MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) and (orientation: landscape) {
+
+    .profile-container {
+        width: min(680px, calc(100% - 24px));
+    }
+
+    .profile-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .profile-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 /* =========================================
@@ -1070,6 +1517,32 @@ select.form-control[hidden] {
 
     .form-container {
         padding: 2.5rem;
+    }
+
+    .profile-container {
+        width: min(800px, calc(100% - 32px));
+        padding: 16px 0;
+    }
+
+    .profile-card {
+        margin-bottom: 20px !important;
+    }
+
+    .profile-series-table th,
+    .profile-series-table td {
+        padding: 11px !important;
+    }
+
+    .profile-series-table th:first-child,
+    .profile-series-table td:first-child {
+        width: 42%;
+    }
+
+    .profile-series-table th:nth-child(2),
+    .profile-series-table td:nth-child(2),
+    .profile-series-table th:nth-child(3),
+    .profile-series-table td:nth-child(3) {
+        width: 29%;
     }
 }
 
@@ -1117,6 +1590,67 @@ select.form-control[hidden] {
     .form-actions .btn {
         width: 100%;
         margin: 0;
+    }
+
+    .profile-container {
+        width: calc(100% - 28px);
+        padding: 14px 0;
+    }
+
+    .profile-container .header-title {
+        margin-bottom: 1.5rem !important;
+        font-size: 1.7rem;
+    }
+
+    .profile-card {
+        margin-bottom: 16px !important;
+    }
+
+    .profile-card .card-body {
+        padding: 18px !important;
+    }
+
+    .profile-stats {
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .profile-stats p {
+        flex: 1 1 calc(50% - 10px);
+        min-width: 220px;
+    }
+
+    .profile-summary {
+        gap: 8px 14px;
+    }
+
+    .profile-summary p {
+        margin-left: 0 !important;
+    }
+
+    .profile-series-section+.profile-series-section {
+        margin-top: 28px;
+    }
+
+    /*
+        * Sur tablette étroite, on garde le tableau mais on autorise
+        * un défilement horizontal si un titre est extrêmement long.
+        */
+    .profile-series-table {
+        min-width: 560px;
+    }
+
+    .profile-series-table th,
+    .profile-series-table td {
+        padding: 10px !important;
+    }
+
+    .profile-password-form .form-actions {
+        margin-top: 1.5rem !important;
+    }
+
+    .profile-password-form .btn {
+        width: 100%;
     }
 }
 
