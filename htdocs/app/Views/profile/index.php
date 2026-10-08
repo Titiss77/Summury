@@ -64,6 +64,15 @@
                             <th style="padding: 12px; text-align: center;">Saisons restantes</th>
                         </tr>
                     </thead>
+                    <?php if (empty($inProgressEnCoursSeries)) { ?>
+                    <tbody>
+                        <tr>
+                            <td colspan="3" style="padding: 12px; text-align: center;">
+                                Aucune série en cours
+                            </td>
+                        </tr>
+                    </tbody>
+                    <?php }?>
                     <tbody>
                         <?php foreach ($inProgressEnCoursSeries as $series) { ?>
                         <tr style="border-bottom: 1px solid var(--border-color);">
@@ -118,6 +127,15 @@
                             <th style="padding: 12px; text-align: center;">Saisons restantes</th>
                         </tr>
                     </thead>
+                    <?php if (empty($inProgressEnPauseSeries)) { ?>
+                    <tbody>
+                        <tr>
+                            <td colspan="3" style="padding: 12px; text-align: center;">
+                                Aucune série en pause
+                            </td>
+                        </tr>
+                    </tbody>
+                    <?php }?>
                     <tbody>
                         <?php foreach ($inProgressEnPauseSeries as $series) { ?>
                         <tr style="border-bottom: 1px solid var(--border-color);">
