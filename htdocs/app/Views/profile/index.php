@@ -43,12 +43,17 @@
     <!-- 2. Ajoute la nouvelle section détaillant les œuvres en cours -->
     <div class="card shadow-card" style="margin-bottom: 2rem;">
         <div class="card-body">
-            <h3 style="margin-top: 0; margin-bottom: 15px;">Détail de progression (En cours ou En Pause)</h3>
-
-            <?php if (empty($inProgressSeries)) { ?>
+            <?php if (empty($inProgressEnCoursSeries) && empty($inProgressEnPauseSeries)) { ?>
             <p style="color: var(--text-muted);">Aucune série ou animé en cours de visionnage avec un total d'épisodes
                 défini.</p>
             <?php } else { ?>
+            <h3 style="margin-top: 0; margin-bottom: 15px;">Séries en cours</h3>
+            <p style="margin: 0 0 0 1rem;">Épisodes restants : <span class="badge"
+                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalEpisodesEnCours); ?></span>
+            </p>
+            <p style="margin: 0 0 0 1rem;">Saisons restantes : <span class="badge"
+                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalSeriesEnCours); ?></span>
+            </p>
             <div class="admin-table-container fade-in">
                 <table class="admin-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
@@ -60,7 +65,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($inProgressSeries as $series) { ?>
+                        <?php foreach ($inProgressEnCoursSeries as $series) { ?>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <!-- Colonne 1 : Titre -->
                             <td style="padding: 12px;">
@@ -94,12 +99,60 @@
                     </tbody>
                 </table>
             </div>
+
+
+            <h3 style="margin-top: 0; margin-bottom: 15px;">Séries en pause</h3>
             <p style="margin: 0 0 0 1rem;">Épisodes restants : <span class="badge"
-                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalEpisodes); ?></span>
+                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalEpisodesEnPause); ?></span>
             </p>
             <p style="margin: 0 0 0 1rem;">Saisons restantes : <span class="badge"
-                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalSeries); ?></span>
+                    style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md);"><?php echo esc($totalSeriesEnPause); ?></span>
             </p>
+            <div class="admin-table-container fade-in">
+                <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr
+                            style="background-color: var(--bg-body); border-bottom: 2px solid var(--border-color); color: var(--text-main);">
+                            <th style="padding: 12px; text-align: left;">Titre</th>
+                            <th style="padding: 12px; text-align: center;">Épisodes restants</th>
+                            <th style="padding: 12px; text-align: center;">Saisons restantes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($inProgressEnPauseSeries as $series) { ?>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <!-- Colonne 1 : Titre -->
+                            <td style="padding: 12px;">
+                                <strong><?php echo esc($series->titre); ?></strong>
+                            </td>
+
+                            <!-- Colonne 2 : Épisodes restants (Vue globale) -->
+                            <td style="padding: 12px; text-align: center;">
+                                <?php if (isset($series->vu_global) && isset($series->reste_global)) { ?>
+                                <span class="badge badge-episode"
+                                    style="background-color: var(--warning); color: var(--text-main);">
+                                    Reste : <?php echo esc($series->reste_global); ?>
+                                </span>
+                                <?php } else { ?>
+                                <span style="color: var(--text-muted); font-size: 0.85em; font-style: italic;">
+                                    Non synchronisé
+                                </span>
+                                <?php } ?>
+                            </td>
+
+                            <!-- Colonne 3 : Saisons restantes -->
+                            <td style="padding: 12px; text-align: center;">
+                                <?php if (!empty($series->total_saisons) && !empty($series->saison)) { ?>
+                                <span class="badge badge-season"><?php echo esc($series->reste_s); ?></span>
+                                <?php } else { ?>
+                                <span style="color: var(--text-muted);">-</span>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
             <?php } ?>
         </div>
     </div>

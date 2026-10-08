@@ -170,7 +170,7 @@ class ItemModel extends Model
     /**
      * Récupère le total global des épisodes visionnés et restants de manière intelligente.
      */
-    public function getGlobalEpisodesStats(int $userId)
+    public function getGlobalEpisodesEnCoursStats(int $userId)
     {
         return $this->select('
         SUM(CASE WHEN status = "Terminé" 
@@ -180,7 +180,27 @@ class ItemModel extends Model
         SUM(total_saisons-saison+1) as total_series
         ')
         ->where('id_user', $userId)
-        ->whereIn('status', ['En cours', 'En pause'])
+        ->whereIn('status', ['En cours'])
+        ->whereIn('id_division', ['1', '4'])
+        ->where('episode IS NOT NULL')
+        ->where('total_episodes IS NOT NULL')
+        ->first();
+    }
+
+    /**
+     * Récupère le total global des épisodes visionnés et restants de manière intelligente.
+     */
+    public function getGlobalEpisodesEnPauseStats(int $userId)
+    {
+        return $this->select('
+        SUM(CASE WHEN status = "Terminé" 
+            THEN 0 WHEN COALESCE(total_episodes_global, total_episodes) IS NOT NULL 
+            THEN COALESCE(total_episodes_global, total_episodes) - COALESCE(episode_global, episode, 1) + 1 
+            ELSE 0 END) as total_episodes, 
+        SUM(total_saisons-saison+1) as total_series
+        ')
+        ->where('id_user', $userId)
+        ->whereIn('status', ['En pause'])
         ->whereIn('id_division', ['1', '4'])
         ->where('episode IS NOT NULL')
         ->where('total_episodes IS NOT NULL')
@@ -190,13 +210,27 @@ class ItemModel extends Model
     /**
      * Récupère le détail des séries "En cours" avec le calcul exact des épisodes/saisons restants.
      */
-    public function getInProgressSeriesStats(int $userId)
+    public function getInProgressSeriesEnCoursStats(int $userId)
     {
         // vu_global = episode_global - 1
         // reste_global = total_episodes_global - episode_global + 1
         return $this->select('titre, (episode_global - 1) as vu_global, total_episodes_global, saison, total_saisons, (total_episodes_global - episode_global + 1) as reste_global, (total_saisons - saison + 1) as reste_s')
                     ->where('id_user', $userId)
-                    ->whereIn('status', ['En cours', 'En pause'])
+                    ->whereIn('status', ['En cours'])
+                    ->whereIn('id_division', ['1', '4'])
+                    ->findAll();
+    }
+
+    /**
+     * Récupère le détail des séries "En cours" avec le calcul exact des épisodes/saisons restants.
+     */
+    public function getInProgressSeriesEnPauseStats(int $userId)
+    {
+        // vu_global = episode_global - 1
+        // reste_global = total_episodes_global - episode_global + 1
+        return $this->select('titre, (episode_global - 1) as vu_global, total_episodes_global, saison, total_saisons, (total_episodes_global - episode_global + 1) as reste_global, (total_saisons - saison + 1) as reste_s')
+                    ->where('id_user', $userId)
+                    ->whereIn('status', ['En pause'])
                     ->whereIn('id_division', ['1', '4'])
                     ->findAll();
     }

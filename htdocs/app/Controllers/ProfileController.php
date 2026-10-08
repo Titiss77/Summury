@@ -19,8 +19,11 @@ class ProfileController extends BaseController
 
         $counts = $itemModel->getUserDashboardCounts((int) $user->id);
 
-        $episodesStats = $itemModel->getGlobalEpisodesStats($user->id);
-        $inProgressSeries = $itemModel->getInProgressSeriesStats($user->id);
+        $episodesEnCoursStats = $itemModel->getGlobalEpisodesEnCoursStats($user->id);
+        $episodesEnPauseStats = $itemModel->getGlobalEpisodesEnPauseStats($user->id);
+        
+        $inProgressEnCoursSeries = $itemModel->getInProgressSeriesEnCoursStats($user->id);
+        $inProgressEnPauseSeries = $itemModel->getInProgressSeriesEnPauseStats($user->id);
 
         $data = [
             'user'          => $user,
@@ -33,9 +36,13 @@ class ProfileController extends BaseController
             'statusAucun'   => $counts['status_aucun'] ?? 0,
 
             // Nouvelles variables injectées vers la vue
-            'totalSeries'         => $episodesStats->total_series ?? 0,
-            'totalEpisodes'    => $episodesStats->total_episodes ?? 0,
-            'inProgressSeries' => $inProgressSeries,
+            'totalSeriesEnCours'         => $episodesEnCoursStats->total_series ?? 0,
+            'totalSeriesEnPause'         => $episodesEnPauseStats->total_series ?? 0,
+            
+            'totalEpisodesEnCours'    => $episodesEnCoursStats->total_episodes ?? 0,
+            'totalEpisodesEnPause'    => $episodesEnPauseStats->total_episodes ?? 0,
+            'inProgressEnCoursSeries' => $inProgressEnCoursSeries,
+            'inProgressEnPauseSeries' => $inProgressEnPauseSeries,
         ];
 
         return view('profile/index', $data);
