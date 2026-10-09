@@ -1,4 +1,44 @@
 :root {
+    /* Ombres Modernes */
+        --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        --shadow-hover: 0 10px 20px rgba(200, 164, 104, 0.15);
+    
+        /* Arrondis */
+        --radius-sm: 0.5rem;
+        --radius-md: 0.85rem;
+        --radius-lg: 1.25rem;
+        --radius-xl: 1.5rem;
+        --radius-pill: 9999px;
+    
+        /* Animations fluides */
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+        /* Typographie */
+        --card-title-font-size: 1.15rem;
+        --card-desc-font-size: 0.9rem;
+        --icon-font-size: 0.8rem;
+
+        --danger: #ef4444;
+        --danger-hover: #dc2626;
+        --danger-bg: rgba(239, 68, 68, 0.1);
+        --danger-text: #ff6b6b;
+
+        --success: #10b981;
+        --success-bg: rgba(16, 185, 129, 0.1);
+        --success-text: #047857;
+    
+        --info: #c8a468;
+        --info-bg: rgba(200, 164, 104, 0.1);
+        --info-text: #8d754a;
+    
+        --warning: rgba(245, 158, 11, 0.5);
+        --warning-hover: rgba(217, 119, 6, 0.5);
+}
+
+[data-theme="light"] {
     /* Palette de couleurs "Premium Frost" */
     --primary: #c8a468;
     --primary-hover: #836b42;
@@ -10,44 +50,6 @@
     --text-main: #0f172a;
     --text-muted: #64748b;
     --border-color: #e2e8f0;
-
-    --success: #10b981;
-    --success-bg: rgba(16, 185, 129, 0.1);
-    --success-text: #047857;
-
-    --info: #c8a468;
-    --info-bg: rgba(200, 164, 104, 0.1);
-    --info-text: #8d754a;
-
-    --danger: #ef4444;
-    --danger-hover: #dc2626;
-    --danger-bg: rgba(239, 68, 68, 0.1);
-    --danger-text: #b91c1c;
-
-    --warning: rgba(245, 158, 11, 0.5);
-    --warning-hover: rgba(217, 119, 6, 0.5);
-
-    /* Ombres Modernes */
-    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
-    --shadow-hover: 0 10px 20px rgba(200, 164, 104, 0.15);
-
-    /* Arrondis */
-    --radius-sm: 0.5rem;
-    --radius-md: 0.85rem;
-    --radius-lg: 1.25rem;
-    --radius-xl: 1.5rem;
-    --radius-pill: 9999px;
-
-    /* Animations fluides */
-    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-
-    /* Typographie */
-    --card-title-font-size: 1.15rem;
-    --card-desc-font-size: 0.9rem;
-    --icon-font-size: 0.8rem;
 }
 
 /* Thème Sombre (Dark Mode) */
@@ -62,20 +64,4 @@
     --text-main: #FFFFFF;
     --text-muted: #8C857D;
     --border-color: #25201B;
-
-    --shadow-sm: 0 4px 6px -1px rgba(200, 164, 104, 0.05);
-    --shadow-hover: 0 8px 15px rgba(29, 24, 16, 0.8);
-
-    --success: #0b7d57;
-    --success-bg: rgba(16, 185, 129, 0.1);
-    --success-text: #21d29f;
-
-    --info: #c8a468;
-    --info-bg: rgba(200, 164, 104, 0.1);
-    --info-text: #8d754a;
-
-    --danger: #ef4444;
-    --danger-hover: #dc2626;
-    --danger-bg: rgba(239, 68, 68, 0.1);
-    --danger-text: #ff6b6b;
 }
