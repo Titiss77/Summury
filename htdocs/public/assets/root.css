@@ -1,73 +1,142 @@
 :root {
-    /* Ombres Modernes */
-        --shadow-xs: 0 1px 2px 0 var(--shadow-color);
-        --shadow-sm: 0 4px 6px -1px var(--shadow-color);
-        --shadow-md: 0 6px 6px 1px var(--shadow-color);
-        --shadow-lg: 0 20px 25px -5px var(--shadow-color);
-        --shadow-hover: 0 6px 16px -5px var(--shadow-hover-color);
-    
-        /* Arrondis */
-        --radius-sm: 0.5rem;
-        --radius-md: 0.85rem;
-        --radius-lg: 1.25rem;
-        --radius-xl: 1.5rem;
-        --radius-pill: 9999px;
-    
-        /* Animations fluides */
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    
-        /* Typographie */
-        --card-title-font-size: 1.15rem;
-        --card-desc-font-size: 0.9rem;
-        --icon-font-size: 0.8rem;
+    /* Typographie */
+    --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
 
-        --danger: #ef4444;
-        --danger-hover: #dc2626;
-        --danger-bg: rgba(239, 68, 68, 0.1);
-        --danger-text: #ff6b6b;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.375rem;
+    --font-size-2xl: 1.75rem;
 
-        --success: #10b981;
-        --success-bg: rgba(16, 185, 129, 0.1);
-        --success-text: #047857;
-    
-        --info: #c8a468;
-        --info-bg: rgba(200, 164, 104, 0.1);
-        --info-text: #8d754a;
-    
-        --warning: rgba(245, 158, 11, 0.5);
-        --warning-hover: rgba(217, 119, 6, 0.5);
+    --card-title-font-size: 1.1rem;
+    --card-desc-font-size: 0.9rem;
+    --icon-font-size: 0.85rem;
+
+    --line-height: 1.6;
+
+    /* Espacements */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+
+    /* Arrondis */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 0.875rem;
+    --radius-xl: 1.125rem;
+    --radius-2xl: 1.5rem;
+    --radius-pill: 9999px;
+
+    /* Transitions */
+    --transition: 180ms ease;
+    --transition-smooth: 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    /* Couleurs fonctionnelles */
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --danger-bg: rgba(239, 68, 68, 0.12);
+    --danger-text: #ef4444;
+
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.12);
+    --success-text: #059669;
+
+    --warning: #d97706;
+    --warning-hover: #b45309;
+    --warning-bg: rgba(217, 119, 6, 0.12);
+
+    --info: #b58b4a;
+    --info-bg: rgba(181, 139, 74, 0.12);
+    --info-text: #98733d;
+
+    /* Focus clavier */
+    --focus-ring: 0 0 0 3px rgba(181, 139, 74, 0.28);
+
+    /* Ombres : valeurs par défaut */
+    --shadow-xs: 0 1px 2px var(--shadow-color);
+    --shadow-sm: 0 2px 6px var(--shadow-color);
+    --shadow-md: 0 5px 14px var(--shadow-color);
+    --shadow-lg: 0 12px 30px var(--shadow-color);
+    --shadow-hover: 0 10px 24px var(--shadow-hover-color);
 }
+
+/* =========================================
+   THÈME CLAIR
+   ========================================= */
 
 [data-theme="light"] {
-    /* Palette de couleurs "Premium Frost" */
-    --primary: #c8a468;
-    --primary-hover: #836b42;
-    --primary-light: rgba(200, 164, 104, 0.1);
+    color-scheme: light;
 
-    --bg-body: #f8f9fa;
+    /* Accent doré */
+    --primary: #98733d;
+    --primary-hover: #79582b;
+    --primary-light: rgba(152, 115, 61, 0.12);
+
+    /* Surfaces */
+    --bg-body: #f3f5f8;
     --bg-card: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-input: #ffffff;
 
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
+    /* Texte */
+    --text-main: #182131;
+    --text-muted: #657084;
+    --text-subtle: #8791a1;
 
-    --shadow-color: rgba(0, 0, 0, 0.05);
-    --shadow-hover-color: rgba(200, 164, 104, 0.15);
+    /* Bordures */
+    --border-color: #e1e5ec;
+    --border-hover: #c7ced9;
+
+    /* Ombres */
+    --shadow-color: rgba(24, 33, 49, 0.055);
+    --shadow-hover-color: rgba(24, 33, 49, 0.12);
+
+    /* Statuts : lisibles sur fond clair */
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #79582b;
 }
 
-/* Thème Sombre (Dark Mode) */
+/* =========================================
+   THÈME SOMBRE
+   ========================================= */
+
 [data-theme="dark"] {
-    --primary: #c8a468;
-    --primary-hover: #836b42;
-    --primary-light: rgba(200, 164, 104, 0.1);
+    color-scheme: dark;
 
-    --bg-body: #0f0f0f;
-    --bg-card: #131313;
+    /* Accent doré */
+    --primary: #d6b477;
+    --primary-hover: #e7c994;
+    --primary-light: rgba(214, 180, 119, 0.13);
 
-    --text-main: #FFFFFF;
-    --text-muted: #8C857D;
-    --border-color: #25201B;
+    /* Surfaces */
+    --bg-body: #111318;
+    --bg-card: #191c23;
+    --bg-elevated: #20242d;
+    --bg-input: #151820;
 
-    --shadow-color: rgba(0, 0, 0, 0.05);
-    --shadow-hover-color: rgba(200, 164, 104, 0.15);
+    /* Texte */
+    --text-main: #f1f3f7;
+    --text-muted: #a0a8b7;
+    --text-subtle: #7f899a;
+
+    /* Bordures */
+    --border-color: #2b303b;
+    --border-hover: #414959;
+
+    /* Ombres */
+    --shadow-color: rgba(0, 0, 0, 0.20);
+    --shadow-hover-color: rgba(0, 0, 0, 0.38);
+
+    /* Statuts */
+    --danger-text: #ff7777;
+    --success-text: #4adea6;
+    --info-text: #e2c18b;
 }
