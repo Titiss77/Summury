@@ -22,8 +22,10 @@
 
         <div class="form-group" style="position: relative;">
             <label for="titre" class="form-label">Titre *</label>
-            <input type="text" id="titre" name="titre" class="form-control"
+            <input type="text" id="titre" name="titre" class="form-control" autocomplete="off"
                 value="<?php echo isset($item) ? esc($item->titre) : ''; ?>" required>
+            <small class="form-help">Saisis un titre puis choisis une suggestion, ou continue sans auto-remplissage.</small>
+            <button type="button" id="clear-api-search" class="btn btn-cancel btn-sm" hidden>Effacer les résultats</button>
 
             <!-- Conteneur pour afficher les résultats de l'API -->
             <div id="api-results-container"
@@ -103,12 +105,15 @@ if (isset($subCategories) && is_array($subCategories)) {
                             class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
                             <path
                                 d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
-                        </svg> Attention : Perte de l'épisode si publié
+                        </svg> Le partage de cette carte peut la rendre visible publiquement.
                     </small>
+                    <div id="public-preview" class="form-help" hidden>Le titre, l’image, la description et le lien seront visibles sur la carte publique. La progression peut être partagée avec cette carte.</div>
                 </div>
             </div>
         </div>
 
+        <details class="form-group" id="optional-fields" <?php echo (isset($item) && (!empty($item->description) || !empty($item->image) || !empty($item->date_sortie))) ? 'open' : ''; ?>>
+            <summary class="form-label" style="cursor:pointer">Détails complémentaires (description, sortie, image)</summary>
         <div class="form-group">
             <label for="description" class="form-label">Description</label>
             <?php
@@ -121,7 +126,6 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
             <small id="char-count"
                 style="display: block; text-align: right; margin-top: 5px; font-weight: bold;"></small>
         </div>
-
         <div class="form-group">
             <label for="date_sortie" class="form-label">Date et heure de sortie</label>
             <div style="display: grid; gap: 10px;">
@@ -131,7 +135,6 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
                     onclick="document.getElementById('date_sortie').value = '';">Ne pas définir</button>
             </div>
         </div>
-
         <div class="form-group">
             <label for="img" class="form-label">Image (URL) :</label>
             <small style="display: block; margin-bottom: 10px; color: var(--text-muted);">
@@ -166,6 +169,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
                 </div>
             </div>
         </div>
+        </details>
 
         <div class="form-group">
             <label for="lien" class="form-label">Lien (URL) :</label>
@@ -183,6 +187,8 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
                 value="<?php echo htmlspecialchars($item->lien ?? ''); ?>">
         </div>
 
+        <fieldset id="progress-fields" class="form-group" style="border:0;padding:0;margin:0;">
+        <legend class="form-label">Progression <small>(facultatif)</small></legend>
         <div class="form-group row" style="gap: 15px;">
             <div style="flex: 1;">
                 <label for="saison" class="form-label">Saison actuelle</label>
@@ -209,9 +215,11 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
             </div>
         </div>
 
+        </fieldset>
         <div class="form-actions">
             <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Annuler</a>
             <button type="submit" class="btn btn-success">Enregistrer</button>
+            <?php if (!isset($item)) { ?><button type="submit" name="save_add_another" value="1" class="btn btn-primary">Enregistrer et ajouter une autre</button><?php } ?>
         </div>
     </form>
 </div>

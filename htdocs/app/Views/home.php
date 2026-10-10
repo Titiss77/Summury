@@ -119,6 +119,12 @@ document.addEventListener("DOMContentLoaded", function() {
 <div class="search-container" style="margin-bottom: 2rem;">
     <input type="text" id="liveSearch" class="form-control" placeholder="Rechercher une œuvre... (titre, description)"
         autocomplete="off">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+        <select id="statusFilter" class="form-control" aria-label="Filtrer par statut" style="max-width:220px"><option value="">Tous les statuts</option></select>
+        <select id="categoryFilter" class="form-control" aria-label="Filtrer par catégorie" style="max-width:240px"><option value="">Toutes les catégories</option></select>
+        <button type="button" id="clearCardFilters" class="btn btn-cancel">Réinitialiser</button>
+        <span id="cardResultCount" aria-live="polite" style="align-self:center;color:var(--text-muted)"></span>
+    </div>
 </div>
 
 <?php
@@ -240,7 +246,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                     ?>
 
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ((!empty($item->episode) && !$isFuture) ? 'needs-dispo-check' : ''); ?>"
-                                    data-id="<?php echo esc($item->id); ?>"
+                                    data-id="<?php echo esc($item->id); ?>" data-status="<?php echo esc($item->status); ?>" data-category="<?php echo esc($divisionName); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
                                     <?php if ($canDragItem) { ?>
                                     <div class="drag-handle"

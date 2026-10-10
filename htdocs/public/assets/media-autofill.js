@@ -5,6 +5,8 @@
  */
 (function () {
     'use strict';
+    let suppressNextTitleSearch = false;
+    let activeSearchId = 0;
 
     function escapeHtml(value) {
         return String(value ?? '')
@@ -95,12 +97,16 @@
         item.appendChild(body);
 
         item.addEventListener('click', () => {
+            activeSearchId++;
+            const searchButton = document.getElementById('btn-api-search');
+            if (searchButton) searchButton.disabled = false;
+            suppressNextTitleSearch = true;
             setField('titre', res.titre || '', true);
-            setField('img', res.imageLarge || res.imageThumb || '', true);
+            setField('img', res.imageLarge || res.imageThumb || '', false);
 
             let description = res.description || '';
             if (description.length > limitCut) description = description.substring(0, limitCut) + '...';
-            setField('description', description, true);
+            setField('description', description, false);
 
             if (res.lien) setField('lien', res.lien, false);
 
@@ -129,6 +135,8 @@
             const container = document.getElementById('api-results-container');
             const status = document.getElementById('api-status');
             if (container) container.style.display = 'none';
+            const clearButton = document.getElementById('clear-api-search');
+            if (clearButton) clearButton.hidden = true;
             if (status) status.textContent = 'Sélectionné !';
             if (typeof window.showToast === 'function') window.showToast('Meilleur résultat sélectionné.', 'success');
         });
@@ -137,10 +145,12 @@
     }
 
     async function runSearch() {
+        const searchId = ++activeSearchId;
         const button = document.getElementById('btn-api-search');
         const input = document.getElementById('titre');
         const container = document.getElementById('api-results-container');
         const status = document.getElementById('api-status');
+        const clearButton = document.getElementById('clear-api-search');
 
         if (!button || !input || !container) return;
 
@@ -172,6 +182,7 @@
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const data = await response.json();
+            if (searchId !== activeSearchId) return;
             if (data.error) throw new Error(data.error);
 
             let results = Array.isArray(data.unified) ? data.unified : [];
@@ -197,20 +208,23 @@
             }
 
             if (!results.length) {
+                if (clearButton) clearButton.hidden = false;
                 if (status) status.textContent = type === 'video' ? 'Aucune vidéo trouvée (vérifie YOUTUBE_API_KEY).' : 'Aucun résultat suffisamment pertinent';
                 return;
             }
 
             if (status) status.textContent = `${results.length} résultat(s)`;
             container.style.display = 'block';
+            if (clearButton) clearButton.hidden = false;
 
             results.forEach(result => container.appendChild(makeResult(result, limitCut)));
         } catch (error) {
+            if (searchId !== activeSearchId) return;
             console.error('Auto-remplissage multi-sources :', error);
             if (status) status.textContent = 'Erreur de recherche';
             if (typeof window.showToast === 'function') window.showToast('Impossible de récupérer les résultats.', 'danger');
         } finally {
-            button.disabled = false;
+            if (searchId === activeSearchId) button.disabled = false;
         }
     }
 
@@ -218,6 +232,16 @@
         const button = document.getElementById('btn-api-search');
         const container = document.getElementById('api-results-container');
         if (!button || !container) return;
+        const clearButton = document.getElementById('clear-api-search');
+        clearButton?.addEventListener('click', () => {
+            activeSearchId++;
+            button.disabled = false;
+            container.replaceChildren();
+            container.style.display = 'none';
+            const status = document.getElementById('api-status');
+            if (status) { status.textContent = ''; status.style.display = 'none'; }
+            clearButton.hidden = true;
+        });
 
         // Capture avant le listener historique de script.js : cela empêche l'ancien
         // moteur TMDB/MangaDex de lancer une seconde recherche.
@@ -238,6 +262,7 @@
         let timer = null;
         if (titleInput) {
             titleInput.addEventListener('input', function () {
+                if (suppressNextTitleSearch) { suppressNextTitleSearch = false; return; }
                 clearTimeout(timer);
                 const value = this.value.trim();
                 if (value.length < 3 || /^https?:\/\//i.test(value)) return;

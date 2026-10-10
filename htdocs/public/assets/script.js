@@ -269,32 +269,81 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     const searchInput = document.getElementById('liveSearch');
     if (searchInput) {
-        let debounceTimer;
-        searchInput.addEventListener('input', function(e) {
-            clearTimeout(debounceTimer);
-                         
-            debounceTimer = setTimeout(() => {
-                const term = e.target.value.trim().toLowerCase();
-                const cards = document.querySelectorAll('.searchable-card, .card');
-                                 
-                cards.forEach(card => {
-                    const title = card.querySelector('.card-title, .search-target-title')?.innerText.toLowerCase() || '';
-                    const desc = card.querySelector('.card-desc, .search-target-desc')?.innerText.toLowerCase() || '';
-                                         
-                    if (title.includes(term) || desc.includes(term)) {
-                        card.style.display = 'flex';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-                if (term !== '') {
-                    document.querySelectorAll('details.division-section, details.subcategory-details').forEach(d => {
-                        d.setAttribute('open', 'open');
-                    });
-                }
-            }, 300);
+        const cards = Array.from(document.querySelectorAll('.searchable-card'));
+        const statusFilter = document.getElementById('statusFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const resultCount = document.getElementById('cardResultCount');
+        const filterKey = 'cardFilters';
+        const categories = [...new Set(cards.map(card => card.dataset.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+        categories.forEach(category => { const option = document.createElement('option'); option.value = category; option.textContent = category; categoryFilter?.appendChild(option); });
+        const statuses = [...new Set(cards.map(card => card.dataset.status).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+        statuses.forEach(value => { const option = document.createElement('option'); option.value = value; option.textContent = value; statusFilter?.appendChild(option); });
+        try {
+            const saved = JSON.parse(localStorage.getItem(filterKey) || '{}');
+            searchInput.value = saved.query || '';
+            if (statusFilter) statusFilter.value = saved.status || '';
+            if (categoryFilter) categoryFilter.value = saved.category || '';
+            if (categoryFilter && !Array.from(categoryFilter.options).some(option => option.value === categoryFilter.value)) categoryFilter.value = '';
+            if (statusFilter && !Array.from(statusFilter.options).some(option => option.value === statusFilter.value)) statusFilter.value = '';
+        } catch (_) {}
+        const applyFilters = () => {
+            const query = searchInput.value.trim().toLocaleLowerCase('fr');
+            const status = statusFilter?.value || '';
+            const category = categoryFilter?.value || '';
+            let visible = 0;
+            cards.forEach(card => {
+                const title = card.querySelector('.card-title, .search-target-title')?.innerText.toLocaleLowerCase('fr') || '';
+                const desc = card.querySelector('.card-desc, .search-target-desc')?.innerText.toLocaleLowerCase('fr') || '';
+                const match = (!query || title.includes(query) || desc.includes(query)) && (!status || card.dataset.status === status) && (!category || card.dataset.category === category);
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            document.querySelectorAll('details.division-section, details.subcategory-details').forEach(detail => {
+                const hasVisible = Array.from(detail.querySelectorAll('.searchable-card')).some(card => card.style.display !== 'none');
+                detail.hidden = !hasVisible;
+                if (query || status || category) detail.open = hasVisible;
+            });
+            if (resultCount) resultCount.textContent = `${visible} carte${visible > 1 ? 's' : ''}`;
+            try { localStorage.setItem(filterKey, JSON.stringify({ query: searchInput.value, status, category })); } catch (_) {}
+        };
+        searchInput.addEventListener('input', applyFilters);
+        statusFilter?.addEventListener('change', applyFilters);
+        categoryFilter?.addEventListener('change', applyFilters);
+        document.getElementById('clearCardFilters')?.addEventListener('click', () => { searchInput.value = ''; if (statusFilter) statusFilter.value = ''; if (categoryFilter) categoryFilter.value = ''; applyFilters(); });
+        applyFilters();
+        document.querySelectorAll('details.division-section, details.subcategory-details').forEach((detail, index) => {
+            const key = `cardGroup:${detail.id || `${index}:${detail.querySelector('summary')?.textContent.trim()}`}`;
+            try { const saved = localStorage.getItem(key); if (saved !== null) detail.open = saved === '1'; } catch (_) {}
+            detail.addEventListener('toggle', () => {
+                if (searchInput.value.trim() || statusFilter?.value || categoryFilter?.value) return;
+                try { localStorage.setItem(key, detail.open ? '1' : '0'); } catch (_) {}
+            });
         });
     }
+
+    // ==========================================
+    // FORMULAIRE : champs pertinents selon le type et publication claire
+    // ==========================================
+    const divisionSelect = document.getElementById('id_division');
+    const progressFields = document.getElementById('progress-fields');
+    const publicCheckbox = document.getElementById('is_public');
+    const publicPreview = document.getElementById('public-preview');
+    const updateFormHints = () => {
+        const type = (divisionSelect?.selectedOptions[0]?.textContent || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLocaleLowerCase('fr');
+        if (progressFields) progressFields.hidden = !/(serie|tv|anime|manga)/i.test(type);
+        if (publicPreview && publicCheckbox) publicPreview.hidden = !publicCheckbox.checked;
+    };
+    divisionSelect?.addEventListener('change', updateFormHints);
+    publicCheckbox?.addEventListener('change', () => {
+        if (publicCheckbox.checked && !window.confirm('La carte sera proposée à la publication. Le titre, l’image, la description et le lien pourront être visibles publiquement. Continuer ?')) {
+            publicCheckbox.checked = false;
+        }
+        updateFormHints();
+    });
+    updateFormHints();
 
     // ==========================================
     // 8. DRAG AND DROP (SortableJS)
@@ -312,6 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify({ order: newOrder })
                 });
                 const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'Sauvegarde impossible');
                                  
                 if (data.csrf_token) {
                     siteConfig.csrfToken = data.csrf_token;

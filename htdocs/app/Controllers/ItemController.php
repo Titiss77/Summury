@@ -219,7 +219,10 @@ class ItemController extends BaseController
             }
 
             $subParam = !empty($data['sous_categorie']) ? '&subopen='.urlencode($data['sous_categorie']) : '';
-            return redirect()->to($backUrl.$separator.'open='.$data['id_division'].$subParam.'#div-'.$data['id_division']);
+            if ($this->request->getPost('save_add_another')) {
+                return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
+            }
+            return redirect()->to($backUrl.$separator.'open='.$data['id_division'].$subParam.'#div-'.$data['id_division'])->with('success', 'Carte enregistrée.');
         }
     }
 
