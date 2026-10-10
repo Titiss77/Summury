@@ -123,7 +123,6 @@ document.addEventListener("DOMContentLoaded", function() {
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
         <select id="statusFilter" class="form-control" aria-label="Filtrer par statut" style="max-width:220px"><option value="">Tous les statuts</option></select>
         <select id="categoryFilter" class="form-control" aria-label="Filtrer par catégorie" style="max-width:240px"><option value="">Toutes les catégories</option></select>
-        <button type="button" id="clearCardFilters" class="btn btn-cancel">Réinitialiser</button>
         <span id="cardResultCount" aria-live="polite" style="align-self:center;color:var(--text-muted)"></span>
     </div>
 </div>

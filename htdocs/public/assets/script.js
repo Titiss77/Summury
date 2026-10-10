@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('details.division-section, details.subcategory-details').forEach(detail => {
                 const hasVisible = Array.from(detail.querySelectorAll('.searchable-card')).some(card => card.style.display !== 'none');
                 detail.hidden = !hasVisible;
-                if (query || status || category) detail.open = hasVisible;
+                detail.open = Boolean(query || status || category) && hasVisible;
             });
             if (resultCount) resultCount.textContent = `${visible} carte${visible > 1 ? 's' : ''}`;
             try { localStorage.setItem(filterKey, JSON.stringify({ query: searchInput.value, status, category })); } catch (_) {}
@@ -311,7 +311,6 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', applyFilters);
         statusFilter?.addEventListener('change', applyFilters);
         categoryFilter?.addEventListener('change', applyFilters);
-        document.getElementById('clearCardFilters')?.addEventListener('click', () => { searchInput.value = ''; if (statusFilter) statusFilter.value = ''; if (categoryFilter) categoryFilter.value = ''; applyFilters(); });
         applyFilters();
         document.querySelectorAll('details.division-section, details.subcategory-details').forEach((detail, index) => {
             const key = `cardGroup:${detail.id || `${index}:${detail.querySelector('summary')?.textContent.trim()}`}`;
