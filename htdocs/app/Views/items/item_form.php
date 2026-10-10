@@ -161,7 +161,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
                 </div>
                 <!-- Box d'aperçu dynamique de l'image -->
                 <div
-                    style="flex-shrink: 0; width: 80px; height: 120px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg-body); transition: var(--transition);position: relative; top: -40px;">
+                    style="flex-shrink: 0; width: 80px; height: 120px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg-body); transition: var(--transition);">
                     <img id="img-preview" src="<?php echo htmlspecialchars($item->image ?? ''); ?>" alt="Aperçu"
                         style="width: 100%; height: 100%; object-fit: cover; display: <?php echo !empty($item->image) ? 'block' : 'none'; ?>;">
                     <span id="img-placeholder"

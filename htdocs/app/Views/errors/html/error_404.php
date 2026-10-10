@@ -6,14 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 - Page Introuvable</title>
 
-    <link rel="stylesheet" href="<?php echo base_url('assets/root.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/style.css'); ?>">
+    <?php $styleVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1'; ?>
+    <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v=1'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v='.$styleVersion); ?>">
 
     <script>
     // Maintien du Dark Mode sur la page d'erreur
-    if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }
+    let errorTheme = 'light';
+    try { errorTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'; } catch (_) {}
+    document.documentElement.setAttribute('data-theme', errorTheme);
     </script>
 </head>
 

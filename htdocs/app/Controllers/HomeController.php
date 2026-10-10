@@ -25,7 +25,7 @@ class HomeController extends BaseController
         $this->response->noCache();
 
         $headersWithNoLogin = $model->getActiveHeaders($userId);
-        $headersWithLogin = $model->getHeaders($userId);
+        $headersWithLogin = $model->getHeaders();
 
         // Évite la boucle infinie de redirection si un paramètre "i" est présent
         if (!empty($headersWithNoLogin) && !$this->request->getGet('i')) {
@@ -60,7 +60,7 @@ class HomeController extends BaseController
         $this->response->noCache();
 
         $headersWithNoLogin = $model->getActiveHeaders($userId);
-        $headersWithLogin = $model->getHeaders($userId);
+        $headersWithLogin = $model->getHeaders();
         $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
 
         $pendingTotal = 0;

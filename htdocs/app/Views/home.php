@@ -49,7 +49,8 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    let dismissed = JSON.parse(localStorage.getItem('dismissedReleases') || '[]');
+    let dismissed = [];
+    try { dismissed = JSON.parse(localStorage.getItem('dismissedReleases') || '[]'); } catch (_) {}
     const badges = document.querySelectorAll('.release-badge');
     badges.forEach(function(badge) {
         const key = badge.getAttribute('data-key');
@@ -59,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function() {
             badge.addEventListener('click', function() {
                 this.style.display = 'none';
                 dismissed.push(key);
-                localStorage.setItem('dismissedReleases', JSON.stringify(dismissed));
+                try { localStorage.setItem('dismissedReleases', JSON.stringify(dismissed)); } catch (_) {}
             });
         }
     });

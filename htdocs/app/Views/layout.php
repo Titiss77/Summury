@@ -40,9 +40,14 @@
 
     <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
     <script>
-    if (localStorage.getItem('theme') === 'dark') {
+    let initialTheme = 'light';
+    try { initialTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'; } catch (_) {}
+    if (initialTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.setAttribute('data-bs-theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.setAttribute('data-bs-theme', 'light');
     }
     </script>
 
@@ -51,6 +56,7 @@
         $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
     $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
     $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
+    $mediaAutofillVersion = file_exists(FCPATH.'assets/media-autofill.js') ? filemtime(FCPATH.'assets/media-autofill.js') : '1';
     ?>
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v='.$rootCssVersion); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v='.$styleCssVersion); ?>">
@@ -76,7 +82,7 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
         defer></script>
     <script src="<?php echo base_url('assets/script.js?v='.$scriptJsVersion); ?>" defer></script>
-    <script src="<?php echo base_url('assets/media-autofill.js?v=1'); ?>" defer></script>
+    <script src="<?php echo base_url('assets/media-autofill.js?v='.$mediaAutofillVersion); ?>" defer></script>
 </head>
 
 <body>
@@ -218,11 +224,13 @@
     (function() {
         var banner = document.getElementById('site-consent-box');
         var btn = document.getElementById('btn-understand-consent');
-        if (!localStorage.getItem('site_consent_ok')) {
+        var consentAccepted = false;
+        try { consentAccepted = localStorage.getItem('site_consent_ok') === 'true'; } catch (_) {}
+        if (!consentAccepted) {
             banner.style.display = 'flex';
         }
         btn.addEventListener('click', function() {
-            localStorage.setItem('site_consent_ok', 'true');
+            try { localStorage.setItem('site_consent_ok', 'true'); } catch (_) {}
             banner.style.display = 'none';
         });
     })();

@@ -107,6 +107,10 @@
             let description = res.description || '';
             if (description.length > limitCut) description = description.substring(0, limitCut) + '...';
             setField('description', description, false);
+            if (res.imageLarge || res.imageThumb || description) {
+                const optionalFields = document.getElementById('optional-fields');
+                if (optionalFields) optionalFields.open = true;
+            }
 
             if (res.lien) setField('lien', res.lien, false);
 

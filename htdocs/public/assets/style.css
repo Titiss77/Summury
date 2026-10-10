@@ -13,7 +13,7 @@ body {
     -webkit-font-smoothing: antialiased;
     transition: background-color var(--transition-smooth),
             color var(--transition-smooth);
-    user-select: none;
+    user-select: text;
 }
 
 a {
@@ -599,6 +599,19 @@ details[open].division-section .division-title {
     font-weight: 600;
     color: var(--text-main);
     font-size: var(--card-desc-font-size);
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+
+.search-container [hidden],
+.form-container [hidden] {
+    display: none !important;
 }
 
 .form-control {
@@ -1513,7 +1526,6 @@ select.form-control[hidden] {
 @media (max-width: 1024px) {
     .container {
         padding: 0 16px;
-        text-align: center;
     }
 
     .form-container {

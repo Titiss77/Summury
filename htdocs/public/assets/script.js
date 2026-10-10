@@ -121,7 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. THEME SOMBRE (Dark Mode)
     // ==========================================
     const themeToggleBtn = document.getElementById('theme-toggle');
-    const currentTheme = localStorage.getItem('theme') || 'light';
+    let currentTheme = 'light';
+    try { currentTheme = localStorage.getItem('theme') || 'light'; } catch (_) {}
     const metaThemeColor = document.getElementById('meta-theme-color');
          
     if (currentTheme === 'dark') {
@@ -142,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                          
             document.documentElement.setAttribute('data-theme', switchToTheme);
             document.documentElement.setAttribute('data-bs-theme', switchToTheme);
-            localStorage.setItem('theme', switchToTheme);
+            try { localStorage.setItem('theme', switchToTheme); } catch (_) {}
             themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
             if(metaThemeColor) {
                 metaThemeColor.setAttribute('content', switchToTheme === 'dark' ? '#09090b' : '#fcfcfd');
@@ -274,6 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const categoryFilter = document.getElementById('categoryFilter');
         const resultCount = document.getElementById('cardResultCount');
         const filterKey = 'cardFilters';
+        const hasExplicitOpen = new URLSearchParams(window.location.search).has('open') || Boolean(window.location.hash);
         const categories = [...new Set(cards.map(card => card.dataset.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
         categories.forEach(category => { const option = document.createElement('option'); option.value = category; option.textContent = category; categoryFilter?.appendChild(option); });
         const statuses = [...new Set(cards.map(card => card.dataset.status).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
@@ -313,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
         applyFilters();
         document.querySelectorAll('details.division-section, details.subcategory-details').forEach((detail, index) => {
             const key = `cardGroup:${detail.id || `${index}:${detail.querySelector('summary')?.textContent.trim()}`}`;
-            try { const saved = localStorage.getItem(key); if (saved !== null) detail.open = saved === '1'; } catch (_) {}
+            try { const saved = localStorage.getItem(key); if (saved !== null && !hasExplicitOpen) detail.open = saved === '1'; } catch (_) {}
             detail.addEventListener('toggle', () => {
                 if (searchInput.value.trim() || statusFilter?.value || categoryFilter?.value) return;
                 try { localStorage.setItem(key, detail.open ? '1' : '0'); } catch (_) {}
@@ -333,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .toLocaleLowerCase('fr');
-        if (progressFields) progressFields.hidden = !/(serie|tv|anime|manga)/i.test(type);
+        if (progressFields) progressFields.hidden = !/(serie|tv|anime|animation|manga)/i.test(type);
         if (publicPreview && publicCheckbox) publicPreview.hidden = !publicCheckbox.checked;
     };
     divisionSelect?.addEventListener('change', updateFormHints);
