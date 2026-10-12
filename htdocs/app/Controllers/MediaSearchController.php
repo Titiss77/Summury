@@ -428,17 +428,11 @@ GRAPHQL;
             foreach ($body['data'] ?? [] as $manga) {
                 $attr = $manga['attributes'] ?? [];
                 $titles = $attr['title'] ?? [];
-                $title = (string) (
-                    $titles['fr']
-                    ?? $titles['en']
-                    ?? $titles['ja-ro']
-                    ?? reset($titles)
-                    ?? 'Inconnu'
-                );
-
-                if (is_array($title)) {
-                    $title = (string) reset($title);
+                $rawTitle = $titles['fr'] ?? $titles['en'] ?? $titles['ja-ro'] ?? reset($titles) ?? 'Inconnu';
+                if (is_array($rawTitle)) {
+                    $rawTitle = reset($rawTitle);
                 }
+                $title = (string) $rawTitle;
 
                 $fileName = '';
                 foreach ($manga['relationships'] ?? [] as $relationship) {

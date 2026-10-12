@@ -27,6 +27,7 @@ class ItemController extends BaseController
      * Affiche le formulaire d'ajout ou de modification d'une carte.
      *
      * @param null|mixed $id
+     * @var \App\Entities\Item|null $item
      */
     public function form($id = null)
     {

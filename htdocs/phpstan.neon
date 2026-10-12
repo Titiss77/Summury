@@ -1,0 +1,14 @@
+parameters:
+    level: 5
+    paths:
+        - app/Controllers
+    bootstrapFiles:
+        # Pointeur corrigé vers le fichier de test à la racine
+        - system/Test/bootstrap.php
+    scanDirectories:
+        - app/Models
+        - app/Entities
+        # Pointeur corrigé vers les helpers à la racine
+        - system/Helpers
+    dynamicConstantNames:
+        - ENVIRONMENT
