@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace Config;
 
@@ -29,6 +27,14 @@ class AuthRoutes extends BaseConfig
             ['get', 'z/a/s', 'ActionController::show', 'auth-action-show'],
             ['post', 'z/a/h', 'ActionController::handle', 'auth-action-handle'],
             ['post', 'z/a/v', 'ActionController::verify', 'auth-action-verify'],
+        ],
+        'forgot-password' => [
+            ['get', 'forgot-password', 'PasswordResetController::forgotPasswordView', 'forgot-password'],
+            ['post', 'forgot-password', 'PasswordResetController::sendCode'],
+            ['get', 'forgot-password/verify', 'PasswordResetController::verifyCodeView', 'verify-reset-code'],
+            ['post', 'forgot-password/verify', 'PasswordResetController::verifyCode'],
+            ['get', 'forgot-password/reset', 'PasswordResetController::resetPasswordView', 'reset-password'],
+            ['post', 'forgot-password/reset', 'PasswordResetController::updatePassword'],
         ],
     ];
 }

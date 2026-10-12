@@ -9,13 +9,13 @@
     <h2>Modifier l'utilisateur : <?php echo esc($user->username); ?></h2>
 
     <?php if (session()->has('errors')) { ?>
-    <div class="alert alert-danger">
-        <ul>
-            <?php foreach (session('errors') as $error) { ?>
-            <li><?php echo esc($error); ?></li>
-            <?php } ?>
-        </ul>
-    </div>
+        <div class="alert alert-danger">
+            <ul>
+                <?php foreach (session('errors') as $error) { ?>
+                    <li><?php echo esc($error); ?></li>
+                <?php } ?>
+            </ul>
+        </div>
     <?php } ?>
 
     <form action="<?php echo base_url('a/u/'.$user->id); ?>" method="POST">
@@ -31,24 +31,12 @@
             <label for="group" class="form-label">Rôle (Groupe)</label>
             <select name="group" id="group" class="form-select">
                 <?php foreach ($availableGroups as $group => $info) { ?>
-                <option value="<?php echo $group; ?>" <?php echo $user->inGroup($group) ? 'selected' : ''; ?>>
-                    <?php echo esc($info['title'] ?? $group); ?>
-                </option>
+                    <option value="<?php echo $group; ?>" <?php echo $user->inGroup($group) ? 'selected' : ''; ?>>
+                        <?php echo esc($info['title'] ?? $group); ?>
+                    </option>
                 <?php } ?>
             </select>
         </div>
-
-        <!-- BLOC DE SÉCURITÉ : La redéfinition du mot de passe est exclusive au SuperAdmin -->
-        <?php if (auth()->user()->inGroup('superadmin')) { ?>
-        <div class="form-floating form-floating2 mb-3 password-wrapper">
-            <label for="floatingPasswordInput" class="form-label">Nouveau mot de passe <small
-                    class="text-muted">(laisser vide pour conserver l'actuel)</small></label>
-            <input type="password" class="form-control" id="floatingPasswordInput" name="new_password" inputmode="text"
-                autocomplete="new-password" placeholder="<?php echo lang('Auth.password'); ?>">
-            <button type="button" class="password-toggle password-toggle2"
-                aria-label="Afficher le mot de passe"></button>
-        </div>
-        <?php } ?>
 
         <div class="mt-4">
             <button type="submit" class="btn btn-success">Enregistrer les modifications</button>

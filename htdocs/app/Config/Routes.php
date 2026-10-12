@@ -122,3 +122,15 @@ $routes->group('/', ['namespace' => 'CodeIgniter\Shield\Controllers'], static fu
     $routes->post('auth/a/handle', 'ActionController::handle');
     $routes->post('auth/a/verify', 'ActionController::verify');
 });
+
+// --- Système de récupération de mot de passe ---
+$routes->group('forgot-password', ['namespace' => 'App\Controllers'], static function ($routes) {
+    $routes->get('/', 'PasswordResetController::forgotPasswordView', ['as' => 'forgot-password']);
+    $routes->post('/', 'PasswordResetController::sendCode');
+    
+    $routes->get('verify', 'PasswordResetController::verifyCodeView', ['as' => 'verify-reset-code']);
+    $routes->post('verify', 'PasswordResetController::verifyCode');
+    
+    $routes->get('reset', 'PasswordResetController::resetPasswordView', ['as' => 'reset-password']);
+    $routes->post('reset', 'PasswordResetController::updatePassword');
+});

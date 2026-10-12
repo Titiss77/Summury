@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
@@ -15,6 +13,7 @@ class UserController extends BaseController
     public function index()
     {
         $users = auth()->getProvider();
+
         $data = [
             'users' => $users->where('id !=', 0)->paginate(20),
             'pager' => $users->pager,
@@ -48,6 +47,7 @@ class UserController extends BaseController
         }
 
         $availableGroups = config('AuthGroups')->groups;
+
         if (!$currentUser->inGroup('superadmin')) {
             unset($availableGroups['superadmin']);
         }
@@ -86,7 +86,6 @@ class UserController extends BaseController
         $rules = [
             'username' => "required|alpha_numeric_space|min_length[3]|max_length[30]|is_unique[users.username,id,{$id}]",
             'group' => "permit_empty|in_list[{$availableGroups}]",
-            'new_password' => 'permit_empty|min_length[8]',
         ];
 
         if (!$this->validate($rules)) {
@@ -95,16 +94,10 @@ class UserController extends BaseController
 
         $oldUsername = $user->username;
         $newUsername = $this->request->getPost('username');
-        $newPassword = $this->request->getPost('new_password');
 
         $fillData = [
             'username' => $newUsername,
         ];
-
-        // Remplacement forcé du mot de passe si configuré (uniquement par le SuperAdmin)
-        if (!empty($newPassword) && $currentUser->inGroup('superadmin')) {
-            $fillData['password'] = $newPassword;
-        }
 
         $user->fill($fillData);
 
@@ -117,10 +110,6 @@ class UserController extends BaseController
             $logDetails .= "Pseudo: '{$oldUsername}' -> '{$newUsername}'. ";
         }
 
-        if (!empty($newPassword) && $currentUser->inGroup('superadmin')) {
-            $logDetails .= 'Mot de passe réinitialisé par le SuperAdmin. ';
-        }
-
         $newGroup = $this->request->getPost('group');
         if ($newGroup) {
             if ('superadmin' === $newGroup && !$currentUser->inGroup('superadmin')) {
@@ -128,6 +117,7 @@ class UserController extends BaseController
 
                 return redirect()->to('a/u')->with('error', 'Déploiement du grade Super Admin refusé.');
             }
+
             $user->syncGroups($newGroup);
             $logDetails .= "Nouveau groupe de sécurité assigné : [{$newGroup}].";
         }
@@ -138,7 +128,7 @@ class UserController extends BaseController
     }
 
     /**
-     * Banni temporairement un utilisateur (Gèle la connexion).
+     * Bannit temporairement un utilisateur (Gèle la connexion).
      *
      * @param mixed $id
      */
@@ -190,6 +180,6 @@ class UserController extends BaseController
         $user->unBan();
         $audit->logAction('Réhabilitation Compte', "Le bannissement du compte ID {$id} ('{$user->username}') a été levé.");
 
-        return redirect()->to('a/u')->with('message', "Le compte a été réhabilité. L'utilisateur peut à nouveau se connecter et accorder ses cartes.");
+        return redirect()->to('a/u')->with('message', "Le compte a été réhabilité. L'utilisateur peut à nouveau se connecter et accéder à ses cartes.");
     }
 }
