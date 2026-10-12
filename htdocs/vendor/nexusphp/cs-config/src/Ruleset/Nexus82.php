@@ -240,7 +240,7 @@ final class Nexus82 extends AbstractRuleset
             'multiline_comment_opening_closing' => true,
             'multiline_promoted_properties' => [
                 'keep_blank_lines' => false,
-                'minimum_number_of_parameters' => 3,
+                'minimum_number_of_parameters' => 2,
             ],
             'multiline_string_to_heredoc' => true,
             'multiline_whitespace_before_semicolons' => ['strategy' => 'new_line_for_chained_calls'],
@@ -497,8 +497,6 @@ final class Nexus82 extends AbstractRuleset
                 'replacements' => [
                     'const' => 'var',
                     'link' => 'see',
-                    'property-read' => 'property',
-                    'property-write' => 'property',
                     'type' => 'var',
                 ],
             ],
@@ -702,7 +700,7 @@ final class Nexus82 extends AbstractRuleset
             'standardize_not_equals' => true,
             'statement_indentation' => ['stick_comment_to_next_continuous_control_statement' => true],
             'static_lambda' => true,
-            'static_private_method' => true,
+            'static_private_method' => false,
             'strict_comparison' => true,
             'strict_param' => true,
             'string_implicit_backslashes' => [

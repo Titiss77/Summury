@@ -64,7 +64,8 @@ class ItemModel extends Model
             ->join('division d', 'i.id_division = d.id')
             ->join('header h', 'd.id_header = h.id')
             ->where('i.id_user !=', 0)
-            ->where('i.deleted_at IS NULL');
+            ->where('i.deleted_at IS NULL')
+        ;
 
         // Cartes publiques pour les visiteurs,
         // cartes personnelles + publiques pour le propriétaire.
@@ -73,9 +74,10 @@ class ItemModel extends Model
         } else {
             $builder
                 ->groupStart()
-                    ->where('i.id_user', $userId)
-                    ->orWhere('i.is_public', 1)
-                ->groupEnd();
+                ->where('i.id_user', $userId)
+                ->orWhere('i.is_public', 1)
+                ->groupEnd()
+            ;
         }
 
         if (null !== $headerId) {
@@ -87,7 +89,8 @@ class ItemModel extends Model
             ->orderBy('d.id', 'ASC')
             ->orderBy('i.position', 'ASC')
             ->get()
-            ->getCustomResultObject(Item::class);
+            ->getCustomResultObject(Item::class)
+        ;
 
         $groupedData = [];
 
@@ -118,22 +121,25 @@ class ItemModel extends Model
             ->join('division d', 'd.id_header = h.id')
             ->join('item i', 'i.id_division = d.id')
             ->where('i.deleted_at IS NULL')
-            ->where('i.id_user !=', 0);
+            ->where('i.id_user !=', 0)
+        ;
 
         if (null === $userId) {
             $builder->where('i.is_public', 1);
         } else {
             $builder
                 ->groupStart()
-                    ->where('i.id_user', $userId)
-                    ->orWhere('i.is_public', 1)
-                ->groupEnd();
+                ->where('i.id_user', $userId)
+                ->orWhere('i.is_public', 1)
+                ->groupEnd()
+            ;
         }
 
         return $builder
             ->orderBy('h.id', 'ASC')
             ->get()
-            ->getResultArray();
+            ->getResultArray()
+        ;
     }
 
     /**
@@ -145,7 +151,8 @@ class ItemModel extends Model
             ->table('division')
             ->orderBy('id', 'ASC')
             ->get()
-            ->getResultArray();
+            ->getResultArray()
+        ;
     }
 
     /**
@@ -157,7 +164,8 @@ class ItemModel extends Model
             ->table('header')
             ->orderBy('id', 'ASC')
             ->get()
-            ->getResultArray();
+            ->getResultArray()
+        ;
     }
 
     /**
@@ -170,7 +178,8 @@ class ItemModel extends Model
             ->where('is_public', 1)
             ->where('id_user !=', 1)
             ->orderBy('created_at', 'DESC')
-            ->findAll();
+            ->findAll()
+        ;
     }
 
     /**
@@ -184,7 +193,8 @@ class ItemModel extends Model
             ->table('item i')
             ->select('u.username AS author_name, i.*')
             ->join('users u', 'i.id_user = u.id', 'left')
-            ->where('i.deleted_at IS NOT NULL');
+            ->where('i.deleted_at IS NOT NULL')
+        ;
 
         if (null !== $userId) {
             $builder->where('i.id_user', $userId);
@@ -193,7 +203,8 @@ class ItemModel extends Model
         return $builder
             ->orderBy('i.deleted_at', 'DESC')
             ->get()
-            ->getCustomResultObject(Item::class);
+            ->getCustomResultObject(Item::class)
+        ;
     }
 
     /**
@@ -202,11 +213,11 @@ class ItemModel extends Model
      */
     public function getUserProfileStats(int $userId): array
     {
-        $syncedCondition = "
+        $syncedCondition = '
             id_division IN (1, 4)
             AND episode IS NOT NULL
             AND total_episodes IS NOT NULL
-        ";
+        ';
 
         $enCoursCondition = "
             status = 'En cours'
@@ -309,7 +320,8 @@ class ItemModel extends Model
             ->where('id_user', $userId)
             ->where('deleted_at IS NULL', null, false)
             ->get()
-            ->getRowArray();
+            ->getRowArray()
+        ;
 
         $defaults = [
             'total_items' => 0,
@@ -357,7 +369,8 @@ class ItemModel extends Model
             ->where('deleted_at IS NULL', null, false)
             ->orderBy('position', 'ASC')
             ->get()
-            ->getResult();
+            ->getResult()
+        ;
 
         $series = [
             'en_cours' => [],
@@ -366,13 +379,13 @@ class ItemModel extends Model
 
         foreach ($rows as $row) {
             // Calcul identique à l'ancien fonctionnement.
-            $row->vu_global = $row->episode_global !== null
+            $row->vu_global = null !== $row->episode_global
                 ? (int) $row->episode_global - 1
                 : null;
 
             if (
-                $row->total_episodes_global !== null ||
-                $row->total_episodes !== null
+                null !== $row->total_episodes_global
+                || null !== $row->total_episodes
             ) {
                 $totalEpisodes = $row->total_episodes_global
                     ?? $row->total_episodes;
@@ -389,8 +402,8 @@ class ItemModel extends Model
             }
 
             if (
-                $row->total_saisons !== null &&
-                $row->saison !== null
+                null !== $row->total_saisons
+                && null !== $row->saison
             ) {
                 $row->reste_s = (int) $row->total_saisons
                     - (int) $row->saison
@@ -399,7 +412,7 @@ class ItemModel extends Model
                 $row->reste_s = null;
             }
 
-            if ($row->status === 'En cours') {
+            if ('En cours' === $row->status) {
                 $series['en_cours'][] = $row;
             } else {
                 $series['en_pause'][] = $row;

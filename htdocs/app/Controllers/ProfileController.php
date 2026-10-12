@@ -102,6 +102,7 @@ class ProfileController extends BaseController
             ->with(
                 'message',
                 'Votre mot de passe a été mis à jour avec succès.'
-            );
+            )
+        ;
     }
 }

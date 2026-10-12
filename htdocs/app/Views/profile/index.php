@@ -11,27 +11,27 @@
 
     <h2 class="header-title">Mon Profil</h2>
 
-    <?php if (session()->has('message')): ?>
+    <?php if (session()->has('message')) { ?>
     <div class="alert alert-success">
         <?php echo esc(session('message')); ?>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 
-    <?php if (session()->has('error')): ?>
+    <?php if (session()->has('error')) { ?>
     <div class="alert alert-danger">
         <?php echo esc(session('error')); ?>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 
-    <?php if (session()->has('errors')): ?>
+    <?php if (session()->has('errors')) { ?>
     <div class="alert alert-danger">
         <ul>
-            <?php foreach (session('errors') as $error): ?>
+            <?php foreach (session('errors') as $error) { ?>
             <li><?php echo esc($error); ?></li>
-            <?php endforeach; ?>
+            <?php } ?>
         </ul>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 
 
     <!-- INFORMATIONS DU COMPTE -->
@@ -76,44 +76,44 @@
 
     <!-- SÉRIES -->
     <?php
-    $hasSeries =
-        !empty($inProgressEnCoursSeries) ||
-        !empty($inProgressEnPauseSeries);
-    ?>
+    $hasSeries
+        = !empty($inProgressEnCoursSeries)
+        || !empty($inProgressEnPauseSeries);
+?>
 
     <div class="card shadow-card profile-card">
 
         <div class="card-body">
 
-            <?php if (!$hasSeries): ?>
+            <?php if (!$hasSeries) { ?>
 
             <p class="profile-empty">
                 Aucune série ou animé en cours de visionnage avec
                 un total d'épisodes défini.
             </p>
 
-            <?php else: ?>
+            <?php } else { ?>
 
             <?php
-                $seriesSections = [
-                    [
-                        'title' => 'Séries en cours',
-                        'series' => $inProgressEnCoursSeries,
-                        'episodes' => $totalEpisodesEnCours,
-                        'seasons' => $totalSeriesEnCours,
-                        'empty' => 'Aucune série en cours',
-                    ],
-                    [
-                        'title' => 'Séries en pause',
-                        'series' => $inProgressEnPauseSeries,
-                        'episodes' => $totalEpisodesEnPause,
-                        'seasons' => $totalSeriesEnPause,
-                        'empty' => 'Aucune série en pause',
-                    ],
-                ];
+            $seriesSections = [
+                [
+                    'title' => 'Séries en cours',
+                    'series' => $inProgressEnCoursSeries,
+                    'episodes' => $totalEpisodesEnCours,
+                    'seasons' => $totalSeriesEnCours,
+                    'empty' => 'Aucune série en cours',
+                ],
+                [
+                    'title' => 'Séries en pause',
+                    'series' => $inProgressEnPauseSeries,
+                    'episodes' => $totalEpisodesEnPause,
+                    'seasons' => $totalSeriesEnPause,
+                    'empty' => 'Aucune série en pause',
+                ],
+            ];
                 ?>
 
-            <?php foreach ($seriesSections as $section): ?>
+            <?php foreach ($seriesSections as $section) { ?>
 
             <section class="profile-series-section">
 
@@ -154,7 +154,7 @@
 
                         <tbody>
 
-                            <?php if (empty($section['series'])): ?>
+                            <?php if (empty($section['series'])) { ?>
 
                             <tr>
                                 <td colspan="3" class="profile-table-empty">
@@ -162,9 +162,9 @@
                                 </td>
                             </tr>
 
-                            <?php else: ?>
+                            <?php } else { ?>
 
-                            <?php foreach ($section['series'] as $series): ?>
+                            <?php foreach ($section['series'] as $series) { ?>
 
                             <tr>
 
@@ -177,47 +177,47 @@
 
                                 <td class="profile-table-center">
 
-                                    <?php if ($series->reste_global !== null): ?>
+                                    <?php if (null !== $series->reste_global) { ?>
 
                                     <span class="badge badge-episode">
                                         Reste :
                                         <?php echo esc($series->reste_global); ?>
                                     </span>
 
-                                    <?php else: ?>
+                                    <?php } else { ?>
 
                                     <span class="profile-not-synced">
                                         Non synchronisé
                                     </span>
 
-                                    <?php endif; ?>
+                                    <?php } ?>
 
                                 </td>
 
 
                                 <td class="profile-table-center">
 
-                                    <?php if ($series->reste_s !== null): ?>
+                                    <?php if (null !== $series->reste_s) { ?>
 
                                     <span class="badge badge-season">
                                         <?php echo esc($series->reste_s); ?>
                                     </span>
 
-                                    <?php else: ?>
+                                    <?php } else { ?>
 
                                     <span class="profile-not-synced">
                                         -
                                     </span>
 
-                                    <?php endif; ?>
+                                    <?php } ?>
 
                                 </td>
 
                             </tr>
 
-                            <?php endforeach; ?>
+                            <?php } ?>
 
-                            <?php endif; ?>
+                            <?php } ?>
 
                         </tbody>
 
@@ -227,9 +227,9 @@
 
             </section>
 
-            <?php endforeach; ?>
+            <?php } ?>
 
-            <?php endif; ?>
+            <?php } ?>
 
         </div>
 

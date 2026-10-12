@@ -66,7 +66,7 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
 });
 
 // Administration : filtres de rôle inchangés.
-$routes->group('a', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
+$routes->group('a', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('u', 'UserController::index');
     $routes->get('u/(:num)', 'UserController::edit/$1');
     $routes->post('u/(:num)', 'UserController::update/$1');
@@ -84,14 +84,14 @@ $routes->group('a', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'grou
 });
 
 // Anciennes URL d'administration.
-$routes->group('users', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
+$routes->group('users', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('/', static fn () => redirect()->to('a/u'));
     $routes->get('edit/(:num)', static fn (string $id) => redirect()->to('a/u/'.$id));
     $routes->post('update/(:num)', 'UserController::update/$1');
     $routes->get('delete/(:num)', static fn (string $id) => redirect()->to('a/u/'.$id.'/x'));
     $routes->get('unban/(:num)', static fn (string $id) => redirect()->to('a/u/'.$id.'/b'));
 });
-$routes->group('items', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
+$routes->group('items', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('pending', static fn () => redirect()->to('a/i'));
     $routes->get('approve/(:num)', static fn (string $id) => redirect()->to('a/i/'.$id));
     $routes->get('reject/(:num)', static fn (string $id) => redirect()->to('a/i/'.$id.'/x'));
@@ -101,7 +101,7 @@ $routes->group('items', ['namespace' => 'App\\Controllers\\Admin', 'filter' => '
     $routes->get('delete/(:num)', static fn (string $id) => redirect()->to('a/d/'.$id));
     $routes->post('bulk-update-domain', 'ItemController::bulkUpdateDomain');
 });
-$routes->group('audit', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
+$routes->group('audit', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('/', static fn () => redirect()->to('a/l'));
 });
 
@@ -109,7 +109,7 @@ $routes->group('audit', ['namespace' => 'App\\Controllers\\Admin', 'filter' => '
 if (class_exists(Auth::class)) {
     service('auth')->routes($routes);
 }
-$routes->group('/', ['namespace' => 'CodeIgniter\\Shield\\Controllers'], static function (RouteCollection $routes): void {
+$routes->group('/', ['namespace' => 'CodeIgniter\Shield\Controllers'], static function (RouteCollection $routes): void {
     $routes->get('register', static fn () => redirect()->to('y'));
     $routes->post('register', 'RegisterController::registerAction');
     $routes->get('login', static fn () => redirect()->to('z'));

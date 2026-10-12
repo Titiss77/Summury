@@ -8,7 +8,7 @@ final class ExternalUrlGuard
 {
     public static function isPublicHttpUrl(string $url): bool
     {
-        if ($url === '' || strlen($url) > 2048 || !filter_var($url, FILTER_VALIDATE_URL)) {
+        if ('' === $url || strlen($url) > 2048 || !filter_var($url, FILTER_VALIDATE_URL)) {
             return false;
         }
 
@@ -19,17 +19,17 @@ final class ExternalUrlGuard
 
         $scheme = strtolower((string) ($parts['scheme'] ?? ''));
         $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
-        if (!in_array($scheme, ['http', 'https'], true) || $host === '' || isset($parts['user']) || isset($parts['pass'])) {
+        if (!in_array($scheme, ['http', 'https'], true) || '' === $host || isset($parts['user']) || isset($parts['pass'])) {
             return false;
         }
 
         $ipHost = trim($host, '[]');
-        if (filter_var($ipHost, FILTER_VALIDATE_IP) !== false) {
-            return filter_var(
+        if (false !== filter_var($ipHost, FILTER_VALIDATE_IP)) {
+            return false !== filter_var(
                 $ipHost,
                 FILTER_VALIDATE_IP,
                 FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
-            ) !== false;
+            );
         }
 
         if (!str_contains($host, '.')) {

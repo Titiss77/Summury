@@ -43,7 +43,7 @@ class MediaSearchController extends BaseController
         $rawType = $this->request->getGet('type');
         $type = is_string($rawType) ? strtolower(trim($rawType)) : '';
 
-        if ($query === '') {
+        if ('' === $query) {
             return $this->response->setJSON(['unified' => []]);
         }
 
@@ -58,6 +58,7 @@ class MediaSearchController extends BaseController
             }
 
             $metaData = $this->scrapeOpenGraph($query);
+
             return $this->response->setJSON($metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.']);
         }
 
@@ -68,10 +69,12 @@ class MediaSearchController extends BaseController
             switch ($type) {
                 case 'film':
                     $results = $this->searchTmdbMovies($query);
+
                     break;
 
                 case 'serie':
                     $results = $this->searchTmdbSeries($query);
+
                     break;
 
                 case 'anime':
@@ -80,6 +83,7 @@ class MediaSearchController extends BaseController
                         $this->searchAniList($query, 'ANIME'),
                         $this->searchMangaDex($query, true)
                     );
+
                     break;
 
                 case 'manga':
@@ -87,14 +91,17 @@ class MediaSearchController extends BaseController
                         $this->searchAniList($query, 'MANGA'),
                         $this->searchMangaDex($query, false)
                     );
+
                     break;
 
                 case 'video':
                     $results = $this->searchYouTube($query);
+
                     break;
 
                 case 'streaming':
                     $results = $this->searchStreaming($query);
+
                     break;
 
                 default:
@@ -105,6 +112,7 @@ class MediaSearchController extends BaseController
                         $this->searchAniList($query, 'ANIME', 4),
                         $this->searchAniList($query, 'MANGA', 4)
                     );
+
                     break;
             }
         } catch (\Throwable $e) {
@@ -158,7 +166,7 @@ class MediaSearchController extends BaseController
         $results = [];
         foreach (array_slice($data['results'] ?? [], 0, $limit) as $result) {
             $poster = $result['poster_path'] ?? '';
-            if ($poster === '') {
+            if ('' === $poster) {
                 continue;
             }
 
@@ -199,7 +207,7 @@ class MediaSearchController extends BaseController
         $results = [];
         foreach (array_slice($data['results'] ?? [], 0, $limit) as $result) {
             $poster = $result['poster_path'] ?? '';
-            if ($poster === '') {
+            if ('' === $poster) {
                 continue;
             }
 
@@ -264,13 +272,13 @@ class MediaSearchController extends BaseController
             }
 
             $poster = $result['poster_path'] ?? '';
-            if ($poster === '') {
+            if ('' === $poster) {
                 continue;
             }
 
             $title = (string) ($result['title'] ?? $result['name'] ?? $result['original_name'] ?? 'Inconnu');
             $year = substr((string) ($result['release_date'] ?? $result['first_air_date'] ?? ''), 0, 4);
-            $details = $mediaType === 'tv' && count($results) < 2
+            $details = 'tv' === $mediaType && count($results) < 2
                 ? $this->tmdbGet('/tv/'.(int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
                 : [];
 
@@ -311,23 +319,23 @@ class MediaSearchController extends BaseController
     private function searchAniList(string $query, string $mediaType, int $limit = 8): array
     {
         $graphql = <<<'GRAPHQL'
-query ($search: String!, $type: MediaType!, $perPage: Int) {
-  Page(page: 1, perPage: $perPage) {
-    media(search: $search, type: $type, isAdult: false) {
-      id
-      title { romaji english native }
-      description(asHtml: false)
-      startDate { year }
-      episodes
-      chapters
-      volumes
-      coverImage { extraLarge large medium }
-      format
-      countryOfOrigin
-    }
-  }
-}
-GRAPHQL;
+            query ($search: String!, $type: MediaType!, $perPage: Int) {
+              Page(page: 1, perPage: $perPage) {
+                media(search: $search, type: $type, isAdult: false) {
+                  id
+                  title { romaji english native }
+                  description(asHtml: false)
+                  startDate { year }
+                  episodes
+                  chapters
+                  volumes
+                  coverImage { extraLarge large medium }
+                  format
+                  countryOfOrigin
+                }
+              }
+            }
+            GRAPHQL;
 
         try {
             $response = $this->client->post('https://graphql.anilist.co', [
@@ -345,7 +353,7 @@ GRAPHQL;
                 ],
             ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return [];
             }
 
@@ -368,12 +376,12 @@ GRAPHQL;
                     ?? ''
                 );
 
-                if ($image === '') {
+                if ('' === $image) {
                     continue;
                 }
 
                 $year = (string) ($item['startDate']['year'] ?? '');
-                $label = $mediaType === 'ANIME' ? 'ANIME' : 'MANGA';
+                $label = 'ANIME' === $mediaType ? 'ANIME' : 'MANGA';
 
                 $results[] = [
                     'titre' => $title,
@@ -381,12 +389,12 @@ GRAPHQL;
                     'imageLarge' => $image,
                     'description' => trim(strip_tags((string) ($item['description'] ?? ''))),
                     'info' => ($year ? $year.' - ' : '').$label,
-                    'lien' => 'https://anilist.co/'.strtolower($mediaType === 'ANIME' ? 'anime' : 'manga').'/'.(int) ($item['id'] ?? 0),
-                    'total_episodes' => $mediaType === 'ANIME' ? (int) ($item['episodes'] ?? 0) : (int) ($item['chapters'] ?? 0),
-                    'total_saisons' => $mediaType === 'MANGA' ? (int) ($item['volumes'] ?? 0) : '',
+                    'lien' => 'https://anilist.co/'.strtolower('ANIME' === $mediaType ? 'anime' : 'manga').'/'.(int) ($item['id'] ?? 0),
+                    'total_episodes' => 'ANIME' === $mediaType ? (int) ($item['episodes'] ?? 0) : (int) ($item['chapters'] ?? 0),
+                    'total_saisons' => 'MANGA' === $mediaType ? (int) ($item['volumes'] ?? 0) : '',
                     'seasons_data' => null,
                     'source' => 'AniList',
-                    'sourcePriority' => $mediaType === 'MANGA' ? 110 : 95,
+                    'sourcePriority' => 'MANGA' === $mediaType ? 110 : 95,
                     'externalId' => $item['id'] ?? null,
                     'mediaType' => strtolower($mediaType),
                     'providers' => [],
@@ -397,6 +405,7 @@ GRAPHQL;
             return $results;
         } catch (\Throwable $e) {
             log_message('warning', 'AniList indisponible: '.$e->getMessage());
+
             return [];
         }
     }
@@ -418,7 +427,7 @@ GRAPHQL;
                 ],
             ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return [];
             }
 
@@ -438,12 +447,13 @@ GRAPHQL;
                 foreach ($manga['relationships'] ?? [] as $relationship) {
                     if (($relationship['type'] ?? '') === 'cover_art' && !empty($relationship['attributes']['fileName'])) {
                         $fileName = (string) $relationship['attributes']['fileName'];
+
                         break;
                     }
                 }
 
                 // Aucun fallback générique : une couverture absente ne doit pas polluer les résultats.
-                if ($fileName === '') {
+                if ('' === $fileName) {
                     continue;
                 }
 
@@ -475,6 +485,7 @@ GRAPHQL;
             return $results;
         } catch (\Throwable $e) {
             log_message('warning', 'MangaDex indisponible: '.$e->getMessage());
+
             return [];
         }
     }
@@ -482,7 +493,7 @@ GRAPHQL;
     private function searchYouTube(string $query, int $limit = 8): array
     {
         $apiKey = trim((string) env('YOUTUBE_API_KEY'));
-        if ($apiKey === '') {
+        if ('' === $apiKey) {
             return [];
         }
 
@@ -501,7 +512,7 @@ GRAPHQL;
                 ],
             ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return [];
             }
 
@@ -511,7 +522,7 @@ GRAPHQL;
             foreach ($body['items'] ?? [] as $item) {
                 $videoId = (string) ($item['id']['videoId'] ?? '');
                 $snippet = $item['snippet'] ?? [];
-                if ($videoId === '' || empty($snippet['title'])) {
+                if ('' === $videoId || empty($snippet['title'])) {
                     continue;
                 }
 
@@ -540,6 +551,7 @@ GRAPHQL;
             return $results;
         } catch (\Throwable $e) {
             log_message('warning', 'YouTube indisponible: '.$e->getMessage());
+
             return [];
         }
     }
@@ -559,7 +571,7 @@ GRAPHQL;
                 continue;
             }
 
-            $path = $mediaType === 'movie'
+            $path = 'movie' === $mediaType
                 ? '/movie/'.$id.'/watch/providers'
                 : '/tv/'.$id.'/watch/providers';
 
@@ -570,7 +582,7 @@ GRAPHQL;
             foreach (['flatrate', 'free', 'ads', 'rent', 'buy'] as $group) {
                 foreach ($fr[$group] ?? [] as $provider) {
                     $name = trim((string) ($provider['provider_name'] ?? ''));
-                    if ($name !== '' && !in_array($name, $providers, true)) {
+                    if ('' !== $name && !in_array($name, $providers, true)) {
                         $providers[] = $name;
                     }
                 }
@@ -629,6 +641,7 @@ GRAPHQL;
             if (!isset($deduped[$dedupeKey])) {
                 $result['sources'] = [$result['source'] ?? 'API'];
                 $deduped[$dedupeKey] = $result;
+
                 continue;
             }
 
@@ -669,10 +682,11 @@ GRAPHQL;
 
         usort($results, static function (array $a, array $b): int {
             $scoreCompare = ($b['score'] ?? 0) <=> ($a['score'] ?? 0);
-            if ($scoreCompare !== 0) {
+            if (0 !== $scoreCompare) {
                 return $scoreCompare;
             }
-            return (($b['sourcePriority'] ?? 0) <=> ($a['sourcePriority'] ?? 0));
+
+            return ($b['sourcePriority'] ?? 0) <=> ($a['sourcePriority'] ?? 0);
         });
 
         // Pas de résultat faible : on préfère peu de bons résultats à une liste de faux positifs.
@@ -692,7 +706,7 @@ GRAPHQL;
         $q = $this->normalizeTitle($query);
         $t = $this->normalizeTitle($title);
 
-        if ($q === '' || $t === '') {
+        if ('' === $q || '' === $t) {
             return 0;
         }
         if ($q === $t) {
@@ -722,30 +736,33 @@ GRAPHQL;
     {
         $value = trim(mb_strtolower($value));
         $converted = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
-        if ($converted !== false) {
+        if (false !== $converted) {
             $value = $converted;
         }
         $value = preg_replace('/[^a-z0-9]+/i', ' ', $value) ?? $value;
+
         return trim(preg_replace('/\s+/', ' ', $value) ?? $value);
     }
 
     private function tmdbGet(string $path, array $query = []): array
     {
-        if ($this->tmdbApiKey === '') {
+        if ('' === $this->tmdbApiKey) {
             return [];
         }
 
         $query['api_key'] = $this->tmdbApiKey;
-        $query['language'] = $query['language'] ?? 'fr-FR';
+        $query['language'] ??= 'fr-FR';
 
         try {
             $response = $this->client->get('https://api.themoviedb.org/3'.$path, ['query' => $query]);
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return [];
             }
+
             return json_decode((string) $response->getBody(), true) ?: [];
         } catch (\Throwable $e) {
             log_message('warning', 'TMDB indisponible: '.$e->getMessage());
+
             return [];
         }
     }
@@ -766,7 +783,7 @@ GRAPHQL;
             }
 
             $html = (string) $response->getBody();
-            if ($html === '') {
+            if ('' === $html) {
                 return null;
             }
 
@@ -787,16 +804,16 @@ GRAPHQL;
                 $name = $tag->getAttribute('name');
                 $content = $tag->getAttribute('content');
 
-                if ($property === 'og:title' || $name === 'twitter:title') {
+                if ('og:title' === $property || 'twitter:title' === $name) {
                     $data['titre'] = $content;
-                } elseif ($property === 'og:description' || $name === 'description') {
+                } elseif ('og:description' === $property || 'description' === $name) {
                     $data['description'] = $content;
-                } elseif ($property === 'og:image' || $name === 'twitter:image') {
+                } elseif ('og:image' === $property || 'twitter:image' === $name) {
                     $data['image'] = $content;
                 }
             }
 
-            if ($data['titre'] === '') {
+            if ('' === $data['titre']) {
                 $titles = $doc->getElementsByTagName('title');
                 if ($titles->length > 0) {
                     $data['titre'] = trim((string) $titles->item(0)->nodeValue);
@@ -808,5 +825,4 @@ GRAPHQL;
             return null;
         }
     }
-
 }

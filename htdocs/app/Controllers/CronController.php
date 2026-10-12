@@ -41,6 +41,7 @@ class CronController extends BaseController
 
         if (!flock($lockHandle, LOCK_EX | LOCK_NB)) {
             fclose($lockHandle);
+
             return $this->response->setJSON(['status' => 'running', 'message' => 'La vérification est déjà en cours.']);
         }
 

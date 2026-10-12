@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -10,6 +12,7 @@ use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
 use App\Models\SiteConfigModel;
 use App\Models\StatutModel;
+use CodeIgniter\Exceptions\PageNotFoundException;
 use Config\Services;
 
 class ItemController extends BaseController
@@ -27,7 +30,8 @@ class ItemController extends BaseController
      * Affiche le formulaire d'ajout ou de modification d'une carte.
      *
      * @param null|mixed $id
-     * @var \App\Entities\Item|null $item
+     *
+     * @var null|Item
      */
     public function form($id = null)
     {
@@ -35,7 +39,7 @@ class ItemController extends BaseController
         if (null !== $id) {
             $item = $this->model->find($id);
             if (!$this->canManageItem($item)) {
-                throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+                throw PageNotFoundException::forPageNotFound();
             }
         }
 
@@ -84,7 +88,7 @@ class ItemController extends BaseController
                 'sous_categorie_new' => 'permit_empty|max_length[255]',
                 'image' => 'permit_empty|max_length[255]',
                 'lien' => 'permit_empty|max_length[255]',
-                'date_sortie' => 'permit_empty|valid_date[Y-m-d\\TH:i]',
+                'date_sortie' => 'permit_empty|valid_date[Y-m-d\TH:i]',
             ];
 
             if (!$this->validate($rules)) {
@@ -135,6 +139,7 @@ class ItemController extends BaseController
                 $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
                 if (!$canEdit) {
                     $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
+
                     return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
                 }
 
@@ -184,6 +189,7 @@ class ItemController extends BaseController
                     foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
                         if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
                             $progressChanged = true;
+
                             break;
                         }
                     }
@@ -205,7 +211,6 @@ class ItemController extends BaseController
                     (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
                     $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
                 }
-
             } else {
                 // CRÉATION D'UNE NOUVELLE CARTE
                 $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
@@ -223,6 +228,7 @@ class ItemController extends BaseController
             if ($this->request->getPost('save_add_another')) {
                 return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
             }
+
             return redirect()->to($backUrl.$separator.'open='.$data['id_division'].$subParam.'#div-'.$data['id_division'])->with('success', 'Carte enregistrée.');
         }
     }
@@ -251,6 +257,7 @@ class ItemController extends BaseController
                 return redirect()->to($backUrl.$separator.'open='.$id_div.'#div-'.$id_div);
             }
         }
+
         return redirect()->back();
     }
 
@@ -295,7 +302,7 @@ class ItemController extends BaseController
                     $updateData['saison'] = $newSaison;
                     $updateData['episode'] = $newEpisode;
                     $updateData['total_episodes'] = null; // Vide l'ancien total par sécurité
-                    
+
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode} (Saison {$newSaison})";
 
                     // Recherche automatique de la nouvelle saison sur Jikan (MyAnimeList)
@@ -305,12 +312,12 @@ class ItemController extends BaseController
                     ]);
 
                     try {
-                        $jikanUrl = 'https://api.jikan.moe/v4/anime?q=' . urlencode($item->titre . ' season ' . $newSaison) . '&limit=1';
+                        $jikanUrl = 'https://api.jikan.moe/v4/anime?q='.urlencode($item->titre.' season '.$newSaison).'&limit=1';
                         $response = $client->get($jikanUrl);
 
-                        if ($response->getStatusCode() === 200) {
+                        if (200 === $response->getStatusCode()) {
                             $body = json_decode($response->getBody(), true);
-                            
+
                             // On récupère le total d'épisodes de la nouvelle fiche trouvée
                             if (!empty($body['data']) && isset($body['data'][0]['episodes'])) {
                                 $updateData['total_episodes'] = $body['data'][0]['episodes'];
@@ -351,6 +358,7 @@ class ItemController extends BaseController
                 ]);
             }
         }
+
         return redirect()->back();
     }
 
@@ -384,6 +392,7 @@ class ItemController extends BaseController
                 return $this->response->setJSON(['success' => true, 'new_saison' => $newSaison, 'csrf_token' => csrf_hash()]);
             }
         }
+
         return redirect()->back();
     }
 
@@ -411,6 +420,7 @@ class ItemController extends BaseController
             if (filter_var($query, FILTER_VALIDATE_URL)) {
                 $metaData = $this->scrapeOpenGraph($query);
                 $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
+
                 return $this->response->setJSON($body);
             }
 
@@ -510,6 +520,7 @@ class ItemController extends BaseController
                                 foreach ($m['relationships'] as $rel) {
                                     if ('cover_art' === $rel['type'] && isset($rel['attributes']['fileName'])) {
                                         $fileName = $rel['attributes']['fileName'];
+
                                         break;
                                     }
                                 }
@@ -536,8 +547,8 @@ class ItemController extends BaseController
             }
 
             $finalBody = ['unified' => $unifiedResults];
-            return $this->response->setJSON($finalBody);
 
+            return $this->response->setJSON($finalBody);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erreur de recherche : '.$e->getMessage()]);
         }
@@ -583,8 +594,10 @@ class ItemController extends BaseController
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
             $this->model->update($id, ['id_user' => 1]);
             (new AuditLogModel())->logAction('Transfert Carte', "La carte ID {$id} ('{$item->titre}') a été transférée à l'admin.");
+
             return redirect()->back()->with('message', "La carte a été transférée à l'admin avec succès.");
         }
+
         return redirect()->back()->with('error', "Vous n'avez pas les droits pour effectuer cette action.");
     }
 
@@ -620,11 +633,12 @@ class ItemController extends BaseController
                 return $this->response->setJSON(['success' => true, 'message' => 'Ordre mis à jour.', 'csrf_token' => csrf_hash()]);
             }
         }
+
         return $this->response->setJSON(['success' => false, 'error' => 'Requête invalide.']);
     }
 
     /**
-     * Vérifie en direct via AJAX la disponibilité d'une vidéo/lecteur sur une URL ciblée
+     * Vérifie en direct via AJAX la disponibilité d'une vidéo/lecteur sur une URL ciblée.
      */
     public function checkDispo()
     {
@@ -636,7 +650,7 @@ class ItemController extends BaseController
 
         $urlParts = parse_url((string) $urlCible);
         $host = strtolower(rtrim((string) ($urlParts['host'] ?? ''), '.'));
-        if ($host === '') {
+        if ('' === $host) {
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
@@ -649,8 +663,9 @@ class ItemController extends BaseController
             $configuredHost = parse_url(str_contains($configuredDomain, '://') ? $configuredDomain : 'https://'.$configuredDomain, PHP_URL_HOST);
             $configuredHost = strtolower(rtrim((string) $configuredHost, '.'));
 
-            if ($configuredHost !== '' && ($host === $configuredHost || str_ends_with($host, '.'.$configuredHost))) {
+            if ('' !== $configuredHost && ($host === $configuredHost || str_ends_with($host, '.'.$configuredHost))) {
                 $currentConfig = $config;
+
                 break;
             }
         }
@@ -686,6 +701,7 @@ class ItemController extends BaseController
             foreach ($indicateursPageInvalide as $indicator) {
                 if (false !== stripos($html, $indicator)) {
                     $estSurFicheAnime = true;
+
                     break;
                 }
             }
@@ -695,6 +711,7 @@ class ItemController extends BaseController
                 $indicatorFinal = $episodeExtrait ? str_replace('{ep}', (string) $episodeExtrait, $indicator) : $indicator;
                 if (false !== stripos($html, $indicatorFinal)) {
                     $lecteurPresent = true;
+
                     break;
                 }
             }
@@ -704,7 +721,6 @@ class ItemController extends BaseController
                 'disponible' => !$estSurFicheAnime && $lecteurPresent,
                 'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent],
             ]);
-
         } catch (\Throwable $e) {
             return $this->response->setJSON(['success' => false, 'error' => 'Timeout']);
         }
@@ -735,6 +751,7 @@ class ItemController extends BaseController
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
             $this->model->builder()->where('id', $id)->update(['deleted_at' => null]);
             (new AuditLogModel())->logAction('Restauration', "La carte ID {$id} ('{$item->titre}') a été restaurée de la corbeille.");
+
             return redirect()->back()->with('message', "La carte '{$item->titre}' a été restaurée avec succès.");
         }
 
@@ -756,6 +773,7 @@ class ItemController extends BaseController
             $this->model->delete($id, true);
             (new CronLogModel())->where('item_id', $id)->delete();
             (new AuditLogModel())->logAction('Suppression Définitive', "La carte ID {$id} ('{$titre}') a été détruite définitivement.");
+
             return redirect()->back()->with('message', "La carte '{$titre}' a été définitivement supprimée de la base de données.");
         }
 
@@ -853,7 +871,7 @@ class ItemController extends BaseController
     {
         $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
 
-        $client = \Config\Services::curlrequest([
+        $client = Services::curlrequest([
             'timeout' => 5,
             'http_errors' => false,
         ]);
@@ -865,58 +883,57 @@ class ItemController extends BaseController
         try {
             $url = 'https://api.themoviedb.org/3/search/multi?query='.urlencode($item->titre)."&api_key={$apiKey}&language=fr-FR";
             $response = $client->get($url);
-            
-            if ($response->getStatusCode() === 200) {
+
+            if (200 === $response->getStatusCode()) {
                 $body = json_decode($response->getBody(), true);
-                
+
                 if (!empty($body['results'])) {
                     foreach ($body['results'] as $result) {
-                        if (isset($result['media_type']) && $result['media_type'] === 'tv' && isset($result['id'])) {
+                        if (isset($result['media_type']) && 'tv' === $result['media_type'] && isset($result['id'])) {
                             $tvUrl = "https://api.themoviedb.org/3/tv/{$result['id']}?api_key={$apiKey}&language=fr-FR";
                             $tvResponse = $client->get($tvUrl);
-                            
-                            if ($tvResponse->getStatusCode() === 200) {
+
+                            if (200 === $tvResponse->getStatusCode()) {
                                 $tvBody = json_decode($tvResponse->getBody(), true);
-                                
+
                                 $totalEpisodesGlobal = $tvBody['number_of_episodes'] ?? null;
                                 $tmdbTotalSaisons = $tvBody['number_of_seasons'] ?? 1;
-                                
+
                                 // Si l'utilisateur est sur une saison supérieure à celle connue par TMDB (Cas des animes fusionnés comme Frieren)
                                 if ($currentSaison > 1 && $currentSaison > $tmdbTotalSaisons && $totalEpisodesGlobal > 0) {
-                                    
                                     $currentTotalEpisodes = (int) $item->total_episodes;
-                                    
+
                                     // 1. Déduction mathématique si l'utilisateur a saisi le total de la saison manuellement
                                     if ($currentTotalEpisodes > 0 && $totalEpisodesGlobal >= $currentTotalEpisodes) {
                                         $previousEpisodes = $totalEpisodesGlobal - $currentTotalEpisodes;
                                         $episodeGlobal = $previousEpisodes + (int) $item->episode;
-                                    } 
+                                    }
                                     // 2. Fallback automatique via Jikan (MyAnimeList) pour retrouver les épisodes de la saison précédente
                                     else {
                                         try {
-                                            $jikanUrl = 'https://api.jikan.moe/v4/anime?q=' . urlencode($item->titre . ' season ' . $currentSaison) . '&limit=1';
+                                            $jikanUrl = 'https://api.jikan.moe/v4/anime?q='.urlencode($item->titre.' season '.$currentSaison).'&limit=1';
                                             $jResp = $client->get($jikanUrl);
-                                            if ($jResp->getStatusCode() === 200) {
+                                            if (200 === $jResp->getStatusCode()) {
                                                 $jBody = json_decode($jResp->getBody(), true);
                                                 if (!empty($jBody['data']) && isset($jBody['data'][0]['episodes'])) {
                                                     $jikanEps = (int) $jBody['data'][0]['episodes'];
                                                     if ($jikanEps > 0 && $totalEpisodesGlobal >= $jikanEps) {
                                                         $previousEpisodes = $totalEpisodesGlobal - $jikanEps;
                                                         $episodeGlobal = $previousEpisodes + (int) $item->episode;
-                                                        
+
                                                         // Auto-correction des champs locaux de la base de données
                                                         $item->total_episodes = $jikanEps;
                                                     }
                                                 }
                                             }
-                                        } catch (\Exception $e) {}
-                                    }
-                                    
-                                    // Assure que le compteur de saisons respecte au moins la saison actuelle de l'utilisateur
-                                    if ((int)$item->total_saisons < $currentSaison) {
-                                        $item->total_saisons = $currentSaison;
+                                        } catch (\Exception $e) {
+                                        }
                                     }
 
+                                    // Assure que le compteur de saisons respecte au moins la saison actuelle de l'utilisateur
+                                    if ((int) $item->total_saisons < $currentSaison) {
+                                        $item->total_saisons = $currentSaison;
+                                    }
                                 } else {
                                     // Comportement standard (TMDB a correctement séparé les saisons)
                                     if (isset($tvBody['seasons']) && $currentSaison > 1) {
@@ -930,7 +947,8 @@ class ItemController extends BaseController
                                     }
                                 }
                             }
-                            break; 
+
+                            break;
                         }
                     }
                 }
@@ -941,7 +959,7 @@ class ItemController extends BaseController
 
         return [
             'episode_global' => $episodeGlobal,
-            'total_episodes_global' => $totalEpisodesGlobal
+            'total_episodes_global' => $totalEpisodesGlobal,
         ];
     }
 

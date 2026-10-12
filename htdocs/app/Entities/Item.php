@@ -9,15 +9,15 @@ use CodeIgniter\Entity\Entity;
 /**
  * @property int|string $id
  * @property int|string $id_user
- * @property string $titre
- * @property string $episode
- * @property string $total_episodes
- * @property string $saison
- * @property string $total_saisons
- * @property int $episode_global
- * @property int $total_episodes_global
+ * @property string     $titre
+ * @property string     $episode
+ * @property string     $total_episodes
+ * @property string     $saison
+ * @property string     $total_saisons
+ * @property int        $episode_global
+ * @property int        $total_episodes_global
  */
-class Item extends \CodeIgniter\Entity\Entity
+class Item extends Entity
 {
     // Cette fonction remplace le gros bloc str_replace que tu avais dans home.php
     public function getFinalLink(): string
