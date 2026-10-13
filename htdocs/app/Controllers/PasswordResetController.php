@@ -27,27 +27,8 @@ class PasswordResetController extends BaseController
             // On stocke le code dans le cache de CI4 (durée : 15 minutes)
             cache()->save('reset_code_' . md5($email), $code, 900);
 
+            // Initialisation automatique avec les variables du .env
             $emailService = \Config\Services::email();
-            
-            // --- CORRECTION DÉFINITIVE : Configuration forcée en tableau ---
-            $config = [
-                'protocol'   => 'smtp',
-                'SMTPHost'   => 'smtp.gmail.com',
-                'SMTPUser'   => 'mathisfrances11@gmail.com',
-                'SMTPPass'   => 'ettd ktxo tqpe xrvq',
-                'SMTPPort'   => 465,
-                'SMTPCrypto' => 'ssl',
-                'mailType'   => 'html',
-                'charset'    => 'utf-8',
-                'wordWrap'   => true,
-                'CRLF'       => "\r\n", // Requis par beaucoup de serveurs SMTP
-                'newline'    => "\r\n"  // Requis par beaucoup de serveurs SMTP
-            ];
-            
-            $emailService->initialize($config);
-            // -------------------------------------------------------------------
-
-            $emailService->setFrom('contact@titiss.space', 'CARDEX');
             $emailService->setTo($email);
             $emailService->setSubject('Code de réinitialisation de mot de passe');
             
@@ -129,7 +110,7 @@ class PasswordResetController extends BaseController
         }
 
         $rules = [
-            'password' => 'required|min_length[8]',
+            'password'         => 'required|min_length[8]',
             'password_confirm' => 'required|matches[password]',
         ];
 
@@ -144,7 +125,6 @@ class PasswordResetController extends BaseController
         if ($user) {
             $user->fill(['password' => $this->request->getPost('password')]);
             $users->save($user);
-
             (new AuditLogModel())->logAction('Réinitialisation Mot de passe', "L'utilisateur ID {$user->id} a réinitialisé son mot de passe via un code de secours e-mail.");
         }
 
