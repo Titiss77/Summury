@@ -63,6 +63,7 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->get('items/empty-trash', static fn () => redirect()->to('re'));
     $routes->get('profile', static fn () => redirect()->to('p'));
     $routes->post('profile/update-password', 'ProfileController::updatePassword');
+    $routes->post('update-email', 'ProfileController::updateEmail');
 });
 
 // Administration : filtres de rôle inchangés.

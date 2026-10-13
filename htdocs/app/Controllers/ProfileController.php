@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -10,7 +8,7 @@ use App\Models\ItemModel;
 class ProfileController extends BaseController
 {
     /**
-     * Affiche le profil de l'utilisateur connecté.
+     * Affiche le profil de l'utilisateur connecté
      */
     public function index()
     {
@@ -59,7 +57,7 @@ class ProfileController extends BaseController
     {
         $rules = [
             'current_password' => 'required',
-            'new_password' => 'required|min_length[8]',
+            'new_password'     => 'required|min_length[8]',
             'confirm_password' => 'required|matches[new_password]',
         ];
 
@@ -74,7 +72,7 @@ class ProfileController extends BaseController
         $user = auth()->user();
 
         $credentials = [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => $this->request->getPost('current_password'),
         ];
 
@@ -102,7 +100,57 @@ class ProfileController extends BaseController
             ->with(
                 'message',
                 'Votre mot de passe a été mis à jour avec succès.'
-            )
-        ;
+            );
+    }
+
+    /**
+     * Traite la mise à jour de l'adresse e-mail de l'utilisateur.
+     */
+    public function updateEmail()
+    {
+        $user = auth()->user();
+        $newEmail = $this->request->getPost('new_email');
+
+        // Vérifie si l'utilisateur soumet son adresse actuelle
+        if ($newEmail === $user->email) {
+            return redirect()->back()->with('message', 'Cette adresse e-mail est déjà la vôtre.');
+        }
+
+        $rules = [
+            'new_email'          => 'required|valid_email|is_unique[auth_identities.secret]',
+            'password_for_email' => 'required',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->with('errors', $this->validator->getErrors());
+        }
+
+        $users = auth()->getProvider();
+
+        $credentials = [
+            'email'    => $user->email,
+            'password' => $this->request->getPost('password_for_email'),
+        ];
+
+        $authenticator = auth('session')->getAuthenticator();
+        $result = $authenticator->check($credentials);
+
+        if (!$result->isOK()) {
+            return redirect()->back()->with('error', 'Le mot de passe actuel est incorrect.');
+        }
+
+        $oldEmail = $user->email;
+
+        // Mise à jour de l'e-mail dans l'entité et la base de données
+        $user->fill(['email' => $newEmail]);
+        $users->save($user);
+
+        $audit = new AuditLogModel();
+        $audit->logAction(
+            'Modification Profil',
+            "L'utilisateur ID {$user->id} a modifié son adresse e-mail ('{$oldEmail}' -> '{$newEmail}')."
+        );
+
+        return redirect()->to('p')->with('message', 'Votre adresse e-mail a été mise à jour avec succès.');
     }
 }
