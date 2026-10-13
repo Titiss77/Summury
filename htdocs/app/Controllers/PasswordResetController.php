@@ -47,16 +47,32 @@ class PasswordResetController extends BaseController
             $emailService->initialize($config);
             // -------------------------------------------------------------------
 
-            // On force également l'expéditeur explicitement
-            $emailService->setFrom('mathisfrances11@gmail.com', 'CARDEX');
+            $emailService->setFrom('contact@titiss.space', 'CARDEX');
             $emailService->setTo($email);
             $emailService->setSubject('Code de réinitialisation de mot de passe');
             
-            $message = "Bonjour,<br><br>";
-            $message .= "Vous avez demandé la réinitialisation de votre mot de passe.<br>";
-            $message .= "Voici votre code de vérification à 6 chiffres : <strong style='font-size:1.5rem;'>{$code}</strong><br><br>";
-            $message .= "Ce code est valide pendant 15 minutes.<br>";
-            $message .= "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.";
+            $message = "
+            <div style='font-family: \"Inter\", Helvetica, Arial, sans-serif; background-color: #f3f5f8; padding: 40px 20px; color: #182131;'>
+                <div style='max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e1e5ec;'>
+                    <div style='text-align: center; margin-bottom: 20px;'>
+                        <h2 style='color: #182131; margin: 0; font-size: 22px; font-weight: 800;'>CARDEX</h2>
+                    </div>
+                    
+                    <p style='font-size: 15px; line-height: 1.6; color: #657084;'>Bonjour,</p>
+                    <p style='font-size: 15px; line-height: 1.6; color: #657084;'>Vous avez demandé à réinitialiser votre mot de passe. Voici votre code de vérification :</p>
+                    
+                    <div style='text-align: center; margin: 35px 0;'>
+                        <span style='display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #ffffff; background-color: #98733d; padding: 15px 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(152, 115, 61, 0.2);'>{$code}</span>
+                    </div>
+                    
+                    <p style='font-size: 14px; text-align: center; color: #657084;'>Ce code est valide pendant <strong>15 minutes</strong>.</p>
+                    
+                    <hr style='border: none; border-top: 1px solid #e1e5ec; margin: 30px 0;'>
+                    
+                    <p style='font-size: 12px; text-align: center; color: #8791a1; margin: 0; line-height: 1.5;'>Si vous n'avez pas fait cette demande, vous pouvez ignorer cet e-mail en toute sécurité. Votre compte reste protégé.</p>
+                </div>
+            </div>
+            ";
             
             $emailService->setMessage($message);
 
