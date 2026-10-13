@@ -163,39 +163,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. THEME SOMBRE (Dark Mode)
     // ==========================================
     const themeToggleBtn = document.getElementById('theme-toggle');
-    let currentTheme = 'light';
-    try { currentTheme = localStorage.getItem('theme') || 'light'; } catch (_) {}
-
     const metaThemeColor = document.getElementById('meta-theme-color');
 
+    // Déterminer le thème actuel (Local Storage ou Système)
+    let currentTheme = 'light';
+    try {
+        let storedTheme = localStorage.getItem('theme');
+        if (storedTheme) {
+            currentTheme = storedTheme;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            currentTheme = 'dark';
+        }
+    } catch (_) {}
+
+    // Initialiser l'icône et la couleur de la barre d'adresse
     if (currentTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.setAttribute('data-bs-theme', 'dark');
         if(themeToggleBtn) themeToggleBtn.innerHTML = svgWithColor('Clair');
         if(metaThemeColor) metaThemeColor.setAttribute('content', '#09090b');
     } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.documentElement.setAttribute('data-bs-theme', 'light');
+        if(themeToggleBtn) themeToggleBtn.innerHTML = svgWithColor('Sombre');
         if(metaThemeColor) metaThemeColor.setAttribute('content', '#fcfcfd');
     }
 
+    // Action au clic sur le bouton (Force le choix de l'utilisateur)
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
             let switchToTheme = theme === 'dark' ? 'light' : 'dark';
-
+            
             document.documentElement.setAttribute('data-theme', switchToTheme);
             document.documentElement.setAttribute('data-bs-theme', switchToTheme);
-
             try { localStorage.setItem('theme', switchToTheme); } catch (_) {}
-
-            themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
             
+            themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
             if(metaThemeColor) {
                 metaThemeColor.setAttribute('content', switchToTheme === 'dark' ? '#09090b' : '#fcfcfd');
             }
         });
     }
+
+    // Écouter les changements de thème du système en temps réel
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        // On ne change automatiquement que si l'utilisateur n'a pas forcé de thème manuellement
+        if (!localStorage.getItem('theme')) {
+            let newTheme = event.matches ? 'dark' : 'light';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            
+            if(themeToggleBtn) themeToggleBtn.innerHTML = newTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
+            if(metaThemeColor) metaThemeColor.setAttribute('content', newTheme === 'dark' ? '#09090b' : '#fcfcfd');
+        }
+    });
 
     // ==========================================
     // 3. COMPTEUR DE CARACTERES (Description)
