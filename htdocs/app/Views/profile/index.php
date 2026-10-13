@@ -180,21 +180,21 @@
     <div class="card shadow-card profile-card">
         <div class="card-body">
             <h3>Changer mon adresse e-mail</h3>
-            <form action="<?php echo base_url('update-email'); ?>" method="POST" class="profile-password-form">
+            <form action="<?php echo base_url('update-email'); ?>" method="POST" class="profile-password-form" autocomplete="off">
                 <?php echo csrf_field(); ?>
 
                 <div class="form-group">
                     <label for="new_email" class="form-label">
                         Nouvelle adresse e-mail
                     </label>
-                    <input type="email" id="new_email" name="new_email" class="form-control" placeholder="nom@exemple.com" required>
+                    <input type="email" id="new_email" name="new_email" class="form-control" placeholder="nom@exemple.com" autocomplete="off" data-bwignore="true" data-lpignore="true" required>
                 </div>
 
                 <div class="form-group password-wrapper">
                     <label for="password_for_email" class="form-label">
                         Mot de passe actuel (pour sécurité)
                     </label>
-                    <input type="password" id="password_for_email" name="password_for_email" class="form-control" required>
+                    <input type="password" id="password_for_email" name="password_for_email" class="form-control" autocomplete="new-password" data-bwignore="true" data-lpignore="true" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
 
@@ -211,14 +211,14 @@
     <div class="card shadow-card profile-card">
         <div class="card-body">
             <h3>Changer mon mot de passe</h3>
-            <form action="<?php echo base_url('pw'); ?>" method="POST" class="profile-password-form">
+            <form action="<?php echo base_url('pw'); ?>" method="POST" class="profile-password-form" autocomplete="off">
                 <?php echo csrf_field(); ?>
 
                 <div class="form-group password-wrapper">
                     <label for="current_password" class="form-label">
                         Mot de passe actuel
                     </label>
-                    <input type="password" id="current_password" name="current_password" class="form-control" required>
+                    <input type="password" id="current_password" name="current_password" class="form-control" autocomplete="new-password" data-bwignore="true" data-lpignore="true" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
 
@@ -226,8 +226,7 @@
                     <label for="new_password" class="form-label">
                         Nouveau mot de passe
                     </label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" minlength="8"
-                        required>
+                    <input type="password" id="new_password" name="new_password" class="form-control" minlength="8" autocomplete="new-password" data-bwignore="true" data-lpignore="true" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
 
@@ -235,8 +234,7 @@
                     <label for="confirm_password" class="form-label">
                         Confirmer le nouveau mot de passe
                     </label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
-                        minlength="8" required>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" minlength="8" autocomplete="new-password" data-bwignore="true" data-lpignore="true" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
 
