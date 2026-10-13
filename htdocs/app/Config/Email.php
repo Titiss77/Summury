@@ -31,4 +31,18 @@ class Email extends BaseConfig
     public bool   $BCCBatchMode = false;
     public int    $BCCBatchSize = 200;
     public bool   $DSN        = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Récupération explicite et forcée depuis le .env
+        $this->fromEmail  = env('SMTP_FROM_EMAIL', '');
+        $this->fromName   = env('SMTP_FROM_NAME', 'CARDEX');
+        $this->SMTPHost   = env('SMTP_HOST', '');
+        $this->SMTPUser   = env('SMTP_USER', '');
+        $this->SMTPPass   = env('SMTP_PASS', '');
+        $this->SMTPPort   = (int) env('SMTP_PORT', 465);
+        $this->SMTPCrypto = env('SMTP_CRYPTO', 'ssl');
+    }
 }

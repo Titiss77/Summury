@@ -24,11 +24,15 @@ class PasswordResetController extends BaseController
 
         if ($user) {
             $code = (string) random_int(100000, 999999);
-            // On stocke le code dans le cache de CI4 (durée : 15 minutes)
             cache()->save('reset_code_' . md5($email), $code, 900);
 
-            // Initialisation automatique avec les variables du .env
+            // Chargement de la configuration via l'instance fraîche
+            $emailConfig = config('Email');
             $emailService = \Config\Services::email();
+            $emailService->initialize($emailConfig);
+            
+            // Assignation stricte de l'expéditeur
+            $emailService->setFrom($emailConfig->fromEmail, $emailConfig->fromName);
             $emailService->setTo($email);
             $emailService->setSubject('Code de réinitialisation de mot de passe');
             
@@ -63,7 +67,6 @@ class PasswordResetController extends BaseController
             }
         }
 
-        // Par sécurité anti-énumération de compte, on affiche toujours un succès d'envoi.
         session()->set('reset_email', $email);
         return redirect()->to('forgot-password/verify')->with('message', "Si l'adresse e-mail correspond à un compte, un code à 6 chiffres vous a été envoyé.");
     }
