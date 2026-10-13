@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
@@ -20,7 +18,6 @@ class ItemController extends BaseController
         helper('text');
         $itemModel = new ItemModel();
         $revisionModel = new ItemRevisionModel();
-
         $revisions = $revisionModel->getPendingRevisions();
 
         foreach ($revisions as &$revision) {
@@ -74,12 +71,15 @@ class ItemController extends BaseController
         $item = $itemModel->find($id);
 
         if ($item) {
-            $itemModel->update($id, ['is_public' => 1]);
-            $itemModel->update($id, ['status' => 'Public']);
+            // Force l'état public ET le statut public
+            $itemModel->update($id, [
+                'is_public' => 1,
+                'status'    => 'Public'
+            ]);
             (new AuditLogModel())->logAction('Modération : Approbation Carte', "Le SuperAdmin a validé la nouvelle publication de la carte ID {$id} ('{$item->titre}').");
         }
 
-        return redirect()->back()->with('message', 'Nouvelle carte validée ! Elle est désormais visible de tous.');
+        return redirect()->back()->with('message', 'Nouvelle carte validée ! Elle est désormais visible de tous avec le statut Public.');
     }
 
     /**
@@ -93,11 +93,15 @@ class ItemController extends BaseController
         $item = $itemModel->find($id);
 
         if ($item) {
-            $itemModel->update($id, ['is_public' => 0]);
+            // Force l'état privé ET le statut privé
+            $itemModel->update($id, [
+                'is_public' => 0,
+                'status'    => 'Privé'
+            ]);
             (new AuditLogModel())->logAction('Modération : Refus Carte', "Le SuperAdmin a refusé la publication de la carte ID {$id} ('{$item->titre}'). Rétrogradation en privée.");
         }
 
-        return redirect()->back()->with('error', "Nouvelle carte refusée. Elle est repassée en privée pour l'utilisateur.");
+        return redirect()->back()->with('error', "Nouvelle carte refusée. Elle est repassée en privée pour l'utilisateur avec le statut Privé.");
     }
 
     /**
@@ -114,7 +118,8 @@ class ItemController extends BaseController
         if ($revision && 'pending' === $revision['revision_status']) {
             $updateData = [
                 'titre' => $revision['titre'], 'sous_categorie' => $revision['sous_categorie'],
-                'status' => $revision['status'], 'image' => $revision['image'],
+                'status' => 'Public', // Force le statut sur une carte approuvée publiquement
+                'image' => $revision['image'],
                 'lien' => $revision['lien'], 'description' => $revision['description'],
                 'saison' => $revision['saison'], 'total_saisons' => $revision['total_saisons'],
                 'episode' => $revision['episode'], 'total_episodes' => $revision['total_episodes'],
@@ -123,6 +128,7 @@ class ItemController extends BaseController
 
             $itemModel->update($revision['original_item_id'], $updateData);
             $revisionModel->update($revisionId, ['revision_status' => 'approved']);
+
             (new AuditLogModel())->logAction('Modération : Approbation Draft', "Validation du Draft ID {$revisionId}. Les données de la carte publique ID {$revision['original_item_id']} ('{$revision['titre']}') ont été écrasées avec succès.");
 
             return redirect()->back()->with('message', 'La modification a été fusionnée et est maintenant en ligne.');
@@ -191,6 +197,7 @@ class ItemController extends BaseController
                 }
             }
         }
+
         sort($domains);
 
         return view('admin/items/dead_links', ['deadItems' => $cronLogModel->where('item_id IS NOT NULL')->findAll(), 'domains' => $domains]);
@@ -222,13 +229,11 @@ class ItemController extends BaseController
 
             if ($count > 0) {
                 (new AuditLogModel())->logAction('Maintenance', "Migration de '{$oldDomain}' vers '{$newDomain}' sur {$count} carte(s).");
-
                 return redirect()->back()->with('message', "Le domaine a été remplacé sur {$count} carte(s).");
             }
 
             return redirect()->back()->with('error', "Aucune carte avec le domaine '{$oldDomain}'.");
         }
-
         return redirect()->back();
     }
 }

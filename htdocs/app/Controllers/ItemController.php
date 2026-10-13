@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -38,19 +36,17 @@ class ItemController extends BaseController
         $item = null;
         if (null !== $id) {
             $item = $this->model->find($id);
-
             if (!$this->canManageItem($item)) {
                 throw PageNotFoundException::forPageNotFound();
             }
         }
 
         $userId = auth()->loggedIn() ? auth()->id() : null;
-
         $subCategories = [];
+
         if ($userId) {
             $subCategories = $this->model->where('id_user', $userId)->where('sous_categorie IS NOT NULL')
-                ->where('sous_categorie !=', '')->distinct()->findColumn('sous_categorie') ?? []
-            ;
+                ->where('sous_categorie !=', '')->distinct()->findColumn('sous_categorie') ?? [];
         }
 
         $data = [
@@ -123,6 +119,17 @@ class ItemController extends BaseController
                 $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string) $sousCatSelect);
             }
 
+            // FORCER LE STATUT SELON LA VISIBILITÉ
+            if ($data['is_public'] == 1) {
+                $data['status'] = 'Public';
+            } elseif ($data['is_public'] == 0) {
+                // Si la carte est privée, on garde le statut choisi dans le formulaire.
+                // Sauf si le statut a été forcé à "Public", auquel cas on le remet à "Aucun".
+                if (empty($data['status']) || $data['status'] === 'Public') {
+                    $data['status'] = 'Aucun';
+                }
+            }
+
             $existing = null;
             if ($id) {
                 $existing = $this->model->find($id);
@@ -142,7 +149,6 @@ class ItemController extends BaseController
 
                 if (!$canEdit) {
                     $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
-
                     return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
                 }
 
@@ -174,21 +180,15 @@ class ItemController extends BaseController
                     }
 
                     $revisionModel->save($revisionData);
-
                     $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
                     $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
 
                     return redirect()->to($backUrl.$separator.'open='.$existing->id_division.'#card-'.$id)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
                 }
 
-                // Force le statut à "Aucun" si on retire la carte du domaine public
-                if (in_array($existing->is_public, [1]) && 0 == $data['is_public']) {
-                    $data['status'] = 'Aucun';
-                }
-
                 $item = new Item($data);
-
                 $progressChanged = !$existing;
+
                 if ($existing) {
                     foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
                         if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
@@ -214,6 +214,7 @@ class ItemController extends BaseController
                     (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
                     $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
                 }
+
             } else {
                 // CRÉATION D'UNE NOUVELLE CARTE
                 $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
@@ -263,7 +264,6 @@ class ItemController extends BaseController
                 return redirect()->to($backUrl.$separator.'open='.$id_div.'#div-'.$id_div);
             }
         }
-
         return redirect()->back();
     }
 
@@ -285,7 +285,6 @@ class ItemController extends BaseController
                         'csrf_token' => csrf_hash(),
                     ]);
                 }
-
                 return redirect()->back()->with('error', 'Vous ne pouvez pas modifier cette carte.');
             }
 
@@ -293,7 +292,6 @@ class ItemController extends BaseController
             $newSaison = (int) $item->saison;
             $totalEpisodes = (int) $item->total_episodes;
             $totalSaisons = (int) $item->total_saisons;
-
             $updateData = [];
 
             // Détection automatique du passage à la saison suivante ou de la fin
@@ -302,13 +300,14 @@ class ItemController extends BaseController
                     $updateData['status'] = 'Terminé';
                     $newEpisode = $totalEpisodes;
                     $updateData['episode'] = $newEpisode;
-                    $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Statut passé Terminé.";
+                    $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Statut passé à Terminé.";
                 } else {
                     $newEpisode = 1;
                     ++$newSaison;
                     $updateData['saison'] = $newSaison;
                     $updateData['episode'] = $newEpisode;
                     $updateData['total_episodes'] = null; // Vide l'ancien total par sécurité
+
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode} (Saison {$newSaison})";
 
                     // Recherche automatique de la nouvelle saison sur Jikan (MyAnimeList)
@@ -363,7 +362,6 @@ class ItemController extends BaseController
                 ]);
             }
         }
-
         return redirect()->back();
     }
 
@@ -385,20 +383,18 @@ class ItemController extends BaseController
                         'csrf_token' => csrf_hash(),
                     ]);
                 }
-
                 return redirect()->back()->with('error', 'Vous ne pouvez pas modifier cette carte.');
             }
 
             $newSaison = (int) $item->saison + 1;
             $this->model->update($id, ['saison' => $newSaison]);
 
-            (new AuditLogModel())->logAction('Incrémentation Rapide', "Mise à jour de la carte ID {$id} ('{$item->titre}') : Saison passé à {$newSaison}.");
+            (new AuditLogModel())->logAction('Incrémentation Rapide', "Mise à jour de la carte ID {$id} ('{$item->titre}') : Saison passée à {$newSaison}.");
 
             if ($this->request->isAJAX()) {
                 return $this->response->setJSON(['success' => true, 'new_saison' => $newSaison, 'csrf_token' => csrf_hash()]);
             }
         }
-
         return redirect()->back();
     }
 
@@ -439,6 +435,7 @@ class ItemController extends BaseController
 
             if (200 === $response->getStatusCode()) {
                 $body = json_decode($response->getBody(), true);
+
                 if (isset($body['results']) && is_array($body['results'])) {
                     foreach ($body['results'] as $result) {
                         if (isset($result['media_type']) && 'person' === $result['media_type']) {
@@ -512,6 +509,7 @@ class ItemController extends BaseController
 
                 if (200 === $mdResponse->getStatusCode()) {
                     $mdBody = json_decode($mdResponse->getBody(), true);
+
                     if (isset($mdBody['data']) && is_array($mdBody['data'])) {
                         foreach ($mdBody['data'] as $m) {
                             $attr = $m['attributes'] ?? [];
@@ -561,7 +559,7 @@ class ItemController extends BaseController
     }
 
     /**
-     * Liste des cartes publiques pouvant être transférées
+     * Liste des cartes publiques pouvant être transférées.
      */
     public function checkToGlobal()
     {
@@ -577,8 +575,7 @@ class ItemController extends BaseController
         }
 
         $supportedDomains = $siteConfigModel->where('is_active', 1)
-            ->findColumn('domain') ?? []
-        ;
+            ->findColumn('domain') ?? [];
 
         return view('items/global_items', [
             'items' => $this->model->checkToGlobal(),
@@ -603,7 +600,6 @@ class ItemController extends BaseController
 
             return redirect()->back()->with('message', "La carte a été transférée à l'admin avec succès.");
         }
-
         return redirect()->back()->with('error', "Vous n'avez pas les droits pour effectuer cette action.");
     }
 
@@ -614,7 +610,6 @@ class ItemController extends BaseController
     {
         if ($this->request->is('ajax')) {
             $json = $this->request->getJSON();
-
             if (isset($json->order) && is_array($json->order)) {
                 if (!auth()->loggedIn()) {
                     return $this->response->setJSON(['success' => false, 'error' => 'Session expirée.']);
@@ -622,11 +617,10 @@ class ItemController extends BaseController
 
                 $userId = auth()->id();
                 $isSuperAdmin = auth()->user()->inGroup('superadmin');
-                $count = 0;
 
+                $count = 0;
                 foreach ($json->order as $index => $itemId) {
                     $item = $this->model->find($itemId);
-
                     if ($item && ((int) $item->id_user === (int) $userId || $isSuperAdmin)) {
                         $this->model->update($itemId, ['position' => $index]);
                         ++$count;
@@ -640,7 +634,6 @@ class ItemController extends BaseController
                 return $this->response->setJSON(['success' => true, 'message' => 'Ordre mis à jour.', 'csrf_token' => csrf_hash()]);
             }
         }
-
         return $this->response->setJSON(['success' => false, 'error' => 'Requête invalide.']);
     }
 
@@ -758,7 +751,6 @@ class ItemController extends BaseController
 
             return redirect()->back()->with('message', "La carte '{$item->titre}' a été restaurée avec succès.");
         }
-
         return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de restaurer cette carte.");
     }
 
@@ -774,14 +766,12 @@ class ItemController extends BaseController
 
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
             $titre = $item->titre;
-
             $this->model->delete($id, true);
             (new CronLogModel())->where('item_id', $id)->delete();
             (new AuditLogModel())->logAction('Suppression Définitive', "La carte ID {$id} ('{$titre}') a été détruite définitivement.");
 
             return redirect()->back()->with('message', "La carte '{$titre}' a été définitivement supprimée de la base de données.");
         }
-
         return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de supprimer définitivement cette carte.");
     }
 
@@ -797,8 +787,8 @@ class ItemController extends BaseController
         if (!$isSuperAdmin) {
             $builder->where('id_user', $userId);
         }
-
         $builder->update(['deleted_at' => null]);
+
         (new AuditLogModel())->logAction('Restauration Globale', 'Toutes les cartes de la corbeille ont été restaurées.');
 
         return redirect()->back()->with('message', 'Vos cartes ont été restaurées avec succès.');
@@ -818,10 +808,8 @@ class ItemController extends BaseController
         }
 
         $itemsToDelete = $query->findAll();
-
         if (!empty($itemsToDelete)) {
             $itemIds = array_map(static fn (Item $item): int => (int) $item->id, $itemsToDelete);
-
             (new CronLogModel())->whereIn('item_id', $itemIds)->delete();
             $this->model->builder()->whereIn('id', $itemIds)->delete();
 
@@ -843,8 +831,8 @@ class ItemController extends BaseController
 
         $doc = new \DOMDocument();
         @$doc->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
-        $tags = $doc->getElementsByTagName('meta');
 
+        $tags = $doc->getElementsByTagName('meta');
         $data = ['titre' => '', 'description' => '', 'image' => '', 'lien' => $url, 'is_link' => true];
 
         foreach ($tags as $tag) {
@@ -878,7 +866,6 @@ class ItemController extends BaseController
     private function syncGlobalEpisodesWithTMDB(Item $item): array
     {
         $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
-
         $client = Services::curlrequest([
             'timeout' => 5,
             'http_errors' => false,
@@ -894,6 +881,7 @@ class ItemController extends BaseController
 
             if (200 === $response->getStatusCode()) {
                 $body = json_decode($response->getBody(), true);
+
                 if (!empty($body['results'])) {
                     foreach ($body['results'] as $result) {
                         if (isset($result['media_type']) && 'tv' === $result['media_type'] && isset($result['id'])) {
@@ -924,7 +912,6 @@ class ItemController extends BaseController
                                                 $jBody = json_decode($jResp->getBody(), true);
                                                 if (!empty($jBody['data']) && isset($jBody['data'][0]['episodes'])) {
                                                     $jikanEps = (int) $jBody['data'][0]['episodes'];
-
                                                     if ($jikanEps > 0 && $totalEpisodesGlobal >= $jikanEps) {
                                                         $previousEpisodes = $totalEpisodesGlobal - $jikanEps;
                                                         $episodeGlobal = $previousEpisodes + (int) $item->episode;
@@ -936,7 +923,6 @@ class ItemController extends BaseController
                                         } catch (\Exception $e) {
                                         }
                                     }
-
                                     // Assure que le compteur de saisons respecte au moins la saison actuelle de l'utilisateur
                                     if ((int) $item->total_saisons < $currentSaison) {
                                         $item->total_saisons = $currentSaison;
@@ -976,7 +962,6 @@ class ItemController extends BaseController
         }
 
         $user = auth()->user();
-
         return (int) $item->id_user === (int) auth()->id()
             || $user->inGroup('admin', 'superadmin');
     }
