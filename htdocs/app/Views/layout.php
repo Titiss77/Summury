@@ -38,20 +38,10 @@
     gtag('config', 'TAG_ID_ICI');
     </script>
 
-    <!-- Restauration du thème (Dark/Light/Système) avant le rendu pour éviter les flashs visuels -->
+    <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
     <script>
     let initialTheme = 'light';
-    try { 
-        let storedTheme = localStorage.getItem('theme');
-        if (storedTheme) {
-            // 1. Si l'utilisateur a déjà choisi un thème spécifique, on le respecte
-            initialTheme = storedTheme;
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            // 2. Sinon, on regarde si l'appareil est configuré en mode sombre
-            initialTheme = 'dark';
-        }
-    } catch (_) {}
-
+    try { initialTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'; } catch (_) {}
     if (initialTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.setAttribute('data-bs-theme', 'dark');
