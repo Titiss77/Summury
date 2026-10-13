@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         }
                     }
                     ?>
-                <details class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;"
+                <details id="sub-<?php echo $currentDivisionId; ?>-<?php echo md5($subCatName); ?>" class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;"
                     <?php echo $isSubOpen; ?>>
                     <summary style="display: flex; align-items: center; gap: 10px; cursor: pointer; outline: none;">
                         <?php if ($canDragSub) { ?>
