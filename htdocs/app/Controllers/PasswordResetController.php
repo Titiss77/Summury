@@ -28,6 +28,11 @@ class PasswordResetController extends BaseController
             cache()->save('reset_code_' . md5($email), $code, 900);
 
             $emailService = \Config\Services::email();
+            
+            // --- CORRECTION : Forcer le rechargement de la configuration SMTP ---
+            $emailService->initialize(config('Email'));
+            // -------------------------------------------------------------------
+
             $emailService->setTo($email);
             $emailService->setSubject('Code de réinitialisation de mot de passe');
             
@@ -38,7 +43,6 @@ class PasswordResetController extends BaseController
             $message .= "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.";
             
             $emailService->setMessage($message);
-            $emailService->setMailType('html');
 
             if (!$emailService->send()) {
                 log_message('error', 'Erreur envoi e-mail réinitialisation : ' . $emailService->printDebugger(['headers']));
