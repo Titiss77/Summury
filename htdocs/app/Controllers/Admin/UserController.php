@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\AuditLogModel;
+use App\Models\ItemModel;
 
 class UserController extends BaseController
 {
@@ -47,22 +48,28 @@ class UserController extends BaseController
         }
 
         $availableGroups = config('AuthGroups')->groups;
-
         if (!$currentUser->inGroup('superadmin')) {
             unset($availableGroups['superadmin']);
         }
+
+        // Récupération des statistiques détaillées de l'utilisateur
+        $itemModel = new ItemModel();
+        $stats = $itemModel->getUserProfileStats((int) $id);
+        $series = $itemModel->getUserProfileSeries((int) $id);
 
         $data = [
             'user' => $user,
             'title' => "Modifier l'utilisateur",
             'availableGroups' => $availableGroups,
+            'stats' => $stats,
+            'series' => $series
         ];
 
         return view('admin/users/edit', $data);
     }
 
     /**
-     * Processus de mise à jour des paramètres du profil administrateur / rôle.
+     * Processus de mise à jour des paramètres du profil administrateur / rôles
      *
      * @param mixed $id
      */
@@ -82,7 +89,6 @@ class UserController extends BaseController
         }
 
         $availableGroups = implode(',', array_keys(config('AuthGroups')->groups));
-
         $rules = [
             'username' => "required|alpha_numeric_space|min_length[3]|max_length[30]|is_unique[users.username,id,{$id}]",
             'group' => "permit_empty|in_list[{$availableGroups}]",
@@ -98,7 +104,6 @@ class UserController extends BaseController
         $fillData = [
             'username' => $newUsername,
         ];
-
         $user->fill($fillData);
 
         if (!$users->save($user)) {
