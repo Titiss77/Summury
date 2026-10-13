@@ -22,6 +22,7 @@
             style="padding: 14px 32px; font-size: 1.1rem; border-radius: 50px;">Me connecter</a>
     </div>
 </div>
+
 <div class="public-invitation fade-in" style="text-align: center; margin-bottom: 3rem;">
     <h3 style="color: var(--text-main); font-size: 1.6rem; font-weight: 700;">Explorez les cartes publiques</h3>
     <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 600px; margin: 0 auto;">
@@ -30,6 +31,7 @@
     </p>
 </div>
 <?php } else { ?>
+
 <!-- VUE UTILISATEUR CONNECTÉ : Notifications de sorties et actions -->
 
 <!-- Badges de sorties d'œuvres passées récemment -->
@@ -41,12 +43,11 @@
     <span class="release-badge" data-key="<?php echo $releaseKey; ?>"
         style="display: none; font-size: 0.75rem; color: var(--success); border: 1px solid var(--success); background-color: var(--success-bg); padding: 4px 10px; border-radius: var(--radius-pill); cursor: pointer; transition: opacity 0.2s;"
         title="Cliquez pour masquer">
-        🚀 <strong><?php echo htmlspecialchars($release->titre ?? ''); ?></strong>
+         ✨ <strong><?php echo htmlspecialchars($release->titre ?? ''); ?></strong>
         (<?php echo htmlspecialchars($release->nom ?? ''); ?>)
     </span>
     <?php } ?>
 </div>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     let dismissed = [];
@@ -90,7 +91,6 @@ document.addEventListener("DOMContentLoaded", function() {
         <?php } ?>
     </a>
     <?php } ?>
-
     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
         <a href="<?php echo base_url('m'); ?>" class="btn btn-success" style="margin: 0;">+ Ajouter une
             carte</a>
@@ -114,6 +114,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <p>Créez un compte pour partager les vôtres !</p>
 </div>
 <?php } ?>
+
 <?php } else { ?>
 
 <!-- Barre de recherche locale -->
@@ -136,26 +137,23 @@ document.addEventListener("DOMContentLoaded", function() {
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
     <h2 class="header-title"><?php echo htmlspecialchars($headerName); ?></h2>
-
     <?php foreach ($divisions as $divisionName => $subCategories) {
         $currentDivisionId = null;
         foreach ($subCategories as $items) {
             if (!empty($items)) {
                 $currentDivisionId = $items[0]->id_division;
-
                 break;
             }
         }
-
         $isOpen = ($openDivision && $openDivision == $currentDivisionId) ? 'open' : '';
         $hasMultipleGroups = count($subCategories) > 1;
         ?>
+
     <details class="division-section" id="div-<?php echo $currentDivisionId; ?>" <?php echo $isOpen; ?>>
         <summary class="division-title">
             <span class="toggle-icon">&#x25B6;</span> <?php echo htmlspecialchars($divisionName); ?>
         </summary>
         <div class="division-body sortable-division" data-division-id="<?php echo $currentDivisionId; ?>">
-
             <?php foreach ($subCategories as $subCatName => $items) {
                 $isSansSub = ('Sans sous-catégorie' === $subCatName);
                 $displayTitle = $isSansSub ? 'Autres cartes' : $subCatName;
@@ -171,13 +169,11 @@ document.addEventListener("DOMContentLoaded", function() {
                     foreach ($items as $itm) {
                         if ($isSuperAdmin || (int) $itm->id_user === $currentUserId) {
                             $canDragSub = true;
-
                             break;
                         }
                     }
                 }
                 ?>
-
             <div class="subcategory-wrapper">
                 <?php if ($useDetails) {
                     $isSubOpen = '';
@@ -239,15 +235,16 @@ document.addEventListener("DOMContentLoaded", function() {
                                         $now = new DateTime('now', $timezone);
                                         if ($dateSortie > $now) {
                                             $isFuture = true;
-                                            $dateSortieFormatted = $dateSortie->format('d/m/Y H:i');
+                                            $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
                                             $textColor = 'color: var(--danger);';
                                         }
                                     }
                                     ?>
-
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ((!empty($item->episode) && !$isFuture) ? 'needs-dispo-check' : ''); ?>"
+                                    id="card-<?php echo esc($item->id); ?>"
                                     data-id="<?php echo esc($item->id); ?>" data-status="<?php echo esc($item->status); ?>" data-category="<?php echo esc($divisionName); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
+                                    
                                     <?php if ($canDragItem) { ?>
                                     <div class="drag-handle"
                                         style="cursor: grab; text-align: center; color: var(--text-muted); padding: 5px; touch-action: none;"
@@ -271,7 +268,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                         foreach ($supportedDomains as $domain) {
                                             if (str_contains($item->getFinalLink(), $domain)) {
                                                 $isCheckable = true;
-
                                                 break;
                                             }
                                         }
@@ -315,7 +311,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             } ?></span>
                                                 </div>
                                                 <?php } ?>
-
                                                 <?php if (!empty($item->episode)) { ?>
                                                 <div
                                                     style="display: flex; flex-direction: column; align-items: center;">
@@ -323,6 +318,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
                                                                 echo ' / '.htmlspecialchars($item->total_episodes);
                                                             } ?>
+
                                                         <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                                         <button type="button"
                                                             class="btn-increment btn-increment-episode"
@@ -355,6 +351,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                             class="btn-icon btn-delete-sm">Supprimer</a>
                                     </div>
                                     <?php } ?>
+
                                 </div>
                                 <?php } ?>
 
@@ -372,6 +369,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <?php } ?>
 </section>
 <?php } ?>
+
 <?php } ?>
 
 <!-- Passage de la liste des domaines supportés au script JS global -->

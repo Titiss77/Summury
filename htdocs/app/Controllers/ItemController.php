@@ -38,14 +38,15 @@ class ItemController extends BaseController
         $item = null;
         if (null !== $id) {
             $item = $this->model->find($id);
+
             if (!$this->canManageItem($item)) {
                 throw PageNotFoundException::forPageNotFound();
             }
         }
 
         $userId = auth()->loggedIn() ? auth()->id() : null;
-        $subCategories = [];
 
+        $subCategories = [];
         if ($userId) {
             $subCategories = $this->model->where('id_user', $userId)->where('sous_categorie IS NOT NULL')
                 ->where('sous_categorie !=', '')->distinct()->findColumn('sous_categorie') ?? []
@@ -107,6 +108,7 @@ class ItemController extends BaseController
             // Formatage des données optionnelles
             $releaseDate = $this->request->getPost('date_sortie');
             $data['date_sortie'] = empty($releaseDate) ? null : str_replace('T', ' ', (string) $releaseDate).':00';
+
             $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
             $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
             $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
@@ -137,6 +139,7 @@ class ItemController extends BaseController
             // MISE À JOUR D'UNE CARTE EXISTANTE
             if ($id) {
                 $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
+
                 if (!$canEdit) {
                     $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
 
@@ -171,10 +174,11 @@ class ItemController extends BaseController
                     }
 
                     $revisionModel->save($revisionData);
+
                     $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
                     $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
 
-                    return redirect()->to($backUrl.$separator.'open='.$existing->id_division.'#div-'.$existing->id_division)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
+                    return redirect()->to($backUrl.$separator.'open='.$existing->id_division.'#card-'.$id)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
                 }
 
                 // Force le statut à "Aucun" si on retire la carte du domaine public
@@ -189,7 +193,6 @@ class ItemController extends BaseController
                     foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
                         if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
                             $progressChanged = true;
-
                             break;
                         }
                     }
@@ -225,11 +228,14 @@ class ItemController extends BaseController
             }
 
             $subParam = !empty($data['sous_categorie']) ? '&subopen='.urlencode($data['sous_categorie']) : '';
+
             if ($this->request->getPost('save_add_another')) {
                 return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
             }
 
-            return redirect()->to($backUrl.$separator.'open='.$data['id_division'].$subParam.'#div-'.$data['id_division'])->with('success', 'Carte enregistrée.');
+            $targetId = $id ?: ($newId ?? '');
+            
+            return redirect()->to($backUrl.$separator.'open='.$data['id_division'].$subParam.'#card-'.$targetId)->with('success', 'Carte enregistrée.');
         }
     }
 
@@ -287,6 +293,7 @@ class ItemController extends BaseController
             $newSaison = (int) $item->saison;
             $totalEpisodes = (int) $item->total_episodes;
             $totalSaisons = (int) $item->total_saisons;
+
             $updateData = [];
 
             // Détection automatique du passage à la saison suivante ou de la fin
@@ -295,14 +302,13 @@ class ItemController extends BaseController
                     $updateData['status'] = 'Terminé';
                     $newEpisode = $totalEpisodes;
                     $updateData['episode'] = $newEpisode;
-                    $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Statut passé à Terminé";
+                    $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Statut passé Terminé.";
                 } else {
                     $newEpisode = 1;
                     ++$newSaison;
                     $updateData['saison'] = $newSaison;
                     $updateData['episode'] = $newEpisode;
                     $updateData['total_episodes'] = null; // Vide l'ancien total par sécurité
-
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode} (Saison {$newSaison})";
 
                     // Recherche automatique de la nouvelle saison sur Jikan (MyAnimeList)
@@ -317,7 +323,6 @@ class ItemController extends BaseController
 
                         if (200 === $response->getStatusCode()) {
                             $body = json_decode($response->getBody(), true);
-
                             // On récupère le total d'épisodes de la nouvelle fiche trouvée
                             if (!empty($body['data']) && isset($body['data'][0]['episodes'])) {
                                 $updateData['total_episodes'] = $body['data'][0]['episodes'];
@@ -334,7 +339,7 @@ class ItemController extends BaseController
 
             $this->model->update($id, $updateData);
 
-            $wasComplete = "Termin\u{00E9}" === $item->status;
+            $wasComplete = "Terminé" === $item->status;
             if (!empty($updateData['saison'])) {
                 $updatedItem = $this->model->find($id);
                 if ($updatedItem) {
@@ -370,6 +375,7 @@ class ItemController extends BaseController
     public function incrementSaison($id)
     {
         $item = $this->model->find($id);
+
         if ($item) {
             if (!$this->canManageItem($item)) {
                 if ($this->request->isAJAX()) {
@@ -488,6 +494,7 @@ class ItemController extends BaseController
                             } catch (\Exception $e) {
                             }
                         }
+
                         $unifiedResults[] = $item;
                     }
                 }
@@ -514,13 +521,12 @@ class ItemController extends BaseController
                             }
                             $description = $attr['description']['fr'] ?? $attr['description']['en'] ?? '';
                             $year = $attr['year'] ?? '';
-                            $fileName = '';
 
+                            $fileName = '';
                             if (isset($m['relationships'])) {
                                 foreach ($m['relationships'] as $rel) {
                                     if ('cover_art' === $rel['type'] && isset($rel['attributes']['fileName'])) {
                                         $fileName = $rel['attributes']['fileName'];
-
                                         break;
                                     }
                                 }
@@ -555,14 +561,14 @@ class ItemController extends BaseController
     }
 
     /**
-     * Liste des cartes publiques pouvant être transférées.
+     * Liste des cartes publiques pouvant être transférées
      */
     public function checkToGlobal()
     {
         $revisionModel = new ItemRevisionModel();
         $siteConfigModel = new SiteConfigModel();
-
         $pendingRevisionIds = [];
+
         if (auth()->loggedIn()) {
             $pendingRevisionIds = array_fill_keys(
                 array_map('intval', $revisionModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? []),
@@ -620,6 +626,7 @@ class ItemController extends BaseController
 
                 foreach ($json->order as $index => $itemId) {
                     $item = $this->model->find($itemId);
+
                     if ($item && ((int) $item->id_user === (int) $userId || $isSuperAdmin)) {
                         $this->model->update($itemId, ['position' => $index]);
                         ++$count;
@@ -650,6 +657,7 @@ class ItemController extends BaseController
 
         $urlParts = parse_url((string) $urlCible);
         $host = strtolower(rtrim((string) ($urlParts['host'] ?? ''), '.'));
+
         if ('' === $host) {
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
@@ -665,7 +673,6 @@ class ItemController extends BaseController
 
             if ('' !== $configuredHost && ($host === $configuredHost || str_ends_with($host, '.'.$configuredHost))) {
                 $currentConfig = $config;
-
                 break;
             }
         }
@@ -687,7 +694,6 @@ class ItemController extends BaseController
                 'http_errors' => false, 'allow_redirects' => false,
                 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
-
             $response = $client->get($urlCible);
             $statusCode = $response->getStatusCode();
 
@@ -696,12 +702,11 @@ class ItemController extends BaseController
             }
 
             $html = (string) $response->getBody();
-            $estSurFicheAnime = false;
 
+            $estSurFicheAnime = false;
             foreach ($indicateursPageInvalide as $indicator) {
                 if (false !== stripos($html, $indicator)) {
                     $estSurFicheAnime = true;
-
                     break;
                 }
             }
@@ -711,7 +716,6 @@ class ItemController extends BaseController
                 $indicatorFinal = $episodeExtrait ? str_replace('{ep}', (string) $episodeExtrait, $indicator) : $indicator;
                 if (false !== stripos($html, $indicatorFinal)) {
                     $lecteurPresent = true;
-
                     break;
                 }
             }
@@ -770,6 +774,7 @@ class ItemController extends BaseController
 
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
             $titre = $item->titre;
+
             $this->model->delete($id, true);
             (new CronLogModel())->where('item_id', $id)->delete();
             (new AuditLogModel())->logAction('Suppression Définitive', "La carte ID {$id} ('{$titre}') a été détruite définitivement.");
@@ -813,10 +818,13 @@ class ItemController extends BaseController
         }
 
         $itemsToDelete = $query->findAll();
+
         if (!empty($itemsToDelete)) {
             $itemIds = array_map(static fn (Item $item): int => (int) $item->id, $itemsToDelete);
+
             (new CronLogModel())->whereIn('item_id', $itemIds)->delete();
             $this->model->builder()->whereIn('id', $itemIds)->delete();
+
             (new AuditLogModel())->logAction('Vidage Corbeille', 'La corbeille a été vidée définitivement ('.count($itemIds).' cartes détruites).');
         }
 
@@ -886,7 +894,6 @@ class ItemController extends BaseController
 
             if (200 === $response->getStatusCode()) {
                 $body = json_decode($response->getBody(), true);
-
                 if (!empty($body['results'])) {
                     foreach ($body['results'] as $result) {
                         if (isset($result['media_type']) && 'tv' === $result['media_type'] && isset($result['id'])) {
@@ -895,7 +902,6 @@ class ItemController extends BaseController
 
                             if (200 === $tvResponse->getStatusCode()) {
                                 $tvBody = json_decode($tvResponse->getBody(), true);
-
                                 $totalEpisodesGlobal = $tvBody['number_of_episodes'] ?? null;
                                 $tmdbTotalSaisons = $tvBody['number_of_seasons'] ?? 1;
 
@@ -913,14 +919,15 @@ class ItemController extends BaseController
                                         try {
                                             $jikanUrl = 'https://api.jikan.moe/v4/anime?q='.urlencode($item->titre.' season '.$currentSaison).'&limit=1';
                                             $jResp = $client->get($jikanUrl);
+
                                             if (200 === $jResp->getStatusCode()) {
                                                 $jBody = json_decode($jResp->getBody(), true);
                                                 if (!empty($jBody['data']) && isset($jBody['data'][0]['episodes'])) {
                                                     $jikanEps = (int) $jBody['data'][0]['episodes'];
+
                                                     if ($jikanEps > 0 && $totalEpisodesGlobal >= $jikanEps) {
                                                         $previousEpisodes = $totalEpisodesGlobal - $jikanEps;
                                                         $episodeGlobal = $previousEpisodes + (int) $item->episode;
-
                                                         // Auto-correction des champs locaux de la base de données
                                                         $item->total_episodes = $jikanEps;
                                                     }
@@ -947,7 +954,6 @@ class ItemController extends BaseController
                                     }
                                 }
                             }
-
                             break;
                         }
                     }

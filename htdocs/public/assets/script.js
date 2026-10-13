@@ -1,32 +1,33 @@
-// ========================================== //
-// 1. SYSTEME DE NOTIFICATIONS (TOASTS)  //
-// ========================================== //
+// ==========================================
+// 1. SYSTEME DE NOTIFICATIONS (TOASTS) 
+// ==========================================
 window.showToast = function(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerText = message;
-         
+
     container.appendChild(toast);
-         
+
     setTimeout(() => toast.classList.add('show'), 50);
-         
+
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
     }, 4000);
 };
 
-// ========================================== //
-// 12. FONCTIONS GLOBALES  //
-// ========================================== //
+// ==========================================
+// 12. FONCTIONS GLOBALES 
+// ==========================================
 window.toggleNewSubCategory = function() {
     var select = document.getElementById('sous_categorie_select');
     var input = document.getElementById('sous_categorie_new');
-         
+
     if (!select || !input) return;
-         
+
     if (select.value === '__NEW__') {
         input.style.display = 'block';
         input.setAttribute('required', 'required');
@@ -46,6 +47,7 @@ window.copierLien = function(lien) {
             alert('Lien copié !');
         }
     }
+
     function notifierErreur() {
         if (typeof showToast === 'function') {
             showToast('Erreur lors de la copie du lien.', 'danger');
@@ -53,6 +55,7 @@ window.copierLien = function(lien) {
             alert('Erreur lors de la copie.');
         }
     }
+
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(lien).then(() => {
             notifierSucces();
@@ -70,6 +73,7 @@ window.copierLien = function(lien) {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
+
         try {
             let successful = document.execCommand('copy');
             if (successful) {
@@ -81,20 +85,58 @@ window.copierLien = function(lien) {
             console.error('Erreur Fallback :', err);
             notifierErreur();
         }
+
         document.body.removeChild(textArea);
     }
 };
 
-// ========================================== //
-// INITIALISATION DES ELEMENTS DU DOM //
-// ========================================== //
+// ==========================================
+// INITIALISATION DES ELEMENTS DU DOM
+// ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Gestion des paramètres d'URL (URL Hash cleaner) ---
+
+    // --- Gestion des paramètres d'URL (URL Hash cleaner & Scroll anchor) ---
     const currentUrl = new URL(window.location.href);
     if (currentUrl.searchParams.has('open') || currentUrl.hash) {
+        if (currentUrl.hash) {
+            const target = document.querySelector(currentUrl.hash);
+            if (target) {
+                // Si la cible ou l'un de ses parents est un <details>, on s'assure qu'il est ouvert
+                let parentDetails = target.closest('details');
+                while (parentDetails) {
+                    parentDetails.open = true;
+                    parentDetails = parentDetails.parentElement.closest('details');
+                }
+                
+                setTimeout(() => {
+                    // Offset de sécurité pour le header sticky
+                    const headerOffset = 90;
+                    const elementPosition = target.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                    
+                    window.scrollTo({
+                         top: offsetPosition,
+                         behavior: "smooth"
+                    });
+                    
+                    // Mise en évidence visuelle temporaire de la carte modifiée
+                    if (target.classList.contains('card')) {
+                        target.style.transition = 'box-shadow 0.4s ease, transform 0.4s ease';
+                        target.style.boxShadow = '0 0 0 3px var(--primary)';
+                        target.style.transform = 'translateY(-4px)';
+                        
+                        setTimeout(() => {
+                            target.style.boxShadow = '';
+                            target.style.transform = '';
+                        }, 2000);
+                    }
+                }, 150);
+            }
+        }
+
         setTimeout(() => {
             window.history.replaceState({}, document.title, currentUrl.pathname);
-        }, 10);
+        }, 600);
     }
 
     function svgWithColor($color) {
@@ -123,8 +165,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeToggleBtn = document.getElementById('theme-toggle');
     let currentTheme = 'light';
     try { currentTheme = localStorage.getItem('theme') || 'light'; } catch (_) {}
+
     const metaThemeColor = document.getElementById('meta-theme-color');
-         
+
     if (currentTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.setAttribute('data-bs-theme', 'dark');
@@ -140,11 +183,14 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggleBtn.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
             let switchToTheme = theme === 'dark' ? 'light' : 'dark';
-                         
+
             document.documentElement.setAttribute('data-theme', switchToTheme);
             document.documentElement.setAttribute('data-bs-theme', switchToTheme);
+
             try { localStorage.setItem('theme', switchToTheme); } catch (_) {}
+
             themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
+            
             if(metaThemeColor) {
                 metaThemeColor.setAttribute('content', switchToTheme === 'dark' ? '#09090b' : '#fcfcfd');
             }
@@ -156,20 +202,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     const textarea = document.getElementById('description');
     const charCount = document.getElementById('char-count');
+
     if (textarea && charCount) {
         const maxLength = textarea.getAttribute('maxlength');
-                 
+
         function updateCounter() {
             const currentLength = textarea.value.length;
             charCount.textContent = `${currentLength} / ${maxLength}`;
-                         
+
             if (currentLength >= maxLength) {
                 charCount.style.color = 'var(--danger)';
             } else {
                 charCount.style.color = 'var(--text-muted)';
             }
         }
-                 
+
         updateCounter();
         textarea.addEventListener('input', updateCounter);
     }
@@ -181,12 +228,16 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
+
             const itemId = button.getAttribute('data-id');
             const divisionId = button.getAttribute('data-division');
             const subCategory = button.getAttribute('data-sub');
+
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             const url = baseUrl + 'e/' + itemId;
+
             const counterSpan = document.getElementById(`ep-count-${itemId}`);
+
             try {
                 const response = await fetch(url, {
                     method: 'POST',
@@ -195,31 +246,33 @@ document.addEventListener('DOMContentLoaded', function() {
                         [siteConfig.csrfHeader]: siteConfig.csrfToken
                     }
                 });
+
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
                 const data = await response.json();
-                                 
+
                 if (data.success) {
                     counterSpan.innerText = data.new_episode;
                     counterSpan.style.color = 'var(--success)';
                     counterSpan.style.transform = 'scale(1.2)';
-                                         
+
                     setTimeout(() => {
                         counterSpan.style.color = '';
                         counterSpan.style.transform = 'scale(1)';
-                                                 
+
                         const currentUrl = new URL(window.location.href.split('?')[0].split('#')[0]);
-                                                 
+
                         if (divisionId) {
                             currentUrl.searchParams.set('open', divisionId);
-                            currentUrl.hash = 'div-' + divisionId; 
+                            currentUrl.hash = 'card-' + itemId; 
                         }
                         if (subCategory) {
                             currentUrl.searchParams.set('subopen', subCategory);
                         }
-                                                 
+
                         window.location.href = currentUrl.toString();
-                                             
+
                     }, 400);
+
                     if (data.csrf_token) siteConfig.csrfToken = data.csrf_token; 
                     if (typeof showToast === 'function') showToast('Épisode ajouté avec succès !', 'success');
                 } else {
@@ -254,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const wrapper = this.closest('.password-wrapper');
             const input = wrapper.querySelector('input');
-                         
+            
             if (input.type === 'password') {
                 input.type = 'text';
                 this.innerHTML = svgEyeSlash;
@@ -269,57 +322,65 @@ document.addEventListener('DOMContentLoaded', function() {
     // 7. RECHERCHE EN DIRECT (Live Search avec Debounce)
     // ==========================================
     const searchInput = document.getElementById('liveSearch');
+    
     if (searchInput) {
         const cards = Array.from(document.querySelectorAll('.searchable-card'));
         const statusFilter = document.getElementById('statusFilter');
         const categoryFilter = document.getElementById('categoryFilter');
         const resultCount = document.getElementById('cardResultCount');
         const filterKey = 'cardFilters';
-        const hasExplicitOpen = new URLSearchParams(window.location.search).has('open') || Boolean(window.location.hash);
+        
         const categories = [...new Set(cards.map(card => card.dataset.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
         categories.forEach(category => { const option = document.createElement('option'); option.value = category; option.textContent = category; categoryFilter?.appendChild(option); });
+
         const statuses = [...new Set(cards.map(card => card.dataset.status).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
         statuses.forEach(value => { const option = document.createElement('option'); option.value = value; option.textContent = value; statusFilter?.appendChild(option); });
+
         try {
             const saved = JSON.parse(localStorage.getItem(filterKey) || '{}');
             searchInput.value = saved.query || '';
             if (statusFilter) statusFilter.value = saved.status || '';
             if (categoryFilter) categoryFilter.value = saved.category || '';
+            
             if (categoryFilter && !Array.from(categoryFilter.options).some(option => option.value === categoryFilter.value)) categoryFilter.value = '';
             if (statusFilter && !Array.from(statusFilter.options).some(option => option.value === statusFilter.value)) statusFilter.value = '';
         } catch (_) {}
+
         const applyFilters = () => {
             const query = searchInput.value.trim().toLocaleLowerCase('fr');
             const status = statusFilter?.value || '';
             const category = categoryFilter?.value || '';
+
             let visible = 0;
+
             cards.forEach(card => {
                 const title = card.querySelector('.card-title, .search-target-title')?.innerText.toLocaleLowerCase('fr') || '';
                 const desc = card.querySelector('.card-desc, .search-target-desc')?.innerText.toLocaleLowerCase('fr') || '';
-                const match = (!query || title.includes(query) || desc.includes(query)) && (!status || card.dataset.status === status) && (!category || card.dataset.category === category);
+
+                const match = (!query || title.includes(query) || desc.includes(query)) &&
+                              (!status || card.dataset.status === status) &&
+                              (!category || card.dataset.category === category);
+
                 card.style.display = match ? '' : 'none';
                 if (match) visible++;
             });
+
             document.querySelectorAll('details.division-section, details.subcategory-details').forEach(detail => {
                 const hasVisible = Array.from(detail.querySelectorAll('.searchable-card')).some(card => card.style.display !== 'none');
                 detail.hidden = !hasVisible;
                 detail.open = Boolean(query || status || category) && hasVisible;
             });
+
             if (resultCount) resultCount.textContent = `${visible} carte${visible > 1 ? 's' : ''}`;
+            
             try { localStorage.setItem(filterKey, JSON.stringify({ query: searchInput.value, status, category })); } catch (_) {}
         };
+
         searchInput.addEventListener('input', applyFilters);
         statusFilter?.addEventListener('change', applyFilters);
         categoryFilter?.addEventListener('change', applyFilters);
+
         applyFilters();
-        document.querySelectorAll('details.division-section, details.subcategory-details').forEach((detail, index) => {
-            const key = `cardGroup:${detail.id || `${index}:${detail.querySelector('summary')?.textContent.trim()}`}`;
-            try { const saved = localStorage.getItem(key); if (saved !== null && !hasExplicitOpen) detail.open = saved === '1'; } catch (_) {}
-            detail.addEventListener('toggle', () => {
-                if (searchInput.value.trim() || statusFilter?.value || categoryFilter?.value) return;
-                try { localStorage.setItem(key, detail.open ? '1' : '0'); } catch (_) {}
-            });
-        });
     }
 
     // ==========================================
@@ -329,6 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressFields = document.getElementById('progress-fields');
     const publicCheckbox = document.getElementById('is_public');
     const publicPreview = document.getElementById('public-preview');
+
     const updateFormHints = () => {
         const type = (divisionSelect?.selectedOptions[0]?.textContent || '')
             .normalize('NFD')
@@ -337,13 +399,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (progressFields) progressFields.hidden = !/(serie|tv|anime|animation|manga)/i.test(type);
         if (publicPreview && publicCheckbox) publicPreview.hidden = !publicCheckbox.checked;
     };
+
     divisionSelect?.addEventListener('change', updateFormHints);
     publicCheckbox?.addEventListener('change', () => {
-        if (publicCheckbox.checked && !window.confirm('La carte sera proposée à la publication. Le titre, l’image, la description et le lien pourront être visibles publiquement. Continuer ?')) {
+        if (publicCheckbox.checked && !window.confirm('La carte sera proposée à la publication. Le titre, l\'image, la description et le lien pourront être visibles publiquement. Continuer ?')) {
             publicCheckbox.checked = false;
         }
         updateFormHints();
     });
+
     updateFormHints();
 
     // ==========================================
@@ -361,19 +425,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({ order: newOrder })
                 });
+
                 const data = await response.json();
                 if (!response.ok || !data.success) throw new Error(data.error || 'Sauvegarde impossible');
-                                 
+                
                 if (data.csrf_token) {
                     siteConfig.csrfToken = data.csrf_token;
                 }
-                                 
+                
                 if (typeof showToast === 'function') showToast("Ordre mis à jour !", 'success');
             } catch (err) {
                 console.error("Erreur Drag&Drop:", err);
                 if (typeof showToast === 'function') showToast("Erreur lors de la sauvegarde de l'ordre", "danger");
             }
         }
+
         var grids = document.querySelectorAll('.sortable-grid');
         grids.forEach(function(el) {
             Sortable.create(el, {
@@ -384,21 +450,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 delayOnTouchOnly: true,
                 onEnd: function(evt) {
                     if (evt.oldIndex === evt.newIndex) return;
-                                         
+                    
                     var divisionBody = el.closest('.sortable-division');
                     if (!divisionBody) return;
+
                     var itemEls = divisionBody.querySelectorAll('.card');
                     var newOrder = [];
-                                         
+                    
                     itemEls.forEach(function(item) {
                         var id = item.getAttribute('data-id');
                         if (id) newOrder.push(id);
                     });
-                                         
+                    
                     updateOrderBackend(newOrder);
                 }
             });
         });
+
         var divisions = document.querySelectorAll('.sortable-division');
         divisions.forEach(function(el) {
             Sortable.create(el, {
@@ -409,15 +477,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 delayOnTouchOnly: true,
                 onEnd: function(evt) {
                     if (evt.oldIndex === evt.newIndex) return;
-                                         
+                    
                     var itemEls = el.querySelectorAll('.card');
                     var newOrder = [];
-                                         
+                    
                     itemEls.forEach(function(item) {
                         var id = item.getAttribute('data-id');
                         if (id) newOrder.push(id);
                     });
-                                         
+                    
                     updateOrderBackend(newOrder);
                 }
             });
@@ -429,26 +497,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     const btnApiSearch = document.getElementById('btn-api-search');
     const resultsContainer = document.getElementById('api-results-container');
+
     if (btnApiSearch && resultsContainer) {
         document.addEventListener('click', function(event) {
             if (!resultsContainer.contains(event.target) && event.target !== btnApiSearch && event.target.id !== 'titre') {
                 resultsContainer.style.display = 'none';
             }
         });
+
         btnApiSearch.addEventListener('click', async function() {
             const titreInput = document.getElementById('titre').value.trim();
             if (!titreInput) {
                 showToast("Entre d'abord un titre ou un lien !", "danger");
                 return;
             }
+
             const statusTxt = document.getElementById('api-status');
             statusTxt.style.display = 'inline';
             statusTxt.innerText = 'Recherche en cours...';
-                         
+            
             resultsContainer.innerHTML = '';
             resultsContainer.style.display = 'none';
+
             let typeSelectionne = 'film';
-             
+            
             const divisionSelect = document.getElementById('id_division');
             if (divisionSelect && divisionSelect.selectedIndex >= 0) {
                 const divText = divisionSelect.options[divisionSelect.selectedIndex].text.toLowerCase();
@@ -457,24 +529,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (divText.includes('série') || divText.includes('serie')) typeSelectionne = 'serie';
                 else if (divText.includes('lien') || divText.includes('web') || divText.includes('autre')) typeSelectionne = 'lien';
             }
+
             if (titreInput.startsWith('http://') || titreInput.startsWith('https://')) {
                 typeSelectionne = 'lien';
             }
+
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             const url = `${baseUrl}f?q=${encodeURIComponent(titreInput)}&type=${typeSelectionne}`;
+
             try {
                 const response = await fetch(url);
                 const data = await response.json();
+
                 if (data.error) {
                     showToast(data.error, "danger");
                     statusTxt.innerText = 'Erreur';
                     return;
                 }
+
                 const descField = document.getElementById('description');
                 const maxDescLength = descField && descField.hasAttribute('maxlength') ? parseInt(descField.getAttribute('maxlength')) : 250;
                 const limitCut = maxDescLength > 3 ? maxDescLength - 3 : maxDescLength;
-                                 
+                
                 let listeResultats = [];
+
                 if (data.unified && data.unified.length > 0) {
                     listeResultats = data.unified.map(item => ({
                         titre: item.titre,
@@ -498,17 +576,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         seasons_data: null
                     }];
                 }
+
                 if (listeResultats.length > 0) {
                     statusTxt.innerText = `${listeResultats.length} résultat(s)`;
                     resultsContainer.style.display = 'block';
+
                     listeResultats.forEach(res => {
                         const divItem = document.createElement('div');
                         divItem.style.cssText = 'display: flex; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s;';
-                                                 
+                        
                         divItem.onmouseover = () => divItem.style.background = 'rgba(128, 128, 128, 0.1)';
                         divItem.onmouseout = () => divItem.style.background = 'transparent';
+
                         const fallbackImg = 'https://via.placeholder.com/40x60?text=IMG';
                         const imgSrc = res.imageThumb || fallbackImg;
+
                         divItem.innerHTML = `
                             <img src="${imgSrc}" alt="Affiche" style="width: 40px; height: 60px; object-fit: cover; border-radius: var(--radius-md); margin-right: 15px;">
                             <div style="flex-grow: 1; overflow: hidden;">
@@ -516,43 +598,50 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <small style="color: gray;">${res.info}</small>
                             </div>
                         `;
+
                         divItem.addEventListener('click', () => {
                             document.getElementById('titre').value = res.titre;
-                                                         
+                            
                             const imgField = document.getElementById('img');
                             if (res.imageLarge && imgField) {
                                 imgField.value = res.imageLarge;
                                 imgField.dispatchEvent(new Event('input')); 
                             }
+
                             if (res.description) document.getElementById('description').value = res.description;
-                                                         
+                            
                             const inputLien = document.getElementById('lien');
                             if (res.lien && inputLien && !inputLien.value.trim()) inputLien.value = res.lien;
+
                             const totalEpField = document.getElementById('total_episodes');
                             const totalSaisonField = document.getElementById('total_saisons');
                             const saisonInput = document.getElementById('saison');
-                                                         
+                            
                             if (res.total_episodes && totalEpField) totalEpField.value = res.total_episodes;
                             if (res.total_saisons && totalSaisonField) totalSaisonField.value = res.total_saisons;
+
                             window.currentSeasonsData = res.seasons_data || null;
+
                             if (window.currentSeasonsData && saisonInput && saisonInput.value) {
                                 if (window.currentSeasonsData[saisonInput.value]) {
                                     totalEpField.value = window.currentSeasonsData[saisonInput.value];
                                 }
                             }
-                                                         
+                            
                             if (textarea) textarea.dispatchEvent(new Event('input'));
-                                                         
+                            
                             resultsContainer.style.display = 'none';
-                            statusTxt.innerText = ' Sélectionné !';
+                            statusTxt.innerText = 'Sélectionné !';
                             showToast("Formulaire mis à jour.", "success");
                         });
+
                         resultsContainer.appendChild(divItem);
                     });
                 } else {
                     statusTxt.innerText = 'Aucun résultat';
                     resultsContainer.style.display = 'none';
                 }
+
             } catch (e) {
                 console.error("Erreur Fetch API:", e);
                 statusTxt.innerText = 'Erreur serveur';
@@ -566,6 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const imgInput = document.getElementById('img');
     const imgPreview = document.getElementById('img-preview');
     const imgPlaceholder = document.getElementById('img-placeholder');
+
     if (imgInput && imgPreview && imgPlaceholder) {
         imgInput.addEventListener('input', function() {
             const url = this.value.trim();
@@ -581,12 +671,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 imgPreview.src = '';
             }
         });
+
         imgPreview.addEventListener('error', function() {
             this.style.display = 'none';
             imgPlaceholder.style.display = 'block';
             imgPlaceholder.innerHTML = 'Erreur';
             imgPlaceholder.style.color = 'var(--danger)'; 
         });
+
         imgPreview.addEventListener('load', function() {
             imgPlaceholder.style.color = 'var(--text-muted)';
             imgPlaceholder.innerText = 'Aperçu';
@@ -626,16 +718,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
-                btn.innerHTML = '  Analyse en cours... Veuillez patienter...';
-                                 
+                btn.innerHTML = '🔄 Analyse en cours... Veuillez patienter...';
+                
                 const cronUrl = siteConfig.cronUrl.includes('?') ? siteConfig.cronUrl + '&force=1' : siteConfig.cronUrl + '?force=1';
+
                 fetch(cronUrl)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'executed') {
-                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards +
-                                   '\nURL uniques vérifiées : ' + data.unique_urls +
-                                   '\nNouveaux liens rompus identifiés : ' + data.dead_count);
+                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards + 
+                                  '\nURL uniques vérifiées : ' + data.unique_urls + 
+                                  '\nNouveaux liens rompus identifiés : ' + data.dead_count);
                         } else if (data.status === 'running') {
                             alert('Une vérification des liens est déjà en cours.');
                         } else if (data.status === 'skipped') {
@@ -649,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         alert('Une erreur réseau ou un timeout est survenu durant le scan des serveurs distants.');
                         btn.disabled = false;
                         btn.style.opacity = '1';
-                        btn.innerHTML = '  Relancer la vérification (Forcer le scan)';
+                        btn.innerHTML = '⚡ Relancer la vérification (Forcer le scan)';
                     });
             }
         });
@@ -661,54 +754,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const champSaison = document.getElementById('saison');
     const champTotalEp = document.getElementById('total_episodes');
     const champTotalSaisons = document.getElementById('total_saisons');
-         
+    
     let isFetchingSeasons = false;
     let fetchSeasonsTimeout = null;
+
     if (champSaison && champTotalEp) {
-                 
+        
         champSaison.addEventListener('input', function() {
             const numSaison = this.value;
             if (!numSaison) return;
+
             if (window.currentSeasonsData && window.currentSeasonsData[numSaison] !== undefined) {
                 champTotalEp.value = window.currentSeasonsData[numSaison];
-                                 
+                
                 champTotalEp.style.transition = 'color 0.3s';
                 champTotalEp.style.color = 'var(--success)';
                 setTimeout(() => champTotalEp.style.color = '', 800);
-                                 
+                
                 return;
             }
+
             const titreInput = document.getElementById('titre');
             if (titreInput && titreInput.value.trim() !== '') {
-                                 
+                
                 clearTimeout(fetchSeasonsTimeout);
-                                  
+                
                 fetchSeasonsTimeout = setTimeout(async () => {
                     if (isFetchingSeasons) return;
                     isFetchingSeasons = true;
-                                         
+                    
                     const titre = titreInput.value.trim();
                     const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
-                                         
+                    
                     const url = `${baseUrl}f?q=${encodeURIComponent(titre)}&type=serie`;
+
                     try {
                         champTotalEp.style.transition = 'opacity 0.3s';
                         champTotalEp.style.opacity = '0.5';
+
                         const response = await fetch(url);
                         const data = await response.json();
+
                         if (data.unified && data.unified.length > 0) {
                             const bestMatch = data.unified.find(r => r.seasons_data !== null);
+                            
                             if (bestMatch && bestMatch.seasons_data) {
-                                 
+                                
                                 window.currentSeasonsData = bestMatch.seasons_data;
-                                 
+                                
                                 if (window.currentSeasonsData[numSaison] !== undefined) {
                                     champTotalEp.value = window.currentSeasonsData[numSaison];
-                                         
+                                    
                                     champTotalEp.style.color = 'var(--success)';
                                     setTimeout(() => champTotalEp.style.color = '', 800);
                                 }
-                                 
+                                
                                 if (bestMatch.total_saisons && champTotalSaisons && !champTotalSaisons.value) {
                                     champTotalSaisons.value = bestMatch.total_saisons;
                                 }
@@ -720,8 +820,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         champTotalEp.style.opacity = '1';
                         isFetchingSeasons = false;
                     }
-                }, 500);
-             }
+                }, 500); 
+            }
         });
     }
 
@@ -731,28 +831,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const selects = document.querySelectorAll('select.form-control');
     selects.forEach(select => {
         new Choices(select, {
-            searchEnabled: false, // Met à true si tu veux une barre de recherche dans le menu
-            itemSelectText: '',   // Masque le texte par défaut "Press to select"
-            shouldSort: false     // Garde l'ordre défini dans ton HTML
+            searchEnabled: false, 
+            itemSelectText: '',   
+            shouldSort: false     
         });
     });
 });
 
-// ========================================== //
-// 11. VERIFICATION DE DISPONIBILITE EN DIRECT (Système de file d'attente / Batch optimisé) //
-// ========================================== //
+// ==========================================
+// 11. VERIFICATION DE DISPONIBILITE EN DIRECT
+// ==========================================
 window.addEventListener('load', function() {
-          
-    // FETCH SILENCIEUX CRON     
-    if (typeof siteConfig !== 'undefined' && siteConfig.cronUrl) {         
-        setTimeout(function() {             
-            fetch(siteConfig.cronUrl).catch(error => console.log('Tache de fond ignoree.'));         }, 5000);     
-    }     
+    
+    // FETCH SILENCIEUX CRON
+    if (typeof siteConfig !== 'undefined' && siteConfig.cronUrl) {
+        setTimeout(function() {
+            fetch(siteConfig.cronUrl).catch(error => console.log('Tache de fond ignoree.'));
+        }, 5000); 
+    }
 
-    const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));     
-    const supportedDomains = window.siteSupportedDomains || [];          
-          
-    // On passe de 2 à 5 requêtes simultanées
+    const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));
+    const supportedDomains = window.siteSupportedDomains || [];
+    
     async function processBatch(cards, batchSize = 5) {
         for (let i = 0; i < cards.length; i += batchSize) {
             const batch = cards.slice(i, i + batchSize);
@@ -760,17 +860,17 @@ window.addEventListener('load', function() {
             await Promise.all(batch.map(card => checkCardDispo(card, supportedDomains)));
             
             if (i + batchSize < cards.length) {
-                // On réduit la pause de 500ms à 150ms
                 await new Promise(resolve => setTimeout(resolve, 150));
             }
         }
-    }     
-
+    }
+    
     async function checkCardDispo(card, supportedDomains) {
         const itemId = card.getAttribute('data-id');
         const url = card.getAttribute('data-url');
         const statusDiv = document.getElementById(`live-status-${itemId}`);
         const dateContainer = document.getElementById(`date-container-${itemId}`);
+
         const isSupported = url && supportedDomains.some(domain => url.includes(domain));
         
         if (!isSupported) {
@@ -780,19 +880,19 @@ window.addEventListener('load', function() {
         
         const cacheKey = `dispo_check_${itemId}_${url}`;
         
-        // 1. Lecture sécurisée du sessionStorage
         try {
             const cachedResult = sessionStorage.getItem(cacheKey);
             if (cachedResult) {
                 const cacheData = JSON.parse(cachedResult);
                 const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;
+
                 if (ageInMinutes < 60) {
                     applyDispoResult(cacheData.disponible, statusDiv, dateContainer);
                     return;
                 }
             }
         } catch (e) {
-            console.warn("sessionStorage bloqué par le navigateur, contournement en cours...");
+            console.warn("sessionStorage bloqué par le navigateur");
         }
 
         try {
@@ -803,34 +903,40 @@ window.addEventListener('load', function() {
             });
             
             if (!response.ok) return;
+
             const data = await response.json();
             if (!data.success) return;
 
-            // 2. Écriture sécurisée du sessionStorage
             try {
                 sessionStorage.setItem(cacheKey, JSON.stringify({
                     timestamp: Date.now(),
                     disponible: data.disponible
                 }));
             } catch (e) {
-                // On ignore l'erreur silencieusement, la donnée ne sera juste pas mise en cache
             }
 
             applyDispoResult(data.disponible, statusDiv, dateContainer);
+
         } catch (err) {
             if (statusDiv) statusDiv.style.display = 'none';
         }
-    }     
-
-    function applyDispoResult(disponible, statusDiv, dateContainer) {         
-        if (statusDiv) statusDiv.style.display = 'none';                  
-        if (!disponible && dateContainer) {             
-            dateContainer.style.display = 'block';             
-            if (dateContainer.innerHTML.trim() === '') {                 
-                dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Épisode non disponible.</p>`;             }         }     }     
-
+    }
+    
+    function applyDispoResult(disponible, statusDiv, dateContainer) {
+        
+        if (statusDiv) statusDiv.style.display = 'none';
+        
+        if (!disponible && dateContainer) {
+            
+            dateContainer.style.display = 'block';
+            
+            if (dateContainer.innerHTML.trim() === '') {
+                dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Épisode non disponible.</p>`;
+            }
+        }
+    }
+    
     if (cardsToCheck.length > 0) {
-        // On démarre plus vite (500ms au lieu de 1000ms après le chargement de la page)
         setTimeout(() => processBatch(cardsToCheck, 5), 500);
     }
 });
