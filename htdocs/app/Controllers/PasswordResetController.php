@@ -40,7 +40,7 @@ class PasswordResetController extends BaseController
             <div style='font-family: \"Inter\", Helvetica, Arial, sans-serif; background-color: #f3f5f8; padding: 40px 20px; color: #182131;'>
                 <div style='max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e1e5ec;'>
                     <div style='text-align: center; margin-bottom: 20px;'>
-                        <h2 style='color: #182131; margin: 0; font-size: 22px; font-weight: 800;'>CARDEX</h2>
+                        <h2 style='color: #182131; margin: 0; font-size: 22px; font-weight: 800;'><?php echo env('SITENAME'); ?></h2>
                     </div>
                     
                     <p style='font-size: 15px; line-height: 1.6; color: #657084;'>Bonjour,</p>

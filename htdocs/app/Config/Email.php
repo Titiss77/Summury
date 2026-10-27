@@ -38,7 +38,7 @@ class Email extends BaseConfig
 
         // Récupération explicite et forcée depuis le .env
         $this->fromEmail  = env('SMTP_FROM_EMAIL', '');
-        $this->fromName   = env('SMTP_FROM_NAME', 'CARDEX');
+        $this->fromName   = env('SMTP_FROM_NAME', '');
         $this->SMTPHost   = env('SMTP_HOST', '');
         $this->SMTPUser   = env('SMTP_USER', '');
         $this->SMTPPass   = env('SMTP_PASS', '');
