@@ -9,12 +9,12 @@
         content="Votre tableau de bord personnel pour centraliser et suivre votre progression sur vos œuvres préférées.">
     <meta property="og:title" content="<?php echo env('SITENAME'); ?>">
     <meta property="og:description" content="Centralisez et suivez votre progression sur vos œuvres préférées.">
-    <meta property="og:image" content="<?php echo base_url('favicon.ico'); ?>">
+    <meta property="og:image" content="<?php echo base_url('favicon.ico?v=2'); ?>">
     <meta property="og:url" content="<?php echo base_url(); ?>">
     <meta property="og:type" content="website">
 
-    <link rel="icon" type="image/x-icon" href="<?php echo base_url('favicon.ico'); ?>">
-    <link rel="apple-touch-icon" href="<?php echo base_url('favicon.ico'); ?>">
+    <link rel="icon" type="image/x-icon" href="<?php echo base_url('favicon.ico?v=2'); ?>">
+    <link rel="apple-touch-icon" href="<?php echo base_url('favicon.ico?v=2'); ?>">
 
     <!-- Préconnexion aux API externes pour optimiser le chargement des images -->
     <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
@@ -91,7 +91,7 @@
     <header class="main-header">
         <h1>
             <a href="<?php echo base_url('/'); ?>" style="color:inherit;">
-                <img class="logo-site" src="<?php echo base_url('favicon.ico'); ?>"
+                <img class="logo-site" src="<?php echo base_url('favicon.ico?v=2'); ?>"
                     alt="<?php echo env('SITENAME'); ?> Logo" decoding="async"><?php echo env('SITENAME'); ?>
             </a>
         </h1>
@@ -167,7 +167,7 @@
             <div>
                 <h3
                     style="color: var(--text-main); font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
-                    <img src="<?php echo base_url('favicon.ico'); ?>" alt="Logo" class="logo-footer">
+                    <img src="<?php echo base_url('favicon.ico?v=2'); ?>" alt="Logo" class="logo-footer">
                     <?php echo env('SITENAME'); ?>
                 </h3>
                 <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
