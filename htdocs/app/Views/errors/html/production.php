@@ -29,9 +29,9 @@
 
         <p style="color: var(--text-muted); margin-bottom: 2.5rem; font-size: 1.05rem;">
             <?php if (ENVIRONMENT !== 'production') { ?>
+            <?php echo nl2br(esc($message)); ?>
+            <?php } else { ?>
         <p class="lead"><?php echo lang('Errors.weHitASnag'); ?></p>
-        <?php } else { ?>
-        La page que vous recherchez n'existe pas, a été renommée ou est temporairement indisponible.
         <?php } ?>
         </p>
     </div>
