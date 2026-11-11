@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo lang('Errors.badRequest'); ?></title>
+    <title><?php echo lang('Errors.number404').' - '.lang('Errors.pageNotFound'); ?></title>
 
     <?php $styleVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1'; ?>
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v=1'); ?>">
