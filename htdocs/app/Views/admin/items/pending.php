@@ -2,7 +2,7 @@
 <?php echo $this->section('content'); ?>
 
 <div class="actions-container">
-    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
+<a href="<?php echo base_url('/'); ?>" onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }" class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
 <div class="container">
@@ -41,8 +41,7 @@
                     <td><?php echo esc($item->description); ?></td>
                     <td>
                         <div class="action-links">
-                            <a href="<?php echo base_url('m/'.$item->id); ?>"
-                                class="btn-action btn-edit">Examiner</a>
+                            <a href="<?php echo base_url('m/'.$item->id); ?>" class="btn-action btn-edit">Examiner</a>
                             <a href="<?php echo base_url('a/i/'.$item->id); ?>" class="btn-action"
                                 style="background:var(--success); color:#fff;">Valider</a>
                             <a href="<?php echo base_url('a/i/'.$item->id.'/x'); ?>" class="btn-action btn-ban"
@@ -145,11 +144,10 @@
 
                     <td>
                         <div class="action-links">
-                            <a href="<?php echo base_url('a/v/'.$revision['id']); ?>"
-                                class="btn-action" style="background:var(--success); color:#fff;"
+                            <a href="<?php echo base_url('a/v/'.$revision['id']); ?>" class="btn-action"
+                                style="background:var(--success); color:#fff;"
                                 onclick="return confirm('Approuver cette modification ? Elle écrasera la version publique actuelle.')">Approuver</a>
-                            <a href="<?php echo base_url('a/v/'.$revision['id'].'/x'); ?>"
-                                class="btn-action btn-ban"
+                            <a href="<?php echo base_url('a/v/'.$revision['id'].'/x'); ?>" class="btn-action btn-ban"
                                 onclick="return confirm('Refuser cette modification ? Elle sera rejetée sans impacter la carte publique.')">Refuser</a>
                         </div>
                     </td>
