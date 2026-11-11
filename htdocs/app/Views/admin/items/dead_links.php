@@ -2,7 +2,9 @@
 <?php echo $this->section('content'); ?>
 
 <div class="actions-container">
-<a href="<?php echo base_url('/'); ?>" onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }" class="btn btn-cancel">Retour aux cartes</a>
+    <a href="<?php echo base_url('/'); ?>"
+        onclick="return retourAuxCartes(event, this.href);"
+        class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
@@ -92,12 +94,11 @@
 
                     <td style="padding: 12px;">
                         <div class="action-links" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <a href="<?php echo base_url('m/'.$item['item_id']); ?>"
-                                class="btn-action btn-edit">Mettre à jour manuellement</a>
+                            <a href="<?php echo base_url('m/'.$item['item_id']); ?>" class="btn-action btn-edit">Mettre
+                                à jour manuellement</a>
                             <a href="<?php echo esc($item['url_testee']); ?>" target="_blank" class="btn-action"
                                 style="background: var(--text-muted); color: #fff;">Tester</a>
-                            <a href="<?php echo base_url('a/d/'.$item['item_id']); ?>"
-                                class="btn-action btn-ban"
+                            <a href="<?php echo base_url('a/d/'.$item['item_id']); ?>" class="btn-action btn-ban"
                                 onclick="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cette carte ainsi que tout son historique ? Cette action est irréversible.')"
                                 style="background-color: var(--danger); color: #fff;">Supprimer la carte</a>
                         </div>

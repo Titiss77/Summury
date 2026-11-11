@@ -43,7 +43,7 @@
     <span class="release-badge" data-key="<?php echo $releaseKey; ?>"
         style="display: none; font-size: 0.75rem; color: var(--success); border: 1px solid var(--success); background-color: var(--success-bg); padding: 4px 10px; border-radius: var(--radius-pill); cursor: pointer; transition: opacity 0.2s;"
         title="Cliquez pour masquer">
-         ✨ <strong><?php echo htmlspecialchars($release->titre ?? ''); ?></strong>
+        ✨ <strong><?php echo htmlspecialchars($release->titre ?? ''); ?></strong>
         (<?php echo htmlspecialchars($release->nom ?? ''); ?>)
     </span>
     <?php } ?>
@@ -51,7 +51,9 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     let dismissed = [];
-    try { dismissed = JSON.parse(localStorage.getItem('dismissedReleases') || '[]'); } catch (_) {}
+    try {
+        dismissed = JSON.parse(localStorage.getItem('dismissedReleases') || '[]');
+    } catch (_) {}
     const badges = document.querySelectorAll('.release-badge');
     badges.forEach(function(badge) {
         const key = badge.getAttribute('data-key');
@@ -61,7 +63,9 @@ document.addEventListener("DOMContentLoaded", function() {
             badge.addEventListener('click', function() {
                 this.style.display = 'none';
                 dismissed.push(key);
-                try { localStorage.setItem('dismissedReleases', JSON.stringify(dismissed)); } catch (_) {}
+                try {
+                    localStorage.setItem('dismissedReleases', JSON.stringify(dismissed));
+                } catch (_) {}
             });
         }
     });
@@ -122,8 +126,12 @@ document.addEventListener("DOMContentLoaded", function() {
     <input type="text" id="liveSearch" class="form-control" placeholder="Rechercher une œuvre... (titre, description)"
         autocomplete="off">
     <div class="card-filter-bar">
-        <select id="statusFilter" class="form-control card-filter-select" aria-label="Filtrer par statut"><option value="">Tous les statuts</option></select>
-        <select id="categoryFilter" class="form-control card-filter-select" aria-label="Filtrer par catégorie"><option value="">Toutes les catégories</option></select>
+        <select id="statusFilter" class="form-control card-filter-select" aria-label="Filtrer par statut">
+            <option value="">Tous les statuts</option>
+        </select>
+        <select id="categoryFilter" class="form-control card-filter-select" aria-label="Filtrer par catégorie">
+            <option value="">Toutes les catégories</option>
+        </select>
         <span id="cardResultCount" class="card-result-count" aria-live="polite"></span>
     </div>
 </div>
@@ -185,7 +193,8 @@ document.addEventListener("DOMContentLoaded", function() {
                         }
                     }
                     ?>
-                <details id="sub-<?php echo $currentDivisionId; ?>-<?php echo md5($subCatName); ?>" class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;"
+                <details id="sub-<?php echo $currentDivisionId; ?>-<?php echo md5($subCatName); ?>"
+                    class="subcategory-details" style="margin-top: 15px; margin-bottom: 15px; margin-left: 10px;"
                     <?php echo $isSubOpen; ?>>
                     <summary style="display: flex; align-items: center; gap: 10px; cursor: pointer; outline: none;">
                         <?php if ($canDragSub) { ?>
@@ -241,10 +250,11 @@ document.addEventListener("DOMContentLoaded", function() {
                                     }
                                     ?>
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ((!empty($item->episode) && !$isFuture) ? 'needs-dispo-check' : ''); ?>"
-                                    id="card-<?php echo esc($item->id); ?>"
-                                    data-id="<?php echo esc($item->id); ?>" data-status="<?php echo esc($item->status); ?>" data-category="<?php echo esc($divisionName); ?>"
+                                    id="card-<?php echo esc($item->id); ?>" data-id="<?php echo esc($item->id); ?>"
+                                    data-status="<?php echo esc($item->status); ?>"
+                                    data-category="<?php echo esc($divisionName); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
-                                    
+
                                     <?php if ($canDragItem) { ?>
                                     <div class="drag-handle"
                                         style="cursor: grab; text-align: center; color: var(--text-muted); padding: 5px; touch-action: none;"
@@ -372,9 +382,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <?php } ?>
 
-<!-- Passage de la liste des domaines supportés au script JS global -->
 <script>
 window.siteSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
+// Sauvegarde l'URL exacte des cartes (ex: .../c/1) pour pouvoir y revenir
+sessionStorage.setItem('last_cards_url', window.location.href);
 </script>
-
 <?php echo $this->endSection(); ?>

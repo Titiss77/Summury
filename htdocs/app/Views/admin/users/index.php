@@ -149,8 +149,7 @@
 </style>
 
 <div class="actions-container">
-    <a href="<?php echo base_url('/'); ?>"
-        onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }"
+    <a href="<?php echo base_url('/'); ?>" onclick="return retourAuxCartes(event, this.href);"
         class="btn btn-cancel">Retour aux cartes</a>
 </div>
 

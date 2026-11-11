@@ -2,8 +2,7 @@
 <?php echo $this->section('content'); ?>
 
 <div class="actions-container">
-    <a href="<?php echo esc($redirect_url); ?>"
-        onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }"
+    <a href="<?php echo esc($redirect_url); ?>" onclick="return retourAuxCartes(event, this.href);"
         class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
@@ -226,8 +225,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
 
         </fieldset>
         <div class="form-actions">
-            <a href="<?php echo esc($redirect_url); ?>"
-                onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }"
+            <a href="<?php echo esc($redirect_url); ?>" onclick="return retourAuxCartes(event, this.href);"
                 class="btn btn-cancel">Annuler</a>
             <button type="submit" class="btn btn-success">Enregistrer</button>
         </div>
