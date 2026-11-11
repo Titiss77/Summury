@@ -2,7 +2,9 @@
 
 <?php echo $this->section('content'); ?>
 <div class="actions-container">
-    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
+    <a href="<?php echo base_url('/'); ?>"
+        onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }"
+        class="btn btn-cancel">Retour aux cartes</a>
 </div>
 <div class="container" style="max-width: 800px; margin: 40px auto;">
 

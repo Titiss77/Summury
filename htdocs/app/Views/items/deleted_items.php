@@ -2,7 +2,9 @@
 <?php echo $this->section('content'); ?>
 
 <div class="actions-container">
-    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
+    <a href="<?php echo base_url('/'); ?>"
+        onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }"
+        class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
 <div class="container">
@@ -16,8 +18,7 @@
                 onclick="return confirm('Êtes-vous sûr de vouloir restaurer TOUTES les cartes de la corbeille ?');">
                 Tout restaurer
             </a>
-            <a href="<?php echo base_url('re'); ?>" class="btn"
-                style="background-color: var(--danger); color: #fff;"
+            <a href="<?php echo base_url('re'); ?>" class="btn" style="background-color: var(--danger); color: #fff;"
                 onclick="return confirm('ATTENTION ACTION IRRÉVERSIBLE !\nÊtes-vous sûr de vouloir détruire DÉFINITIVEMENT toutes les cartes de cette page ?');">
                 Tout détruire
             </a>

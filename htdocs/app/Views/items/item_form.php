@@ -2,7 +2,9 @@
 <?php echo $this->section('content'); ?>
 
 <div class="actions-container">
-    <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Retour aux cartes</a>
+    <a href="<?php echo esc($redirect_url); ?>"
+        onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }"
+        class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
 <div class="form-container card">
@@ -24,8 +26,10 @@
             <label for="titre" class="form-label">Titre *</label>
             <input type="text" id="titre" name="titre" class="form-control" autocomplete="off"
                 value="<?php echo isset($item) ? esc($item->titre) : ''; ?>" required>
-            <small class="form-help">Saisis un titre puis choisis une suggestion, ou continue sans auto-remplissage.</small>
-            <button type="button" id="clear-api-search" class="btn btn-cancel btn-sm" hidden>Effacer les résultats</button>
+            <small class="form-help">Saisis un titre puis choisis une suggestion, ou continue sans
+                auto-remplissage.</small>
+            <button type="button" id="clear-api-search" class="btn btn-cancel btn-sm" hidden>Effacer les
+                résultats</button>
 
             <!-- Conteneur pour afficher les résultats de l'API -->
             <div id="api-results-container"
@@ -107,68 +111,73 @@ if (isset($subCategories) && is_array($subCategories)) {
                                 d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
                         </svg> Le partage de cette carte peut la rendre visible publiquement.
                     </small>
-                    <div id="public-preview" class="form-help" hidden>Le titre, l’image, la description et le lien seront visibles sur la carte publique. La progression peut être partagée avec cette carte.</div>
+                    <div id="public-preview" class="form-help" hidden>Le titre, l’image, la description et le lien
+                        seront visibles sur la carte publique. La progression peut être partagée avec cette carte.</div>
                 </div>
             </div>
         </div>
 
-        <details class="form-group" id="optional-fields" <?php echo (isset($item) && (!empty($item->description) || !empty($item->image) || !empty($item->date_sortie))) ? 'open' : ''; ?>>
-            <summary class="form-label" style="cursor:pointer">Détails complémentaires (description, sortie, image)</summary>
-        <div class="form-group">
-            <label for="description" class="form-label">Description</label>
-            <?php
+        <details class="form-group" id="optional-fields"
+            <?php echo (isset($item) && (!empty($item->description) || !empty($item->image) || !empty($item->date_sortie))) ? 'open' : ''; ?>>
+            <summary class="form-label" style="cursor:pointer">Détails complémentaires (description, sortie, image)
+            </summary>
+            <div class="form-group">
+                <label for="description" class="form-label">Description</label>
+                <?php
                 $descLen = isset($item) ? mb_strlen($item->description ?? '') : 0;
 // Limite native de HTML, supprimée si le contenu existant la dépasse pour éviter les bugs
 $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
 ?>
-            <textarea id="description" name="description" class="form-control" rows="1"
-                <?php echo $maxLimitAttr; ?>><?php echo isset($item) ? esc($item->description) : ''; ?></textarea>
-            <small id="char-count"
-                style="display: block; text-align: right; margin-top: 5px; font-weight: bold;"></small>
-        </div>
-        <div class="form-group">
-            <label for="date_sortie" class="form-label">Date et heure de sortie</label>
-            <div style="display: grid; gap: 10px;">
-                <input type="datetime-local" id="date_sortie" name="date_sortie" class="form-control"
-                    value="<?php echo (isset($item) && $item->date_sortie) ? date('Y-m-d\TH:i', strtotime($item->date_sortie)) : ''; ?>">
-                <button type="button" class="btn btn-cancel"
-                    onclick="document.getElementById('date_sortie').value = '';">Ne pas définir</button>
+                <textarea id="description" name="description" class="form-control" rows="1"
+                    <?php echo $maxLimitAttr; ?>><?php echo isset($item) ? esc($item->description) : ''; ?></textarea>
+                <small id="char-count"
+                    style="display: block; text-align: right; margin-top: 5px; font-weight: bold;"></small>
             </div>
-        </div>
-        <div class="form-group">
-            <label for="img" class="form-label">Image (URL) :</label>
-            <small style="display: block; margin-bottom: 10px; color: var(--text-muted);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--warning)"
-                    class="bi bi-lightbulb-fill" viewBox="0 0 16 16">
-                    <path
-                        d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5" />
-                </svg>
-                <strong>Astuce :</strong> Si l'image automatique ne convient pas, trouvez des affiches de haute qualité
-                sur
-                <a href="https://theposterdb.com/" target="_blank"
-                    style="color: var(--primary); text-decoration: underline; font-weight: 500;">TPDb (Films/Séries)</a>
-                ou
-                <a href="https://myanimelist.net/" target="_blank"
-                    style="color: var(--primary); text-decoration: underline; font-weight: 500;">MyAnimeList</a>.<br>
-                Format recommandé : <strong>400x600 (Ratio 2:3)</strong>.
-            </small>
+            <div class="form-group">
+                <label for="date_sortie" class="form-label">Date et heure de sortie</label>
+                <div style="display: grid; gap: 10px;">
+                    <input type="datetime-local" id="date_sortie" name="date_sortie" class="form-control"
+                        value="<?php echo (isset($item) && $item->date_sortie) ? date('Y-m-d\TH:i', strtotime($item->date_sortie)) : ''; ?>">
+                    <button type="button" class="btn btn-cancel"
+                        onclick="document.getElementById('date_sortie').value = '';">Ne pas définir</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="img" class="form-label">Image (URL) :</label>
+                <small style="display: block; margin-bottom: 10px; color: var(--text-muted);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--warning)"
+                        class="bi bi-lightbulb-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5" />
+                    </svg>
+                    <strong>Astuce :</strong> Si l'image automatique ne convient pas, trouvez des affiches de haute
+                    qualité
+                    sur
+                    <a href="https://theposterdb.com/" target="_blank"
+                        style="color: var(--primary); text-decoration: underline; font-weight: 500;">TPDb
+                        (Films/Séries)</a>
+                    ou
+                    <a href="https://myanimelist.net/" target="_blank"
+                        style="color: var(--primary); text-decoration: underline; font-weight: 500;">MyAnimeList</a>.<br>
+                    Format recommandé : <strong>400x600 (Ratio 2:3)</strong>.
+                </small>
 
-            <div style="display: flex; gap: 15px; align-items: flex-start;">
-                <div style="flex-grow: 1;">
-                    <input type="text" id="img" name="image" class="form-control"
-                        value="<?php echo htmlspecialchars($item->image ?? ''); ?>"
-                        placeholder="https://exemple.com/image.jpg">
-                </div>
-                <!-- Box d'aperçu dynamique de l'image -->
-                <div
-                    style="flex-shrink: 0; width: 80px; height: 120px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg-body); transition: var(--transition);">
-                    <img id="img-preview" src="<?php echo htmlspecialchars($item->image ?? ''); ?>" alt="Aperçu"
-                        style="width: 100%; height: 100%; object-fit: cover; display: <?php echo !empty($item->image) ? 'block' : 'none'; ?>;">
-                    <span id="img-placeholder"
-                        style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 5px; display: <?php echo empty($item->image) ? 'block' : 'none'; ?>;">Aperçu</span>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="flex-grow: 1;">
+                        <input type="text" id="img" name="image" class="form-control"
+                            value="<?php echo htmlspecialchars($item->image ?? ''); ?>"
+                            placeholder="https://exemple.com/image.jpg">
+                    </div>
+                    <!-- Box d'aperçu dynamique de l'image -->
+                    <div
+                        style="flex-shrink: 0; width: 80px; height: 120px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg-body); transition: var(--transition);">
+                        <img id="img-preview" src="<?php echo htmlspecialchars($item->image ?? ''); ?>" alt="Aperçu"
+                            style="width: 100%; height: 100%; object-fit: cover; display: <?php echo !empty($item->image) ? 'block' : 'none'; ?>;">
+                        <span id="img-placeholder"
+                            style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 5px; display: <?php echo empty($item->image) ? 'block' : 'none'; ?>;">Aperçu</span>
+                    </div>
                 </div>
             </div>
-        </div>
         </details>
 
         <div class="form-group">
@@ -188,38 +197,39 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
         </div>
 
         <fieldset id="progress-fields" class="form-group" style="border:0;padding:0;margin:0;">
-        <legend class="form-label">Progression <small>(facultatif)</small></legend>
-        <div class="form-group row" style="gap: 15px;">
-            <div style="flex: 1;">
-                <label for="saison" class="form-label">Saison actuelle</label>
-                <input type="number" id="saison" name="saison" min="0" class="form-control"
-                    value="<?php echo isset($item) ? esc($item->saison) : ''; ?>">
+            <legend class="form-label">Progression <small>(facultatif)</small></legend>
+            <div class="form-group row" style="gap: 15px;">
+                <div style="flex: 1;">
+                    <label for="saison" class="form-label">Saison actuelle</label>
+                    <input type="number" id="saison" name="saison" min="0" class="form-control"
+                        value="<?php echo isset($item) ? esc($item->saison) : ''; ?>">
+                </div>
+                <div style="flex: 1;">
+                    <label for="total_saisons" class="form-label">Total saisons</label>
+                    <input type="number" id="total_saisons" name="total_saisons" min="0" class="form-control"
+                        value="<?php echo isset($item) ? esc($item->total_saisons) : ''; ?>">
+                </div>
             </div>
-            <div style="flex: 1;">
-                <label for="total_saisons" class="form-label">Total saisons</label>
-                <input type="number" id="total_saisons" name="total_saisons" min="0" class="form-control"
-                    value="<?php echo isset($item) ? esc($item->total_saisons) : ''; ?>">
-            </div>
-        </div>
 
-        <div class="form-group row" style="gap: 15px;">
-            <div style="flex: 1;">
-                <label for="episode" class="form-label">Épisode actuel</label>
-                <input type="number" id="episode" name="episode" min="0" class="form-control"
-                    value="<?php echo isset($item) ? esc($item->episode) : ''; ?>">
+            <div class="form-group row" style="gap: 15px;">
+                <div style="flex: 1;">
+                    <label for="episode" class="form-label">Épisode actuel</label>
+                    <input type="number" id="episode" name="episode" min="0" class="form-control"
+                        value="<?php echo isset($item) ? esc($item->episode) : ''; ?>">
+                </div>
+                <div style="flex: 1;">
+                    <label for="total_episodes" class="form-label">Total épisodes (de la saison)</label>
+                    <input type="number" id="total_episodes" name="total_episodes" min="0" class="form-control"
+                        value="<?php echo isset($item) ? esc($item->total_episodes) : ''; ?>">
+                </div>
             </div>
-            <div style="flex: 1;">
-                <label for="total_episodes" class="form-label">Total épisodes (de la saison)</label>
-                <input type="number" id="total_episodes" name="total_episodes" min="0" class="form-control"
-                    value="<?php echo isset($item) ? esc($item->total_episodes) : ''; ?>">
-            </div>
-        </div>
 
         </fieldset>
         <div class="form-actions">
-            <a href="<?php echo base_url('/'); ?>" class="btn btn-cancel">Annuler</a>
+            <a href="<?php echo esc($redirect_url); ?>"
+                onclick="if(document.referrer.includes(window.location.host)) { window.history.back(); return false; }"
+                class="btn btn-cancel">Annuler</a>
             <button type="submit" class="btn btn-success">Enregistrer</button>
-            <?php if (!isset($item)) { ?><button type="submit" name="save_add_another" value="1" class="btn btn-primary">Enregistrer et ajouter une autre</button><?php } ?>
         </div>
     </form>
 </div>

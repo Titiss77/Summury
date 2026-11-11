@@ -56,7 +56,7 @@ class ItemController extends BaseController
             'statuts' => $this->statutModel->where('nom !=', 'Public')->orderBy('ordre', 'ASC')->findAll(),
             'item' => $item,
             'view' => 'items/item_form',
-            'redirect_url' => $this->request->getUserAgent()->getReferrer() ?? site_url('/'),
+            'redirect_url' => old('redirect_url') ?: ($this->request->getUserAgent()->getReferrer() ?? site_url('/')),
         ];
 
         return view('items/item_form', $data);
