@@ -8,5 +8,5 @@
     'sorryBadRequest' => 'Désolé ! Il y a un problème avec votre requête.',
     
     'whoops' => 'Oups !',
-    'weHitASnag' => 'Nous avons rencontré un problème. Veuillez réessayer plus tard...',
+    'weHitASnag' => 'Le site est actuellement en maintenance. Veuillez réessayer plus tard...',
 ];
