@@ -1,26 +1,12 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Cookie language settings
-return [
-    'invalidExpiresTime' => 'Invalid "{0}" type for "Expires" attribute. Expected: string, integer, DateTimeInterface object.',
-    'invalidExpiresValue' => 'The cookie expiration time is not valid.',
-    'invalidCookieName' => 'The cookie name "{0}" contains invalid characters.',
-    'emptyCookieName' => 'The cookie name cannot be empty.',
-    'invalidSecurePrefix' => 'Using the "__Secure-" prefix requires setting the "Secure" attribute.',
-    'invalidHostPrefix' => 'Using the "__Host-" prefix must be set with the "Secure" flag, must not have a "Domain" attribute, and the "Path" is set to "/".',
-    'invalidSameSite' => 'The SameSite value must be None, Lax, Strict or a blank string, {0} given.',
-    'invalidSameSiteNone' => 'Using the "SameSite=None" attribute requires setting the "Secure" attribute.',
-    'invalidCookieInstance' => '"{0}" class expected cookies array to be instances of "{1}" but got "{2}" at index {3}.',
-    'unknownCookieInstance' => 'Cookie object with name "{0}" and prefix "{1}" was not found in the collection.',
+<?php return [
+    'invalidExpiresTime' => 'Type "{0}" invalide pour l\'attribut "Expires". Attendu : string, integer, objet DateTimeInterface.',
+    'invalidExpiresValue' => 'L\'heure d\'expiration du cookie n\'est pas valide.',
+    'invalidCookieName' => 'Le nom du cookie "{0}" contient des caractères invalides.',
+    'emptyCookieName' => 'Le nom du cookie ne peut pas être vide.',
+    'invalidSecurePrefix' => 'L\'utilisation du préfixe "__Secure-" nécessite de définir l\'attribut "Secure".',
+    'invalidHostPrefix' => 'L\'utilisation du préfixe "__Host-" nécessite le flag "Secure", aucun attribut "Domain", et "Path" défini sur "/".',
+    'invalidSameSite' => 'La valeur SameSite doit être None, Lax, Strict ou une chaîne vide, "{0}" donné.',
+    'invalidSameSiteNone' => 'L\'utilisation de l\'attribut "SameSite=None" nécessite de définir l\'attribut "Secure".',
+    'invalidCookieInstance' => 'La classe "{0}" attendait un tableau de cookies de type "{1}" mais a reçu "{2}" à l\'index {3}.',
+    'unknownCookieInstance' => 'L\'objet Cookie nommé "{0}" et de préfixe "{1}" n\'a pas été trouvé dans la collection.',
 ];

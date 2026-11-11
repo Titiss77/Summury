@@ -1,24 +1,8 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Session language settings
-return [
-    'missingDatabaseTable' => '"sessionSavePath" must have the table name for the Database Session Handler to work.',
-    'invalidSavePath' => 'Session: Configured save path "{0}" is not a directory, does not exist or cannot be created.',
-    'writeProtectedSavePath' => 'Session: Configured save path "{0}" is not writable by the PHP process.',
-    'emptySavePath' => 'Session: No save path configured.',
-    'invalidSavePathFormat' => 'Session: Invalid Redis save path format: "{0}"',
-
-    // @deprecated
-    'invalidSameSiteSetting' => 'Session: The SameSite setting must be None, Lax, Strict, or a blank string. Given: "{0}"',
+<?php return [
+    'missingDatabaseTable' => '"sessionSavePath" doit comporter le nom de la table pour que le gestionnaire de session de base de données fonctionne.',
+    'invalidSavePath' => 'Session : Le chemin de sauvegarde configuré "{0}" n\'est pas un répertoire, n\'existe pas ou ne peut pas être créé.',
+    'writeProtectedSavePath' => 'Session : Le chemin de sauvegarde configuré "{0}" n\'est pas accessible en écriture par le processus PHP.',
+    'emptySavePath' => 'Session : Aucun chemin de sauvegarde configuré.',
+    'invalidSavePathFormat' => 'Session : Format de chemin de sauvegarde Redis invalide : "{0}"',
+    'invalidSameSiteSetting' => 'Session : Le paramètre SameSite doit être None, Lax, Strict, ou une chaîne vide. Donné : "{0}"',
 ];

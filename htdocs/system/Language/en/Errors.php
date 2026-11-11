@@ -1,22 +1,8 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Errors language settings
-return [
-    'pageNotFound' => '404 - Page Not Found',
-    'sorryCannotFind' => 'Sorry! Cannot seem to find the page you were looking for.',
-    'badRequest' => '400 - Bad Request',
-    'sorryBadRequest' => 'Sorry! Something is wrong with your request.',
-    'whoops' => 'Whoops!',
-    'weHitASnag' => 'We seem to have hit a snag. Please try again later...',
+<?php return [
+    'pageNotFound' => '404 - Page non trouvée',
+    'sorryCannotFind' => 'Désolé ! Impossible de trouver la page que vous recherchez.',
+    'badRequest' => '400 - Mauvaise requête',
+    'sorryBadRequest' => 'Désolé ! Il y a un problème avec votre requête.',
+    'whoops' => 'Oups !',
+    'weHitASnag' => 'Nous avons rencontré un problème. Veuillez réessayer plus tard...',
 ];

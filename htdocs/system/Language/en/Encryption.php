@@ -1,22 +1,8 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Encryption language settings
-return [
-    'noDriverRequested' => 'No driver requested; Miss Daisy will be so upset!',
-    'noHandlerAvailable' => 'Unable to find an available "{0}" encryption handler.',
-    'unKnownHandler' => '"{0}" cannot be configured.',
-    'starterKeyNeeded' => 'Encrypter needs a starter key.',
-    'authenticationFailed' => 'Decrypting: authentication failed.',
-    'encryptionFailed' => 'Encryption failed.',
+<?php return [
+    'noDriverRequested' => 'Aucun pilote demandé.',
+    'noHandlerAvailable' => 'Impossible de trouver un gestionnaire de chiffrement "{0}" disponible.',
+    'unKnownHandler' => '"{0}" ne peut pas être configuré.',
+    'starterKeyNeeded' => 'Le chiffreur nécessite une clé de départ.',
+    'authenticationFailed' => 'Déchiffrement : échec de l\'authentification.',
+    'encryptionFailed' => 'Le chiffrement a échoué.',
 ];

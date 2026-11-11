@@ -1,35 +1,21 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Email language settings
-return [
-    'mustBeArray' => 'The email validation method must be passed an array.',
-    'invalidAddress' => 'Invalid email address: "{0}"',
-    'attachmentMissing' => 'Unable to locate the following email attachment: "{0}"',
-    'attachmentUnreadable' => 'Unable to open this attachment: "{0}"',
-    'noFrom' => 'Cannot send mail with no "From" header.',
-    'noRecipients' => 'You must include recipients: To, Cc, or Bcc',
-    'sendFailurePHPMail' => 'Unable to send email using PHP mail(). Your server might not be configured to send mail using this method.',
-    'sendFailureSendmail' => 'Unable to send email using Sendmail. Your server might not be configured to send mail using this method.',
-    'sendFailureSmtp' => 'Unable to send email using SMTP. Your server might not be configured to send mail using this method.',
-    'sent' => 'Your message has been successfully sent using the following protocol: {0}',
-    'noSocket' => 'Unable to open a socket to Sendmail. Please check settings.',
-    'noHostname' => 'You did not specify a SMTP hostname.',
-    'SMTPError' => 'The following SMTP error was encountered: {0}',
-    'noSMTPAuth' => 'Error: You must assign an SMTP username and password.',
-    'failedSMTPLogin' => 'Failed to send AUTH LOGIN command. Error: {0}',
-    'SMTPAuthUsername' => 'Failed to authenticate username. Error: {0}',
-    'SMTPAuthPassword' => 'Failed to authenticate password. Error: {0}',
-    'SMTPDataFailure' => 'Unable to send data: {0}',
-    'exitStatus' => 'Exit status code: {0}',
+<?php return [
+    'mustBeArray' => 'La méthode de validation d\'e-mail doit recevoir un tableau.',
+    'invalidAddress' => 'Adresse e-mail invalide : "{0}"',
+    'attachmentMissing' => 'Impossible de localiser la pièce jointe suivante : "{0}"',
+    'attachmentUnreadable' => 'Impossible d\'ouvrir cette pièce jointe : "{0}"',
+    'noFrom' => 'Impossible d\'envoyer un e-mail sans en-tête "From".',
+    'noRecipients' => 'Vous devez inclure des destinataires : To, Cc, ou Bcc',
+    'sendFailurePHPMail' => 'Impossible d\'envoyer un e-mail avec PHP mail(). Votre serveur n\'est peut-être pas configuré pour envoyer des e-mails avec cette méthode.',
+    'sendFailureSendmail' => 'Impossible d\'envoyer un e-mail avec Sendmail. Votre serveur n\'est peut-être pas configuré pour envoyer des e-mails avec cette méthode.',
+    'sendFailureSmtp' => 'Impossible d\'envoyer un e-mail avec SMTP. Votre serveur n\'est peut-être pas configuré pour envoyer des e-mails avec cette méthode.',
+    'sent' => 'Votre message a été envoyé avec succès via le protocole suivant : {0}',
+    'noSocket' => 'Impossible d\'ouvrir un socket vers Sendmail. Veuillez vérifier les paramètres.',
+    'noHostname' => 'Vous n\'avez pas spécifié de nom d\'hôte SMTP.',
+    'SMTPError' => 'L\'erreur SMTP suivante a été rencontrée : {0}',
+    'noSMTPAuth' => 'Erreur : Vous devez attribuer un nom d\'utilisateur et un mot de passe SMTP.',
+    'failedSMTPLogin' => 'Échec de l\'envoi de la commande AUTH LOGIN. Erreur : {0}',
+    'SMTPAuthUsername' => 'Échec de l\'authentification du nom d\'utilisateur. Erreur : {0}',
+    'SMTPAuthPassword' => 'Échec de l\'authentification du mot de passe. Erreur : {0}',
+    'SMTPDataFailure' => 'Impossible d\'envoyer les données : {0}',
+    'exitStatus' => 'Code d\'état de sortie : {0}',
 ];

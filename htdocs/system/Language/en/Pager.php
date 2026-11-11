@@ -1,25 +1,11 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Pager language settings
-return [
-    'pageNavigation' => 'Page navigation',
-    'first' => 'First',
-    'previous' => 'Previous',
-    'next' => 'Next',
-    'last' => 'Last',
-    'older' => 'Older',
-    'newer' => 'Newer',
-    'invalidTemplate' => '"{0}" is not a valid Pager template.',
-    'invalidPaginationGroup' => '"{0}" is not a valid Pagination group.',
+<?php return [
+    'pageNavigation' => 'Navigation de la page',
+    'first' => 'Premier',
+    'previous' => 'Précédent',
+    'next' => 'Suivant',
+    'last' => 'Dernier',
+    'older' => 'Plus ancien',
+    'newer' => 'Plus récent',
+    'invalidTemplate' => '"{0}" n\'est pas un modèle de pagination valide.',
+    'invalidPaginationGroup' => '"{0}" n\'est pas un groupe de pagination valide.',
 ];

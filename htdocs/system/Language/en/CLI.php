@@ -1,55 +1,39 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// CLI language settings
-return [
-    'altCommandPlural' => 'Did you mean one of these?',
-    'altCommandSingular' => 'Did you mean this?',
-    'commandNotFound' => 'Command "{0}" not found.',
+<?php return [
+    'altCommandPlural' => 'Vouliez-vous dire l\'un de ceux-ci ?',
+    'altCommandSingular' => 'Vouliez-vous dire ceci ?',
+    'commandNotFound' => 'Commande "{0}" introuvable.',
     'generator' => [
-        'cancelOperation' => 'Operation has been cancelled.',
+        'cancelOperation' => 'L\'opération a été annulée.',
         'className' => [
-            'cell' => 'Cell class name',
-            'command' => 'Command class name',
-            'config' => 'Config class name',
-            'controller' => 'Controller class name',
-            'default' => 'Class name',
-            'entity' => 'Entity class name',
-            'filter' => 'Filter class name',
-            'migration' => 'Migration class name',
-            'model' => 'Model class name',
-            'seeder' => 'Seeder class name',
-            'test' => 'Test class name',
-            'validation' => 'Validation class name',
+            'cell' => 'Nom de la classe Cell',
+            'command' => 'Nom de la classe Command',
+            'config' => 'Nom de la classe Config',
+            'controller' => 'Nom de la classe Controller',
+            'default' => 'Nom de la classe',
+            'entity' => 'Nom de la classe Entity',
+            'filter' => 'Nom de la classe Filter',
+            'migration' => 'Nom de la classe Migration',
+            'model' => 'Nom de la classe Model',
+            'seeder' => 'Nom de la classe Seeder',
+            'test' => 'Nom de la classe Test',
+            'validation' => 'Nom de la classe Validation',
         ],
-        'commandType' => 'Command type',
-        'databaseGroup' => 'Database group',
-        'fileCreate' => 'File created: {0}',
-        'fileError' => 'Error while creating file: "{0}"',
-        'fileExist' => 'File exists: "{0}"',
-        'fileOverwrite' => 'File overwritten: "{0}"',
-        'parentClass' => 'Parent class',
-        'returnType' => 'Return type',
-        'tableName' => 'Table name',
-        'usingCINamespace' => 'Warning: Using the "CodeIgniter" namespace will generate the file in the system directory.',
-        'viewName' => [
-            'cell' => 'Cell view name',
-        ],
+        'commandType' => 'Type de commande',
+        'databaseGroup' => 'Groupe de base de données',
+        'fileCreate' => 'Fichier créé : "{0}"',
+        'fileError' => 'Erreur lors de la création du fichier : "{0}"',
+        'fileExist' => 'Le fichier existe déjà : "{0}"',
+        'fileOverwrite' => 'Fichier écrasé : "{0}"',
+        'parentClass' => 'Classe parente',
+        'returnType' => 'Type de retour',
+        'tableName' => 'Nom de la table',
+        'usingCINamespace' => 'Attention : Utiliser l\'espace de noms "CodeIgniter" générera le fichier dans le répertoire système.',
+        'viewName' => ['cell' => 'Nom de la vue Cell'],
     ],
-    'helpArguments' => 'Arguments:',
-    'helpDescription' => 'Description:',
-    'helpOptions' => 'Options:',
-    'helpUsage' => 'Usage:',
-    'invalidColor' => 'Invalid "{0}" color: "{1}".',
-    'namespaceNotDefined' => 'Namespace "{0}" is not defined.',
+    'helpArguments' => 'Arguments :',
+    'helpDescription' => 'Description :',
+    'helpOptions' => 'Options :',
+    'helpUsage' => 'Utilisation :',
+    'invalidColor' => 'Couleur "{1}" invalide : "{0}".',
+    'namespaceNotDefined' => 'L\'espace de noms "{0}" n\'est pas défini.',
 ];

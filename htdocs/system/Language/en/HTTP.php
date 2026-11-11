@@ -1,83 +1,43 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// HTTP language settings
-return [
-    // CurlRequest
-    'missingCurl' => 'CURL must be enabled to use the CURLRequest class.',
-    'invalidSSLKey' => 'Cannot set SSL Key. "{0}" is not a valid file.',
-    'sslCertNotFound' => 'SSL certificate not found at: "{0}"',
+<?php return [
+    'missingCurl' => 'CURL doit être activé pour utiliser la classe CURLRequest.',
+    'invalidSSLKey' => 'Impossible de définir la clé SSL. "{0}" n\'est pas un fichier valide.',
+    'sslCertNotFound' => 'Certificat SSL introuvable à : "{0}"',
     'curlError' => '{0} : {1}',
-
-    // IncomingRequest
-    'invalidNegotiationType' => '"{0}" is not a valid negotiation type. Must be one of: media, charset, encoding, language.',
-    'invalidJSON' => 'Failed to parse JSON string. Error: {0}',
-    'unsupportedJSONFormat' => 'The provided JSON format is not supported.',
-
-    // Message
-    'invalidHTTPProtocol' => 'Invalid HTTP Protocol Version: {0}',
-
-    // Negotiate
-    'emptySupportedNegotiations' => 'You must provide an array of supported values to all Negotiations.',
-
-    // RedirectResponse
-    'invalidRoute' => 'The route for "{0}" cannot be found.',
-
-    // DownloadResponse
-    'cannotSetBinary' => 'When setting filepath cannot set binary.',
-    'cannotSetFilepath' => 'When setting binary cannot set filepath: "{0}"',
-    'notFoundDownloadSource' => 'Not found download body source.',
-    'cannotSetCache' => 'It does not support caching for downloading.',
-    'cannotSetStatusCode' => 'It does not support change status code for downloading. code: {0}, reason: {1}',
-
-    // Response
-    'missingResponseStatus' => 'HTTP Response is missing a status code',
-    'invalidStatusCode' => '{0} is not a valid HTTP return status code',
-    'unknownStatusCode' => 'Unknown HTTP status code provided with no message: {0}',
-
-    // URI
-    'cannotParseURI' => 'Unable to parse URI: "{0}"',
-    'segmentOutOfRange' => 'Request URI segment is out of range: "{0}"',
-    'invalidPort' => 'Ports must be between 0 and 65535. Given: {0}',
-    'malformedQueryString' => 'Query strings may not include URI fragments.',
-
-    // Page Not Found
-    'pageNotFound' => 'Page Not Found',
-    'emptyController' => 'No Controller specified.',
-    'controllerNotFound' => 'Controller or its method is not found: {0}::{1}',
-    'methodNotFound' => 'Controller method is not found: "{0}"',
-    'localeNotSupported' => 'Locale is not supported: {0}',
-
-    // CSRF
-    // @deprecated use 'Security.disallowedAction'
-    'disallowedAction' => 'The action you requested is not allowed.',
-
-    // Uploaded file moving
-    'alreadyMoved' => 'The uploaded file has already been moved.',
-    'invalidFile' => 'The original file is not a valid file.',
-    'moveFailed' => 'Could not move file "{0}" to "{1}". Reason: {2}',
-
-    'uploadErrOk' => 'The file uploaded with success.',
-    'uploadErrIniSize' => 'The file "%s" exceeds your upload_max_filesize ini directive.',
-    'uploadErrFormSize' => 'The file "%s" exceeds the upload limit defined in your form.',
-    'uploadErrPartial' => 'The file "%s" was only partially uploaded.',
-    'uploadErrNoFile' => 'No file was uploaded.',
-    'uploadErrCantWrite' => 'The file "%s" could not be written on disk.',
-    'uploadErrNoTmpDir' => 'File could not be uploaded: missing temporary directory.',
-    'uploadErrExtension' => 'File upload was stopped by a PHP extension.',
-    'uploadErrUnknown' => 'The file "%s" was not uploaded due to an unknown error.',
-
-    // SameSite setting
-    // @deprecated
-    'invalidSameSiteSetting' => 'The SameSite setting must be None, Lax, Strict, or a blank string. Given: {0}',
+    'invalidNegotiationType' => '"{0}" n\'est pas un type de négociation valide. Doit être l\'un de : media, charset, encoding, language.',
+    'invalidJSON' => 'Échec de l\'analyse de la chaîne JSON. Erreur : {0}',
+    'unsupportedJSONFormat' => 'Le format JSON fourni n\'est pas supporté.',
+    'invalidHTTPProtocol' => 'Version de protocole HTTP invalide : {0}',
+    'emptySupportedNegotiations' => 'Vous devez fournir un tableau de valeurs supportées à toutes les Négociations.',
+    'invalidRoute' => 'La route pour "{0}" est introuvable.',
+    'cannotSetBinary' => 'Lors de la définition du chemin de fichier, impossible de définir binaire.',
+    'cannotSetFilepath' => 'Lors de la définition de binaire, impossible de définir le chemin de fichier : "{0}"',
+    'notFoundDownloadSource' => 'Source de téléchargement introuvable.',
+    'cannotSetCache' => 'Le téléchargement ne supporte pas la mise en cache.',
+    'cannotSetStatusCode' => 'Le téléchargement ne supporte pas le changement de code d\'état. code : {0}, raison : {1}',
+    'missingResponseStatus' => 'La réponse HTTP n\'a pas de code d\'état',
+    'invalidStatusCode' => '{0} n\'est pas un code d\'état HTTP de retour valide',
+    'unknownStatusCode' => 'Code d\'état HTTP inconnu fourni sans message : {0}',
+    'cannotParseURI' => 'Impossible d\'analyser l\'URI : "{0}"',
+    'segmentOutOfRange' => 'Le segment de l\'URI de requête est hors limites : "{0}"',
+    'invalidPort' => 'Les ports doivent être entre 0 et 65535. Reçu : {0}',
+    'malformedQueryString' => 'Les chaînes de requête ne peuvent pas inclure de fragments URI.',
+    'pageNotFound' => 'Page non trouvée',
+    'emptyController' => 'Aucun contrôleur spécifié.',
+    'controllerNotFound' => 'Le contrôleur ou sa méthode est introuvable : {0}::{1}',
+    'methodNotFound' => 'Méthode du contrôleur introuvable : "{0}"',
+    'localeNotSupported' => 'La locale n\'est pas supportée : {0}',
+    'disallowedAction' => 'L\'action que vous avez demandée n\'est pas autorisée.',
+    'alreadyMoved' => 'Le fichier uploadé a déjà été déplacé.',
+    'invalidFile' => 'Le fichier d\'origine n\'est pas un fichier valide.',
+    'moveFailed' => 'Impossible de déplacer le fichier "{0}" vers "{1}". Raison : {2}',
+    'uploadErrOk' => 'Le fichier a été uploadé avec succès.',
+    'uploadErrIniSize' => 'Le fichier "%s" dépasse la directive ini upload_max_filesize.',
+    'uploadErrFormSize' => 'Le fichier "%s" dépasse la limite de téléchargement définie dans votre formulaire.',
+    'uploadErrPartial' => 'Le fichier "%s" n\'a été que partiellement uploadé.',
+    'uploadErrNoFile' => 'Aucun fichier n\'a été uploadé.',
+    'uploadErrCantWrite' => 'Le fichier "%s" n\'a pas pu être écrit sur le disque.',
+    'uploadErrNoTmpDir' => 'Le fichier n\'a pas pu être uploadé : répertoire temporaire manquant.',
+    'uploadErrExtension' => 'L\'upload du fichier a été arrêté par une extension PHP.',
+    'uploadErrUnknown' => 'Le fichier "%s" n\'a pas été uploadé en raison d\'une erreur inconnue.',
+    'invalidSameSiteSetting' => 'Le paramètre SameSite doit être None, Lax, Strict, ou une chaîne vide. Reçu : {0}',
 ];

@@ -1,20 +1,6 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Cache language settings
-return [
-    'unableToWrite' => 'Cache unable to write to "{0}".',
-    'invalidHandlers' => 'Cache config must have an array of $validHandlers.',
-    'noBackup' => 'Cache config must have a handler and backupHandler set.',
-    'handlerNotFound' => 'Cache config has an invalid handler or backup handler specified.',
+<?php return [
+    'unableToWrite' => 'Le cache est incapable d\'écrire dans "{0}".',
+    'invalidHandlers' => 'La configuration du cache doit avoir un tableau de $validHandlers.',
+    'noBackup' => 'La configuration du cache doit avoir un gestionnaire et un gestionnaire de secours.',
+    'handlerNotFound' => 'La configuration du cache a un gestionnaire invalide spécifié.',
 ];

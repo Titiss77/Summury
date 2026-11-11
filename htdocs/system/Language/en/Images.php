@@ -1,36 +1,22 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Images language settings
-return [
-    'sourceImageRequired' => 'You must specify a source image in your preferences.',
-    'gdRequired' => 'The GD image library is required to use this feature.',
-    'gdRequiredForProps' => 'Your server must support the GD image library in order to determine the image properties.',
-    'gifNotSupported' => 'GIF images are often not supported due to licensing restrictions. You may have to use JPG or PNG images instead.',
-    'jpgNotSupported' => 'JPG images are not supported.',
-    'pngNotSupported' => 'PNG images are not supported.',
-    'webpNotSupported' => 'WEBP images are not supported.',
-    'fileNotSupported' => 'The supplied file is not a supported image type.',
-    'unsupportedImageCreate' => 'Your server does not support the GD function required to process this type of image.',
-    'jpgOrPngRequired' => 'The image resize protocol specified in your preferences only works with JPEG or PNG image types.',
-    'rotateUnsupported' => 'Image rotation does not appear to be supported by your server.',
-    'libPathInvalid' => 'The path to your image library is not correct. Please set the correct path in your image preferences. "{0}"',
-    'imageProcessFailed' => 'Image processing failed. Please verify that your server supports the chosen protocol and that the path to your image library is correct.',
-    'rotationAngleRequired' => 'An angle of rotation is required to rotate the image.',
-    'invalidPath' => 'The path to the image is not correct.',
-    'copyFailed' => 'The image copy routine failed.',
-    'missingFont' => 'Unable to find a font to use.',
-    'saveFailed' => 'Unable to save the image. Please make sure the image and file directory are writable.',
-    'invalidDirection' => 'Flip direction can be only "vertical" or "horizontal". Given: "{0}"',
-    'exifNotSupported' => 'Reading EXIF data is not supported by this PHP installation.',
+<?php return [
+    'sourceImageRequired' => 'Vous devez spécifier une image source dans vos préférences.',
+    'gdRequired' => 'La bibliothèque d\'images GD est requise pour utiliser cette fonctionnalité.',
+    'gdRequiredForProps' => 'Votre serveur doit supporter la bibliothèque d\'images GD afin de déterminer les propriétés de l\'image.',
+    'gifNotSupported' => 'Les images GIF ne sont souvent pas supportées en raison de restrictions de licence. Vous devrez peut-être utiliser des images JPG ou PNG à la place.',
+    'jpgNotSupported' => 'Les images JPG ne sont pas supportées.',
+    'pngNotSupported' => 'Les images PNG ne sont pas supportées.',
+    'webpNotSupported' => 'Les images WEBP ne sont pas supportées.',
+    'fileNotSupported' => 'Le fichier fourni n\'est pas un type d\'image supporté.',
+    'unsupportedImageCreate' => 'Votre serveur ne supporte pas la fonction GD requise pour traiter ce type d\'image.',
+    'jpgOrPngRequired' => 'Le protocole de redimensionnement d\'image spécifié dans vos préférences ne fonctionne qu\'avec les types d\'images JPEG ou PNG.',
+    'rotateUnsupported' => 'La rotation d\'image ne semble pas être supportée par votre serveur.',
+    'libPathInvalid' => 'Le chemin vers votre bibliothèque d\'images n\'est pas correct. Veuillez définir le bon chemin dans vos préférences d\'image. "{0}"',
+    'imageProcessFailed' => 'Le traitement de l\'image a échoué. Veuillez vérifier que votre serveur supporte le protocole choisi et que le chemin vers votre bibliothèque d\'images est correct.',
+    'rotationAngleRequired' => 'Un angle de rotation est requis pour faire pivoter l\'image.',
+    'invalidPath' => 'Le chemin vers l\'image n\'est pas correct.',
+    'copyFailed' => 'La routine de copie d\'image a échoué.',
+    'missingFont' => 'Impossible de trouver une police à utiliser.',
+    'saveFailed' => 'Impossible d\'enregistrer l\'image. Assurez-vous que l\'image et le répertoire sont accessibles en écriture.',
+    'invalidDirection' => 'La direction de retournement ne peut être que "vertical" ou "horizontal". Donné : "{0}"',
+    'exifNotSupported' => 'La lecture des données EXIF n\'est pas supportée par cette installation PHP.',
 ];

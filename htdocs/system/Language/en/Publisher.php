@@ -1,25 +1,9 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * This file is part of CodeIgniter 4 framework.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
-// Publisher language settings
-return [
-    'collision' => 'Publisher encountered an unexpected "{0}" while copying "{1}" to "{2}".',
-    'destinationNotAllowed' => 'Destination is not on the allowed list of Publisher directories: "{0}"',
-    'fileNotAllowed' => '"{0}" fails the following restriction for "{1}": {2}',
-
-    // Publish Command
-    'publishMissing' => 'No Publisher classes detected in {0} across all namespaces.',
-    'publishMissingNamespace' => 'No Publisher classes detected in {0} in the {1} namespace.',
-    'publishSuccess' => '"{0}" published {1} file(s) to "{2}".',
-    'publishFailure' => '"{0}" failed to publish to "{1}".',
+<?php return [
+    'collision' => 'Publisher a rencontré un problème inattendu "{0}" lors de la copie de "{1}" vers "{2}".',
+    'destinationNotAllowed' => 'La destination ne fait pas partie de la liste autorisée des répertoires Publisher : "{0}"',
+    'fileNotAllowed' => '"{0}" ne respecte pas la restriction suivante pour "{1}" : {2}',
+    'publishMissing' => 'Aucune classe Publisher détectée dans {0} à travers tous les espaces de noms.',
+    'publishMissingNamespace' => 'Aucune classe Publisher détectée dans {0} dans l\'espace de noms {1}.',
+    'publishSuccess' => '"{0}" a publié {1} fichier(s) vers "{2}".',
+    'publishFailure' => '"{0}" a échoué à publier vers "{1}".',
 ];
