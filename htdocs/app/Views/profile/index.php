@@ -123,7 +123,8 @@
                 <div class="form-group password-wrapper">
                     <label for="password_for_email" class="form-label">Mot de passe actuel (pour sécurité)</label>
                     <input type="password" id="password_for_email" name="password_for_email" class="form-control"
-                        required>
+                        placeholder="Votre mot de passe actuel" autocomplete="new-password" data-bwignore="true"
+                        data-lpignore="true" data-1p-ignore="true" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
                 <div class="form-actions">
@@ -147,13 +148,15 @@
                 <div class="form-group password-wrapper">
                     <label for="new_password" class="form-label">Nouveau mot de passe</label>
                     <input type="password" id="new_password" name="new_password" class="form-control" minlength="12"
-                        placeholder="12 caractères minimum" required>
+                        placeholder="12 caractères minimum" autocomplete="new-password" data-bwignore="true"
+                        data-lpignore="true" data-1p-ignore="true" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
                 <div class="form-group password-wrapper">
                     <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
                     <input type="password" id="confirm_password" name="confirm_password" class="form-control"
-                        minlength="12" placeholder="12 caractères minimum" required>
+                        minlength="12" placeholder="12 caractères minimum" autocomplete="new-password"
+                        data-bwignore="true" data-lpignore="true" data-1p-ignore="true" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
                 <div class="form-actions">
@@ -173,13 +176,15 @@
                     action est irréversible.</strong>
             </p>
             <form action="<?php echo base_url('delete-account'); ?>" method="POST" class="profile-password-form"
+                autocomplete="off"
                 onsubmit="return confirm('Êtes-vous absolument sûr de vouloir supprimer définitivement votre compte et vos données ?');">
                 <?php echo csrf_field(); ?>
                 <div class="form-group password-wrapper">
                     <label for="password_for_deletion" class="form-label">Confirmez votre mot de passe pour
                         continuer</label>
                     <input type="password" id="password_for_deletion" name="password_for_deletion" class="form-control"
-                        required>
+                        placeholder="Votre mot de passe" autocomplete="new-password" data-bwignore="true"
+                        data-lpignore="true" data-1p-ignore="true" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
                 <div class="form-actions">
