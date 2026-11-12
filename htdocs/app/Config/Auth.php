@@ -255,9 +255,9 @@ class Auth extends ShieldAuth
      * Minimum Password Length
      * --------------------------------------------------------------------
      * The minimum length that a password must be to be accepted.
-     * Recommended minimum value by NIST = 8 characters.
+     * Recommended minimum value by NIST = 12 characters.
      */
-    public int $minimumPasswordLength = 8;
+    public int $minimumPasswordLength = 12;
 
     /**
      * --------------------------------------------------------------------

@@ -8,19 +8,19 @@
 
         <!-- Affichage des erreurs CodeIgniter Shield -->
         <?php if (null !== session('error')) { ?>
-            <div class="alert alert-danger" role="alert"><?php echo esc(session('error')); ?></div>
+        <div class="alert alert-danger" role="alert"><?php echo esc(session('error')); ?></div>
         <?php } elseif (null !== session('errors')) { ?>
-            <div class="alert alert-danger" role="alert">
-                <?php if (is_array(session('errors'))) { ?>
-                    <ul style="margin: 0; padding-left: 20px;">
-                        <?php foreach (session('errors') as $error) { ?>
-                            <li><?php echo esc($error); ?></li>
-                        <?php } ?>
-                    </ul>
-                <?php } else { ?>
-                    <?php echo esc(session('errors')); ?>
+        <div class="alert alert-danger" role="alert">
+            <?php if (is_array(session('errors'))) { ?>
+            <ul style="margin: 0; padding-left: 20px;">
+                <?php foreach (session('errors') as $error) { ?>
+                <li><?php echo esc($error); ?></li>
                 <?php } ?>
-            </div>
+            </ul>
+            <?php } else { ?>
+            <?php echo esc(session('errors')); ?>
+            <?php } ?>
+        </div>
         <?php } ?>
 
         <form action="<?php echo url_to('login'); ?>" method="post">
@@ -35,25 +35,26 @@
             <div class="form-group password-wrapper">
                 <label for="password" class="form-label">Mot de passe</label>
                 <input type="password" class="form-control" id="password" name="password" inputmode="text"
-                    autocomplete="current-password" placeholder="Votre mot de passe" required>
+                    autocomplete="new-password" minlength="12" placeholder="Votre mot de passe" required>
                 <!-- Bouton intégré pour afficher/masquer le mot de passe -->
                 <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
             </div>
 
             <div style="text-align: right; margin-top: -10px; margin-bottom: 1.5rem;">
-                <a href="<?php echo base_url('forgot-password'); ?>" style="font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; transition: var(--transition);">Mot de passe oublié ?</a>
+                <a href="<?php echo base_url('forgot-password'); ?>"
+                    style="font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; transition: var(--transition);">Mot
+                    de passe oublié ?</a>
             </div>
 
             <?php if (setting('Auth.sessionConfig')['allowRemembering']) { ?>
-                <div class="form-check" style="margin-top: 1rem; margin-bottom: 2rem;">
-                    <label class="form-check-label" style="display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" name="remember" class="form-check-input"
-                            <?php if (old('remember', true)) {
+            <div class="form-check" style="margin-top: 1rem; margin-bottom: 2rem;">
+                <label class="form-check-label" style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" name="remember" class="form-check-input" <?php if (old('remember', true)) {
                                 echo 'checked';
                             } ?>>
-                        Se souvenir de moi
-                    </label>
-                </div>
+                    Se souvenir de moi
+                </label>
+            </div>
             <?php } ?>
 
             <div style="margin-top: 1.5rem;">
@@ -62,10 +63,11 @@
             </div>
 
             <?php if (setting('Auth.allowRegistration')) { ?>
-                <p style="text-align: center; margin-top: 2rem; margin-bottom: 0; color: var(--text-muted); font-size: 0.95rem;">
-                    Pas encore de compte ? <a href="<?php echo url_to('register'); ?>"
-                        style="font-weight: 700; color: var(--primary); text-decoration: underline transparent; transition: text-decoration-color 0.2s;">S'inscrire</a>
-                </p>
+            <p
+                style="text-align: center; margin-top: 2rem; margin-bottom: 0; color: var(--text-muted); font-size: 0.95rem;">
+                Pas encore de compte ? <a href="<?php echo url_to('register'); ?>"
+                    style="font-weight: 700; color: var(--primary); text-decoration: underline transparent; transition: text-decoration-color 0.2s;">S'inscrire</a>
+            </p>
             <?php } ?>
         </form>
     </div>

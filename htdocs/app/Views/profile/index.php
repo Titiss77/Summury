@@ -1,5 +1,4 @@
 <?php echo $this->extend('layout'); ?>
-
 <?php echo $this->section('content'); ?>
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" onclick="return retourAuxCartes(event, this.href);"
@@ -35,87 +34,41 @@
     <div class="card shadow-card profile-card">
         <div class="card-body">
             <h3>Informations du compte</h3>
-            <p>
-                <strong>Nom d'utilisateur :</strong>
-                <?php echo esc($user->username); ?>
-            </p>
-            <p>
-                <strong>Adresse e-mail :</strong>
-                <?php echo esc($user->email); ?>
-            </p>
+            <p><strong>Nom d'utilisateur :</strong> <?php echo esc($user->username); ?></p>
+            <p><strong>Adresse e-mail :</strong> <?php echo esc($user->email); ?></p>
         </div>
     </div>
 
     <!-- STATISTIQUES DES CARTES -->
     <div class="profile-stats">
-        <p>
-            <strong>Total de cartes en ligne :</strong>
-            <span class="badge badge-episode">
-                <?php echo esc($totalItems); ?>
-            </span>
-        </p>
-        <p>
-            <strong>Vos cartes publiques :</strong>
-            <span class="badge badge-season">
-                <?php echo esc($publicItems); ?>
-            </span>
-        </p>
+        <p><strong>Total de cartes en ligne :</strong> <span
+                class="badge badge-episode"><?php echo esc($totalItems); ?></span></p>
+        <p><strong>Vos cartes publiques :</strong> <span
+                class="badge badge-season"><?php echo esc($publicItems); ?></span></p>
     </div>
 
     <!-- SÉRIES -->
-    <?php
-    $hasSeries
-        = !empty($inProgressEnCoursSeries)
-        || !empty($inProgressEnPauseSeries);
-    ?>
-
+    <?php $hasSeries = !empty($inProgressEnCoursSeries) || !empty($inProgressEnPauseSeries); ?>
     <div class="card shadow-card profile-card">
         <div class="card-body">
             <?php if (!$hasSeries) { ?>
-            <p class="profile-empty">
-                Aucune série ou animé en cours de visionnage avec
-                un total d'épisodes défini.
-            </p>
+            <p class="profile-empty">Aucune série ou animé en cours de visionnage avec un total d'épisodes défini.</p>
             <?php } else { ?>
             <?php
             $seriesSections = [
-                [
-                    'title' => 'Séries en cours',
-                    'series' => $inProgressEnCoursSeries,
-                    'episodes' => $totalEpisodesEnCours,
-                    'seasons' => $totalSeriesEnCours,
-                    'empty' => 'Aucune série en cours',
-                ],
-                [
-                    'title' => 'Séries en pause',
-                    'series' => $inProgressEnPauseSeries,
-                    'episodes' => $totalEpisodesEnPause,
-                    'seasons' => $totalSeriesEnPause,
-                    'empty' => 'Aucune série en pause',
-                ],
+                ['title' => 'Séries en cours', 'series' => $inProgressEnCoursSeries, 'episodes' => $totalEpisodesEnCours, 'seasons' => $totalSeriesEnCours, 'empty' => 'Aucune série en cours'],
+                ['title' => 'Séries en pause', 'series' => $inProgressEnPauseSeries, 'episodes' => $totalEpisodesEnPause, 'seasons' => $totalSeriesEnPause, 'empty' => 'Aucune série en pause'],
             ];
-                ?>
-
+            ?>
             <?php foreach ($seriesSections as $section) { ?>
             <section class="profile-series-section">
-                <h3>
-                    <?php echo esc($section['title']); ?>
-                </h3>
+                <h3><?php echo esc($section['title']); ?></h3>
                 <div class="profile-summary">
-                    <p>
-                        Épisodes restants :
-                        <span class="badge badge-episode">
-                            <?php echo esc($section['episodes']); ?>
-                        </span>
-                    </p>
-                    <p>
-                        Saisons restantes :
-                        <span class="badge badge-season">
-                            <?php echo esc($section['seasons']); ?>
-                        </span>
-                    </p>
+                    <p>Épisodes restants : <span
+                            class="badge badge-episode"><?php echo esc($section['episodes']); ?></span></p>
+                    <p>Saisons restantes : <span
+                            class="badge badge-season"><?php echo esc($section['seasons']); ?></span></p>
                 </div>
-
                 <div class="admin-table-container fade-in">
                     <table class="admin-table profile-series-table">
                         <thead>
@@ -128,50 +81,30 @@
                         <tbody>
                             <?php if (empty($section['series'])) { ?>
                             <tr>
-                                <td colspan="3" class="profile-table-empty">
-                                    <?php echo esc($section['empty']); ?>
-                                </td>
+                                <td colspan="3" class="profile-table-empty"><?php echo esc($section['empty']); ?></td>
                             </tr>
                             <?php } else { ?>
                             <?php foreach ($section['series'] as $series) { ?>
                             <tr>
-                                <td>
-                                    <strong>
-                                        <?php echo esc($series->titre); ?>
-                                    </strong>
-                                </td>
+                                <td><strong><?php echo esc($series->titre); ?></strong></td>
                                 <td class="profile-table-center">
                                     <?php if (null !== $series->reste_global) { ?>
-                                    <span class="badge badge-episode">
-                                        Reste :
-                                        <?php echo esc($series->reste_global); ?>
-                                    </span>
-                                    <?php } else { ?>
-                                    <span class="profile-not-synced">
-                                        Non synchronisé
-                                    </span>
-                                    <?php } ?>
+                                    <span class="badge badge-episode">Reste :
+                                        <?php echo esc($series->reste_global); ?></span>
+                                    <?php } else { ?><span class="profile-not-synced">Non synchronisé</span><?php } ?>
                                 </td>
                                 <td class="profile-table-center">
                                     <?php if (null !== $series->reste_s) { ?>
-                                    <span class="badge badge-season">
-                                        <?php echo esc($series->reste_s); ?>
-                                    </span>
-                                    <?php } else { ?>
-                                    <span class="profile-not-synced">
-                                        -
-                                    </span>
-                                    <?php } ?>
+                                    <span class="badge badge-season"><?php echo esc($series->reste_s); ?></span>
+                                    <?php } else { ?><span class="profile-not-synced">-</span><?php } ?>
                                 </td>
                             </tr>
-                            <?php } ?>
-                            <?php } ?>
+                            <?php } } ?>
                         </tbody>
                     </table>
                 </div>
             </section>
-            <?php } ?>
-            <?php } ?>
+            <?php } } ?>
         </div>
     </div>
 
@@ -182,29 +115,19 @@
             <form action="<?php echo base_url('update-email'); ?>" method="POST" class="profile-password-form"
                 autocomplete="off">
                 <?php echo csrf_field(); ?>
-
                 <div class="form-group">
-                    <label for="new_email" class="form-label">
-                        Nouvelle adresse e-mail
-                    </label>
+                    <label for="new_email" class="form-label">Nouvelle adresse e-mail</label>
                     <input type="email" id="new_email" name="new_email" class="form-control"
-                        placeholder="nom@exemple.com" autocomplete="off" data-bwignore="true" data-lpignore="true"
-                        required>
+                        placeholder="nom@exemple.com" required>
                 </div>
-
                 <div class="form-group password-wrapper">
-                    <label for="password_for_email" class="form-label">
-                        Mot de passe actuel (pour sécurité)
-                    </label>
+                    <label for="password_for_email" class="form-label">Mot de passe actuel (pour sécurité)</label>
                     <input type="password" id="password_for_email" name="password_for_email" class="form-control"
-                        autocomplete="new-password" data-bwignore="true" data-lpignore="true" required>
+                        required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
-
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
-                        Mettre à jour l'e-mail
-                    </button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour l'e-mail</button>
                 </div>
             </form>
         </div>
@@ -216,42 +139,55 @@
             <h3>Changer mon mot de passe</h3>
             <form action="<?php echo base_url('pw'); ?>" method="POST" class="profile-password-form" autocomplete="off">
                 <?php echo csrf_field(); ?>
-
                 <div class="form-group password-wrapper">
-                    <label for="current_password" class="form-label">
-                        Mot de passe actuel
-                    </label>
-                    <input type="password" id="current_password" name="current_password" class="form-control"
-                        autocomplete="new-password" data-bwignore="true" data-lpignore="true" required>
+                    <label for="current_password" class="form-label">Mot de passe actuel</label>
+                    <input type="password" id="current_password" name="current_password" class="form-control" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
-
                 <div class="form-group password-wrapper">
-                    <label for="new_password" class="form-label">
-                        Nouveau mot de passe
-                    </label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" minlength="8"
-                        autocomplete="new-password" data-bwignore="true" data-lpignore="true" required>
+                    <label for="new_password" class="form-label">Nouveau mot de passe</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control" minlength="12"
+                        placeholder="12 caractères minimum" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
-
                 <div class="form-group password-wrapper">
-                    <label for="confirm_password" class="form-label">
-                        Confirmer le nouveau mot de passe
-                    </label>
+                    <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
                     <input type="password" id="confirm_password" name="confirm_password" class="form-control"
-                        minlength="8" autocomplete="new-password" data-bwignore="true" data-lpignore="true" required>
+                        minlength="12" placeholder="12 caractères minimum" required>
                     <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
                 </div>
-
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
-                        Mettre à jour le mot de passe
-                    </button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour le mot de passe</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ZONE DE DANGER (Droit à l'effacement RGPD) -->
+    <div class="card shadow-card profile-card" style="border: 1px solid var(--danger);">
+        <div class="card-body">
+            <h3 style="color: var(--danger);">Zone de Danger</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Conformément au RGPD, vous disposez d'un droit d'effacement. La suppression de votre compte effacera
+                définitivement toutes vos cartes, brouillons, et données personnelles de nos serveurs. <strong>Cette
+                    action est irréversible.</strong>
+            </p>
+            <form action="<?php echo base_url('delete-account'); ?>" method="POST" class="profile-password-form"
+                onsubmit="return confirm('Êtes-vous absolument sûr de vouloir supprimer définitivement votre compte et vos données ?');">
+                <?php echo csrf_field(); ?>
+                <div class="form-group password-wrapper">
+                    <label for="password_for_deletion" class="form-label">Confirmez votre mot de passe pour
+                        continuer</label>
+                    <input type="password" id="password_for_deletion" name="password_for_deletion" class="form-control"
+                        required>
+                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn" style="background-color: var(--danger); color: #fff;">Supprimer
+                        définitivement mon compte</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
 <?php echo $this->endSection(); ?>

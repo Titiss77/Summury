@@ -1,13 +1,11 @@
 <?php echo $this->extend('layout'); ?>
-
 <?php echo $this->section('content'); ?>
 <div class="actions-container">
-    <a href="<?php echo base_url('/'); ?>"
-        onclick="return retourAuxCartes(event, this.href);"
+    <a href="<?php echo base_url('/'); ?>" onclick="return retourAuxCartes(event, this.href);"
         class="btn btn-cancel">Retour aux cartes</a>
 </div>
-<div class="container" style="max-width: 800px; margin: 40px auto;">
 
+<div class="container" style="max-width: 800px; margin: 40px auto;">
     <div class="card fade-in">
         <div class="card-body">
             <h2 class="header-title" style="margin-bottom: 1.5rem;">Mentions Légales</h2>
@@ -22,9 +20,10 @@
 
             <h3 style="color: var(--primary); font-size: 1.1rem; margin-top: 1.5rem;">2. Hébergement</h3>
             <p style="color: var(--text-muted);">
-                Ce site est hébergé par :<br>
-                Byethost<br>
-                https://byet.host/
+                Ce site est hébergé par : <strong>Byethost (iFastNet LTD)</strong><br>
+                Adresse : 20-22 Wenlock Road, London, N1 7GU, United Kingdom<br>
+                Site web : <a href="https://byet.host/" target="_blank"
+                    style="color: var(--primary);">https://byet.host/</a>
             </p>
 
             <h3 style="color: var(--primary); font-size: 1.1rem; margin-top: 1.5rem;">3. Propriété intellectuelle</h3>

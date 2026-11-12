@@ -41,14 +41,15 @@
             <div class="form-group password-wrapper">
                 <label for="password" class="form-label">Mot de passe</label>
                 <input type="password" class="form-control" id="password" name="password" inputmode="text"
-                    autocomplete="new-password" placeholder="8 caractères minimum" required>
+                    autocomplete="new-password" minlength="12" placeholder="12 caractères minimum" required>
                 <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
             </div>
 
             <div class="form-group password-wrapper" style="margin-bottom: 2rem;">
                 <label for="password_confirm" class="form-label">Confirmer le mot de passe</label>
                 <input type="password" class="form-control" id="password_confirm" name="password_confirm"
-                    inputmode="text" autocomplete="new-password" placeholder="Retapez votre mot de passe" required>
+                    inputmode="text" autocomplete="new-password" minlength="12" placeholder="Retapez votre mot de passe"
+                    required>
                 <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
             </div>
 

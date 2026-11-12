@@ -44,6 +44,7 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->get('re', 'ItemController::emptyTrash');
     $routes->get('p', 'ProfileController::index');
     $routes->post('pw', 'ProfileController::updatePassword');
+    $routes->post('delete-account', 'ProfileController::deleteAccount');
 
     // Anciennes URL : elles restent utilisables sans redirection des formulaires POST.
     $routes->get('item/form', static fn () => redirect()->to('m'));
