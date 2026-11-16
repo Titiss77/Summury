@@ -369,7 +369,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         ?>
 
                                     <?php if ($isDead) { ?>
-                                    <span class="dead-link-badge-inline">⚠️ Lien Mort</span>
+                                    <p class="dead-link-badge-inline">⚠️ Lien Mort</p>
                                     <?php } elseif ($canReport) { ?>
                                     <button type="button" class="btn-report-link-inline"
                                         data-id="<?php echo esc($item->id); ?>"
@@ -383,8 +383,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                         </svg>
                                         Signaler
                                     </button>
-                                    <?php } else { ?>
-                                    <div style="margin-right: auto;"></div>
                                     <?php } ?>
                                     <?php
                                     } elseif ($isOwner || $isDead || $canReport) {
