@@ -1252,50 +1252,61 @@ select.form-control[hidden] {
 }
 
 /* =========================================
-   BOUTON SIGNALEMENT & BADGE (Cartes)
+   BOUTON SIGNALEMENT & BADGE (Barre du bas)
    ========================================= */
-.dead-link-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background-color: var(--danger);
-    color: #fff;
+.dead-link-badge-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background-color: var(--danger-bg);
+    color: var(--danger);
     padding: 4px 10px;
     border-radius: var(--radius-pill);
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    z-index: 10;
-    box-shadow: var(--shadow-sm);
-    pointer-events: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-right: auto;
+    /* Pousse les autres boutons (Modifier/Supprimer) vers la droite */
 }
 
-.btn-report-link {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: var(--bg-body);
-    color: var(--text-muted);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
+.btn-report-link-inline {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 600;
     cursor: pointer;
-    z-index: 10;
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
     transition: var(--transition);
-    box-shadow: var(--shadow-sm);
-    opacity: 0.7;
+    margin-right: auto;
+    margin-left: -8px;
+    /* Aligne visuellement le texte avec le bord gauche */
 }
 
-.btn-report-link:hover {
-    opacity: 1;
-    background: var(--danger-bg);
+.btn-report-link-inline:hover {
     color: var(--danger);
-    border-color: var(--danger);
-    transform: scale(1.05);
+    background: var(--danger-bg);
+}
+
+@media (max-width: 576px) {
+
+    .dead-link-badge-inline,
+    .btn-report-link-inline {
+        width: 100%;
+        justify-content: center;
+        margin: 0;
+        padding: 10px;
+        border-radius: var(--radius-md);
+        font-size: 0.85rem;
+    }
+
+    .btn-report-link-inline {
+        border: 1px solid var(--border-color);
+        background: var(--bg-body);
+    }
 }
 
 

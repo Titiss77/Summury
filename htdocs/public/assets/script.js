@@ -867,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // 14. GESTION DU SIGNALEMENT DE LIEN MORT
     // ==========================================
-    document.querySelectorAll('.btn-report-link').forEach(btn => {
+    document.querySelectorAll('.btn-report-link-inline').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -895,8 +895,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (data.success) {
                     if (typeof showToast === 'function') showToast(data.message, 'success');
-                    // Remplacement visuel immédiat par le badge rouge
-                    btn.outerHTML = '<div class="dead-link-badge fade-in">LIEN MORT</div>';
+                    // Remplacement visuel immédiat par le badge rouge en bas à gauche
+                    btn.outerHTML = '<span class="dead-link-badge-inline fade-in">⚠️ Lien Mort</span>';
                 } else {
                     // Refusé par le serveur anti-troll (Le site marche)
                     if (typeof showToast === 'function') showToast(data.message, 'warning');
