@@ -1255,9 +1255,9 @@ select.form-control[hidden] {
    BOUTON SIGNALEMENT & BADGE (Barre du bas)
    ========================================= */
 .dead-link-badge-inline {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    position: relative;
+    top: -30px;
+    left: 1rem;
     background-color: var(--danger-bg);
     color: var(--danger);
     padding: 4px 10px;
@@ -1265,13 +1265,12 @@ select.form-control[hidden] {
     font-size: 0.75rem;
     font-weight: 700;
     margin-right: auto;
-    /* Pousse les autres boutons (Modifier/Supprimer) vers la droite */
 }
 
 .btn-report-link-inline {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    position: relative;
+    top: -30px;
+    left: 1rem;
     background: transparent;
     color: var(--text-muted);
     border: none;
