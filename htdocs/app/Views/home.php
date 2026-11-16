@@ -237,9 +237,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
                                 <!-- Affichage individuel des cartes -->
                                 <?php
+                                // Affichage individuel des cartes
                                 foreach ($items as $item) {
                                     $isOwner = auth()->loggedIn() && (int) $item->id_user === (int) auth()->id();
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || $isOwner);
+
+                                    // Variables d'état du lien
+                                    $isDead = $item->link_status === 'dead';
+                                    $canReport = auth()->loggedIn() && !empty($item->lien) && !$isOwner && !$isDead;
 
                                     $isFuture = false;
                                     $dateSortieFormatted = '';
@@ -299,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 Vérification...</div>
                                             <?php } ?>
 
-                                            <h4 class="card-title search-target-title"
+                                            <h4 class="card-title search-target-title <?php echo $isDead ? 'dead-title' : ''; ?>"
                                                 style="<?php echo $textColor; ?>">
                                                 <?php echo htmlspecialchars($item->titre); ?></h4>
                                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
