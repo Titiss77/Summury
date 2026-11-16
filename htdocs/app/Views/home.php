@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <?php
     $openDivision = $_GET['open'] ?? null;
     $openSub = $_GET['subopen'] ?? null;
-?>
+    ?>
 
 <!-- Boucle principale d'affichage : Header > Division > Sous-catégories > Cartes -->
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
@@ -237,19 +237,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
                                 <!-- Affichage individuel des cartes -->
                                 <?php
-                                // Affichage individuel des cartes
                                 foreach ($items as $item) {
                                     $isOwner = auth()->loggedIn() && (int) $item->id_user === (int) auth()->id();
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || $isOwner);
                                     
-                                    // Variables d'état du lien (CORRIGÉ : on autorise le propriétaire à signaler)
+                                    // Variables d'état du lien
                                     $isDead = $item->link_status === 'dead';
                                     $canReport = auth()->loggedIn() && !empty($item->lien) && !$isDead;
 
                                     $isFuture = false;
                                     $dateSortieFormatted = '';
                                     $textColor = '';
-
                                     if (!empty($item->date_sortie)) {
                                         $timezone = new DateTimeZone('Europe/Paris');
                                         $dateSortie = new DateTime($item->date_sortie, $timezone);
@@ -260,9 +258,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                             $textColor = 'color: var(--danger);';
                                         }
                                     }
-
-                                    $canReport = auth()->loggedIn() && !empty($item->lien) && !$isOwner;
-                                    $isDead = $item->link_status === 'dead';
                                     ?>
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ((!empty($item->episode) && !$isFuture) ? 'needs-dispo-check' : ''); ?>"
                                     id="card-<?php echo esc($item->id); ?>" data-id="<?php echo esc($item->id); ?>"
@@ -327,10 +322,12 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <?php echo htmlspecialchars($item->description); ?></p>
                                             <?php } ?>
 
-                                            <!-- SIGNALEMENT DE LIEN MORT (Intégré dans la zone blanche de la carte) -->
-                                            <?php if ($isDead || $canReport) { ?>
+                                            <!-- SIGNALEMENT (Dans la zone blanche) UNIQUEMENT SI NON-PROPRIÉTAIRE -->
+                                            <?php if (!$isOwner && ($isDead || $canReport)) { ?>
                                             <div style="margin-top: 12px; margin-bottom: -4px;">
-                                                <?php if ($canReport && !$isDead) { ?>
+                                                <?php if ($isDead) { ?>
+                                                <span class="dead-link-badge-inline">⚠️ Lien Mort</span>
+                                                <?php } elseif ($canReport) { ?>
                                                 <button type="button" class="btn-report-link-inline"
                                                     data-id="<?php echo esc($item->id); ?>"
                                                     title="Signaler ce lien comme fermé/inaccessible">
@@ -365,7 +362,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
                                             echo ' / ' . htmlspecialchars($item->total_episodes);
                                         } ?>
-                                                        <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
+                                                        <?php if ($isOwner) { ?>
                                                         <button type="button"
                                                             class="btn-increment btn-increment-episode"
                                                             data-id="<?php echo $item->id; ?>"
@@ -387,17 +384,40 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <?php } ?>
                                     </a>
 
-                                    <!-- Boutons d'édition (Propriétaire uniquement) -->
+                                    <!-- Barre grise d'édition (Propriétaire uniquement) -->
                                     <?php if ($isOwner) { ?>
                                     <div class="card-actions-bottom">
+                                        <?php if ($isDead) { ?>
+                                        <span class="dead-link-badge-inline"
+                                            style="margin-right: auto; margin-left: -8px;">⚠️ Lien Mort</span>
+                                        <?php } elseif ($canReport) { ?>
+                                        <button type="button" class="btn-report-link-inline"
+                                            style="margin-right: auto; margin-left: -8px;"
+                                            data-id="<?php echo esc($item->id); ?>"
+                                            title="Signaler ce lien comme fermé/inaccessible">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                                                fill="currentColor" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+                                                <path
+                                                    d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z" />
+                                            </svg>
+                                            Signaler
+                                        </button>
+                                        <?php } else { ?>
+                                        <div style="margin-right: auto;"></div>
+                                        <?php } ?>
+
                                         <a href="<?php echo base_url('m/' . $item->id); ?>"
                                             class="btn-icon btn-edit-sm">Modifier</a>
                                         <a href="<?php echo base_url('d/' . $item->id); ?>"
                                             onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');"
                                             class="btn-icon btn-delete-sm">Supprimer</a>
                                     </div>
+                                    <?php } else { ?>
+                                    <!-- Padding de compensation pour l'équilibre visuel des cartes sans barre grise -->
+                                    <div style="padding-bottom: 1.5rem;"></div>
                                     <?php } ?>
-
                                 </div>
                                 <?php } ?>
 

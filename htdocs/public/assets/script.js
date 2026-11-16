@@ -17,7 +17,7 @@ window.showToast = function(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
     }, 4000);
-};
+}
 
 // ==========================================
 // 12. FONCTIONS GLOBALES 
@@ -25,7 +25,6 @@ window.showToast = function(message, type = 'success') {
 window.toggleNewSubCategory = function() {
     var select = document.getElementById('sous_categorie_select');
     var input = document.getElementById('sous_categorie_new');
-
     if (!select || !input) return;
 
     if (select.value === '__NEW__') {
@@ -37,7 +36,7 @@ window.toggleNewSubCategory = function() {
         input.removeAttribute('required');
         input.value = '';
     }
-};
+}
 
 window.copierLien = function(lien) {
     function notifierSucces() {
@@ -73,7 +72,6 @@ window.copierLien = function(lien) {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-
         try {
             let successful = document.execCommand('copy');
             if (successful) {
@@ -85,10 +83,9 @@ window.copierLien = function(lien) {
             console.error('Erreur Fallback :', err);
             notifierErreur();
         }
-
         document.body.removeChild(textArea);
     }
-};
+}
 
 window.retourAuxCartes = function(event, fallbackUrl) {
     if (event) event.preventDefault();
@@ -96,6 +93,7 @@ window.retourAuxCartes = function(event, fallbackUrl) {
     if (document.referrer && document.referrer.includes(window.location.host)) {
         let refUrl = new URL(document.referrer);
         let path = refUrl.pathname;
+
         let base = new URL(window.siteConfig.baseUrl).pathname;
         if (path.startsWith(base)) {
             path = '/' + path.substring(base.length);
@@ -111,11 +109,11 @@ window.retourAuxCartes = function(event, fallbackUrl) {
     }
     
     // Sinon (ex: on vient de Profil, Logs, etc.), on casse la chaîne d'historique 
-    // et on redirige de force vers la dernière page de cartes sauvegardée.
+    // et on redirige de force vers la dernière page de cartes sauvegardée
     let lastCards = sessionStorage.getItem('last_cards_url');
     window.location.href = lastCards ? lastCards : fallbackUrl;
     return false;
-};
+}
 
 // ==========================================
 // INITIALISATION DES ELEMENTS DU DOM
@@ -192,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeToggleBtn = document.getElementById('theme-toggle');
     let currentTheme = 'light';
     try { currentTheme = localStorage.getItem('theme') || 'light'; } catch (_) {}
-
     const metaThemeColor = document.getElementById('meta-theme-color');
 
     if (currentTheme === 'dark') {
@@ -210,12 +207,9 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggleBtn.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
             let switchToTheme = theme === 'dark' ? 'light' : 'dark';
-
             document.documentElement.setAttribute('data-theme', switchToTheme);
             document.documentElement.setAttribute('data-bs-theme', switchToTheme);
-
             try { localStorage.setItem('theme', switchToTheme); } catch (_) {}
-
             themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
             
             if(metaThemeColor) {
@@ -229,21 +223,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     const textarea = document.getElementById('description');
     const charCount = document.getElementById('char-count');
-
+    
     if (textarea && charCount) {
         const maxLength = textarea.getAttribute('maxlength');
-
+        
         function updateCounter() {
             const currentLength = textarea.value.length;
             charCount.textContent = `${currentLength} / ${maxLength}`;
-
+            
             if (currentLength >= maxLength) {
                 charCount.style.color = 'var(--danger)';
             } else {
                 charCount.style.color = 'var(--text-muted)';
             }
         }
-
+        
         updateCounter();
         textarea.addEventListener('input', updateCounter);
     }
@@ -262,7 +256,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             const url = baseUrl + 'e/' + itemId;
-
             const counterSpan = document.getElementById(`ep-count-${itemId}`);
 
             try {
@@ -273,21 +266,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         [siteConfig.csrfHeader]: siteConfig.csrfToken
                     }
                 });
-
+                
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+                
                 const data = await response.json();
-
+                
                 if (data.success) {
                     counterSpan.innerText = data.new_episode;
+                    
                     counterSpan.style.color = 'var(--success)';
                     counterSpan.style.transform = 'scale(1.2)';
-
+                    
                     setTimeout(() => {
                         counterSpan.style.color = '';
                         counterSpan.style.transform = 'scale(1)';
-
+                        
                         const currentUrl = new URL(window.location.href.split('?')[0].split('#')[0]);
-
+                        
                         if (divisionId) {
                             currentUrl.searchParams.set('open', divisionId);
                             currentUrl.hash = 'card-' + itemId; 
@@ -295,13 +290,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (subCategory) {
                             currentUrl.searchParams.set('subopen', subCategory);
                         }
-
+                        
                         window.location.href = currentUrl.toString();
-
                     }, 400);
 
                     if (data.csrf_token) siteConfig.csrfToken = data.csrf_token; 
                     if (typeof showToast === 'function') showToast('Épisode ajouté avec succès !', 'success');
+
                 } else {
                     console.error("Erreur renvoyée par PHP :", data);
                 }
@@ -377,17 +372,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const query = searchInput.value.trim().toLocaleLowerCase('fr');
             const status = statusFilter?.value || '';
             const category = categoryFilter?.value || '';
-
             let visible = 0;
 
             cards.forEach(card => {
                 const title = card.querySelector('.card-title, .search-target-title')?.innerText.toLocaleLowerCase('fr') || '';
                 const desc = card.querySelector('.card-desc, .search-target-desc')?.innerText.toLocaleLowerCase('fr') || '';
-
                 const match = (!query || title.includes(query) || desc.includes(query)) &&
                               (!status || card.dataset.status === status) &&
                               (!category || card.dataset.category === category);
-
                 card.style.display = match ? '' : 'none';
                 if (match) visible++;
             });
@@ -406,7 +398,6 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', applyFilters);
         statusFilter?.addEventListener('change', applyFilters);
         categoryFilter?.addEventListener('change', applyFilters);
-
         applyFilters();
     }
 
@@ -434,7 +425,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateFormHints();
     });
-
     updateFormHints();
 
     // ==========================================
@@ -452,8 +442,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({ order: newOrder })
                 });
-
+                
                 const data = await response.json();
+                
                 if (!response.ok || !data.success) throw new Error(data.error || 'Sauvegarde impossible');
                 
                 if (data.csrf_token) {
@@ -677,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // 10. APERÇU EN DIRECT DE L'IMAGE
+    // 10. APERCU EN DIRECT DE L'IMAGE
     // ==========================================
     const imgInput = document.getElementById('img');
     const imgPreview = document.getElementById('img-preview');
@@ -745,17 +736,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
-                btn.innerHTML = '🔄 Analyse en cours... Veuillez patienter...';
+                btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
                 
                 const cronUrl = siteConfig.cronUrl.includes('?') ? siteConfig.cronUrl + '&force=1' : siteConfig.cronUrl + '?force=1';
-
+                
                 fetch(cronUrl)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'executed') {
-                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards + 
-                                  '\nURL uniques vérifiées : ' + data.unique_urls + 
-                                  '\nNouveaux liens rompus identifiés : ' + data.dead_count);
+                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards +
+                                   '\nURL uniques vérifiées : ' + data.unique_urls +
+                                   '\nNouveaux liens rompus identifiés : ' + data.dead_count);
                         } else if (data.status === 'running') {
                             alert('Une vérification des liens est déjà en cours.');
                         } else if (data.status === 'skipped') {
@@ -769,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         alert('Une erreur réseau ou un timeout est survenu durant le scan des serveurs distants.');
                         btn.disabled = false;
                         btn.style.opacity = '1';
-                        btn.innerHTML = '⚡ Relancer la vérification (Forcer le scan)';
+                        btn.innerHTML = '↻ Relancer la vérification (Forcer le scan)';
                     });
             }
         });
@@ -905,14 +896,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                     
-                    // Nettoyage de la barre du bas
-                    const actionBar = btn.closest('.card-actions-bottom');
-                    btn.remove(); // Retire le bouton signaler
-                    
-                    // S'il n'y a plus aucun bouton dans la barre (ex: un visiteur a cliqué), on retire la barre grise
-                    if (actionBar && actionBar.children.length === 0) {
-                        actionBar.outerHTML = '<div style="padding-bottom: 1.5rem;"></div>';
-                    }
+                    // Remplacer le bouton par le texte "Lien Mort"
+                    const badgeHtml = '<span class="dead-link-badge-inline fade-in" style="margin-right: auto;">⚠️ Lien Mort</span>';
+                    btn.outerHTML = badgeHtml;
                 } else {
                     // Refusé par le serveur anti-troll (Le site marche)
                     if (typeof showToast === 'function') showToast(data.message, 'warning');
@@ -926,7 +912,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-});
 
 // ==========================================
 // 11. VERIFICATION DE DISPONIBILITE EN DIRECT
@@ -1029,4 +1014,5 @@ window.addEventListener('load', function() {
     if (cardsToCheck.length > 0) {
         setTimeout(() => processBatch(cardsToCheck, 5), 500);
     }
+});
 });
