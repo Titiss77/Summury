@@ -15,12 +15,10 @@ class CronController extends BaseController
      */
     public function run()
     {
-        // Cette tâche peut parcourir de nombreux liens distincts.
         ini_set('max_execution_time', '0');
-
         $cronModel = new CronLogModel();
-        $isForced = '1' === $this->request->getGet('force');
 
+        $isForced = '1' === $this->request->getGet('force');
         if ($isForced && (!auth()->loggedIn() || !auth()->user()->inGroup('admin', 'superadmin'))) {
             return $this->response->setStatusCode(403)->setJSON([
                 'status' => 'forbidden',
@@ -39,7 +37,6 @@ class CronController extends BaseController
 
         if (!flock($lockHandle, LOCK_EX | LOCK_NB)) {
             fclose($lockHandle);
-
             return $this->response->setJSON(['status' => 'running', 'message' => 'La vérification est déjà en cours.']);
         }
 
@@ -60,75 +57,67 @@ class CronController extends BaseController
         if (!$shouldRun) {
             flock($lockHandle, LOCK_UN);
             fclose($lockHandle);
-
             return $this->response->setJSON(['status' => 'skipped', 'message' => 'Délai de 7 jours non écoulé.']);
         }
 
+        // Nettoyage des logs de la session précédente
         (new CronLogModel())->where('task_name', 'check_dead_links')->delete();
 
         $itemModel = new ItemModel();
         $items = $itemModel->where('lien !=', '')->where('lien IS NOT NULL')->findAll();
 
-        // Configuration du client HTTP pour le scraping
-        $client = Services::curlrequest([
-            'timeout' => 5,
-            'connect_timeout' => 2,
-            'http_errors' => false,
-            'allow_redirects' => false,
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'headers' => [
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            ],
-        ]);
-
-        // Remplacement du bloc "Parcours de toutes les cartes..." dans CronController.php
         $deadCount = 0;
         $totalChecked = 0;
         $currentTimestamp = date('Y-m-d H:i:s');
-        $checkedUrls = [];
-        $urlsToProcess = [];
 
-        // 1. Préparation des URLs uniques
+        // 1. Regrouper les cartes par DOMAINE RACINE
+        $domainsToProcess = [];
+
         foreach ($items as $item) {
-            $ep = $item->episode ?: '1';
-            $ep2 = str_pad((string) $ep, 2, '0', STR_PAD_LEFT);
-            $s = $item->saison ?: '1';
-            $s2 = str_pad((string) $s, 2, '0', STR_PAD_LEFT);
-            $urlToTest = str_replace(['{ep}', '{ep2}', '{s}', '{s2}'], [$ep, $ep2, $s, $s2], $item->lien);
-
-            if (!preg_match('#^https?://#i', $urlToTest)) {
-                $urlToTest = 'https://' . $urlToTest;
+            $rawLien = trim($item->lien);
+            if (!preg_match('#^https?://#i', $rawLien)) {
+                $rawLien = 'https://' . $rawLien;
             }
 
-            if (\App\Libraries\ExternalUrlGuard::isPublicHttpUrl($urlToTest)) {
-                $urlsToProcess[$urlToTest][] = $item;  // Regrouper les items par URL identique
-                $totalChecked++;
+            $parsed = parse_url($rawLien);
+            $scheme = $parsed['scheme'] ?? 'https';
+            $host = $parsed['host'] ?? '';
+
+            if (empty($host) || !ExternalUrlGuard::isPublicHttpUrl($scheme . '://' . $host)) {
+                continue;
             }
+
+            // On reconstruit l'URL du domaine de base (ex: https://www.lelmanga.com)
+            $domainToTest = $scheme . '://' . $host;
+            $domainsToProcess[$domainToTest][] = $item;
+            $totalChecked++;
         }
 
-        // 2. Traitement asynchrone par lots (Batch processing)
+        $checkedDomains = [];
         $batchSize = 25;  // Nombre de requêtes simultanées
-        $urlChunks = array_chunk(array_keys($urlsToProcess), $batchSize);
+        $domainChunks = array_chunk(array_keys($domainsToProcess), $batchSize);
 
-        foreach ($urlChunks as $chunk) {
+        // 2. Traitement asynchrone par lots (Batch processing)
+        foreach ($domainChunks as $chunk) {
             $mh = curl_multi_init();
             $curlHandles = [];
 
-            // Initialisation des requêtes du lot
             foreach ($chunk as $url) {
                 $ch = curl_init($url);
                 curl_setopt_array($ch, [
-                    CURLOPT_NOBODY => true,  // Équivalent d'une requête HEAD (ne télécharge pas le body)
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT => 5,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                    CURLOPT_TIMEOUT => 10,
+                    CURLOPT_FOLLOWLOCATION => true,  // Gère les redirections HTTP vers HTTPS
+                    CURLOPT_MAXREDIRS => 3,
+                    CURLOPT_SSL_VERIFYPEER => false,  // Évite les blocages sur les certificats autosignés ou expirés
+                    CURLOPT_SSL_VERIFYHOST => 0,
+                    CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    CURLOPT_NOBODY => true,  // On tente une requête légère (Headers uniquement)
                 ]);
                 curl_multi_add_handle($mh, $ch);
                 $curlHandles[$url] = $ch;
             }
 
-            // Exécution simultanée
             $active = null;
             do {
                 $mrc = curl_multi_exec($mh, $active);
@@ -137,22 +126,24 @@ class CronController extends BaseController
                 }
             } while ($active && $mrc == CURLM_OK);
 
-            // Récupération des résultats
+            // Analyse des résultats
             foreach ($curlHandles as $url => $ch) {
                 $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-                // Fallback GET si HEAD est bloqué (403, 405, 501)
-                if (in_array($statusCode, [403, 405, 501])) {
+                // Si HEAD échoue ou est bloqué par le serveur de streaming (ex: 403, 405, 500, 0), on tente un GET
+                if ($statusCode === 0 || $statusCode >= 400) {
                     curl_setopt($ch, CURLOPT_NOBODY, false);
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Range: bytes=0-0']);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Range: bytes=0-2048']);  // Limite la taille de téléchargement
                     $statusCode = curl_exec($ch) !== false ? curl_getinfo($ch, CURLINFO_HTTP_CODE) : 0;
                 }
 
-                $checkedUrls[$url] = $statusCode;
+                $checkedDomains[$url] = $statusCode;
 
-                // Mise à jour de la base de données pour chaque item lié à cette URL
-                $isDead = in_array($statusCode, [0, 404, 410], true);
-                foreach ($urlsToProcess[$url] as $item) {
+                // Critère de mort : Le domaine ne répond pas (0), n'existe plus (404/410), ou l'hébergement est down (521/522/523)
+                // Un code 403, 500 ou 401 signifie que le serveur existe toujours et répond, donc le site n'a pas fermé.
+                $isDead = in_array($statusCode, [0, 404, 410, 521, 522, 523], true);
+
+                foreach ($domainsToProcess[$url] as $item) {
                     if ($isDead) {
                         $itemModel->update($item->id, ['link_status' => 'dead']);
                         $deadCount++;
@@ -161,7 +152,7 @@ class CronController extends BaseController
                             'last_run' => $currentTimestamp,
                             'item_id' => $item->id,
                             'titre' => $item->titre,
-                            'url_testee' => $url,
+                            'url_testee' => $url,  // On stocke l'URL racine au lieu de l'épisode complet
                             'code_erreur' => $statusCode,
                         ]);
                     } elseif ($item->link_status === 'dead') {
@@ -175,27 +166,25 @@ class CronController extends BaseController
             curl_multi_close($mh);
         }
 
-        // Enregistrement d'un log global si aucun lien mort n'a été trouvé
-        if (0 === $deadCount) {
+        // 3. Clôture et rapports
+        if ($deadCount === 0) {
             $cronModel->insert([
                 'task_name' => 'check_dead_links',
                 'last_run' => $currentTimestamp,
                 'code_erreur' => 200,
             ]);
-        }
-
-        if ($deadCount > 0) {
+        } else {
             $audit = new AuditLogModel();
-            $uniqueUrlsCount = count($checkedUrls);
-            $message = $isForced ? 'Scan FORCÉ de liens' : 'Scan de liens en arrière-plan';
-            $audit->logAction('Maintenance Système', "{$message} : {$uniqueUrlsCount} URL(s) uniques testées. {$deadCount} carte(s) impactée(s).");
+            $uniqueDomainsCount = count($checkedDomains);
+            $message = $isForced ? 'Scan FORCÉ de domaines' : 'Scan de domaines en arrière-plan';
+            $audit->logAction('Maintenance Système', "{$message} : {$uniqueDomainsCount} domaine(s) unique(s) testé(s). {$deadCount} carte(s) impactée(s).");
         }
 
         $result = $this->response->setJSON([
             'status' => 'executed',
             'forced' => $isForced,
             'total_cards' => $totalChecked,
-            'unique_urls' => count($checkedUrls),
+            'unique_urls' => count($checkedDomains),
             'dead_count' => $deadCount,
         ]);
 
