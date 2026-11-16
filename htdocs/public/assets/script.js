@@ -863,6 +863,53 @@ document.addEventListener('DOMContentLoaded', function() {
             shouldSort: false     
         });
     });
+
+    // ==========================================
+    // 14. GESTION DU SIGNALEMENT DE LIEN MORT
+    // ==========================================
+    document.querySelectorAll('.btn-report-link').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!confirm("Voulez-vous signaler ce site comme définitivement fermé ou inaccessible ?\n\nAttention : Ne signalez PAS si c'est seulement votre épisode qui n'est pas encore sorti !")) return;
+
+            const itemId = btn.getAttribute('data-id');
+            btn.style.opacity = '0.3';
+            btn.style.pointerEvents = 'none';
+            
+            try {
+                const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
+                const response = await fetch(baseUrl + 'report-link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [siteConfig.csrfHeader]: siteConfig.csrfToken
+                    },
+                    body: JSON.stringify({ id: itemId })
+                });
+                
+                const data = await response.json();
+                if (data.csrf_token) siteConfig.csrfToken = data.csrf_token;
+                
+                if (data.success) {
+                    if (typeof showToast === 'function') showToast(data.message, 'success');
+                    // Remplacement visuel immédiat par le badge rouge
+                    btn.outerHTML = '<div class="dead-link-badge fade-in">LIEN MORT</div>';
+                } else {
+                    // Refusé par le serveur anti-troll (Le site marche)
+                    if (typeof showToast === 'function') showToast(data.message, 'warning');
+                    btn.style.opacity = '';
+                    btn.style.pointerEvents = '';
+                }
+            } catch (err) {
+                if (typeof showToast === 'function') showToast("Erreur lors du signalement.", 'danger');
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+            }
+        });
+    });
 });
 
 // ==========================================

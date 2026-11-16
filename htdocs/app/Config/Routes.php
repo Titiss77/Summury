@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 use CodeIgniter\Router\RouteCollection;
 use CodeIgniter\Shield\Config\Auth;
@@ -17,13 +15,13 @@ $routes->get('j', 'CronController::run');
 $routes->get('q', 'ItemController::checkDispo');
 
 // Compatibilité avec les anciennes URL publiques.
-$routes->get('categorie/(:num)', static fn (string $id) => redirect()->to('c/'.$id));
-$routes->get('p/(:num)', static fn (string $id) => redirect()->to('c/'.$id));
-$routes->get('legal', static fn () => redirect()->to('l'));
-$routes->get('privacy', static fn () => redirect()->to('v'));
-$routes->get('cgu', static fn () => redirect()->to('t'));
-$routes->get('cron/run', static fn () => redirect()->to('j'));
-$routes->get('item/check-dispo', static fn () => redirect()->to('q'));
+$routes->get('categorie/(:num)', static fn(string $id) => redirect()->to('c/' . $id));
+$routes->get('p/(:num)', static fn(string $id) => redirect()->to('c/' . $id));
+$routes->get('legal', static fn() => redirect()->to('l'));
+$routes->get('privacy', static fn() => redirect()->to('v'));
+$routes->get('cgu', static fn() => redirect()->to('t'));
+$routes->get('cron/run', static fn() => redirect()->to('j'));
+$routes->get('item/check-dispo', static fn() => redirect()->to('q'));
 
 // Routes protégées par session.
 $routes->group('', ['filter' => 'session'], static function (RouteCollection $routes): void {
@@ -46,23 +44,26 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->post('pw', 'ProfileController::updatePassword');
     $routes->post('delete-account', 'ProfileController::deleteAccount');
 
+    // NOUVELLE ROUTE : Signalement de lien mort
+    $routes->post('report-link', 'ItemController::reportLink');
+
     // Anciennes URL : elles restent utilisables sans redirection des formulaires POST.
-    $routes->get('item/form', static fn () => redirect()->to('m'));
-    $routes->get('item/form/(:num)', static fn (string $id) => redirect()->to('m/'.$id));
+    $routes->get('item/form', static fn() => redirect()->to('m'));
+    $routes->get('item/form/(:num)', static fn(string $id) => redirect()->to('m/' . $id));
     $routes->post('item/save', 'ItemController::save');
-    $routes->get('item/delete/(:num)', static fn (string $id) => redirect()->to('d/'.$id));
+    $routes->get('item/delete/(:num)', static fn(string $id) => redirect()->to('d/' . $id));
     $routes->post('item/increment-episode/(:num)', 'ItemController::incrementEpisode/$1');
     $routes->post('item/increment-saison/(:num)', 'ItemController::incrementSaison/$1');
     $routes->post('items/update-order', 'ItemController::updateOrder');
-    $routes->get('items/check-to-global', static fn () => redirect()->to('g'));
-    $routes->get('item/turn/(:num)', static fn (string $id) => redirect()->to('u/'.$id));
+    $routes->get('items/check-to-global', static fn() => redirect()->to('g'));
+    $routes->get('item/turn/(:num)', static fn(string $id) => redirect()->to('u/' . $id));
     $routes->get('item/search', 'MediaSearchController::search');
-    $routes->get('items/deleted', static fn () => redirect()->to('r'));
-    $routes->get('item/restore/(:num)', static fn (string $id) => redirect()->to('rr/'.$id));
-    $routes->get('item/permanent-delete/(:num)', static fn (string $id) => redirect()->to('rd/'.$id));
-    $routes->get('items/restore-all', static fn () => redirect()->to('ra'));
-    $routes->get('items/empty-trash', static fn () => redirect()->to('re'));
-    $routes->get('profile', static fn () => redirect()->to('p'));
+    $routes->get('items/deleted', static fn() => redirect()->to('r'));
+    $routes->get('item/restore/(:num)', static fn(string $id) => redirect()->to('rr/' . $id));
+    $routes->get('item/permanent-delete/(:num)', static fn(string $id) => redirect()->to('rd/' . $id));
+    $routes->get('items/restore-all', static fn() => redirect()->to('ra'));
+    $routes->get('items/empty-trash', static fn() => redirect()->to('re'));
+    $routes->get('profile', static fn() => redirect()->to('p'));
     $routes->post('profile/update-password', 'ProfileController::updatePassword');
     $routes->post('update-email', 'ProfileController::updateEmail');
 });
@@ -88,37 +89,37 @@ $routes->group('a', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:
 
 // Anciennes URL d'administration.
 $routes->group('users', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
-    $routes->get('/', static fn () => redirect()->to('a/u'));
-    $routes->get('edit/(:num)', static fn (string $id) => redirect()->to('a/u/'.$id));
+    $routes->get('/', static fn() => redirect()->to('a/u'));
+    $routes->get('edit/(:num)', static fn(string $id) => redirect()->to('a/u/' . $id));
     $routes->post('update/(:num)', 'UserController::update/$1');
-    $routes->get('delete/(:num)', static fn (string $id) => redirect()->to('a/u/'.$id.'/x'));
-    $routes->get('unban/(:num)', static fn (string $id) => redirect()->to('a/u/'.$id.'/b'));
+    $routes->get('delete/(:num)', static fn(string $id) => redirect()->to('a/u/' . $id . '/x'));
+    $routes->get('unban/(:num)', static fn(string $id) => redirect()->to('a/u/' . $id . '/b'));
 });
 $routes->group('items', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
-    $routes->get('pending', static fn () => redirect()->to('a/i'));
-    $routes->get('approve/(:num)', static fn (string $id) => redirect()->to('a/i/'.$id));
-    $routes->get('reject/(:num)', static fn (string $id) => redirect()->to('a/i/'.$id.'/x'));
-    $routes->get('approve-revision/(:num)', static fn (string $id) => redirect()->to('a/v/'.$id));
-    $routes->get('reject-revision/(:num)', static fn (string $id) => redirect()->to('a/v/'.$id.'/x'));
-    $routes->get('dead-links', static fn () => redirect()->to('a/d'));
-    $routes->get('delete/(:num)', static fn (string $id) => redirect()->to('a/d/'.$id));
+    $routes->get('pending', static fn() => redirect()->to('a/i'));
+    $routes->get('approve/(:num)', static fn(string $id) => redirect()->to('a/i/' . $id));
+    $routes->get('reject/(:num)', static fn(string $id) => redirect()->to('a/i/' . $id . '/x'));
+    $routes->get('approve-revision/(:num)', static fn(string $id) => redirect()->to('a/v/' . $id));
+    $routes->get('reject-revision/(:num)', static fn(string $id) => redirect()->to('a/v/' . $id . '/x'));
+    $routes->get('dead-links', static fn() => redirect()->to('a/d'));
+    $routes->get('delete/(:num)', static fn(string $id) => redirect()->to('a/d/' . $id));
     $routes->post('bulk-update-domain', 'ItemController::bulkUpdateDomain');
 });
 $routes->group('audit', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
-    $routes->get('/', static fn () => redirect()->to('a/l'));
+    $routes->get('/', static fn() => redirect()->to('a/l'));
 });
 
-// Routes Shield raccourcies (les noms restent identiques pour url_to()).
+// Routes Shield raccourcies
 if (class_exists(Auth::class)) {
     service('auth')->routes($routes);
 }
 $routes->group('/', ['namespace' => 'CodeIgniter\Shield\Controllers'], static function (RouteCollection $routes): void {
-    $routes->get('register', static fn () => redirect()->to('y'));
+    $routes->get('register', static fn() => redirect()->to('y'));
     $routes->post('register', 'RegisterController::registerAction');
-    $routes->get('login', static fn () => redirect()->to('z'));
+    $routes->get('login', static fn() => redirect()->to('z'));
     $routes->post('login', 'LoginController::loginAction');
-    $routes->get('logout', static fn () => redirect()->to('x'));
-    $routes->get('login/magic-link', static fn () => redirect()->to('z/m'));
+    $routes->get('logout', static fn() => redirect()->to('x'));
+    $routes->get('login/magic-link', static fn() => redirect()->to('z/m'));
     $routes->post('login/magic-link', 'MagicLinkController::loginAction');
     $routes->get('login/verify-magic-link', 'MagicLinkController::verify');
     $routes->get('auth/a/show', 'ActionController::show');
@@ -126,14 +127,12 @@ $routes->group('/', ['namespace' => 'CodeIgniter\Shield\Controllers'], static fu
     $routes->post('auth/a/verify', 'ActionController::verify');
 });
 
-// --- Système de récupération de mot de passe ---
+// Système de récupération de mot de passe
 $routes->group('forgot-password', ['namespace' => 'App\Controllers'], static function ($routes) {
     $routes->get('/', 'PasswordResetController::forgotPasswordView', ['as' => 'forgot-password']);
     $routes->post('/', 'PasswordResetController::sendCode');
-    
     $routes->get('verify', 'PasswordResetController::verifyCodeView', ['as' => 'verify-reset-code']);
     $routes->post('verify', 'PasswordResetController::verifyCode');
-    
     $routes->get('reset', 'PasswordResetController::resetPasswordView', ['as' => 'reset-password']);
     $routes->post('reset', 'PasswordResetController::updatePassword');
 });

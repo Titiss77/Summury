@@ -37,8 +37,9 @@
 <!-- Badges de sorties d'œuvres passées récemment -->
 <?php if (!empty($passedReleases)) { ?>
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 2rem;">
-    <?php foreach ($passedReleases as $release) {
-        $releaseKey = $release->id.'_'.strtotime($release->date_sortie);
+    <?php
+    foreach ($passedReleases as $release) {
+        $releaseKey = $release->id . '_' . strtotime($release->date_sortie);
         ?>
     <span class="release-badge" data-key="<?php echo $releaseKey; ?>"
         style="display: none; font-size: 0.75rem; color: var(--success); border: 1px solid var(--success); background-color: var(--success-bg); padding: 4px 10px; border-radius: var(--radius-pill); cursor: pointer; transition: opacity 0.2s;"
@@ -140,13 +141,14 @@ document.addEventListener("DOMContentLoaded", function() {
 <?php
     $openDivision = $_GET['open'] ?? null;
     $openSub = $_GET['subopen'] ?? null;
-    ?>
+?>
 
 <!-- Boucle principale d'affichage : Header > Division > Sous-catégories > Cartes -->
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
 <section class="header-section">
     <h2 class="header-title"><?php echo htmlspecialchars($headerName); ?></h2>
-    <?php foreach ($divisions as $divisionName => $subCategories) {
+    <?php
+    foreach ($divisions as $divisionName => $subCategories) {
         $currentDivisionId = null;
         foreach ($subCategories as $items) {
             if (!empty($items)) {
@@ -163,7 +165,8 @@ document.addEventListener("DOMContentLoaded", function() {
             <span class="toggle-icon">&#x25B6;</span> <?php echo htmlspecialchars($divisionName); ?>
         </summary>
         <div class="division-body sortable-division" data-division-id="<?php echo $currentDivisionId; ?>">
-            <?php foreach ($subCategories as $subCatName => $items) {
+            <?php
+            foreach ($subCategories as $subCatName => $items) {
                 $isSansSub = ('Sans sous-catégorie' === $subCatName);
                 $displayTitle = $isSansSub ? 'Autres cartes' : $subCatName;
                 $opacity = $isSansSub ? '0.6' : '0.9';
@@ -184,7 +187,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 ?>
             <div class="subcategory-wrapper">
-                <?php if ($useDetails) {
+                <?php
+                if ($useDetails) {
                     $isSubOpen = '';
                     if ('open' === $isOpen) {
                         if ($openSub && $openSub === $subCatName) {
@@ -233,7 +237,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                 <?php } ?>
 
                                 <!-- Affichage individuel des cartes -->
-                                <?php foreach ($items as $item) {
+                                <?php
+                                foreach ($items as $item) {
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || (int) $item->id_user === (int) auth()->id());
                                     $isFuture = false;
                                     $dateSortieFormatted = '';
@@ -256,6 +261,24 @@ document.addEventListener("DOMContentLoaded", function() {
                                     data-category="<?php echo esc($divisionName); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
 
+                                    <!-- DEBUT DU NOUVEAU BLOC : INDICATEUR / BOUTON SIGNALEMENT -->
+                                    <?php if ($item->link_status === 'dead') { ?>
+                                    <div class="dead-link-badge">LIEN MORT</div>
+                                    <?php } elseif (auth()->loggedIn() && !empty($item->lien)) { ?>
+                                    <button type="button" class="btn-report-link"
+                                        data-id="<?php echo esc($item->id); ?>"
+                                        title="Signaler ce lien comme fermé/inaccessible">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                            fill="currentColor" viewBox="0 0 16 16">
+                                            <path
+                                                d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+                                            <path
+                                                d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z" />
+                                        </svg>
+                                    </button>
+                                    <?php } ?>
+                                    <!-- FIN DU NOUVEAU BLOC -->
+
                                     <?php if ($canDragItem) { ?>
                                     <div class="drag-handle"
                                         style="cursor: grab; text-align: center; color: var(--text-muted); padding: 5px; touch-action: none;"
@@ -274,16 +297,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
                                             <!-- Vérification asynchrone de la disponibilité du lien -->
                                             <?php
-                                                $isCheckable = false;
-                                    if (!empty($item->episode) && !$isFuture && isset($supportedDomains) && is_array($supportedDomains)) {
-                                        foreach ($supportedDomains as $domain) {
-                                            if (str_contains($item->getFinalLink(), $domain)) {
-                                                $isCheckable = true;
-                                                break;
+                                            $isCheckable = false;
+                                            if (!empty($item->episode) && !$isFuture && isset($supportedDomains) && is_array($supportedDomains)) {
+                                                foreach ($supportedDomains as $domain) {
+                                                    if (str_contains($item->getFinalLink(), $domain)) {
+                                                        $isCheckable = true;
+                                                        break;
+                                                    }
+                                                }
                                             }
-                                        }
-                                    }
-                                    if ('Terminé' !== $item->status && $isCheckable) { ?>
+                                            if ('Terminé' !== $item->status && $isCheckable) {
+                                                ?>
                                             <div class="live-status" id="live-status-<?php echo $item->id; ?>"
                                                 style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--info);">
                                                 Vérification...</div>
@@ -297,9 +321,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
                                             <!-- Étiquette si brouillon ou en attente d'approbation -->
                                             <?php
-                                    $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-                                    $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
-                                    if ($isPendingNew || $hasPendingRevision) { ?>
+                                            $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+                                            $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
+                                            if ($isPendingNew || $hasPendingRevision) {
+                                                ?>
                                             <div
                                                 style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                                                 <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>
@@ -318,8 +343,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     style="display: flex; flex-direction: column; align-items: center;">
                                                     <span class="badge badge-season">S. <span
                                                             id="s-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->saison); ?></span><?php if (!empty($item->total_saisons)) {
-                                                                echo ' / '.htmlspecialchars($item->total_saisons);
-                                                            } ?></span>
+                                            echo ' / ' . htmlspecialchars($item->total_saisons);
+                                        } ?></span>
                                                 </div>
                                                 <?php } ?>
                                                 <?php if (!empty($item->episode)) { ?>
@@ -327,8 +352,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     style="display: flex; flex-direction: column; align-items: center;">
                                                     <span class="badge badge-episode">Ép. <span
                                                             id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
-                                                                echo ' / '.htmlspecialchars($item->total_episodes);
-                                                            } ?>
+                                            echo ' / ' . htmlspecialchars($item->total_episodes);
+                                        } ?>
 
                                                         <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                                         <button type="button"
@@ -355,9 +380,9 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <!-- Boutons d'édition (Propriétaire uniquement) -->
                                     <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                                     <div class="card-actions-bottom">
-                                        <a href="<?php echo base_url('m/'.$item->id); ?>"
+                                        <a href="<?php echo base_url('m/' . $item->id); ?>"
                                             class="btn-icon btn-edit-sm">Modifier</a>
-                                        <a href="<?php echo base_url('d/'.$item->id); ?>"
+                                        <a href="<?php echo base_url('d/' . $item->id); ?>"
                                             onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');"
                                             class="btn-icon btn-delete-sm">Supprimer</a>
                                     </div>

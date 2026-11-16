@@ -1251,6 +1251,53 @@ select.form-control[hidden] {
     box-sizing: border-box;
 }
 
+/* =========================================
+   BOUTON SIGNALEMENT & BADGE (Cartes)
+   ========================================= */
+.dead-link-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background-color: var(--danger);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    z-index: 10;
+    box-shadow: var(--shadow-sm);
+    pointer-events: none;
+}
+
+.btn-report-link {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--bg-body);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    opacity: 0.7;
+}
+
+.btn-report-link:hover {
+    opacity: 1;
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-color: var(--danger);
+    transform: scale(1.05);
+}
+
 
 /* =========================================================
    MOBILE

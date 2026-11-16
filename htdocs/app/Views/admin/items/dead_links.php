@@ -11,12 +11,9 @@
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <div>
             <h2 style="color: var(--danger); margin: 0;">Alertes Liens Morts (Erreur 404)</h2>
-            <p style="margin: 5px 0 0 0;">Ces domaines ne répondent plus. Toutes les cartes liées ont été marquées.</p>
+            <p style="margin: 5px 0 0 0;">Ces domaines ont été signalés par les utilisateurs et vérifiés comme
+                inaccessibles.</p>
         </div>
-        <button id="btn-force-cron" class="btn"
-            style="background-color: var(--primary); color: #fff; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
-            ↻ Relancer la vérification
-        </button>
     </div>
 
     <?php if (session()->has('message')) { ?>
