@@ -895,8 +895,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (data.success) {
                     if (typeof showToast === 'function') showToast(data.message, 'success');
-                    // Remplacement visuel immédiat par le badge rouge en bas à gauche
-                    btn.outerHTML = '<span class="dead-link-badge-inline fade-in">⚠️ Lien Mort</span>';
+                    // Remplacement visuel immédiat : barrer le titre en rouge
+                    const card = btn.closest('.card');
+                    if (card) {
+                        const titleEl = card.querySelector('.card-title');
+                        if (titleEl) {
+                            titleEl.classList.add('dead-title');
+                        }
+                    }
+                    // Supprimer le bouton de signalement
+                    btn.remove();
                 } else {
                     // Refusé par le serveur anti-troll (Le site marche)
                     if (typeof showToast === 'function') showToast(data.message, 'warning');
