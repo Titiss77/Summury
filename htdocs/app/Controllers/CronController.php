@@ -6,13 +6,9 @@ use App\Libraries\ExternalUrlGuard;
 use App\Models\AuditLogModel;
 use App\Models\CronLogModel;
 use App\Models\ItemModel;
-use Config\Services;
 
 class CronController extends BaseController
 {
-    /**
-     * Exécute la vérification des liens morts en arrière-plan.
-     */
     public function run()
     {
         ini_set('max_execution_time', '0');
@@ -44,7 +40,6 @@ class CronController extends BaseController
         $now = time();
         $shouldRun = false;
 
-        // Vérifie si le délai de 7 jours s'est écoulé ou si l'exécution est forcée
         if (!$lastRunRow) {
             $shouldRun = true;
         } else {
@@ -70,9 +65,16 @@ class CronController extends BaseController
         $totalChecked = 0;
         $currentTimestamp = date('Y-m-d H:i:s');
 
-        // 1. Regrouper les cartes par DOMAINE RACINE
         $domainsToProcess = [];
+        $whitelistedDomains = [];
 
+        // Liste blanche des plateformes officielles qui bloquent cURL ou redirigent vers une page de connexion
+        $whitelist = [
+            'netflix.com', 'primevideo.com', 'canalplus.com', 'disneyplus.com',
+            'crunchyroll.com', 'adn.com', 'youtube.com', 'apple.com', 'paramountplus.com'
+        ];
+
+        // 1. Regrouper les cartes par DOMAINE RACINE
         foreach ($items as $item) {
             $rawLien = trim($item->lien);
             if (!preg_match('#^https?://#i', $rawLien)) {
@@ -87,14 +89,35 @@ class CronController extends BaseController
                 continue;
             }
 
-            // On reconstruit l'URL du domaine de base (ex: https://www.lelmanga.com)
             $domainToTest = $scheme . '://' . $host;
-            $domainsToProcess[$domainToTest][] = $item;
+
+            $isWhitelisted = false;
+            foreach ($whitelist as $wl) {
+                if ($host === $wl || str_ends_with($host, '.' . $wl)) {
+                    $isWhitelisted = true;
+                    break;
+                }
+            }
+
+            if ($isWhitelisted) {
+                $whitelistedDomains[$domainToTest][] = $item;
+            } else {
+                $domainsToProcess[$domainToTest][] = $item;
+            }
             $totalChecked++;
         }
 
+        // Restauration automatique des liens sur liste blanche
+        foreach ($whitelistedDomains as $url => $itemsList) {
+            foreach ($itemsList as $item) {
+                if ($item->link_status === 'dead') {
+                    $itemModel->update($item->id, ['link_status' => 'ok']);
+                }
+            }
+        }
+
         $checkedDomains = [];
-        $batchSize = 25;  // Nombre de requêtes simultanées
+        $batchSize = 25;
         $domainChunks = array_chunk(array_keys($domainsToProcess), $batchSize);
 
         // 2. Traitement asynchrone par lots (Batch processing)
@@ -107,12 +130,12 @@ class CronController extends BaseController
                 curl_setopt_array($ch, [
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_TIMEOUT => 10,
-                    CURLOPT_FOLLOWLOCATION => true,  // Gère les redirections HTTP vers HTTPS
+                    CURLOPT_FOLLOWLOCATION => true,
                     CURLOPT_MAXREDIRS => 3,
-                    CURLOPT_SSL_VERIFYPEER => false,  // Évite les blocages sur les certificats autosignés ou expirés
+                    CURLOPT_SSL_VERIFYPEER => false,
                     CURLOPT_SSL_VERIFYHOST => 0,
                     CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    CURLOPT_NOBODY => true,  // On tente une requête légère (Headers uniquement)
+                    CURLOPT_NOBODY => true,
                 ]);
                 curl_multi_add_handle($mh, $ch);
                 $curlHandles[$url] = $ch;
@@ -126,21 +149,17 @@ class CronController extends BaseController
                 }
             } while ($active && $mrc == CURLM_OK);
 
-            // Analyse des résultats
             foreach ($curlHandles as $url => $ch) {
                 $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-                // Si HEAD échoue ou est bloqué par le serveur de streaming (ex: 403, 405, 500, 0), on tente un GET
                 if ($statusCode === 0 || $statusCode >= 400) {
                     curl_setopt($ch, CURLOPT_NOBODY, false);
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Range: bytes=0-2048']);  // Limite la taille de téléchargement
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Range: bytes=0-2048']);
                     $statusCode = curl_exec($ch) !== false ? curl_getinfo($ch, CURLINFO_HTTP_CODE) : 0;
                 }
 
                 $checkedDomains[$url] = $statusCode;
 
-                // Critère de mort : Le domaine ne répond pas (0), n'existe plus (404/410), ou l'hébergement est down (521/522/523)
-                // Un code 403, 500 ou 401 signifie que le serveur existe toujours et répond, donc le site n'a pas fermé.
                 $isDead = in_array($statusCode, [0, 404, 410, 521, 522, 523], true);
 
                 foreach ($domainsToProcess[$url] as $item) {
@@ -152,7 +171,7 @@ class CronController extends BaseController
                             'last_run' => $currentTimestamp,
                             'item_id' => $item->id,
                             'titre' => $item->titre,
-                            'url_testee' => $url,  // On stocke l'URL racine au lieu de l'épisode complet
+                            'url_testee' => $url,
                             'code_erreur' => $statusCode,
                         ]);
                     } elseif ($item->link_status === 'dead') {

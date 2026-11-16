@@ -83,6 +83,7 @@ $routes->group('a', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:
     $routes->get('d/(:num)', 'ItemController::delete/$1');
     $routes->post('b', 'ItemController::bulkUpdateDomain');
     $routes->get('l', 'AuditController::index');
+    $routes->get('fnd', 'ItemController::falseNegativeDomain');
 });
 
 // Anciennes URL d'administration.
