@@ -78,6 +78,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <?php if (auth()->user()->inGroup('superadmin')) { ?>
     <a href="<?php echo base_url('a/u'); ?>" class="btn btn-warning" style="margin-right: 15px;">Gérer les
         utilisateurs</a>
+    <a href="<?php echo base_url('a/sc'); ?>" class="btn btn-primary" style="margin-right: 15px;">Config Scraping</a>
     <?php } ?>
     <?php if (auth()->user()->inGroup('admin', 'superadmin')) { ?>
     <a href="<?php echo base_url('a/i'); ?>" class="btn btn-info" style="margin-right: 15px;">

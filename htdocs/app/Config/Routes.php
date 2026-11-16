@@ -136,3 +136,12 @@ $routes->group('forgot-password', ['namespace' => 'App\Controllers'], static fun
     $routes->get('reset', 'PasswordResetController::resetPasswordView', ['as' => 'reset-password']);
     $routes->post('reset', 'PasswordResetController::updatePassword');
 });
+
+// Routes pour la gestion des configurations de scraping (Super Admin)
+$routes->group('a/sc', ['filter' => 'group:superadmin'], static function ($routes) {
+    $routes->get('/', 'Admin\SiteConfigController::index');
+    $routes->get('new', 'Admin\SiteConfigController::form');
+    $routes->get('(:num)', 'Admin\SiteConfigController::form/$1');
+    $routes->post('save', 'Admin\SiteConfigController::save');
+    $routes->get('delete/(:num)', 'Admin\SiteConfigController::delete/$1');
+});
