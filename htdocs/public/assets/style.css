@@ -1252,25 +1252,34 @@ select.form-control[hidden] {
 }
 
 /* =========================================
-   BOUTON SIGNALEMENT & BADGE (Barre du bas)
+   BOUTON SIGNALEMENT & BADGE (Intégré à la carte)
    ========================================= */
+.card-actions-bottom {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: rgba(128, 128, 128, 0.02);
+    border-top: 1px solid var(--border-color);
+}
+
 .dead-link-badge-inline {
-    position: relative;
-    top: -30px;
-    left: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     background-color: var(--danger-bg);
     color: var(--danger);
     padding: 4px 10px;
     border-radius: var(--radius-pill);
     font-size: 0.75rem;
     font-weight: 700;
-    margin-right: auto;
 }
 
 .btn-report-link-inline {
-    position: relative;
-    top: -30px;
-    left: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: transparent;
     color: var(--text-muted);
     border: none;
@@ -1280,9 +1289,8 @@ select.form-control[hidden] {
     padding: 4px 8px;
     border-radius: var(--radius-pill);
     transition: var(--transition);
-    margin-right: auto;
     margin-left: -8px;
-    /* Aligne visuellement le texte avec le bord gauche */
+    /* Aligne visuellement l'icône avec le texte du dessus */
 }
 
 .btn-report-link-inline:hover {
@@ -1291,20 +1299,19 @@ select.form-control[hidden] {
 }
 
 @media (max-width: 576px) {
-
-    .dead-link-badge-inline,
-    .btn-report-link-inline {
-        width: 100%;
-        justify-content: center;
-        margin: 0;
-        padding: 10px;
-        border-radius: var(--radius-md);
-        font-size: 0.85rem;
+    .card-actions-bottom {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
     }
 
-    .btn-report-link-inline {
-        border: 1px solid var(--border-color);
+    .card-actions-bottom .btn-icon {
+        width: 100%;
+        justify-content: center;
         background: var(--bg-body);
+        padding: 10px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
     }
 }
 
