@@ -7,6 +7,7 @@ use App\Models\AuditLogModel;
 use App\Models\CronLogModel;
 use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
+use App\Models\WhitelistModel;
 
 class ItemController extends BaseController
 {
@@ -16,10 +17,12 @@ class ItemController extends BaseController
     public function pending()
     {
         helper('text');
+        
         $itemModel = new ItemModel();
         $revisionModel = new ItemRevisionModel();
+        
         $revisions = $revisionModel->getPendingRevisions();
-
+        
         foreach ($revisions as &$revision) {
             $changes = [];
             $fieldsToCompare = [
@@ -35,14 +38,16 @@ class ItemController extends BaseController
                 'total_episodes' => 'Total épisodes',
                 'date_sortie' => 'Date de sortie',
             ];
-
+            
             foreach ($fieldsToCompare as $field => $label) {
                 $oldValue = $revision['original_'.$field] ?? '';
                 $newValue = $revision[$field] ?? '';
+                
                 if ('date_sortie' === $field && (!empty($oldValue) || !empty($newValue))) {
                     $oldValue = $oldValue ? substr((string) $oldValue, 0, 10) : '';
                     $newValue = $newValue ? substr((string) $newValue, 0, 10) : '';
                 }
+                
                 if ((string) $oldValue !== (string) $newValue) {
                     $changes[] = [
                         'field' => $field, 'label' => $label,
@@ -50,10 +55,12 @@ class ItemController extends BaseController
                     ];
                 }
             }
+            
             $revision['changes'] = $changes;
         }
-
+        
         $data = ['pendingItems' => $itemModel->where('is_public', 2)->findAll(), 'pendingRevisions' => $revisions];
+        
         return view('admin/items/pending', $data);
     }
 
@@ -66,6 +73,7 @@ class ItemController extends BaseController
     {
         $itemModel = new ItemModel();
         $item = $itemModel->find($id);
+        
         if ($item) {
             $itemModel->update($id, [
                 'is_public' => 1,
@@ -73,6 +81,7 @@ class ItemController extends BaseController
             ]);
             (new AuditLogModel())->logAction('Modération : Approbation Carte', "Le SuperAdmin a validé la nouvelle publication de la carte ID {$id} ('{$item->titre}').");
         }
+        
         return redirect()->back()->with('message', 'Nouvelle carte validée ! Elle est désormais visible de tous avec le statut Public.');
     }
 
@@ -85,6 +94,7 @@ class ItemController extends BaseController
     {
         $itemModel = new ItemModel();
         $item = $itemModel->find($id);
+        
         if ($item) {
             $itemModel->update($id, [
                 'is_public' => 0,
@@ -92,6 +102,7 @@ class ItemController extends BaseController
             ]);
             (new AuditLogModel())->logAction('Modération : Refus Carte', "Le SuperAdmin a refusé la publication de la carte ID {$id} ('{$item->titre}'). Rétrogradation en privée.");
         }
+        
         return redirect()->back()->with('error', "Nouvelle carte refusée. Elle est repassée en privée pour l'utilisateur avec le statut Privé.");
     }
 
@@ -104,6 +115,7 @@ class ItemController extends BaseController
     {
         $revisionModel = new ItemRevisionModel();
         $itemModel = new ItemModel();
+        
         $revision = $revisionModel->find($revisionId);
         
         if ($revision && 'pending' === $revision['revision_status']) {
@@ -119,7 +131,8 @@ class ItemController extends BaseController
             
             $itemModel->update($revision['original_item_id'], $updateData);
             $revisionModel->update($revisionId, ['revision_status' => 'approved']);
-            (new AuditLogModel())->logAction('Modération : Approbation Draft', "Validation du Draft ID {$revisionId}. Les données de la carte publique ID {$revision['original_item_id']} ('{$revision['titre']}') ont écrasées avec succès.");
+            
+            (new AuditLogModel())->logAction('Modération : Approbation Draft', "Validation du Draft ID {$revisionId}. Les données de la carte publique ID {$revision['original_item_id']} ('{$revision['titre']}') ont été écrasées avec succès.");
             
             return redirect()->back()->with('message', 'La modification a été fusionnée et est maintenant en ligne.');
         }
@@ -173,6 +186,7 @@ class ItemController extends BaseController
     {
         $cronLogModel = new CronLogModel();
         $itemModel = new ItemModel();
+        
         $items = $itemModel->asArray()->select('lien')->findAll();
         
         $domains = [];
@@ -227,17 +241,19 @@ class ItemController extends BaseController
     }
 
     /**
-     * Marque un domaine complet comme fonctionnel et retire ses alertes.
+     * Marque un domaine complet comme fonctionnel, le met en whitelist et retire ses alertes.
      */
     public function falseNegativeDomain()
     {
         $url = $this->request->getGet('url');
+        
         if (empty($url)) {
             return redirect()->back();
         }
-
+        
         $cronLogModel = new CronLogModel();
         $itemModel = new ItemModel();
+        $whitelistModel = new WhitelistModel();
 
         // Récupère toutes les alertes liées à ce domaine
         $logs = $cronLogModel->where('task_name', 'check_dead_links')->where('url_testee', $url)->findAll();
@@ -251,10 +267,28 @@ class ItemController extends BaseController
             }
         }
         
+        // Ajout automatique du domaine à la whitelist
+        $parsedUrl = parse_url($url);
+        $host = $parsedUrl['host'] ?? '';
+        
+        if (!empty($host)) {
+            // Nettoyage de sécurité basique
+            $host = preg_replace('/^www\./', '', $host);
+            
+            $existing = $whitelistModel->where('domain', $host)->first();
+            if (!$existing) {
+                $whitelistModel->insert([
+                    'domain' => $host,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+        }
+        
         // Supprime l'alerte du tableau de bord
         $cronLogModel->where('task_name', 'check_dead_links')->where('url_testee', $url)->delete();
-        (new AuditLogModel())->logAction('Faux Négatif', "L'alerte pour le domaine {$url} a été ignorée ({$count} cartes restaurées).");
-
-        return redirect()->back()->with('message', "Alerte retirée pour le domaine. {$count} carte(s) marquée(s) comme fonctionnelle(s).");
+        
+        (new AuditLogModel())->logAction('Faux Négatif', "L'alerte pour le domaine {$url} a été ignorée ({$count} cartes restaurées) et ajoutée à la whitelist.");
+        
+        return redirect()->back()->with('message', "Alerte retirée et domaine ajouté à la liste de confiance. {$count} carte(s) marquée(s) comme fonctionnelle(s).");
     }
 }
