@@ -14,9 +14,9 @@ class CronController extends BaseController
     public function run()
     {
         @ini_set('max_execution_time', '120');
-        
+
         $cronModel = new CronLogModel();
-        
+
         $isForced = '1' === $this->request->getGet('force');
 
         if ($isForced && (!auth()->loggedIn() || !auth()->user()->inGroup('admin', 'superadmin'))) {
@@ -30,7 +30,7 @@ class CronController extends BaseController
         if (cache($lockKey)) {
             return $this->response->setJSON(['status' => 'running', 'message' => 'La vérification est déjà en cours.']);
         }
-        
+
         cache()->save($lockKey, true, 180);
 
         try {
@@ -53,39 +53,39 @@ class CronController extends BaseController
             }
 
             (new CronLogModel())->where('task_name', 'check_dead_links')->delete();
-            
+
             $itemModel = new ItemModel();
             $items = $itemModel->where('lien !=', '')->where('lien IS NOT NULL')->findAll();
 
             $deadCount = 0;
             $totalChecked = 0;
             $currentTimestamp = date('Y-m-d H:i:s');
-            
+
             $domainsToProcess = [];
             $whitelistedDomains = [];
-            
+
             // Récupération dynamique de la whitelist depuis la base de données
             $whitelistModel = new WhitelistModel();
             $whitelistEntries = $whitelistModel->findAll();
             $whitelist = array_column($whitelistEntries, 'domain');
-            
+
             foreach ($items as $item) {
                 $rawLien = trim($item->lien);
 
                 if (!preg_match('#^https?://#i', $rawLien)) {
                     $rawLien = 'https://' . $rawLien;
                 }
-                
+
                 $parsed = parse_url($rawLien);
                 $scheme = $parsed['scheme'] ?? 'https';
                 $host = $parsed['host'] ?? '';
-                
+
                 if (empty($host) || !ExternalUrlGuard::isPublicHttpUrl($scheme . '://' . $host)) {
                     continue;
                 }
-                
+
                 $domainToTest = $scheme . '://' . $host;
-                
+
                 $isWhitelisted = false;
                 foreach ($whitelist as $wl) {
                     if ($host === $wl || str_ends_with($host, '.' . $wl)) {
@@ -112,31 +112,31 @@ class CronController extends BaseController
             }
 
             $checkedDomains = [];
-            
+
             // Client natif CodeIgniter
             $client = Services::curlrequest([
-                'timeout'         => 6,
+                'timeout' => 6,
                 'connect_timeout' => 3,
-                'http_errors'     => false,
+                'http_errors' => false,
                 'allow_redirects' => ['max' => 2, 'strict' => true],
-                'verify'          => false,
-                'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                'verify' => false,
+                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             ]);
 
             // Traitement séquentiel avec résolution DNS Google
             foreach ($domainsToProcess as $url => $itemsList) {
                 $parsed = parse_url($url);
                 $host = $parsed['host'] ?? '';
-                
+
                 $isDead = false;
                 $statusCode = 0;
 
                 // ÉTAPE 1 : Résolution DNS fiable via Google (Contourne le cache menteur de Byethost)
                 try {
-                    $dnsResp = $client->get("https://dns.google/resolve?name=" . urlencode($host) . "&type=A");
+                    $dnsResp = $client->get('https://dns.google/resolve?name=' . urlencode($host) . '&type=A');
                     if ($dnsResp->getStatusCode() === 200) {
-                        $dnsData = json_decode((string)$dnsResp->getBody(), true);
-                        
+                        $dnsData = json_decode((string) $dnsResp->getBody(), true);
+
                         // Status 3 = NXDOMAIN (Le domaine n'existe plus sur internet)
                         if (isset($dnsData['Status']) && $dnsData['Status'] === 3) {
                             $isDead = true;
@@ -153,14 +153,14 @@ class CronController extends BaseController
                         // Test rapide avec HEAD
                         $response = $client->request('HEAD', $url);
                         $statusCode = $response->getStatusCode();
-                        
+
                         if ($statusCode === 0 || $statusCode >= 400) {
                             // Fallback avec GET si HEAD est refusé
                             $response = $client->request('GET', $url);
                             $statusCode = $response->getStatusCode();
                         }
                     } catch (\Exception $e) {
-                        $statusCode = 0; // Timeout ou erreur fatale de connexion
+                        $statusCode = 0;  // Timeout ou erreur fatale de connexion
                     }
 
                     // Seules les vraies erreurs fatales sont classées comme mortes (exclut le 0 timeout)
@@ -170,30 +170,36 @@ class CronController extends BaseController
                 }
 
                 $checkedDomains[$url] = $statusCode;
-                
+
+                // RÉVEIL DE LA BASE DE DONNÉES (Fix pour Byethost "MySQL server has gone away")
+                \Config\Database::connect()->reconnect();
+
                 // Application aux cartes
                 foreach ($itemsList as $item) {
                     if ($isDead) {
                         $itemModel->update($item->id, ['link_status' => 'dead']);
                         $deadCount++;
                         $cronModel->insert([
-                            'task_name'   => 'check_dead_links',
-                            'last_run'    => $currentTimestamp,
-                            'item_id'     => $item->id,
-                            'titre'       => $item->titre,
-                            'url_testee'  => $url, 
+                            'task_name' => 'check_dead_links',
+                            'last_run' => $currentTimestamp,
+                            'item_id' => $item->id,
+                            'titre' => $item->titre,
+                            'url_testee' => $url,
                             'code_erreur' => $statusCode,
                         ]);
                     } elseif ($item->link_status === 'dead') {
                         $itemModel->update($item->id, ['link_status' => 'ok']);
                     }
                 }
-            }
+            }  // <-- Fin de la boucle foreach ($domainsToProcess as $url => $itemsList)
+
+            // RECONNEXION AVANT L'AUDIT FINAL (au cas où toutes les cartes étaient ignorées)
+            \Config\Database::connect()->reconnect();
 
             if ($deadCount === 0) {
                 $cronModel->insert([
-                    'task_name'   => 'check_dead_links',
-                    'last_run'    => $currentTimestamp,
+                    'task_name' => 'check_dead_links',
+                    'last_run' => $currentTimestamp,
                     'code_erreur' => 200,
                 ]);
             } else {
@@ -204,15 +210,14 @@ class CronController extends BaseController
             }
 
             $result = $this->response->setJSON([
-                'status'      => 'executed',
-                'forced'      => $isForced,
+                'status' => 'executed',
+                'forced' => $isForced,
                 'total_cards' => $totalChecked,
                 'unique_urls' => count($checkedDomains),
-                'dead_count'  => $deadCount,
+                'dead_count' => $deadCount,
             ]);
-            
+
             return $result;
-            
         } catch (\Throwable $e) {
             log_message('error', 'Cron Error: ' . $e->getMessage());
             return $this->response->setStatusCode(500)->setJSON([
