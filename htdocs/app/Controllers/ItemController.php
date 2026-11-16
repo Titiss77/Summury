@@ -980,12 +980,16 @@ class ItemController extends BaseController
      * Traite le signalement d'un lien mort par un utilisateur.
      * Filtre les faux-positifs (si seul l'épisode est introuvable) en vérifiant l'état du domaine.
      */
+    /**
+     * Traite le signalement d'un lien mort par un utilisateur.
+     * Filtre les faux-positifs avec une approche hybride (DNS + HTTP léger).
+     */
     public function reportLink()
     {
         if (!auth()->loggedIn()) {
             return $this->response->setJSON(['success' => false, 'message' => 'Non autorisé.']);
         }
-
+        
         $json = $this->request->getJSON();
         if (!isset($json->id)) {
             return $this->response->setJSON(['success' => false, 'message' => 'ID manquant.']);
@@ -993,7 +997,7 @@ class ItemController extends BaseController
 
         $itemId = $json->id;
         $item = $this->model->find($itemId);
-
+        
         if (!$item || empty($item->lien)) {
             return $this->response->setJSON(['success' => false, 'message' => 'Carte introuvable ou lien vide.']);
         }
@@ -1004,64 +1008,76 @@ class ItemController extends BaseController
 
         $parsed = parse_url($item->lien);
         $host = $parsed['host'] ?? '';
-
+        
         if (empty($host)) {
             return $this->response->setJSON(['success' => false, 'message' => 'URL invalide.']);
         }
 
-        // Vérification anti-abus : On s'assure que le domaine est VRAIMENT mort via DNS Google
         $client = \Config\Services::curlrequest([
-            'timeout' => 4,
-            'connect_timeout' => 2,
-            'http_errors' => false,
-            'verify' => false,
+            'timeout'         => 5,
+            'connect_timeout' => 3,
+            'http_errors'     => false,
+            'allow_redirects' => ['max' => 2],
+            'verify'          => false,
+            'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
         ]);
+        
+        $isDead = false;
+        $statusCode = 0;
 
-        $dnsExists = false;
         try {
-            $response = $client->get('https://dns.google/resolve?name=' . urlencode($host) . '&type=A');
-            if ($response->getStatusCode() === 200) {
-                $data = json_decode((string) $response->getBody(), true);
-                if (isset($data['Status']) && $data['Status'] === 0 && !empty($data['Answer'])) {
-                    $dnsExists = true;
-                } elseif (isset($data['Status']) && $data['Status'] === 3) {
-                    // NXDOMAIN = Domaine expiré ou radié = Vraiment mort
-                    $dnsExists = false;
-                } else {
-                    // Statut incertain -> On rejette le signalement par précaution pour éviter les abus
-                    $dnsExists = true;
+            // ÉTAPE 1 : Vérification DNS via Google (Détecte les domaines expirés / saisis)
+            $dnsResponse = $client->get("https://dns.google/resolve?name=" . urlencode($host) . "&type=A");
+            if ($dnsResponse->getStatusCode() === 200) {
+                $dnsData = json_decode((string)$dnsResponse->getBody(), true);
+                // NXDOMAIN = Le domaine n'existe plus du tout
+                if (isset($dnsData['Status']) && $dnsData['Status'] === 3) {
+                    $isDead = true;
+                    $statusCode = 404;
                 }
-            } else {
-                $dnsExists = true;
+            }
+            
+            // ÉTAPE 2 : Si le DNS valide, on teste le serveur Web (Détecte les hébergements fermés)
+            if (!$isDead) {
+                $urlToTest = ($parsed['scheme'] ?? 'https') . '://' . $host;
+                $httpResponse = $client->request('GET', $urlToTest, ['headers' => ['Range' => 'bytes=0-1024']]);
+                $statusCode = $httpResponse->getStatusCode();
+                
+                // 0 (timeout), 404 (not found), 410 (gone), 521/522/523 (serveur HS chez Cloudflare)
+                // Note : On ne met pas 403 ni 503 car c'est Cloudflare qui nous bloque (le site est donc vivant)
+                if (in_array($statusCode, [0, 404, 410, 521, 522, 523], true)) {
+                    $isDead = true;
+                }
             }
         } catch (\Exception $e) {
-            $dnsExists = true;
+            // Si le serveur est totalement injoignable (Timeout direct de cURL)
+            $isDead = true;
+            $statusCode = 0;
         }
 
-        // Si le domaine existe toujours (C'est un faux signalement)
-        if ($dnsExists) {
+        // Le domaine existe et le serveur répond (Faux signalement)
+        if (!$isDead) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => "Le site est en ligne. S'il manque l'épisode, c'est qu'il n'est pas encore sorti sur cette plateforme. Signalement refusé.",
+                'message' => 'Le site est en ligne. S\'il manque l\'épisode, c\'est qu\'il n\'est pas encore sorti sur cette plateforme. Signalement refusé.',
                 'csrf_token' => csrf_hash()
             ]);
         }
 
         // Le domaine est bien mort, on enregistre le signalement
         $this->model->update($itemId, ['link_status' => 'dead']);
-
-        $cronModel = new CronLogModel();
-        // On insère pour qu'il apparaisse instantanément dans l'admin panel existant "dead_links"
+        
+        $cronModel = new \App\Models\CronLogModel();
         $cronModel->insert([
-            'task_name' => 'check_dead_links',
-            'last_run' => date('Y-m-d H:i:s'),
-            'item_id' => $itemId,
-            'titre' => $item->titre,
-            'url_testee' => ($parsed['scheme'] ?? 'https') . '://' . $host,
-            'code_erreur' => 404,
+            'task_name'   => 'check_dead_links',
+            'last_run'    => date('Y-m-d H:i:s'),
+            'item_id'     => $itemId,
+            'titre'       => $item->titre,
+            'url_testee'  => ($parsed['scheme'] ?? 'https') . '://' . $host,
+            'code_erreur' => $statusCode,
         ]);
 
-        (new AuditLogModel())->logAction('Signalement Utilisateur', "L'utilisateur " . auth()->user()->username . " a signalé la carte ID {$itemId} comme morte. Vérification confirmée par le serveur.");
+        (new \App\Models\AuditLogModel())->logAction('Signalement Utilisateur', "L'utilisateur " . auth()->user()->username . " a signalé la carte ID {$itemId} comme morte. Vérification confirmée par le serveur.");
 
         return $this->response->setJSON([
             'success' => true,
