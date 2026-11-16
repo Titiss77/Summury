@@ -895,6 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (data.success) {
                     if (typeof showToast === 'function') showToast(data.message, 'success');
+                    
                     // Remplacement visuel immédiat : barrer le titre en rouge
                     const card = btn.closest('.card');
                     if (card) {
@@ -903,8 +904,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             titleEl.classList.add('dead-title');
                         }
                     }
-                    // Supprimer le bouton de signalement
-                    btn.remove();
+                    
+                    // Nettoyage de la barre du bas
+                    const actionBar = btn.closest('.card-actions-bottom');
+                    btn.remove(); // Retire le bouton signaler
+                    
+                    // S'il n'y a plus aucun bouton dans la barre (ex: un visiteur a cliqué), on retire la barre grise
+                    if (actionBar && actionBar.children.length === 0) {
+                        actionBar.outerHTML = '<div style="padding-bottom: 1.5rem;"></div>';
+                    }
                 } else {
                     // Refusé par le serveur anti-troll (Le site marche)
                     if (typeof showToast === 'function') showToast(data.message, 'warning');

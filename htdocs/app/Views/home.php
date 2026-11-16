@@ -241,10 +241,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                 foreach ($items as $item) {
                                     $isOwner = auth()->loggedIn() && (int) $item->id_user === (int) auth()->id();
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || $isOwner);
-
-                                    // Variables d'état du lien
+                                    
+                                    // Variables d'état du lien (CORRIGÉ : on autorise le propriétaire à signaler)
                                     $isDead = $item->link_status === 'dead';
-                                    $canReport = auth()->loggedIn() && !empty($item->lien) && !$isOwner && !$isDead;
+                                    $canReport = auth()->loggedIn() && !empty($item->lien) && !$isDead;
 
                                     $isFuture = false;
                                     $dateSortieFormatted = '';
