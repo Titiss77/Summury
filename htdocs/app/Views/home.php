@@ -330,9 +330,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <!-- SIGNALEMENT DE LIEN MORT (Intégré dans la zone blanche de la carte) -->
                                             <?php if ($isDead || $canReport) { ?>
                                             <div style="margin-top: 12px; margin-bottom: -4px;">
-                                                <?php if ($isDead) { ?>
-                                                <span class="dead-link-badge-inline">⚠️ Lien Mort</span>
-                                                <?php } elseif ($canReport) { ?>
+                                                <?php if ($canReport && !$isDead) { ?>
                                                 <button type="button" class="btn-report-link-inline"
                                                     data-id="<?php echo esc($item->id); ?>"
                                                     title="Signaler ce lien comme fermé/inaccessible">
