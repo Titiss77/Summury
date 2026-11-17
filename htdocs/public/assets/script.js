@@ -855,7 +855,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const badge = document.createElement('span');
                             badge.className = 'dead-link-badge-inline fade-in';
                             badge.title = 'En attente de vérification par l’administration.';
-                            badge.textContent = '⚠️ Signalé, en attente';
+                            badge.textContent = '⚠️ Signalé';
                             if (reportButton.style.marginLeft) badge.style.marginLeft = reportButton.style.marginLeft;
                             if (reportButton.style.marginRight) badge.style.marginRight = reportButton.style.marginRight;
                             reportButton.replaceWith(badge);
