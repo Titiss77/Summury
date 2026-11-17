@@ -251,8 +251,12 @@ class ItemController extends BaseController
     }
 
     /** Admin confirmation promotes every card on the host to confirmed dead. */
-    public function approveUserLinkReport(int $id)
+    public function approveUserLinkReport(string $id)
     {
+        if (! ctype_digit($id) || (int) $id < 1) {
+            return redirect()->back()->with('error', 'Identifiant de signalement invalide.');
+        }
+        $id = (int) $id;
         $cronLogs = new CronLogModel();
         $report = $cronLogs->find($id);
         if (! $report || $report['task_name'] !== CronLogModel::TASK_PENDING_USER_REPORT) {
@@ -289,8 +293,12 @@ class ItemController extends BaseController
     }
 
     /** Reject a report, restore its cards, and place the host in the 7-day whitelist. */
-    public function rejectUserLinkReport(int $id)
+    public function rejectUserLinkReport(string $id)
     {
+        if (! ctype_digit($id) || (int) $id < 1) {
+            return redirect()->back()->with('error', 'Identifiant de signalement invalide.');
+        }
+        $id = (int) $id;
         $cronLogs = new CronLogModel();
         $report = $cronLogs->find($id);
         if (! $report || $report['task_name'] !== CronLogModel::TASK_PENDING_USER_REPORT) {

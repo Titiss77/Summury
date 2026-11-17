@@ -16,10 +16,10 @@ use Config\Services;
 
 class ItemController extends BaseController
 {
-    private const USER_REPORT_LIMIT_PER_HOUR = 7;
-    private const USER_REPORT_LIMIT_PER_DAY = 25;
-    private const IP_REPORT_LIMIT_PER_HOUR = 15;
-    private const IP_REPORT_LIMIT_PER_DAY = 30;
+    private const USER_REPORT_LIMIT_PER_HOUR = 100;
+    private const USER_REPORT_LIMIT_PER_DAY = 100;
+    private const IP_REPORT_LIMIT_PER_HOUR = 100;
+    private const IP_REPORT_LIMIT_PER_DAY = 100;
 
     private $model;
     private $statutModel;
@@ -1041,6 +1041,23 @@ class ItemController extends BaseController
         return false;
     }
 
+    /** Refresh an expired whitelist row when its domain is reported again. */
+    private function refreshExistingReportWhitelistEntry(string $host, string $updatedAt): void
+    {
+        $whitelist = new WhitelistModel();
+        foreach ($whitelist->findAll() as $entry) {
+            $entryHost = $this->reportedLinkHost((string) ($entry['domain'] ?? ''));
+            if ($entryHost === null) continue;
+            $entryHost = (string) preg_replace('/^www\\./i', '', $entryHost);
+            if ($entryHost !== $host) continue;
+
+            if (! $whitelist->update($entry['id'], ['created_at' => $updatedAt])) {
+                throw new \RuntimeException('Impossible de renouveler la date de protection du domaine.');
+            }
+            return;
+        }
+    }
+
     /** Enforce rolling quotas per authenticated account and source IP. */
     private function reportRateLimitMessage(): ?string
     {
@@ -1183,6 +1200,8 @@ class ItemController extends BaseController
             }
 
             $now = date('Y-m-d H:i:s');
+            // The 7-day entry is unique per domain. Reuse an expired row instead of inserting another.
+            $this->refreshExistingReportWhitelistEntry($host, $now);
             $cronLogId = (new CronLogModel())->insert([
                 'task_name' => CronLogModel::TASK_PENDING_USER_REPORT,
                 'last_run' => $now,

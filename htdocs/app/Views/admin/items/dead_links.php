@@ -10,7 +10,8 @@
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <div>
             <h2 style="color: var(--danger); margin: 0;">Signalements de liens</h2>
-            <p style="margin: 5px 0 0 0;">Les signalements en attente doivent être vérifiés avant d’affecter les cartes.</p>
+            <p style="margin: 5px 0 0 0;">Les signalements en attente doivent être vérifiés avant d’affecter les cartes.
+            </p>
         </div>
     </div>
 
@@ -56,7 +57,12 @@
     <div class="admin-table-container fade-in" style="margin-bottom: 30px;">
         <table class="admin-table" style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr><th>Domaine</th><th>Carte signalée</th><th>Date</th><th>Modération</th></tr>
+                <tr>
+                    <th>Domaine</th>
+                    <th>Carte signalée</th>
+                    <th>Date</th>
+                    <th>Modération</th>
+                </tr>
             </thead>
             <tbody>
                 <?php foreach ($pendingReports as $report) { ?>
@@ -66,14 +72,20 @@
                     <td style="padding: 12px;"><?php echo esc($report['last_run']); ?></td>
                     <td style="padding: 12px;">
                         <div class="action-links" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <form action="<?php echo base_url('a/d/report/' . $report['id'] . '/approve'); ?>" method="post">
+                            <form action="<?php echo base_url('a/d/report/' . $report['id'] . '/approve'); ?>"
+                                method="post">
                                 <?php echo csrf_field(); ?>
-                                <button type="submit" class="btn-action" style="background: var(--danger); color: #fff;">Confirmer mort</button>
+                                <button type="submit" class="btn-action"
+                                    style="background: var(--danger); color: #fff;">Confirmer mort</button>
                             </form>
-                            <form action="<?php echo base_url('a/d/report/' . $report['id'] . '/reject'); ?>" method="post">
+                            <form action="<?php echo base_url('a/d/report/' . $report['id'] . '/reject'); ?>"
+                                method="post">
                                 <?php echo csrf_field(); ?>
-                                <button type="submit" class="btn-action" style="background: var(--success); color: #fff;">Rejeter / fonctionnel</button>
+                                <button type="submit" class="btn-action"
+                                    style="background: var(--success); color: #fff;">Rejeter / fonctionnel</button>
                             </form>
+                            <a href="<?php echo esc($report['url_testee'], 'attr'); ?>" target="_blank" rel="noopener noreferrer"
+                                class="btn-action" style="background: var(--text-muted); color: #fff;">Tester</a>
                         </div>
                     </td>
                 </tr>
