@@ -4,136 +4,140 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Libraries\ExternalUrlGuard;
 use App\Models\AuditLogModel;
 use App\Models\CronLogModel;
-use App\Models\ItemModel;
 use App\Models\WhitelistModel;
 use Config\Services;
+use Throwable;
 
+/** Small, resumable HTTP cron worker. One request is deliberately time-boxed. */
 class CronController extends BaseController
 {
+    private const MAX_ITEMS = 20;
+    private const MAX_SECONDS = 12;
+    private const RECHECK_AFTER_DAYS = 30;
+
     public function run()
     {
-        $itemModel = new ItemModel();
-        $cronLogModel = new CronLogModel();
-        $whitelistModel = new WhitelistModel();
-
-        // 1. Récupérer les domaines de confiance pour les ignorer
-        $whitelistedDomains = $whitelistModel->findColumn('domain') ?? [];
-
-        // 2. Limiter la requête pour éviter le Timeout du serveur (Max 25 liens par scan)
-        $items = $itemModel->where('link_status !=', 'dead')
-                           ->where('lien IS NOT NULL')
-                           ->where('lien !=', '')
-                           ->orderBy('updated_at', 'ASC') // Traite les liens les plus anciens en premier
-                           ->limit(25)
-                           ->findAll();
-
-        if (empty($items)) {
-            return $this->response->setJSON(['status' => 'skipped', 'message' => 'Aucun lien à vérifier.']);
+        $secret = (string) env('cron.secret', '');
+        $provided = (string) ($this->request->getHeaderLine('X-Cron-Token') ?: $this->request->getGet('token'));
+        if ($secret === '' || ! hash_equals($secret, $provided)) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'forbidden']);
         }
 
+        $started = microtime(true);
+        $now = date('Y-m-d H:i:s');
+        $cutoff = date('Y-m-d H:i:s', strtotime('-' . self::RECHECK_AFTER_DAYS . ' days'));
+        $db = db_connect();
+        $rows = $db->table('item')
+            ->select('id, titre, lien, episode, link_status')
+            ->where('deleted_at', null)
+            ->where('lien IS NOT NULL', null, false)
+            ->where('lien !=', '')
+            ->groupStart()
+                ->where('link_checked_at', null)
+                ->orWhere('link_checked_at <', $cutoff)
+            ->groupEnd()
+            ->orderBy('link_checked_at', 'ASC')
+            ->limit(self::MAX_ITEMS)
+            ->get()->getResult();
+
+        if ($rows === []) {
+            return $this->response->setJSON(['status' => 'idle', 'checked' => 0, 'dead' => 0]);
+        }
+
+        $whitelist = array_map(static fn ($d) => strtolower(rtrim((string) $d, '.')), (new WhitelistModel())->findColumn('domain') ?? []);
         $client = Services::curlrequest([
-            'timeout'         => 5,
-            'connect_timeout' => 3,
-            'http_errors'     => false,
-            'allow_redirects' => ['max' => 2],
-            'verify'          => false,
-            'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
+            'timeout' => 4,
+            'connect_timeout' => 2,
+            'http_errors' => false,
+            'allow_redirects' => ['max' => 3, 'strict' => true, 'referer' => false],
+            'verify' => true,
+            'headers' => [
+                'User-Agent' => 'TitissLinkChecker/1.0 (+https://titiss.space)',
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language' => 'fr,en;q=0.8',
+                'Range' => 'bytes=0-0',
+            ],
         ]);
 
-        $deadCount = 0;
-        $urlsChecked = 0;
+        $checked = $dead = $inconclusive = 0;
+        $cronLogs = new CronLogModel();
 
-        foreach ($items as $item) {
-            $parsed = parse_url($item->lien);
-            $host = $parsed['host'] ?? '';
+        foreach ($rows as $item) {
+            if (microtime(true) - $started >= self::MAX_SECONDS) break;
+            $url = str_replace(['{ep2}', '{ep}'], [str_pad((string) ($item->episode ?: 1), 2, '0', STR_PAD_LEFT), (string) ($item->episode ?: 1)], trim((string) $item->lien));
+            $parts = parse_url($url);
+            $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
+            $isDead = false;
+            $statusCode = 0;
+            $isConclusive = false;
 
-            // Ignorer si pas de domaine ou si domaine whitelisté
-            if (empty($host) || in_array($host, $whitelistedDomains, true)) {
-                $itemModel->builder()->where('id', $item->id)->set('updated_at', date('Y-m-d H:i:s'))->update();
+            if ($host !== '' && in_array($host, $whitelist, true)) {
+                // Trusted domains are intentionally exempt from automated classification.
+                $db->table('item')->where('id', $item->id)->update(['link_checked_at' => $now]);
                 continue;
             }
 
-            $urlsChecked++;
-            $isDead = false;
-            $statusCode = 0;
-
-            try {
-                // ÉTAPE 1 : API DNS de Google (Contourne le DNS Hijacking local/Byethost)
-                // Cela garantit de détecter les domaines réellement expirés (ex: .lol, .rip)
-                $dnsResponse = $client->get("https://dns.google/resolve?name=" . urlencode($host) . "&type=A");
-                
-                if ($dnsResponse->getStatusCode() === 200) {
-                    $dnsData = json_decode((string) $dnsResponse->getBody(), true);
-                    
-                    // Status 3 = NXDOMAIN (Le domaine n'existe plus de manière globale)
-                    if (isset($dnsData['Status']) && $dnsData['Status'] === 3) {
-                        $isDead = true;
+            if (ExternalUrlGuard::isPublicHttpUrl($url)) {
+                try {
+                    // Require NXDOMAIN from two independent DoH operators. A blocked DoH
+                    // request or any timeout remains inconclusive and never kills a link.
+                    $answers = [];
+                    foreach (['https://dns.google/resolve', 'https://cloudflare-dns.com/dns-query'] as $index => $endpoint) {
+                        $dns = $client->get($endpoint, [
+                            'query' => ['name' => $host, 'type' => 'A'],
+                            'headers' => $index === 1 ? ['accept' => 'application/dns-json'] : [],
+                        ]);
+                        $data = json_decode((string) $dns->getBody(), true);
+                        $answers[] = $dns->getStatusCode() === 200 && is_array($data) ? ($data['Status'] ?? null) : null;
+                    }
+                    if ($answers === [3, 3]) {
+                        $isDead = $isConclusive = true;
                         $statusCode = 404;
+                    } else {
+                        $response = $client->get($url);
+                        $statusCode = $response->getStatusCode();
+                        if (in_array($statusCode, [404, 410], true)) {
+                            $isDead = $isConclusive = true;
+                        } elseif ($statusCode >= 200 && $statusCode < 400) {
+                            $isConclusive = true;
+                        }
                     }
+                } catch (Throwable $e) {
+                    // Network restrictions, TLS errors, rate limits and timeouts are unknown.
+                    log_message('debug', '[Cron] Vérification inconclusive pour {host}: {error}', ['host' => $host, 'error' => $e->getMessage()]);
                 }
-
-                // ÉTAPE 2 : Si le domaine existe (DNS OK), on tente la connexion HTTP légère
-                if (!$isDead) {
-                    $urlToTest = ($parsed['scheme'] ?? 'https') . '://' . $host;
-                    $httpResponse = $client->request('GET', $urlToTest, ['headers' => ['Range' => 'bytes=0-1024']]);
-                    $statusCode = $httpResponse->getStatusCode();
-
-                    // Codes de pages introuvables ou d'erreurs serveurs définitives
-                    if (in_array($statusCode, [404, 410, 521, 522, 523], true)) {
-                        $isDead = true;
-                    }
-                }
-            } catch (\Exception $e) {
-                $errMsg = $e->getMessage();
-                
-                // DÉTECTION DU BLOCAGE PARE-FEU HÉBERGEUR (Byethost/iFastNet)
-                // Si la requête HTTP est bloquée, on l'ignore pour éviter les faux positifs massifs
-                if (str_contains($errMsg, 'timed out') || str_contains($errMsg, 'Connection refused')) {
-                    log_message('error', '[Cron] Blocage réseau esquivé sur ' . $host . ' : ' . $errMsg);
-                    
-                    // Actualisation de la date pour le renvoyer en fin de file d'attente
-                    $itemModel->builder()->where('id', $item->id)->set('updated_at', date('Y-m-d H:i:s'))->update();
-                    continue; 
-                }
-
-                // Tout autre crash inattendu (hôte introuvable sans API Google) est considéré comme mort
-                $isDead = true;
-                $statusCode = 0;
             }
 
-            // ÉTAPE 3 : Mise à jour de la base de données
-            if ($isDead) {
-                $itemModel->update($item->id, ['link_status' => 'dead']);
-                
-                $cronLogModel->insert([
-                    'task_name'   => 'check_dead_links',
-                    'last_run'    => date('Y-m-d H:i:s'),
-                    'item_id'     => $item->id,
-                    'titre'       => $item->titre,
-                    'url_testee'  => ($parsed['scheme'] ?? 'https') . '://' . $host,
-                    'code_erreur' => $statusCode,
+            ++$checked;
+            if (! $isConclusive) ++$inconclusive;
+            // Retry inconclusive network outcomes the next day instead of
+            // delaying them for the full 30-day healthy-link interval.
+            $nextCheckAt = $isConclusive ? $now : date('Y-m-d H:i:s', strtotime('-29 days'));
+            $update = ['link_checked_at' => $nextCheckAt];
+            if ($isDead && $item->link_status !== 'dead') $update['link_status'] = 'dead';
+            elseif ($isConclusive && ! $isDead && $item->link_status === 'dead') $update['link_status'] = 'ok';
+            // Direct query builder keeps ItemModel timestamps from changing updated_at.
+            $db->table('item')->where('id', $item->id)->update($update);
+
+            if ($isDead && $item->link_status !== 'dead') {
+                $cronLogs->insert([
+                    'task_name' => 'check_dead_links', 'last_run' => $now,
+                    'item_id' => $item->id, 'titre' => $item->titre,
+                    'url_testee' => $url, 'code_erreur' => $statusCode,
                 ]);
-                
-                $deadCount++;
-            } else {
-                // Le lien est sain, on actualise sa date pour qu'il reparte en fin de file
-                $itemModel->builder()->where('id', $item->id)->set('updated_at', date('Y-m-d H:i:s'))->update();
+                ++$dead;
             }
         }
 
-        // Journalisation de l'audit
-        if ($deadCount > 0) {
-            (new AuditLogModel())->logAction('Cron', "Vérification auto : {$deadCount} nouveaux liens morts détectés.");
-        }
-
-        // Renvoi de la réponse JSON au format attendu par script.js
+        if ($dead > 0) (new AuditLogModel())->logAction('Cron', "Vérification auto : {$dead} nouveaux liens morts détectés.");
         return $this->response->setJSON([
-            'status'      => 'executed',
-            'total_cards' => count($items),
-            'unique_urls' => $urlsChecked,
-            'dead_count'  => $deadCount
+            'status' => 'executed', 'checked' => $checked, 'dead' => $dead,
+            'inconclusive' => $inconclusive, 'remaining_batch' => max(0, count($rows) - $checked),
+            // Keep the former response keys for any older admin tooling.
+            'total_cards' => $checked, 'unique_urls' => $checked, 'dead_count' => $dead,
         ]);
     }
 }
