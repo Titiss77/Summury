@@ -11,7 +11,6 @@ $routes->get('c/(:num)', 'HomeController::categorie/$1');
 $routes->get('l', 'HomeController::legal');
 $routes->get('v', 'HomeController::privacy');
 $routes->get('t', 'HomeController::cgu');
-$routes->get('j', 'CronController::run');
 $routes->get('q', 'ItemController::checkDispo');
 
 // Compatibilité avec les anciennes URL publiques.
@@ -20,7 +19,6 @@ $routes->get('p/(:num)', static fn(string $id) => redirect()->to('c/' . $id));
 $routes->get('legal', static fn() => redirect()->to('l'));
 $routes->get('privacy', static fn() => redirect()->to('v'));
 $routes->get('cgu', static fn() => redirect()->to('t'));
-$routes->get('cron/run', static fn() => redirect()->to('j'));
 $routes->get('item/check-dispo', static fn() => redirect()->to('q'));
 
 // Routes protégées par session.
@@ -81,17 +79,13 @@ $routes->group('a', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:
     $routes->get('v/(:num)', 'ItemController::approveRevision/$1');
     $routes->get('v/(:num)/x', 'ItemController::rejectRevision/$1');
     $routes->get('d', 'ItemController::deadLinks');
+    $routes->post('d/report/(:num)/approve', 'ItemController::approveUserLinkReport/$1');
+    $routes->post('d/report/(:num)/reject', 'ItemController::rejectUserLinkReport/$1');
     $routes->get('d/(:num)', 'ItemController::delete/$1');
     $routes->post('b', 'ItemController::bulkUpdateDomain');
     $routes->get('l', 'AuditController::index');
     $routes->get('fnd', 'ItemController::falseNegativeDomain');
 });
-
-// Route du scan complet, explicitement liée au contrôleur racine et protégée admin.
-$routes->post('a/d/scan', 'CronController::adminScan', ['filter' => 'group:superadmin,admin']);
-$routes->post('a/d/scan/results', 'CronController::adminImportPingResults', ['filter' => 'group:superadmin,admin']);
-$routes->get('a/d/list', 'CronController::generateLinkList', ['filter' => 'group:superadmin,admin']);
-$routes->get('a/d/list/download', 'CronController::downloadLinkList', ['filter' => 'group:superadmin,admin']);
 
 // Anciennes URL d'administration.
 $routes->group('users', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {

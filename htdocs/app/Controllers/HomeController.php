@@ -6,10 +6,51 @@ namespace App\Controllers;
 
 use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
+use App\Models\CronLogModel;
 use App\Models\SiteConfigModel;
+use App\Models\WhitelistModel;
 
 class HomeController extends BaseController
 {
+    private function reportDomainStates(): array
+    {
+        $states = [];
+        $db = db_connect();
+        $normalizeHost = static function (string $url): ?string {
+            if (! preg_match('~^https?://~i', $url) && ! str_starts_with($url, '//')) $url = 'https://' . $url;
+            elseif (str_starts_with($url, '//')) $url = 'https:' . $url;
+            $host = parse_url($url, PHP_URL_HOST);
+            if (! is_string($host) || $host === '') return null;
+            return (string) preg_replace('/^www\./i', '', strtolower(rtrim($host, '.')));
+        };
+
+        $logs = $db->table('cron_logs')->select('task_name, url_testee')
+            ->whereIn('task_name', [CronLogModel::TASK_PENDING_USER_REPORT, CronLogModel::TASK_CONFIRMED_DEAD])
+            ->get()->getResultArray();
+        foreach ($logs as $log) {
+            $host = $normalizeHost((string) ($log['url_testee'] ?? ''));
+            if ($host === null) continue;
+            $state = $log['task_name'] === CronLogModel::TASK_PENDING_USER_REPORT ? 'pending' : 'confirmed';
+            if (! isset($states[$host]) || $state === 'confirmed') $states[$host] = $state;
+        }
+
+        $reportedItems = $db->table('item')->select('lien, link_status')->where('deleted_at', null)->whereIn('link_status', ['reported', 'dead'])->get()->getResultArray();
+        foreach ($reportedItems as $item) {
+            $host = $normalizeHost((string) ($item['lien'] ?? ''));
+            if ($host === null) continue;
+            $state = $item['link_status'] === 'reported' ? 'pending' : 'confirmed';
+            if (! isset($states[$host]) || $state === 'confirmed') $states[$host] = $state;
+        }
+
+        $whitelistCutoff = date('Y-m-d H:i:s', time() - (WhitelistModel::REPORT_COOLDOWN_DAYS * 86400));
+        $whitelist = (new WhitelistModel())->where('created_at >=', $whitelistCutoff)->findAll();
+        foreach ($whitelist as $entry) {
+            $host = $normalizeHost((string) ($entry['domain'] ?? ''));
+            if ($host !== null && ! isset($states[$host])) $states[$host] = 'whitelist';
+        }
+        return $states;
+    }
+
     public function __construct()
     {
         helper('auth');
@@ -45,6 +86,7 @@ class HomeController extends BaseController
             'groupedItems' => $groupedItems,
             'currentHeaderId' => $headerId,
             'supportedDomains' => [],
+            'reportDomainStates' => $this->reportDomainStates(),
         ]);
     }
 
@@ -112,6 +154,7 @@ class HomeController extends BaseController
             'supportedDomains' => $supportedDomains,
             'pendingRevisionIds' => $pendingRevisionIds,
             'passedReleases' => $passedReleases,
+            'reportDomainStates' => $this->reportDomainStates(),
         ]);
     }
 

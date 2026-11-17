@@ -4,30 +4,13 @@
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" onclick="return retourAuxCartes(event, this.href);"
         class="btn btn-cancel">Retour aux cartes</a>
-    <button type="button" id="btn-generate-link-list"
-        data-endpoint="<?php echo esc(base_url('a/d/list')); ?>"
-        class="btn" style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); cursor: pointer;">
-        Générer la liste des URL
-    </button>
-    <a id="download-link-list" href="<?php echo esc(base_url('a/d/list/download')); ?>" hidden>Télécharger liste.log</a>
-    <span id="link-list-status" role="status" aria-live="polite"></span>
-    <button type="button" id="btn-force-cron"
-        data-endpoint="<?php echo esc(base_url('a/d/scan')); ?>"
-        data-results-endpoint="<?php echo esc(base_url('a/d/scan/results')); ?>"
-        class="btn" style="background: var(--warning); color: #fff; border: 0; cursor: pointer;">
-        Lancer le scan Ping
-    </button>
-    <span id="cron-scan-status" role="status" aria-live="polite"></span>
 </div>
-<p style="text-align: center; color: var(--text-muted);">Le ping est exécuté par Check-Host depuis ses nœuds externes. Les domaines de la liste lui sont transmis.</p>
-
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
     <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <div>
-            <h2 style="color: var(--danger); margin: 0;">Alertes Liens Morts (Erreur 404)</h2>
-            <p style="margin: 5px 0 0 0;">Ces domaines ont été signalés par les utilisateurs et vérifiés comme
-                inaccessibles.</p>
+            <h2 style="color: var(--danger); margin: 0;">Signalements de liens</h2>
+            <p style="margin: 5px 0 0 0;">Les signalements en attente doivent être vérifiés avant d’affecter les cartes.</p>
         </div>
     </div>
 
@@ -68,11 +51,45 @@
         </form>
     </div>
 
+    <h3>Signalements en attente (<?php echo count($pendingReports); ?>)</h3>
+    <?php if (!empty($pendingReports)) { ?>
+    <div class="admin-table-container fade-in" style="margin-bottom: 30px;">
+        <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr><th>Domaine</th><th>Carte signalée</th><th>Date</th><th>Modération</th></tr>
+            </thead>
+            <tbody>
+                <?php foreach ($pendingReports as $report) { ?>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 12px; font-family: monospace;"><?php echo esc($report['url_testee']); ?></td>
+                    <td style="padding: 12px;"><?php echo esc($report['titre']); ?></td>
+                    <td style="padding: 12px;"><?php echo esc($report['last_run']); ?></td>
+                    <td style="padding: 12px;">
+                        <div class="action-links" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <form action="<?php echo base_url('a/d/report/' . $report['id'] . '/approve'); ?>" method="post">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="btn-action" style="background: var(--danger); color: #fff;">Confirmer mort</button>
+                            </form>
+                            <form action="<?php echo base_url('a/d/report/' . $report['id'] . '/reject'); ?>" method="post">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="btn-action" style="background: var(--success); color: #fff;">Rejeter / fonctionnel</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+    <?php } else { ?>
+    <p class="text-muted">Aucun signalement à modérer.</p>
+    <?php } ?>
+
+    <h3>Domaines confirmés comme morts</h3>
     <?php if (empty($deadItems)) { ?>
     <div class="empty-state"
         style="text-align: center; padding: 40px 0; color: var(--text-muted); background: var(--bg-body); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
-        <p style="font-size: 1.2em; margin: 0;">🎉 Excellente nouvelle, tous les liens de streaming testés fonctionnent
-            correctement !</p>
+        <p style="font-size: 1.2em; margin: 0;">Aucun domaine n’a été signalé comme mort pour le moment.</p>
     </div>
     <?php
 } else {

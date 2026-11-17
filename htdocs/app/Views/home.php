@@ -242,8 +242,16 @@ document.addEventListener("DOMContentLoaded", function() {
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || $isOwner);
                                     
                                     // Variables d'état du lien
-                                    $isDead = $item->link_status === 'dead';
-                                    $canReport = auth()->loggedIn() && !empty($item->lien) && !$isDead;
+                                    $linkForReportHost = trim((string) $item->lien);
+                                    if (str_starts_with($linkForReportHost, '//')) $linkForReportHost = 'https:' . $linkForReportHost;
+                                    elseif (!preg_match('~^https?://~i', $linkForReportHost)) $linkForReportHost = 'https://' . $linkForReportHost;
+                                    $reportHost = parse_url($linkForReportHost, PHP_URL_HOST);
+                                    $reportHost = is_string($reportHost) ? (string) preg_replace('/^www\./i', '', strtolower(rtrim($reportHost, '.'))) : '';
+                                    $domainReportState = $reportDomainStates[$reportHost] ?? null;
+                                    $isReported = $item->link_status === 'dead' || $domainReportState === 'confirmed';
+                                    $isPendingReport = $item->link_status === 'reported' || $domainReportState === 'pending';
+                                    $isWhitelistedReport = $domainReportState === 'whitelist';
+                                    $canReport = auth()->loggedIn() && !empty($item->lien) && !$isReported && !$isPendingReport && !$isWhitelistedReport;
 
                                     $isFuture = false;
                                     $dateSortieFormatted = '';
@@ -260,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                     }
                                     ?>
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ((!empty($item->episode) && !$isFuture) ? 'needs-dispo-check' : ''); ?>"
-                                    id="card-<?php echo esc($item->id); ?>" data-id="<?php echo esc($item->id); ?>"
+                                    id="card-<?php echo esc($item->id); ?>" data-id="<?php echo esc($item->id); ?>" data-report-host="<?php echo esc($reportHost); ?>"
                                     data-status="<?php echo esc($item->status); ?>"
                                     data-category="<?php echo esc($divisionName); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
@@ -299,7 +307,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 Vérification...</div>
                                             <?php } ?>
 
-                                            <h4 class="card-title search-target-title <?php echo $isDead ? 'dead-title' : ''; ?>"
+                                            <h4 class="card-title search-target-title"
                                                 style="<?php echo $textColor; ?>">
                                                 <?php echo htmlspecialchars($item->titre); ?></h4>
                                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
@@ -323,14 +331,18 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <?php } ?>
 
                                             <!-- SIGNALEMENT (Dans la zone blanche) UNIQUEMENT SI NON-PROPRIÉTAIRE -->
-                                            <?php if (!$isOwner && ($isDead || $canReport)) { ?>
+                                            <?php if (!$isOwner && ($isReported || $isPendingReport || $isWhitelistedReport || $canReport)) { ?>
                                             <div style="margin-top: 12px; margin-bottom: -4px;">
-                                                <?php if ($isDead) { ?>
-                                                <span class="dead-link-badge-inline">⚠️ Lien Mort</span>
+                                                <?php if ($isPendingReport) { ?>
+                                                <span class="dead-link-badge-inline" title="En attente de vérification par l’administration.">⚠️ Signalé, en attente</span>
+                                                <?php } elseif ($isReported) { ?>
+                                                <span class="dead-link-badge-inline" title="Signalement traité par l’administration.">Signalement traité</span>
+                                                <?php } elseif ($isWhitelistedReport) { ?>
+                                                <span class="dead-link-badge-inline" title="Ce domaine a été vérifié récemment.">Domaine vérifié récemment</span>
                                                 <?php } elseif ($canReport) { ?>
                                                 <button type="button" class="btn-report-link-inline"
                                                     data-id="<?php echo esc($item->id); ?>"
-                                                    title="Signaler ce lien comme fermé/inaccessible">
+                                                    title="Signaler un problème sur ce domaine (validation admin requise)">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
                                                         fill="currentColor" viewBox="0 0 16 16">
                                                         <path
@@ -387,14 +399,17 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <!-- Barre grise d'édition (Propriétaire uniquement) -->
                                     <?php if ($isOwner) { ?>
                                     <div class="card-actions-bottom">
-                                        <?php if ($isDead) { ?>
-                                        <span class="dead-link-badge-inline"
-                                            style="margin-right: auto; margin-left: -8px;">⚠️ Lien Mort</span>
+                                        <?php if ($isPendingReport) { ?>
+                                        <span class="dead-link-badge-inline" style="margin-right: auto; margin-left: -8px;" title="En attente de vérification par l’administration.">⚠️ Signalé, en attente</span>
+                                        <?php } elseif ($isReported) { ?>
+                                        <span class="dead-link-badge-inline" style="margin-right: auto; margin-left: -8px;" title="Signalement traité par l’administration.">Signalement traité</span>
+                                        <?php } elseif ($isWhitelistedReport) { ?>
+                                        <span class="dead-link-badge-inline" style="margin-right: auto; margin-left: -8px;" title="Ce domaine a été vérifié récemment.">Domaine vérifié récemment</span>
                                         <?php } elseif ($canReport) { ?>
                                         <button type="button" class="btn-report-link-inline"
                                             style="margin-right: auto; margin-left: -8px;"
                                             data-id="<?php echo esc($item->id); ?>"
-                                            title="Signaler ce lien comme fermé/inaccessible">
+                                            title="Signaler un problème sur ce domaine (validation admin requise)">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
                                                 fill="currentColor" viewBox="0 0 16 16">
                                                 <path

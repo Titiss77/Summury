@@ -169,8 +169,27 @@ class ItemController extends BaseController
         $item = $itemModel->find($id);
         
         if ($item) {
+            $cronLogModel = new CronLogModel();
+            $associatedReports = $cronLogModel->whereIn('task_name', [CronLogModel::TASK_PENDING_USER_REPORT, CronLogModel::TASK_CONFIRMED_DEAD])
+                ->where('item_id', $id)->findAll();
+            foreach ($associatedReports as $report) {
+                $host = $this->normalizeReportHost((string) ($report['url_testee'] ?? ''));
+                $remainingCards = $host === null ? [] : array_values(array_filter(
+                    $this->activeCardsForReportHost($host),
+                    static fn ($card) => (int) $card->id !== (int) $id
+                ));
+                if ($remainingCards !== []) {
+                    $cronLogModel->update($report['id'], [
+                        'item_id' => $remainingCards[0]->id,
+                        'titre' => $remainingCards[0]->titre,
+                    ]);
+                } else {
+                    $cronLogModel->delete($report['id']);
+                }
+            }
+
             $itemModel->delete($id);
-            (new CronLogModel())->where('item_id', $id)->delete();
+            $cronLogModel->where('item_id', $id)->delete();
             (new AuditLogModel())->logAction('Modération : Suppression Carte', "Suppression définitive de la carte ID {$id} ('{$item->titre}').");
             
             return redirect()->back()->with('message', "La carte '{$item->titre}' a été définitivement supprimée.");
@@ -203,7 +222,108 @@ class ItemController extends BaseController
         }
         
         sort($domains);
-        return view('admin/items/dead_links', ['deadItems' => $cronLogModel->where('item_id IS NOT NULL')->findAll(), 'domains' => $domains]);
+        return view('admin/items/dead_links', [
+            'deadItems' => $cronLogModel->where('task_name', CronLogModel::TASK_CONFIRMED_DEAD)->where('item_id IS NOT NULL')->findAll(),
+            'pendingReports' => (new CronLogModel())->where('task_name', CronLogModel::TASK_PENDING_USER_REPORT)->orderBy('last_run', 'ASC')->findAll(),
+            'domains' => $domains,
+        ]);
+    }
+
+    private function normalizeReportHost(string $url): ?string
+    {
+        if (! preg_match('~^https?://~i', $url) && ! str_starts_with($url, '//')) $url = 'https://' . $url;
+        elseif (str_starts_with($url, '//')) $url = 'https:' . $url;
+        $host = parse_url($url, PHP_URL_HOST);
+        if (! is_string($host) || $host === '') return null;
+        return (string) preg_replace('/^www\./i', '', strtolower(rtrim($host, '.')));
+    }
+
+    private function activeCardsForReportHost(string $host): array
+    {
+        $candidates = db_connect()->table('item')
+            ->select('id, titre, lien, link_status')
+            ->where('deleted_at', null)
+            ->where('lien IS NOT NULL', null, false)
+            ->like('lien', $host)
+            ->get()->getResult();
+
+        return array_values(array_filter($candidates, fn ($item) => $this->normalizeReportHost((string) $item->lien) === $host));
+    }
+
+    /** Admin confirmation promotes every card on the host to confirmed dead. */
+    public function approveUserLinkReport(int $id)
+    {
+        $cronLogs = new CronLogModel();
+        $report = $cronLogs->find($id);
+        if (! $report || $report['task_name'] !== CronLogModel::TASK_PENDING_USER_REPORT) {
+            return redirect()->back()->with('error', 'Ce signalement est introuvable ou déjà traité.');
+        }
+
+        $host = $this->normalizeReportHost((string) $report['url_testee']);
+        if ($host === null) return redirect()->back()->with('error', 'Le domaine du signalement est invalide.');
+        $db = db_connect();
+        $db->transBegin();
+        try {
+            $cards = $this->activeCardsForReportHost($host);
+            if ($cards === []) throw new \RuntimeException('Aucune carte active ne correspond à ce domaine.');
+            $itemModel = new ItemModel();
+            foreach ($cards as $card) {
+                if (! $itemModel->update($card->id, ['link_status' => 'dead'])) {
+                    throw new \RuntimeException('Impossible de confirmer toutes les cartes du domaine.');
+                }
+            }
+            $cronLogs->update($id, [
+                'task_name' => CronLogModel::TASK_CONFIRMED_DEAD,
+                'url_testee' => 'https://' . $host . '/',
+                'code_erreur' => 0,
+            ]);
+            (new AuditLogModel())->logAction('Signalement confirmé', "Domaine {$host} confirmé comme mort par l’administration (" . count($cards) . ' carte(s)).');
+            if (! $db->transStatus()) throw new \RuntimeException('La transaction de modération a échoué.');
+            $db->transCommit();
+            return redirect()->back()->with('message', "Le domaine {$host} est confirmé comme mort.");
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', 'Échec de confirmation du signalement {id}: {message}', ['id' => $id, 'message' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Le signalement n’a pas pu être confirmé.');
+        }
+    }
+
+    /** Reject a report, restore its cards, and place the host in the 7-day whitelist. */
+    public function rejectUserLinkReport(int $id)
+    {
+        $cronLogs = new CronLogModel();
+        $report = $cronLogs->find($id);
+        if (! $report || $report['task_name'] !== CronLogModel::TASK_PENDING_USER_REPORT) {
+            return redirect()->back()->with('error', 'Ce signalement est introuvable ou déjà traité.');
+        }
+
+        $host = $this->normalizeReportHost((string) $report['url_testee']);
+        if ($host === null) return redirect()->back()->with('error', 'Le domaine du signalement est invalide.');
+        $db = db_connect();
+        $db->transBegin();
+        try {
+            $itemModel = new ItemModel();
+            foreach ($this->activeCardsForReportHost($host) as $card) {
+                if ($card->link_status === 'reported' && ! $itemModel->update($card->id, ['link_status' => 'ok'])) {
+                    throw new \RuntimeException('Impossible de restaurer les cartes du domaine.');
+                }
+            }
+            $cronLogs->update($id, ['task_name' => CronLogModel::TASK_REJECTED_USER_REPORT]);
+
+            $whitelist = new WhitelistModel();
+            $existing = $whitelist->where('domain', $host)->first();
+            if ($existing) $whitelist->update($existing['id'], ['created_at' => date('Y-m-d H:i:s')]);
+            else $whitelist->insert(['domain' => $host, 'created_at' => date('Y-m-d H:i:s')]);
+
+            (new AuditLogModel())->logAction('Signalement rejeté', "Signalement du domaine {$host} rejeté par l’administration; délai de protection de 7 jours appliqué.");
+            if (! $db->transStatus()) throw new \RuntimeException('La transaction de modération a échoué.');
+            $db->transCommit();
+            return redirect()->back()->with('message', "Signalement rejeté. {$host} est protégé contre les nouveaux signalements pendant 7 jours.");
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', 'Échec du rejet du signalement {id}: {message}', ['id' => $id, 'message' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Le signalement n’a pas pu être rejeté.');
+        }
     }
 
     /**
@@ -241,7 +361,7 @@ class ItemController extends BaseController
     }
 
     /**
-     * Marque un domaine complet comme fonctionnel, le met en whitelist et retire ses alertes.
+     * Marque un domaine comme faux positif, le met temporairement en whitelist et retire ses alertes.
      */
     public function falseNegativeDomain()
     {
@@ -255,40 +375,42 @@ class ItemController extends BaseController
         $itemModel = new ItemModel();
         $whitelistModel = new WhitelistModel();
 
-        // Récupère toutes les alertes liées à ce domaine
-        $logs = $cronLogModel->where('task_name', 'check_dead_links')->where('url_testee', $url)->findAll();
-        
+        // Le domaine est protégé temporairement contre un nouveau faux signalement.
+        $host = $this->normalizeReportHost((string) $url) ?? '';
         $count = 0;
-        foreach ($logs as $log) {
-            if (!empty($log['item_id'])) {
-                // Restaure le statut OK sur la carte sans la supprimer
-                $itemModel->update($log['item_id'], ['link_status' => 'ok']);
-                $count++;
+        if ($host !== '') {
+            foreach ($this->activeCardsForReportHost($host) as $card) {
+                if (in_array($card->link_status, ['dead', 'reported'], true)) {
+                    $itemModel->update($card->id, ['link_status' => 'ok']);
+                    ++$count;
+                }
             }
         }
         
-        // Ajout automatique du domaine à la whitelist
-        $parsedUrl = parse_url($url);
-        $host = $parsedUrl['host'] ?? '';
-        
         if (!empty($host)) {
             // Nettoyage de sécurité basique
-            $host = preg_replace('/^www\./', '', $host);
-            
             $existing = $whitelistModel->where('domain', $host)->first();
             if (!$existing) {
                 $whitelistModel->insert([
                     'domain' => $host,
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
+            } else {
+                // A new false-negative review starts a fresh temporary cooldown.
+                $whitelistModel->update($existing['id'], ['created_at' => date('Y-m-d H:i:s')]);
             }
         }
         
         // Supprime l'alerte du tableau de bord
-        $cronLogModel->where('task_name', 'check_dead_links')->where('url_testee', $url)->delete();
+        $logs = $cronLogModel->where('task_name', CronLogModel::TASK_CONFIRMED_DEAD)->findAll();
+        foreach ($logs as $log) {
+            if ($this->normalizeReportHost((string) ($log['url_testee'] ?? '')) === $host) {
+                $cronLogModel->delete($log['id']);
+            }
+        }
         
-        (new AuditLogModel())->logAction('Faux Négatif', "L'alerte pour le domaine {$url} a été ignorée ({$count} cartes restaurées) et ajoutée à la whitelist.");
+        (new AuditLogModel())->logAction('Faux Négatif', "L'alerte pour le domaine {$url} a été ignorée ({$count} cartes restaurées) et mise en whitelist temporaire pour 7 jours.");
         
-        return redirect()->back()->with('message', "Alerte retirée et domaine ajouté à la liste de confiance. {$count} carte(s) marquée(s) comme fonctionnelle(s).");
+        return redirect()->back()->with('message', "Alerte retirée. Le domaine est considéré comme fonctionnel et ne pourra pas être signalé pendant 7 jours ({$count} carte(s) restaurée(s)).");
     }
 }

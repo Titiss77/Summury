@@ -10,11 +10,17 @@ use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
 use App\Models\SiteConfigModel;
 use App\Models\StatutModel;
+use App\Models\WhitelistModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use Config\Services;
 
 class ItemController extends BaseController
 {
+    private const USER_REPORT_LIMIT_PER_HOUR = 7;
+    private const USER_REPORT_LIMIT_PER_DAY = 25;
+    private const IP_REPORT_LIMIT_PER_HOUR = 15;
+    private const IP_REPORT_LIMIT_PER_DAY = 30;
+
     private $model;
     private $statutModel;
 
@@ -976,118 +982,246 @@ class ItemController extends BaseController
             $user->inGroup('admin', 'superadmin');
     }
 
-    /**
-     * Traite le signalement d'un lien mort par un utilisateur.
-     * Filtre les faux-positifs (si seul l'épisode est introuvable) en vérifiant l'état du domaine.
-     */
+    /** Normalize any card URL to its lowercase hostname. */
+    private function reportedLinkHost(string $url): ?string
+    {
+        $url = trim($url);
+        if ($url === '') return null;
+        if (str_starts_with($url, '//')) $url = 'https:' . $url;
+        elseif (! preg_match('~^https?://~i', $url)) $url = 'https://' . $url;
 
-    /**
-     * Traite le signalement d'un lien mort par un utilisateur.
-     * Filtre les faux-positifs avec une approche hybride (DNS + HTTP léger).
-     */
+        $host = parse_url($url, PHP_URL_HOST);
+        if (! is_string($host) || $host === '') return null;
+        $host = strtolower(rtrim($host, '.'));
+        return (string) preg_replace('/^www\./i', '', $host);
+    }
+
+    /** Check both historical reports and cards already marked dead for this host. */
+    private function domainAlreadyReported(string $host): bool
+    {
+        $db = db_connect();
+        $logs = $db->table('cron_logs')
+            ->select('url_testee')
+            ->whereIn('task_name', [CronLogModel::TASK_CONFIRMED_DEAD, CronLogModel::TASK_PENDING_USER_REPORT])
+            ->like('url_testee', $host)
+            ->get()->getResultArray();
+        foreach ($logs as $log) {
+            if ($this->reportedLinkHost((string) ($log['url_testee'] ?? '')) === $host) return true;
+        }
+
+        $deadItems = $db->table('item')
+            ->select('lien')
+            ->where('deleted_at', null)
+            ->whereIn('link_status', ['reported', 'dead'])
+            ->like('lien', $host)
+            ->get()->getResultArray();
+        foreach ($deadItems as $deadItem) {
+            if ($this->reportedLinkHost((string) ($deadItem['lien'] ?? '')) === $host) return true;
+        }
+
+        return false;
+    }
+
+    /** Whitelisted hosts, with or without the conventional www prefix, cannot be reported. */
+    private function isWhitelistedReportHost(string $host): bool
+    {
+        $normalize = function (string $domain): ?string {
+            $domain = $this->reportedLinkHost($domain);
+            return $domain === null ? null : (string) preg_replace('/^www\./i', '', $domain);
+        };
+        $normalizedHost = $normalize($host);
+        if ($normalizedHost === null) return false;
+
+        $cutoff = time() - (WhitelistModel::REPORT_COOLDOWN_DAYS * 86400);
+        foreach ((new WhitelistModel())->findAll() as $entry) {
+            if ($normalize((string) ($entry['domain'] ?? '')) !== $normalizedHost) continue;
+            $addedAt = strtotime((string) ($entry['created_at'] ?? ''));
+            if ($addedAt !== false && $addedAt >= $cutoff) return true;
+        }
+        return false;
+    }
+
+    /** Enforce rolling quotas per authenticated account and source IP. */
+    private function reportRateLimitMessage(): ?string
+    {
+        $db = db_connect();
+        $userId = (int) auth()->id();
+        $ipAddress = $this->request->getIPAddress();
+        $hourAgo = date('Y-m-d H:i:s', time() - 3600);
+        $dayAgo = date('Y-m-d H:i:s', time() - 86400);
+        $userHour = $db->table('audit_logs')->where('action', 'Signalement Utilisateur')->where('user_id', $userId)->where('created_at >=', $hourAgo)->countAllResults();
+        $userDay = $db->table('audit_logs')->where('action', 'Signalement Utilisateur')->where('user_id', $userId)->where('created_at >=', $dayAgo)->countAllResults();
+        $ipHour = $db->table('audit_logs')->where('action', 'Signalement Utilisateur')->where('ip_address', $ipAddress)->where('created_at >=', $hourAgo)->countAllResults();
+        $ipDay = $db->table('audit_logs')->where('action', 'Signalement Utilisateur')->where('ip_address', $ipAddress)->where('created_at >=', $dayAgo)->countAllResults();
+
+        if ($userHour >= self::USER_REPORT_LIMIT_PER_HOUR || $ipHour >= self::IP_REPORT_LIMIT_PER_HOUR) {
+            return 'Limite atteinte : réessayez dans une heure.';
+        }
+        if ($userDay >= self::USER_REPORT_LIMIT_PER_DAY || $ipDay >= self::IP_REPORT_LIMIT_PER_DAY) {
+            return 'Limite quotidienne de signalements atteinte.';
+        }
+        return null;
+    }
+
+    /** Find active cards whose parsed hostname exactly matches the reported domain. */
+    private function activeItemsForReportHost(string $host): array
+    {
+        $candidates = db_connect()->table('item')
+            ->select('id, titre, lien, link_status')
+            ->where('deleted_at', null)
+            ->where('lien IS NOT NULL', null, false)
+            ->like('lien', $host)
+            ->get()->getResult();
+
+        $matches = [];
+        foreach ($candidates as $candidate) {
+            if ($this->reportedLinkHost((string) $candidate->lien) === $host) $matches[] = $candidate;
+        }
+        return $matches;
+    }
+
+    /** Record user reports without making unreliable network checks. */
     public function reportLink()
     {
-        if (!auth()->loggedIn()) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Non autorisé.']);
-        }
-
-        $json = $this->request->getJSON();
-        if (!isset($json->id)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID manquant.']);
-        }
-
-        $itemId = $json->id;
-        $item = $this->model->find($itemId);
-
-        if (!$item || empty($item->lien)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Carte introuvable ou lien vide.']);
-        }
-
-        if ($item->link_status === 'dead') {
-            return $this->response->setJSON(['success' => false, 'message' => 'Ce lien est déjà signalé comme mort.']);
-        }
-
-        $parsed = parse_url($item->lien);
-        $host = $parsed['host'] ?? '';
-
-        if (empty($host)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'URL invalide.']);
-        }
-
-        $client = \Config\Services::curlrequest([
-            'timeout' => 5,
-            'connect_timeout' => 3,
-            'http_errors' => false,
-            'allow_redirects' => ['max' => 2],
-            'verify' => false,
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
-        ]);
-
-        $isDead = false;
-        $statusCode = 0;
-
-        try {
-            // ÉTAPE 1 : Vérification DNS native (plus rapide et non bloquée par le pare-feu HTTP)
-            if (!checkdnsrr($host, 'A') && !checkdnsrr($host, 'CNAME')) {
-                $isDead = true;
-                $statusCode = 404;
-            }
-
-            // ÉTAPE 2 : Si le DNS valide, on teste le serveur Web
-            if (!$isDead) {
-                $urlToTest = ($parsed['scheme'] ?? 'https') . '://' . $host;
-                $httpResponse = $client->request('GET', $urlToTest, ['headers' => ['Range' => 'bytes=0-1024']]);
-                $statusCode = $httpResponse->getStatusCode();
-
-                if (in_array($statusCode, [0, 404, 410, 521, 522, 523], true)) {
-                    $isDead = true;
-                }
-            }
-        } catch (\Exception $e) {
-            // Log l'erreur pour voir si c'est Byethost qui bloque (ex: "Connection refused")
-            log_message('error', '[ReportLink] Échec cURL sur ' . $host . ' : ' . $e->getMessage());
-
-            // Si c'est un timeout local de Byethost, on annule le signalement pour éviter les faux positifs
-            if (str_contains($e->getMessage(), 'timed out') || str_contains($e->getMessage(), 'Connection refused')) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'Impossible de vérifier ce lien à cause des restrictions du serveur.',
-                    'csrf_token' => csrf_hash()
-                ]);
-            }
-
-            $isDead = true;
-            $statusCode = 0;
-        }
-
-        // Le domaine existe et le serveur répond (Faux signalement)
-        if (!$isDead) {
-            return $this->response->setJSON([
+        if (! auth()->loggedIn()) {
+            return $this->response->setStatusCode(401)->setJSON([
                 'success' => false,
-                'message' => "Le site est en ligne. S'il manque l'épisode, c'est qu'il n'est pas encore sorti sur cette plateforme. Signalement refusé.",
-                'csrf_token' => csrf_hash()
+                'message' => 'Vous devez être connecté pour signaler un lien.',
+                'csrf_token' => csrf_hash(),
             ]);
         }
 
-        // Le domaine est bien mort, on enregistre le signalement
-        $this->model->update($itemId, ['link_status' => 'dead']);
+        $json = $this->request->getJSON();
+        $itemId = filter_var($json->id ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($itemId === false) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false, 'message' => 'ID de carte invalide.', 'csrf_token' => csrf_hash(),
+            ]);
+        }
 
-        $cronModel = new \App\Models\CronLogModel();
-        $cronModel->insert([
-            'task_name' => 'check_dead_links',
-            'last_run' => date('Y-m-d H:i:s'),
-            'item_id' => $itemId,
-            'titre' => $item->titre,
-            'url_testee' => ($parsed['scheme'] ?? 'https') . '://' . $host,
-            'code_erreur' => $statusCode,
-        ]);
+        $item = $this->model->find($itemId);
+        if (! $item || empty($item->lien)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false, 'message' => 'Carte introuvable ou lien vide.', 'csrf_token' => csrf_hash(),
+            ]);
+        }
 
-        (new \App\Models\AuditLogModel())->logAction('Signalement Utilisateur', "L'utilisateur " . auth()->user()->username . " a signalé la carte ID {$itemId} comme morte. Vérification confirmée par le serveur.");
+        $host = $this->reportedLinkHost((string) $item->lien);
+        if ($host === null) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false, 'message' => 'Le lien de cette carte ne contient pas de domaine valide.', 'csrf_token' => csrf_hash(),
+            ]);
+        }
+        if ($rateLimitMessage = $this->reportRateLimitMessage()) {
+            return $this->response->setStatusCode(429)->setJSON([
+                'success' => false, 'message' => $rateLimitMessage, 'csrf_token' => csrf_hash(),
+            ]);
+        }
+        if ($this->isWhitelistedReportHost($host)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
+                'csrf_token' => csrf_hash(),
+            ]);
+        }
 
-        return $this->response->setJSON([
-            'success' => true,
-            'message' => 'Lien confirmé mort et signalé. Merci !',
-            'csrf_token' => csrf_hash()
-        ]);
+        $db = db_connect();
+        // Serialize reports for a domain so simultaneous clicks cannot create duplicates.
+        $lockName = 'deadlink_' . substr(hash('sha256', $host), 0, 48);
+        $lockedHost = $host;
+        $lock = $db->query('SELECT GET_LOCK(?, 8) AS acquired', [$lockName])->getRowArray();
+        if ((int) ($lock['acquired'] ?? 0) !== 1) {
+            return $this->response->setStatusCode(503)->setJSON([
+                'success' => false, 'message' => 'Le signalement est temporairement occupé. Réessayez.', 'csrf_token' => csrf_hash(),
+            ]);
+        }
+
+        try {
+            $db->transBegin();
+            // Re-read under the domain lock in case another request changed it.
+            $item = $this->model->find($itemId);
+            if (! $item || empty($item->lien)) {
+                $db->transRollback();
+                return $this->response->setStatusCode(404)->setJSON([
+                    'success' => false, 'message' => 'Carte introuvable ou lien vide.', 'csrf_token' => csrf_hash(),
+                ]);
+            }
+            $host = $this->reportedLinkHost((string) $item->lien);
+            if ($host === null || $host !== $lockedHost) {
+                $db->transRollback();
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Le lien de cette carte a changé. Rechargez la page avant de le signaler.',
+                    'csrf_token' => csrf_hash(),
+                ]);
+            }
+            if ($this->isWhitelistedReportHost($host)) {
+                $db->transRollback();
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
+                    'csrf_token' => csrf_hash(),
+                ]);
+            }
+            if ($this->domainAlreadyReported($host)) {
+                $db->transRollback();
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Ce domaine a déjà un signalement en attente ou traité.',
+                    'csrf_token' => csrf_hash(),
+                ]);
+            }
+
+            $domainItems = $this->activeItemsForReportHost($host);
+            if ($domainItems === []) {
+                throw new \RuntimeException('Aucune carte active ne correspond à ce domaine.');
+            }
+            foreach ($domainItems as $domainItem) {
+                if (! $this->model->update($domainItem->id, ['link_status' => 'reported'])) {
+                    throw new \RuntimeException('Impossible de mettre à jour le statut des cartes du domaine.');
+                }
+            }
+
+            $now = date('Y-m-d H:i:s');
+            $cronLogId = (new CronLogModel())->insert([
+                'task_name' => CronLogModel::TASK_PENDING_USER_REPORT,
+                'last_run' => $now,
+                'item_id' => $itemId,
+                'titre' => $item->titre,
+                'url_testee' => 'https://' . $host . '/',
+                'code_erreur' => 0,
+            ]);
+            if (! $cronLogId) {
+                throw new \RuntimeException('Impossible d’enregistrer l’historique du signalement.');
+            }
+
+            $auditId = (new AuditLogModel())->logAction(
+                'Signalement Utilisateur',
+                'L’utilisateur ' . auth()->user()->username . " a signalé manuellement le domaine {$host} comme mort (carte ID {$itemId})."
+            );
+            if (! $auditId || ! $db->transStatus()) {
+                throw new \RuntimeException('Impossible d’enregistrer le journal d’audit.');
+            }
+
+            $db->transCommit();
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Signalement enregistré. Merci pour votre aide !',
+                'csrf_token' => csrf_hash(),
+            ]);
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', '[ReportLink] Échec du signalement du domaine {host}: {message}', [
+                'host' => $host,
+                'message' => $e->getMessage(),
+            ]);
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Le signalement n’a pas pu être enregistré. Réessayez plus tard.',
+                'csrf_token' => csrf_hash(),
+            ]);
+        } finally {
+            $db->query('SELECT RELEASE_LOCK(?)', [$lockName]);
+        }
     }
 }

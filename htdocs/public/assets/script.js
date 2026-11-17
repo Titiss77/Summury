@@ -727,155 +727,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // INIT FORCER CRON (Admin Liens Morts)
-    // ==========================================
-    const btnGenerateLinkList = document.getElementById('btn-generate-link-list');
-    if (btnGenerateLinkList) {
-        const listStatus = document.getElementById('link-list-status');
-        const downloadLink = document.getElementById('download-link-list');
-        btnGenerateLinkList.addEventListener('click', async function() {
-            this.disabled = true;
-            listStatus.textContent = 'Lecture de la base et dédoublonnage…';
-            try {
-                const response = await fetch(this.dataset.endpoint, { headers: { 'Accept': 'application/json' } });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
-                localStorage.removeItem('titiss-full-origin-scan');
-                downloadLink.href = data.download_url;
-                downloadLink.hidden = false;
-                listStatus.textContent = data.unique_origins + ' URL génériques uniques écrites dans liste.log.';
-            } catch (error) {
-                listStatus.textContent = 'Échec de génération : ' + error.message;
-            } finally {
-                this.disabled = false;
-            }
-        });
-    }
-
-    const btnForceCron = document.getElementById('btn-force-cron');
-    if (btnForceCron) {
-        const scanStatus = document.getElementById('cron-scan-status');
-        btnForceCron.addEventListener('click', async function() {
-            this.disabled = true;
-            scanStatus.textContent = 'Génération de la liste et chargement des domaines…';
-            try {
-                const csrfName = document.querySelector('meta[name="csrf-header"]')?.content;
-                const headers = { 'Accept': 'application/json' };
-                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                if (csrfName && csrfMeta?.content) headers[csrfName] = csrfMeta.content;
-                const startResponse = await fetch(this.dataset.endpoint, { method: 'POST', headers });
-                const scan = await startResponse.json();
-                if (!startResponse.ok) throw new Error(scan.message || ('HTTP ' + startResponse.status));
-                if (scan.csrf_token && csrfMeta) csrfMeta.content = scan.csrf_token;
-
-                const origins = scan.origins || [];
-                const results = [];
-                const apiBase = 'https://api.check-host.cc';
-                const delay = ms => new Promise(resolve => window.setTimeout(resolve, ms));
-                const lastDispatch = { at: 0 };
-
-                function checkSucceeded(value) {
-                    if (typeof value === 'string') return /^(ok|success|reply|responded)$/i.test(value.trim());
-                    if (Array.isArray(value)) return value.some(checkSucceeded);
-                    if (!value || typeof value !== 'object') return false;
-                    for (const [key, child] of Object.entries(value)) {
-                        if (['status', 'result', 'state'].includes(key.toLowerCase()) && typeof child === 'string' && /^(ok|success|reply|responded)$/i.test(child.trim())) return true;
-                        if (['time', 'time_ms', 'ping_ms', 'rtt'].includes(key.toLowerCase()) && Number(child) > 0) return true;
-                        if (checkSucceeded(child)) return true;
-                    }
-                    return false;
-                }
-
-                function checkFailed(value) {
-                    if (typeof value === 'string') return /timeout|fail|error|unreachable|no reply|no response|nxdomain|could not resolve|\bnok\b/i.test(value);
-                    if (Array.isArray(value)) return value.some(checkFailed);
-                    if (!value || typeof value !== 'object') return false;
-                    return Object.entries(value).some(([key, child]) =>
-                        ['status', 'result', 'state', 'error'].includes(key.toLowerCase()) && checkFailed(String(child))
-                    ) || Object.values(value).some(checkFailed);
-                }
-
-                async function pingOrigin(origin, index) {
-                    const host = new URL(origin).hostname;
-                    const waitForRateSlot = 2300 - (Date.now() - lastDispatch.at);
-                    if (lastDispatch.at && waitForRateSlot > 0) await delay(waitForRateSlot);
-                    let dispatch;
-                    for (let attempt = 0; attempt < 3; attempt++) {
-                        const response = await fetch(apiBase + '/ping', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                            body: JSON.stringify({ target: host, region: ['FR'], timeout: 1000, repeatchecks: 0 })
-                        });
-                        lastDispatch.at = Date.now();
-                        if (response.status === 429 && attempt < 2) {
-                            await delay(12000);
-                            continue;
-                        }
-                        if (!response.ok) throw new Error('Check-Host dispatch HTTP ' + response.status + ' pour ' + host);
-                        dispatch = await response.json();
-                        break;
-                    }
-                    if (!dispatch?.uuid) throw new Error('Check-Host n’a pas retourné de tâche pour ' + host);
-
-                    const reportUrl = dispatch.apiURL || (apiBase + '/report/' + encodeURIComponent(dispatch.uuid));
-                    let previous = '';
-                    let stablePolls = 0;
-                    for (let poll = 0; poll < 24; poll++) {
-                        await delay(1200);
-                        const response = await fetch(reportUrl, { headers: { 'Accept': 'application/json' } });
-                        if (!response.ok) continue;
-                        const report = await response.json();
-                        const nodes = Object.values(report.data || {});
-                        const checks = nodes.flatMap(node => Array.isArray(node.checks) ? node.checks : []);
-                        if (checks.some(checkSucceeded)) {
-                            results[index] = { origin, status: 'alive', http_code: 0 };
-                            scanStatus.textContent = '[' + (index + 1) + '/' + origins.length + '] PING OK : ' + host;
-                            return;
-                        }
-                        const snapshot = JSON.stringify(checks);
-                        if (checks.length > 0 && snapshot === previous) stablePolls++;
-                        else stablePolls = 0;
-                        previous = snapshot;
-                        if (checks.length > 0 && stablePolls >= 2 && checks.every(checkFailed)) {
-                            results[index] = { origin, status: 'dead', http_code: 0 };
-                            scanStatus.textContent = '[' + (index + 1) + '/' + origins.length + '] MORT - PING : ' + host;
-                            return;
-                        }
-                        if (checks.length > 0 && stablePolls >= 2) {
-                            results[index] = { origin, status: 'unknown', http_code: 0 };
-                            scanStatus.textContent = '[' + (index + 1) + '/' + origins.length + '] Résultat Ping ambigu : ' + host;
-                            return;
-                        }
-                    }
-
-                    results[index] = { origin, status: 'unknown', http_code: 0 };
-                    scanStatus.textContent = '[' + (index + 1) + '/' + origins.length + '] PING sans résultat exploitable : ' + host;
-                }
-
-                for (let i = 0; i < origins.length; i++) {
-                    await pingOrigin(origins[i], i);
-                }
-
-                scanStatus.textContent = 'Enregistrement des résultats…';
-                const csrfHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-                if (csrfName && csrfMeta?.content) csrfHeaders[csrfName] = csrfMeta.content;
-                const saveResponse = await fetch(this.dataset.resultsEndpoint, {
-                    method: 'POST',
-                    headers: csrfHeaders,
-                    body: JSON.stringify({ results })
-                });
-                const saved = await saveResponse.json();
-                if (!saveResponse.ok) throw new Error(saved.message || ('HTTP ' + saveResponse.status));
-                scanStatus.textContent = 'Scan terminé : ' + origins.length + ' domaines pingés, ' + saved.new_dead_cards + ' cartes marquées mortes.';
-                window.setTimeout(() => window.location.reload(), 1500);
-            } catch (error) {
-                scanStatus.textContent = 'Scan interrompu : ' + error.message;
-                this.disabled = false;
-            }
-        });
-    }
-
-    // ==========================================
     // 13. AJUSTEMENT AUTO TOTAL EPISODES VS SAISON
     // ==========================================
     const champSaison = document.getElementById('saison');
@@ -972,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
             
-            if (!confirm("Voulez-vous signaler ce site comme définitivement fermé ou inaccessible ?\n\nAttention : Ne signalez PAS si c'est seulement votre épisode qui n'est pas encore sorti !")) return;
+            if (!confirm("Voulez-vous signaler un problème sur ce domaine ? Le signalement sera vérifié par l’administration avant d’affecter les cartes.\n\nNe signalez pas si seul l’épisode demandé n’est pas encore disponible.")) return;
 
             const itemId = btn.getAttribute('data-id');
             btn.style.opacity = '0.3';
@@ -996,18 +847,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     if (typeof showToast === 'function') showToast(data.message, 'success');
                     
-                    // Remplacement visuel immédiat : barrer le titre en rouge
-                    const card = btn.closest('.card');
-                    if (card) {
-                        const titleEl = card.querySelector('.card-title');
-                        if (titleEl) {
-                            titleEl.classList.add('dead-title');
-                        }
-                    }
-                    
-                    // Remplacer le bouton par le texte "Lien Mort"
-                    const badgeHtml = '<span class="dead-link-badge-inline fade-in" style="margin-right: auto;">⚠️ Lien Mort</span>';
-                    btn.outerHTML = badgeHtml;
+                    // Tous les boutons du même domaine disparaissent immédiatement.
+                    const reportHost = btn.closest('.card')?.dataset.reportHost;
+                    document.querySelectorAll('.card[data-report-host]').forEach(card => {
+                        if (card.dataset.reportHost !== reportHost) return;
+                        card.querySelectorAll('.btn-report-link-inline').forEach(reportButton => {
+                            const badge = document.createElement('span');
+                            badge.className = 'dead-link-badge-inline fade-in';
+                            badge.title = 'En attente de vérification par l’administration.';
+                            badge.textContent = '⚠️ Signalé, en attente';
+                            if (reportButton.style.marginLeft) badge.style.marginLeft = reportButton.style.marginLeft;
+                            if (reportButton.style.marginRight) badge.style.marginRight = reportButton.style.marginRight;
+                            reportButton.replaceWith(badge);
+                        });
+                    });
                 } else {
                     // Refusé par le serveur anti-troll (Le site marche)
                     if (typeof showToast === 'function') showToast(data.message, 'warning');
