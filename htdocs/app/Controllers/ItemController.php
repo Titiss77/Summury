@@ -980,6 +980,7 @@ class ItemController extends BaseController
      * Traite le signalement d'un lien mort par un utilisateur.
      * Filtre les faux-positifs (si seul l'épisode est introuvable) en vérifiant l'état du domaine.
      */
+
     /**
      * Traite le signalement d'un lien mort par un utilisateur.
      * Filtre les faux-positifs avec une approche hybride (DNS + HTTP léger).
@@ -989,7 +990,7 @@ class ItemController extends BaseController
         if (!auth()->loggedIn()) {
             return $this->response->setJSON(['success' => false, 'message' => 'Non autorisé.']);
         }
-        
+
         $json = $this->request->getJSON();
         if (!isset($json->id)) {
             return $this->response->setJSON(['success' => false, 'message' => 'ID manquant.']);
@@ -997,7 +998,7 @@ class ItemController extends BaseController
 
         $itemId = $json->id;
         $item = $this->model->find($itemId);
-        
+
         if (!$item || empty($item->lien)) {
             return $this->response->setJSON(['success' => false, 'message' => 'Carte introuvable ou lien vide.']);
         }
@@ -1008,49 +1009,53 @@ class ItemController extends BaseController
 
         $parsed = parse_url($item->lien);
         $host = $parsed['host'] ?? '';
-        
+
         if (empty($host)) {
             return $this->response->setJSON(['success' => false, 'message' => 'URL invalide.']);
         }
 
         $client = \Config\Services::curlrequest([
-            'timeout'         => 5,
+            'timeout' => 5,
             'connect_timeout' => 3,
-            'http_errors'     => false,
+            'http_errors' => false,
             'allow_redirects' => ['max' => 2],
-            'verify'          => false,
-            'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
+            'verify' => false,
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
         ]);
-        
+
         $isDead = false;
         $statusCode = 0;
 
         try {
-            // ÉTAPE 1 : Vérification DNS via Google (Détecte les domaines expirés / saisis)
-            $dnsResponse = $client->get("https://dns.google/resolve?name=" . urlencode($host) . "&type=A");
-            if ($dnsResponse->getStatusCode() === 200) {
-                $dnsData = json_decode((string)$dnsResponse->getBody(), true);
-                // NXDOMAIN = Le domaine n'existe plus du tout
-                if (isset($dnsData['Status']) && $dnsData['Status'] === 3) {
-                    $isDead = true;
-                    $statusCode = 404;
-                }
+            // ÉTAPE 1 : Vérification DNS native (plus rapide et non bloquée par le pare-feu HTTP)
+            if (!checkdnsrr($host, 'A') && !checkdnsrr($host, 'CNAME')) {
+                $isDead = true;
+                $statusCode = 404;
             }
-            
-            // ÉTAPE 2 : Si le DNS valide, on teste le serveur Web (Détecte les hébergements fermés)
+
+            // ÉTAPE 2 : Si le DNS valide, on teste le serveur Web
             if (!$isDead) {
                 $urlToTest = ($parsed['scheme'] ?? 'https') . '://' . $host;
                 $httpResponse = $client->request('GET', $urlToTest, ['headers' => ['Range' => 'bytes=0-1024']]);
                 $statusCode = $httpResponse->getStatusCode();
-                
-                // 0 (timeout), 404 (not found), 410 (gone), 521/522/523 (serveur HS chez Cloudflare)
-                // Note : On ne met pas 403 ni 503 car c'est Cloudflare qui nous bloque (le site est donc vivant)
+
                 if (in_array($statusCode, [0, 404, 410, 521, 522, 523], true)) {
                     $isDead = true;
                 }
             }
         } catch (\Exception $e) {
-            // Si le serveur est totalement injoignable (Timeout direct de cURL)
+            // Log l'erreur pour voir si c'est Byethost qui bloque (ex: "Connection refused")
+            log_message('error', '[ReportLink] Échec cURL sur ' . $host . ' : ' . $e->getMessage());
+
+            // Si c'est un timeout local de Byethost, on annule le signalement pour éviter les faux positifs
+            if (str_contains($e->getMessage(), 'timed out') || str_contains($e->getMessage(), 'Connection refused')) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Impossible de vérifier ce lien à cause des restrictions du serveur.',
+                    'csrf_token' => csrf_hash()
+                ]);
+            }
+
             $isDead = true;
             $statusCode = 0;
         }
@@ -1059,21 +1064,21 @@ class ItemController extends BaseController
         if (!$isDead) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Le site est en ligne. S\'il manque l\'épisode, c\'est qu\'il n\'est pas encore sorti sur cette plateforme. Signalement refusé.',
+                'message' => "Le site est en ligne. S'il manque l'épisode, c'est qu'il n'est pas encore sorti sur cette plateforme. Signalement refusé.",
                 'csrf_token' => csrf_hash()
             ]);
         }
 
         // Le domaine est bien mort, on enregistre le signalement
         $this->model->update($itemId, ['link_status' => 'dead']);
-        
+
         $cronModel = new \App\Models\CronLogModel();
         $cronModel->insert([
-            'task_name'   => 'check_dead_links',
-            'last_run'    => date('Y-m-d H:i:s'),
-            'item_id'     => $itemId,
-            'titre'       => $item->titre,
-            'url_testee'  => ($parsed['scheme'] ?? 'https') . '://' . $host,
+            'task_name' => 'check_dead_links',
+            'last_run' => date('Y-m-d H:i:s'),
+            'item_id' => $itemId,
+            'titre' => $item->titre,
+            'url_testee' => ($parsed['scheme'] ?? 'https') . '://' . $host,
             'code_erreur' => $statusCode,
         ]);
 
