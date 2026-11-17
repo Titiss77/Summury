@@ -94,7 +94,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $connectSrc = 'self';
+    public $connectSrc = ['self', 'https://api.check-host.cc'];
 
     /**
      * Specifies the origins that can serve web fonts.

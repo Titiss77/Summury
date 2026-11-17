@@ -13,11 +13,13 @@
     <span id="link-list-status" role="status" aria-live="polite"></span>
     <button type="button" id="btn-force-cron"
         data-endpoint="<?php echo esc(base_url('a/d/scan')); ?>"
+        data-results-endpoint="<?php echo esc(base_url('a/d/scan/results')); ?>"
         class="btn" style="background: var(--warning); color: #fff; border: 0; cursor: pointer;">
-        Lancer le scan complet
+        Lancer le scan Ping
     </button>
     <span id="cron-scan-status" role="status" aria-live="polite"></span>
 </div>
+<p style="text-align: center; color: var(--text-muted);">Le ping est exécuté par Check-Host depuis ses nœuds externes. Les domaines de la liste lui sont transmis.</p>
 
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
     <div

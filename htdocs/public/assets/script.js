@@ -740,6 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch(this.dataset.endpoint, { headers: { 'Accept': 'application/json' } });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
+                localStorage.removeItem('titiss-full-origin-scan');
                 downloadLink.href = data.download_url;
                 downloadLink.hidden = false;
                 listStatus.textContent = data.unique_origins + ' URL génériques uniques écrites dans liste.log.';
@@ -753,46 +754,122 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const btnForceCron = document.getElementById('btn-force-cron');
     if (btnForceCron) {
-        const status = document.getElementById('cron-scan-status');
-        const storageKey = 'titiss-full-link-scan';
+        const scanStatus = document.getElementById('cron-scan-status');
         btnForceCron.addEventListener('click', async function() {
-            if (!confirm('Lancer ou reprendre le scan complet de toutes les cartes ? Cette opération enchaîne des lots et peut durer un moment.')) return;
-
-            let progress;
-            try {
-                progress = JSON.parse(localStorage.getItem(storageKey) || '{"afterId":0,"checked":0,"dead":0}');
-            } catch (_) {
-                progress = { afterId: 0, checked: 0, dead: 0 };
-            }
             this.disabled = true;
-            status.textContent = 'Scan en cours…';
+            scanStatus.textContent = 'Génération de la liste et chargement des domaines…';
             try {
-                while (true) {
-                    const previousAfterId = Number(progress.afterId || 0);
-                    const url = new URL(this.dataset.endpoint, window.location.href);
-                    url.searchParams.set('after_id', String(progress.afterId));
-                    const response = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
-                    progress.afterId = Number(data.next_after_id || progress.afterId);
-                    progress.checked += Number(data.checked || 0);
-                    progress.dead += Number(data.dead || 0);
-                    localStorage.setItem(storageKey, JSON.stringify(progress));
-                    status.textContent = 'Scan en cours : ' + progress.checked + ' cartes vérifiées, ' + progress.dead + ' liens morts détectés…';
+                const csrfName = document.querySelector('meta[name="csrf-header"]')?.content;
+                const headers = { 'Accept': 'application/json' };
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                if (csrfName && csrfMeta?.content) headers[csrfName] = csrfMeta.content;
+                const startResponse = await fetch(this.dataset.endpoint, { method: 'POST', headers });
+                const scan = await startResponse.json();
+                if (!startResponse.ok) throw new Error(scan.message || ('HTTP ' + startResponse.status));
+                if (scan.csrf_token && csrfMeta) csrfMeta.content = scan.csrf_token;
 
-                    if (data.complete || data.status === 'complete') {
-                        localStorage.removeItem(storageKey);
-                        status.textContent = 'Scan terminé : ' + progress.checked + ' cartes vérifiées, ' + progress.dead + ' nouveaux liens morts.';
-                        window.setTimeout(() => window.location.reload(), 1200);
+                const origins = scan.origins || [];
+                const results = [];
+                const apiBase = 'https://api.check-host.cc';
+                const delay = ms => new Promise(resolve => window.setTimeout(resolve, ms));
+                const lastDispatch = { at: 0 };
+
+                function checkSucceeded(value) {
+                    if (typeof value === 'string') return /^(ok|success|reply|responded)$/i.test(value.trim());
+                    if (Array.isArray(value)) return value.some(checkSucceeded);
+                    if (!value || typeof value !== 'object') return false;
+                    for (const [key, child] of Object.entries(value)) {
+                        if (['status', 'result', 'state'].includes(key.toLowerCase()) && typeof child === 'string' && /^(ok|success|reply|responded)$/i.test(child.trim())) return true;
+                        if (['time', 'time_ms', 'ping_ms', 'rtt'].includes(key.toLowerCase()) && Number(child) > 0) return true;
+                        if (checkSucceeded(child)) return true;
+                    }
+                    return false;
+                }
+
+                function checkFailed(value) {
+                    if (typeof value === 'string') return /timeout|fail|error|unreachable|no reply|no response|nxdomain|could not resolve|\bnok\b/i.test(value);
+                    if (Array.isArray(value)) return value.some(checkFailed);
+                    if (!value || typeof value !== 'object') return false;
+                    return Object.entries(value).some(([key, child]) =>
+                        ['status', 'result', 'state', 'error'].includes(key.toLowerCase()) && checkFailed(String(child))
+                    ) || Object.values(value).some(checkFailed);
+                }
+
+                async function pingOrigin(origin, index) {
+                    const host = new URL(origin).hostname;
+                    const waitForRateSlot = 2300 - (Date.now() - lastDispatch.at);
+                    if (lastDispatch.at && waitForRateSlot > 0) await delay(waitForRateSlot);
+                    let dispatch;
+                    for (let attempt = 0; attempt < 3; attempt++) {
+                        const response = await fetch(apiBase + '/ping', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify({ target: host, region: ['FR'], timeout: 1000, repeatchecks: 0 })
+                        });
+                        lastDispatch.at = Date.now();
+                        if (response.status === 429 && attempt < 2) {
+                            await delay(12000);
+                            continue;
+                        }
+                        if (!response.ok) throw new Error('Check-Host dispatch HTTP ' + response.status + ' pour ' + host);
+                        dispatch = await response.json();
                         break;
                     }
-                    if (Number(data.checked || 0) === 0 && Number(data.next_after_id || 0) === previousAfterId && !data.complete) {
-                        throw new Error('Le scan n’a pas avancé. Vous pouvez cliquer pour reprendre.');
+                    if (!dispatch?.uuid) throw new Error('Check-Host n’a pas retourné de tâche pour ' + host);
+
+                    const reportUrl = dispatch.apiURL || (apiBase + '/report/' + encodeURIComponent(dispatch.uuid));
+                    let previous = '';
+                    let stablePolls = 0;
+                    for (let poll = 0; poll < 24; poll++) {
+                        await delay(1200);
+                        const response = await fetch(reportUrl, { headers: { 'Accept': 'application/json' } });
+                        if (!response.ok) continue;
+                        const report = await response.json();
+                        const nodes = Object.values(report.data || {});
+                        const checks = nodes.flatMap(node => Array.isArray(node.checks) ? node.checks : []);
+                        if (checks.some(checkSucceeded)) {
+                            results[index] = { origin, status: 'alive', http_code: 0 };
+                            scanStatus.textContent = '[' + (index + 1) + '/' + origins.length + '] PING OK : ' + host;
+                            return;
+                        }
+                        const snapshot = JSON.stringify(checks);
+                        if (checks.length > 0 && snapshot === previous) stablePolls++;
+                        else stablePolls = 0;
+                        previous = snapshot;
+                        if (checks.length > 0 && stablePolls >= 2 && checks.every(checkFailed)) {
+                            results[index] = { origin, status: 'dead', http_code: 0 };
+                            scanStatus.textContent = '[' + (index + 1) + '/' + origins.length + '] MORT - PING : ' + host;
+                            return;
+                        }
+                        if (checks.length > 0 && stablePolls >= 2) {
+                            results[index] = { origin, status: 'unknown', http_code: 0 };
+                            scanStatus.textContent = '[' + (index + 1) + '/' + origins.length + '] Résultat Ping ambigu : ' + host;
+                            return;
+                        }
                     }
+
+                    results[index] = { origin, status: 'unknown', http_code: 0 };
+                    scanStatus.textContent = '[' + (index + 1) + '/' + origins.length + '] PING sans résultat exploitable : ' + host;
                 }
+
+                for (let i = 0; i < origins.length; i++) {
+                    await pingOrigin(origins[i], i);
+                }
+
+                scanStatus.textContent = 'Enregistrement des résultats…';
+                const csrfHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+                if (csrfName && csrfMeta?.content) csrfHeaders[csrfName] = csrfMeta.content;
+                const saveResponse = await fetch(this.dataset.resultsEndpoint, {
+                    method: 'POST',
+                    headers: csrfHeaders,
+                    body: JSON.stringify({ results })
+                });
+                const saved = await saveResponse.json();
+                if (!saveResponse.ok) throw new Error(saved.message || ('HTTP ' + saveResponse.status));
+                scanStatus.textContent = 'Scan terminé : ' + origins.length + ' domaines pingés, ' + saved.new_dead_cards + ' cartes marquées mortes.';
+                window.setTimeout(() => window.location.reload(), 1500);
             } catch (error) {
-                localStorage.setItem(storageKey, JSON.stringify(progress));
-                status.textContent = 'Scan interrompu. Cliquez à nouveau pour reprendre. ' + error.message;
+                scanStatus.textContent = 'Scan interrompu : ' + error.message;
                 this.disabled = false;
             }
         });
@@ -950,13 +1027,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==========================================
 window.addEventListener('load', function() {
     
-    // FETCH SILENCIEUX CRON
-    if (typeof siteConfig !== 'undefined' && siteConfig.cronUrl) {
-        setTimeout(function() {
-            fetch(siteConfig.cronUrl).catch(error => console.log('Tache de fond ignoree.'));
-        }, 5000); 
-    }
-
     const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));
     const supportedDomains = window.siteSupportedDomains || [];
     

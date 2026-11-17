@@ -71,7 +71,6 @@
     window.siteConfig = {
         "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
         "updateOrderUrl": "<?php echo base_url('o'); ?>",
-        "cronUrl": "<?php echo base_url('j'); ?>",
         "csrfHeader": "<?php echo csrf_header(); ?>",
         "csrfToken": "<?php echo csrf_hash(); ?>"
     };
