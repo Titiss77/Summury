@@ -1268,8 +1268,8 @@ select.form-control[hidden] {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background-color: var(--danger-bg);
-    color: var(--danger);
+    background-color: var(--bg-body);
+    color: var(--success-text);
     padding: 4px 10px;
     border-radius: var(--radius-pill);
     font-size: 0.75rem;

@@ -268,7 +268,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                     }
                                     ?>
                                 <div class="card fade-in searchable-card <?php echo 'Terminé' === $item->status ? 'status-completed' : ((!empty($item->episode) && !$isFuture) ? 'needs-dispo-check' : ''); ?>"
-                                    id="card-<?php echo esc($item->id); ?>" data-id="<?php echo esc($item->id); ?>" data-report-host="<?php echo esc($reportHost); ?>"
+                                    id="card-<?php echo esc($item->id); ?>" data-id="<?php echo esc($item->id); ?>"
+                                    data-report-host="<?php echo esc($reportHost); ?>"
                                     data-status="<?php echo esc($item->status); ?>"
                                     data-category="<?php echo esc($divisionName); ?>"
                                     data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
@@ -334,11 +335,15 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <?php if (!$isOwner && ($isReported || $isPendingReport || $isWhitelistedReport || $canReport)) { ?>
                                             <div style="margin-top: 12px; margin-bottom: -4px;">
                                                 <?php if ($isPendingReport) { ?>
-                                                <span class="dead-link-badge-inline" title="En attente de vérification par l’administration.">⚠️ Signalé, en attente</span>
+                                                <span class="dead-link-badge-inline"
+                                                    title="En attente de vérification par l’administration.">⚠️
+                                                    Signalé</span>
                                                 <?php } elseif ($isReported) { ?>
-                                                <span class="dead-link-badge-inline" title="Signalement traité par l’administration.">Signalement traité</span>
+                                                <span class="dead-link-badge-inline"
+                                                    title="Signalement traité par l’administration.">❌</span>
                                                 <?php } elseif ($isWhitelistedReport) { ?>
-                                                <span class="dead-link-badge-inline" title="Ce domaine a été vérifié récemment.">Domaine vérifié récemment</span>
+                                                <span class="dead-link-badge-inline"
+                                                    title="Ce domaine a été vérifié récemment.">✔</span>
                                                 <?php } elseif ($canReport) { ?>
                                                 <button type="button" class="btn-report-link-inline"
                                                     data-id="<?php echo esc($item->id); ?>"
@@ -400,11 +405,17 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <?php if ($isOwner) { ?>
                                     <div class="card-actions-bottom">
                                         <?php if ($isPendingReport) { ?>
-                                        <span class="dead-link-badge-inline" style="margin-right: auto; margin-left: -8px;" title="En attente de vérification par l’administration.">⚠️ Signalé, en attente</span>
+                                        <span class="dead-link-badge-inline"
+                                            style="margin-right: auto; margin-left: -8px;"
+                                            title="En attente de vérification par l’administration.">⚠️ Signalé</span>
                                         <?php } elseif ($isReported) { ?>
-                                        <span class="dead-link-badge-inline" style="margin-right: auto; margin-left: -8px;" title="Signalement traité par l’administration.">Signalement traité</span>
+                                        <span class="dead-link-badge-inline"
+                                            style="margin-right: auto; margin-left: -8px;"
+                                            title="Signalement traité par l’administration.">❌</span>
                                         <?php } elseif ($isWhitelistedReport) { ?>
-                                        <span class="dead-link-badge-inline" style="margin-right: auto; margin-left: -8px;" title="Ce domaine a été vérifié récemment.">Domaine vérifié récemment</span>
+                                        <span class="dead-link-badge-inline"
+                                            style="margin-right: auto; margin-left: -8px;"
+                                            title="Ce domaine a été vérifié récemment.">✔</span>
                                         <?php } elseif ($canReport) { ?>
                                         <button type="button" class="btn-report-link-inline"
                                             style="margin-right: auto; margin-left: -8px;"
