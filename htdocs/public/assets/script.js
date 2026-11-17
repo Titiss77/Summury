@@ -750,8 +750,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const url = new URL(this.dataset.endpoint, window.location.href);
                     url.searchParams.set('after_id', String(progress.afterId));
                     const response = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
                     const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
                     progress.afterId = Number(data.next_after_id || progress.afterId);
                     progress.checked += Number(data.checked || 0);
                     progress.dead += Number(data.dead || 0);

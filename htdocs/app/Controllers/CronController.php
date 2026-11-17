@@ -43,6 +43,13 @@ class CronController extends BaseController
         $now = date('Y-m-d H:i:s');
         $cutoff = date('Y-m-d H:i:s', strtotime('-' . self::RECHECK_AFTER_DAYS . ' days'));
         $db = db_connect();
+        $hasLinkCheckedAt = $db->fieldExists('link_checked_at', 'item');
+        if (! $hasLinkCheckedAt && ! $fullScan) {
+            return $this->response->setStatusCode(503)->setJSON([
+                'status' => 'migration_required',
+                'message' => 'Appliquez la migration link_checked_at pour activer le cron automatique.',
+            ]);
+        }
         $builder = $db->table('item')
             ->select('id, titre, lien, episode, link_status')
             ->where('deleted_at', null)
@@ -94,7 +101,8 @@ class CronController extends BaseController
 
             if ($host !== '' && in_array($host, $whitelist, true)) {
                 // Trusted domains are intentionally exempt from automated classification.
-                $db->table('item')->where('id', $item->id)->update(['link_checked_at' => $now]);
+                $trustedUpdate = $hasLinkCheckedAt ? ['link_checked_at' => $now] : [];
+                if ($trustedUpdate !== []) $db->table('item')->where('id', $item->id)->update($trustedUpdate);
                 continue;
             }
 
@@ -134,11 +142,11 @@ class CronController extends BaseController
             // Retry inconclusive network outcomes the next day instead of
             // delaying them for the full 30-day healthy-link interval.
             $nextCheckAt = $isConclusive ? $now : date('Y-m-d H:i:s', strtotime('-29 days'));
-            $update = ['link_checked_at' => $nextCheckAt];
+            $update = $hasLinkCheckedAt ? ['link_checked_at' => $nextCheckAt] : [];
             if ($isDead && $item->link_status !== 'dead') $update['link_status'] = 'dead';
             elseif ($isConclusive && ! $isDead && $item->link_status === 'dead') $update['link_status'] = 'ok';
             // Direct query builder keeps ItemModel timestamps from changing updated_at.
-            $db->table('item')->where('id', $item->id)->update($update);
+            if ($update !== []) $db->table('item')->where('id', $item->id)->update($update);
 
             if ($isDead && $item->link_status !== 'dead') {
                 $cronLogs->insert([

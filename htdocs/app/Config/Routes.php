@@ -85,8 +85,10 @@ $routes->group('a', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:
     $routes->post('b', 'ItemController::bulkUpdateDomain');
     $routes->get('l', 'AuditController::index');
     $routes->get('fnd', 'ItemController::falseNegativeDomain');
-    $routes->get('d/scan', '\\App\\Controllers\\CronController::adminScan');
 });
+
+// Route du scan complet, explicitement liée au contrôleur racine et protégée admin.
+$routes->get('a/d/scan', 'CronController::adminScan', ['filter' => 'group:superadmin,admin']);
 
 // Anciennes URL d'administration.
 $routes->group('users', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
