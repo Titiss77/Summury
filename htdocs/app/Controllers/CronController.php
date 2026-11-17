@@ -88,13 +88,17 @@ class CronController extends BaseController
         $checked = $dead = $inconclusive = 0;
         $lastProcessedId = $afterId;
         $cronLogs = new CronLogModel();
+        $checksByOrigin = [];
 
         foreach ($rows as $item) {
             if (microtime(true) - $started >= self::MAX_SECONDS) break;
             $lastProcessedId = (int) $item->id;
-            $url = str_replace(['{ep2}', '{ep}'], [str_pad((string) ($item->episode ?: 1), 2, '0', STR_PAD_LEFT), (string) ($item->episode ?: 1)], trim((string) $item->lien));
-            $parts = parse_url($url);
+            // Test the origin only; chapter and episode paths can legitimately 404.
+            $parts = parse_url(trim((string) $item->lien));
             $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
+            $scheme = strtolower((string) ($parts['scheme'] ?? 'https'));
+            $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+            $urlToTest = $scheme . '://' . $host . $port . '/';
             $isDead = false;
             $statusCode = 0;
             $isConclusive = false;
@@ -106,7 +110,9 @@ class CronController extends BaseController
                 continue;
             }
 
-            if (ExternalUrlGuard::isPublicHttpUrl($url)) {
+            if (array_key_exists($urlToTest, $checksByOrigin)) {
+                [$isDead, $statusCode, $isConclusive] = $checksByOrigin[$urlToTest];
+            } elseif (ExternalUrlGuard::isPublicHttpUrl($urlToTest)) {
                 try {
                     // Require NXDOMAIN from two independent DoH operators. A blocked DoH
                     // request or any timeout remains inconclusive and never kills a link.
@@ -123,7 +129,7 @@ class CronController extends BaseController
                         $isDead = $isConclusive = true;
                         $statusCode = 404;
                     } else {
-                        $response = $client->get($url);
+                        $response = $client->get($urlToTest);
                         $statusCode = $response->getStatusCode();
                         if (in_array($statusCode, [404, 410], true)) {
                             $isDead = $isConclusive = true;
@@ -135,6 +141,7 @@ class CronController extends BaseController
                     // Network restrictions, TLS errors, rate limits and timeouts are unknown.
                     log_message('debug', '[Cron] Vérification inconclusive pour {host}: {error}', ['host' => $host, 'error' => $e->getMessage()]);
                 }
+                $checksByOrigin[$urlToTest] = [$isDead, $statusCode, $isConclusive];
             }
 
             ++$checked;
@@ -152,7 +159,7 @@ class CronController extends BaseController
                 $cronLogs->insert([
                     'task_name' => 'check_dead_links', 'last_run' => $now,
                     'item_id' => $item->id, 'titre' => $item->titre,
-                    'url_testee' => $url, 'code_erreur' => $statusCode,
+                    'url_testee' => $urlToTest, 'code_erreur' => $statusCode,
                 ]);
                 ++$dead;
             }
