@@ -89,6 +89,8 @@ $routes->group('a', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:
 
 // Route du scan complet, explicitement liée au contrôleur racine et protégée admin.
 $routes->get('a/d/scan', 'CronController::adminScan', ['filter' => 'group:superadmin,admin']);
+$routes->get('a/d/list', 'CronController::generateLinkList', ['filter' => 'group:superadmin,admin']);
+$routes->get('a/d/list/download', 'CronController::downloadLinkList', ['filter' => 'group:superadmin,admin']);
 
 // Anciennes URL d'administration.
 $routes->group('users', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {

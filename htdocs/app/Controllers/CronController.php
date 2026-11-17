@@ -36,6 +36,89 @@ class CronController extends BaseController
         return $this->processBatch(true, $afterId);
     }
 
+    /** Build a reviewable, deduplicated list of generic URL origins from active items. */
+    public function generateLinkList()
+    {
+        $origins = [];
+        $lastId = 0;
+        $db = db_connect();
+
+        do {
+            $items = $db->table('item')
+                ->select('id, lien')
+                ->where('id >', $lastId)
+                ->where('deleted_at', null)
+                ->where('lien IS NOT NULL', null, false)
+                ->where('lien !=', '')
+                ->orderBy('id', 'ASC')
+                ->limit(500)
+                ->get()->getResult();
+
+            foreach ($items as $item) {
+                $lastId = (int) $item->id;
+                $origin = $this->genericOrigin((string) $item->lien);
+                if ($origin !== null) {
+                    $parts = parse_url($origin);
+                    $hostKey = strtolower((string) ($parts['host'] ?? '')) . (isset($parts['port']) ? ':' . $parts['port'] : '');
+                    if (! isset($origins[$hostKey]) || ($parts['scheme'] ?? '') === 'https') {
+                        $origins[$hostKey] = $origin;
+                    }
+                }
+            }
+        } while (count($items) === 500);
+
+        $list = array_values($origins);
+        sort($list, SORT_STRING);
+        $directory = WRITEPATH . 'logs' . DIRECTORY_SEPARATOR;
+        if (! is_dir($directory) && ! mkdir($directory, 0750, true) && ! is_dir($directory)) {
+            return $this->response->setStatusCode(500)->setJSON(['status' => 'error', 'message' => 'Impossible de créer le répertoire des journaux.']);
+        }
+
+        $written = file_put_contents($directory . 'liste.log', implode(PHP_EOL, $list) . PHP_EOL, LOCK_EX);
+        if ($written === false) {
+            return $this->response->setStatusCode(500)->setJSON(['status' => 'error', 'message' => 'Impossible d’écrire liste.log.']);
+        }
+
+        return $this->response->setJSON([
+            'status' => 'generated',
+            'unique_origins' => count($list),
+            'download_url' => base_url('a/d/list/download'),
+        ]);
+    }
+
+    /** Download the generated list; this route is protected by the admin filter. */
+    public function downloadLinkList()
+    {
+        $path = WRITEPATH . 'logs' . DIRECTORY_SEPARATOR . 'liste.log';
+        if (! is_file($path)) {
+            return $this->response->setStatusCode(404)->setJSON(['status' => 'missing', 'message' => 'Générez d’abord la liste des liens.']);
+        }
+
+        return $this->response->download($path, null, true);
+    }
+
+    private function genericOrigin(string $url): ?string
+    {
+        $url = trim($url);
+        if ($url === '') return null;
+        if (str_starts_with($url, '//')) $url = 'https:' . $url;
+        elseif (! preg_match('~^https?://~i', $url)) $url = 'https://' . $url;
+
+        $parts = parse_url($url);
+        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+        $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
+        if (! in_array($scheme, ['http', 'https'], true) || $host === '' || isset($parts['user']) || isset($parts['pass'])) {
+            return null;
+        }
+
+        $port = $parts['port'] ?? null;
+        if ($port !== null && !(($scheme === 'https' && $port === 443) || ($scheme === 'http' && $port === 80))) {
+            $host .= ':' . $port;
+        }
+
+        return $scheme . '://' . $host . '/';
+    }
+
     private function processBatch(bool $fullScan, int $afterId)
     {
 

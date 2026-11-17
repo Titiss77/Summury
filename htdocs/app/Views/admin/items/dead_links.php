@@ -4,10 +4,17 @@
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" onclick="return retourAuxCartes(event, this.href);"
         class="btn btn-cancel">Retour aux cartes</a>
+    <button type="button" id="btn-generate-link-list"
+        data-endpoint="<?php echo esc(base_url('a/d/list')); ?>"
+        class="btn" style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); cursor: pointer;">
+        Générer la liste des URL
+    </button>
+    <a id="download-link-list" href="<?php echo esc(base_url('a/d/list/download')); ?>" hidden>Télécharger liste.log</a>
+    <span id="link-list-status" role="status" aria-live="polite"></span>
     <button type="button" id="btn-force-cron"
         data-endpoint="<?php echo esc(base_url('a/d/scan')); ?>"
         class="btn" style="background: var(--warning); color: #fff; border: 0; cursor: pointer;">
-        Lancer un scan complet
+        Lancer le scan complet
     </button>
     <span id="cron-scan-status" role="status" aria-live="polite"></span>
 </div>

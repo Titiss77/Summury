@@ -729,6 +729,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // INIT FORCER CRON (Admin Liens Morts)
     // ==========================================
+    const btnGenerateLinkList = document.getElementById('btn-generate-link-list');
+    if (btnGenerateLinkList) {
+        const listStatus = document.getElementById('link-list-status');
+        const downloadLink = document.getElementById('download-link-list');
+        btnGenerateLinkList.addEventListener('click', async function() {
+            this.disabled = true;
+            listStatus.textContent = 'Lecture de la base et dédoublonnage…';
+            try {
+                const response = await fetch(this.dataset.endpoint, { headers: { 'Accept': 'application/json' } });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
+                downloadLink.href = data.download_url;
+                downloadLink.hidden = false;
+                listStatus.textContent = data.unique_origins + ' URL génériques uniques écrites dans liste.log.';
+            } catch (error) {
+                listStatus.textContent = 'Échec de génération : ' + error.message;
+            } finally {
+                this.disabled = false;
+            }
+        });
+    }
+
     const btnForceCron = document.getElementById('btn-force-cron');
     if (btnForceCron) {
         const status = document.getElementById('cron-scan-status');
