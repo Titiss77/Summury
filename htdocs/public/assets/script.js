@@ -731,37 +731,47 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     const btnForceCron = document.getElementById('btn-force-cron');
     if (btnForceCron) {
-        btnForceCron.addEventListener('click', function() {
-            const btn = this;
-            if (confirm('Lancer la vérification complète de tous les liens maintenant ? Cela peut prendre quelques dizaines de secondes.')) {
-                btn.disabled = true;
-                btn.style.opacity = '0.6';
-                btn.innerHTML = '⏳ Analyse en cours... Veuillez patienter...';
-                
-                const cronUrl = siteConfig.cronUrl.includes('?') ? siteConfig.cronUrl + '&force=1' : siteConfig.cronUrl + '?force=1';
-                
-                fetch(cronUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'executed') {
-                            alert('Scan terminé avec succès !\n\nCartes inspectées : ' + data.total_cards +
-                                   '\nURL uniques vérifiées : ' + data.unique_urls +
-                                   '\nNouveaux liens rompus identifiés : ' + data.dead_count);
-                        } else if (data.status === 'running') {
-                            alert('Une vérification des liens est déjà en cours.');
-                        } else if (data.status === 'skipped') {
-                            alert('La vérification a déjà été effectuée cette semaine.');
-                        } else {
-                            alert(data.message || 'Le scan a retourné un statut inattendu.');
-                        }
-                        window.location.reload();
-                    })
-                    .catch(error => {
-                        alert('Une erreur réseau ou un timeout est survenu durant le scan des serveurs distants.');
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                        btn.innerHTML = '↻ Relancer la vérification (Forcer le scan)';
-                    });
+        const status = document.getElementById('cron-scan-status');
+        const storageKey = 'titiss-full-link-scan';
+        btnForceCron.addEventListener('click', async function() {
+            if (!confirm('Lancer ou reprendre le scan complet de toutes les cartes ? Cette opération enchaîne des lots et peut durer un moment.')) return;
+
+            let progress;
+            try {
+                progress = JSON.parse(localStorage.getItem(storageKey) || '{"afterId":0,"checked":0,"dead":0}');
+            } catch (_) {
+                progress = { afterId: 0, checked: 0, dead: 0 };
+            }
+            this.disabled = true;
+            status.textContent = 'Scan en cours…';
+            try {
+                while (true) {
+                    const previousAfterId = Number(progress.afterId || 0);
+                    const url = new URL(this.dataset.endpoint, window.location.href);
+                    url.searchParams.set('after_id', String(progress.afterId));
+                    const response = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    const data = await response.json();
+                    progress.afterId = Number(data.next_after_id || progress.afterId);
+                    progress.checked += Number(data.checked || 0);
+                    progress.dead += Number(data.dead || 0);
+                    localStorage.setItem(storageKey, JSON.stringify(progress));
+                    status.textContent = 'Scan en cours : ' + progress.checked + ' cartes vérifiées, ' + progress.dead + ' liens morts détectés…';
+
+                    if (data.complete || data.status === 'complete') {
+                        localStorage.removeItem(storageKey);
+                        status.textContent = 'Scan terminé : ' + progress.checked + ' cartes vérifiées, ' + progress.dead + ' nouveaux liens morts.';
+                        window.setTimeout(() => window.location.reload(), 1200);
+                        break;
+                    }
+                    if (Number(data.checked || 0) === 0 && Number(data.next_after_id || 0) === previousAfterId && !data.complete) {
+                        throw new Error('Le scan n’a pas avancé. Vous pouvez cliquer pour reprendre.');
+                    }
+                }
+            } catch (error) {
+                localStorage.setItem(storageKey, JSON.stringify(progress));
+                status.textContent = 'Scan interrompu. Cliquez à nouveau pour reprendre. ' + error.message;
+                this.disabled = false;
             }
         });
     }

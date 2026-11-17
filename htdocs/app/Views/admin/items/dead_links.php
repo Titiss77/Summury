@@ -4,6 +4,12 @@
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" onclick="return retourAuxCartes(event, this.href);"
         class="btn btn-cancel">Retour aux cartes</a>
+    <button type="button" id="btn-force-cron"
+        data-endpoint="<?php echo esc(base_url('a/d/scan')); ?>"
+        class="btn" style="background: var(--warning); color: #fff; border: 0; cursor: pointer;">
+        Lancer un scan complet
+    </button>
+    <span id="cron-scan-status" role="status" aria-live="polite"></span>
 </div>
 
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">

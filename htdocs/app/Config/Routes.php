@@ -85,6 +85,7 @@ $routes->group('a', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:
     $routes->post('b', 'ItemController::bulkUpdateDomain');
     $routes->get('l', 'AuditController::index');
     $routes->get('fnd', 'ItemController::falseNegativeDomain');
+    $routes->get('d/scan', '\\App\\Controllers\\CronController::adminScan');
 });
 
 // Anciennes URL d'administration.

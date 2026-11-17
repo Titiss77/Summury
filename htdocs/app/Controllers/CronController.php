@@ -26,25 +26,41 @@ class CronController extends BaseController
             return $this->response->setStatusCode(403)->setJSON(['status' => 'forbidden']);
         }
 
+        return $this->processBatch(false, 0);
+    }
+
+    /** Admin-only bounded batch used repeatedly by the full-scan button. */
+    public function adminScan()
+    {
+        $afterId = max(0, (int) $this->request->getGet('after_id'));
+        return $this->processBatch(true, $afterId);
+    }
+
+    private function processBatch(bool $fullScan, int $afterId)
+    {
+
         $started = microtime(true);
         $now = date('Y-m-d H:i:s');
         $cutoff = date('Y-m-d H:i:s', strtotime('-' . self::RECHECK_AFTER_DAYS . ' days'));
         $db = db_connect();
-        $rows = $db->table('item')
+        $builder = $db->table('item')
             ->select('id, titre, lien, episode, link_status')
             ->where('deleted_at', null)
             ->where('lien IS NOT NULL', null, false)
-            ->where('lien !=', '')
-            ->groupStart()
+            ->where('lien !=', '');
+        if ($fullScan) {
+            $builder->where('id >', $afterId)->orderBy('id', 'ASC');
+        } else {
+            $builder->groupStart()
                 ->where('link_checked_at', null)
                 ->orWhere('link_checked_at <', $cutoff)
-            ->groupEnd()
-            ->orderBy('link_checked_at', 'ASC')
-            ->limit(self::MAX_ITEMS)
-            ->get()->getResult();
+                ->groupEnd()
+                ->orderBy('link_checked_at', 'ASC');
+        }
+        $rows = $builder->limit(self::MAX_ITEMS)->get()->getResult();
 
         if ($rows === []) {
-            return $this->response->setJSON(['status' => 'idle', 'checked' => 0, 'dead' => 0]);
+            return $this->response->setJSON(['status' => $fullScan ? 'complete' : 'idle', 'complete' => true, 'checked' => 0, 'dead' => 0, 'next_after_id' => $afterId]);
         }
 
         $whitelist = array_map(static fn ($d) => strtolower(rtrim((string) $d, '.')), (new WhitelistModel())->findColumn('domain') ?? []);
@@ -63,10 +79,12 @@ class CronController extends BaseController
         ]);
 
         $checked = $dead = $inconclusive = 0;
+        $lastProcessedId = $afterId;
         $cronLogs = new CronLogModel();
 
         foreach ($rows as $item) {
             if (microtime(true) - $started >= self::MAX_SECONDS) break;
+            $lastProcessedId = (int) $item->id;
             $url = str_replace(['{ep2}', '{ep}'], [str_pad((string) ($item->episode ?: 1), 2, '0', STR_PAD_LEFT), (string) ($item->episode ?: 1)], trim((string) $item->lien));
             $parts = parse_url($url);
             $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
@@ -133,9 +151,13 @@ class CronController extends BaseController
         }
 
         if ($dead > 0) (new AuditLogModel())->logAction('Cron', "Vérification auto : {$dead} nouveaux liens morts détectés.");
+        $lastBatchId = (int) $rows[count($rows) - 1]->id;
+        $batchFinished = $lastProcessedId >= $lastBatchId;
+
         return $this->response->setJSON([
-            'status' => 'executed', 'checked' => $checked, 'dead' => $dead,
+            'status' => 'executed', 'complete' => $fullScan && $batchFinished && count($rows) < self::MAX_ITEMS, 'checked' => $checked, 'dead' => $dead,
             'inconclusive' => $inconclusive, 'remaining_batch' => max(0, count($rows) - $checked),
+            'next_after_id' => $lastProcessedId,
             // Keep the former response keys for any older admin tooling.
             'total_cards' => $checked, 'unique_urls' => $checked, 'dead_count' => $dead,
         ]);
