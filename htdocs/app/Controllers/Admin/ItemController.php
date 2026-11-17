@@ -204,26 +204,19 @@ class ItemController extends BaseController
     public function deadLinks()
     {
         $cronLogModel = new CronLogModel();
-        $itemModel = new ItemModel();
-        
-        $items = $itemModel->asArray()->select('lien')->findAll();
-        
+        $deadItems = $cronLogModel->where('task_name', CronLogModel::TASK_CONFIRMED_DEAD)
+            ->where('item_id IS NOT NULL')->findAll();
+
+        // The migration menu must only offer domains already confirmed as dead.
         $domains = [];
-        foreach ($items as $item) {
-            if (!empty($item['lien'])) {
-                $parsedUrl = parse_url($item['lien']);
-                if (isset($parsedUrl['host'])) {
-                    $domain = $parsedUrl['host'];
-                    if (!in_array($domain, $domains)) {
-                        $domains[] = $domain;
-                    }
-                }
-            }
+        foreach ($deadItems as $deadItem) {
+            $domain = $this->normalizeReportHost((string) ($deadItem['url_testee'] ?? ''));
+            if ($domain !== null) $domains[$domain] = $domain;
         }
-        
+        $domains = array_values($domains);
         sort($domains);
         return view('admin/items/dead_links', [
-            'deadItems' => $cronLogModel->where('task_name', CronLogModel::TASK_CONFIRMED_DEAD)->where('item_id IS NOT NULL')->findAll(),
+            'deadItems' => $deadItems,
             'pendingReports' => (new CronLogModel())->where('task_name', CronLogModel::TASK_PENDING_USER_REPORT)->orderBy('last_run', 'ASC')->findAll(),
             'domains' => $domains,
         ]);
