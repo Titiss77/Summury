@@ -12,6 +12,8 @@ use CodeIgniter\Model;
  */
 class ItemModel extends Model
 {
+    public const PERSONAL_DIVISION_ID = 12;
+
     protected $table = 'item';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
@@ -70,12 +72,16 @@ class ItemModel extends Model
         // Cartes publiques pour les visiteurs,
         // cartes personnelles + publiques pour le propriétaire.
         if (null === $userId) {
-            $builder->where('i.is_public', 1);
+            $builder->where('i.is_public', 1)
+                ->where('i.id_division !=', self::PERSONAL_DIVISION_ID);
         } else {
             $builder
                 ->groupStart()
                 ->where('i.id_user', $userId)
-                ->orWhere('i.is_public', 1)
+                ->orGroupStart()
+                ->where('i.is_public', 1)
+                ->where('i.id_division !=', self::PERSONAL_DIVISION_ID)
+                ->groupEnd()
                 ->groupEnd()
             ;
         }
@@ -125,12 +131,16 @@ class ItemModel extends Model
         ;
 
         if (null === $userId) {
-            $builder->where('i.is_public', 1);
+            $builder->where('i.is_public', 1)
+                ->where('i.id_division !=', self::PERSONAL_DIVISION_ID);
         } else {
             $builder
                 ->groupStart()
                 ->where('i.id_user', $userId)
-                ->orWhere('i.is_public', 1)
+                ->orGroupStart()
+                ->where('i.is_public', 1)
+                ->where('i.id_division !=', self::PERSONAL_DIVISION_ID)
+                ->groupEnd()
                 ->groupEnd()
             ;
         }

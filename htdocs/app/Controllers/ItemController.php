@@ -111,6 +111,9 @@ class ItemController extends BaseController
 
             $wantsPublic = $this->request->getPost('is_public');
             $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
+            if ((int) ($data['id_division'] ?? 0) === ItemModel::PERSONAL_DIVISION_ID) {
+                $data['is_public'] = 0;
+            }
 
             // Formatage des données optionnelles
             $releaseDate = $this->request->getPost('date_sortie');
@@ -1086,6 +1089,7 @@ class ItemController extends BaseController
         $candidates = db_connect()->table('item')
             ->select('id, titre, lien, link_status')
             ->where('deleted_at', null)
+            ->where('id_division !=', ItemModel::PERSONAL_DIVISION_ID)
             ->where('lien IS NOT NULL', null, false)
             ->like('lien', $host)
             ->get()->getResult();
@@ -1120,6 +1124,13 @@ class ItemController extends BaseController
         if (! $item || empty($item->lien)) {
             return $this->response->setStatusCode(404)->setJSON([
                 'success' => false, 'message' => 'Carte introuvable ou lien vide.', 'csrf_token' => csrf_hash(),
+            ]);
+        }
+        if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
+                'csrf_token' => csrf_hash(),
             ]);
         }
 
@@ -1161,6 +1172,14 @@ class ItemController extends BaseController
                 $db->transRollback();
                 return $this->response->setStatusCode(404)->setJSON([
                     'success' => false, 'message' => 'Carte introuvable ou lien vide.', 'csrf_token' => csrf_hash(),
+                ]);
+            }
+            if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
+                $db->transRollback();
+                return $this->response->setStatusCode(403)->setJSON([
+                    'success' => false,
+                    'message' => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
+                    'csrf_token' => csrf_hash(),
                 ]);
             }
             $host = $this->reportedLinkHost((string) $item->lien);

@@ -97,7 +97,9 @@ if (isset($subCategories) && is_array($subCategories)) {
                 </select>
             </div>
 
-            <div class="col-half" style="display: flex; align-items: flex-end; padding-bottom: 5px;">
+            <div id="public-option" class="col-half"
+                style="display: <?php echo (isset($item) && (int) $item->id_division === \App\Models\ItemModel::PERSONAL_DIVISION_ID) ? 'none' : 'flex'; ?>; align-items: flex-end; padding-bottom: 5px;"
+                <?php echo (isset($item) && (int) $item->id_division === \App\Models\ItemModel::PERSONAL_DIVISION_ID) ? 'hidden' : ''; ?>>
                 <div>
                     <input type="checkbox" id="is_public" name="is_public" value="1"
                         <?php echo (isset($item) && in_array($item->is_public, [1, 2])) ? 'checked' : ''; ?>>

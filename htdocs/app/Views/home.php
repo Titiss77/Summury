@@ -240,6 +240,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                 foreach ($items as $item) {
                                     $isOwner = auth()->loggedIn() && (int) $item->id_user === (int) auth()->id();
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || $isOwner);
+                                    $isPersonalDivision = (int) $item->id_division === \App\Models\ItemModel::PERSONAL_DIVISION_ID;
                                     
                                     // Variables d'état du lien
                                     $linkForReportHost = trim((string) $item->lien);
@@ -248,10 +249,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                     $reportHost = parse_url($linkForReportHost, PHP_URL_HOST);
                                     $reportHost = is_string($reportHost) ? (string) preg_replace('/^www\./i', '', strtolower(rtrim($reportHost, '.'))) : '';
                                     $domainReportState = $reportDomainStates[$reportHost] ?? null;
-                                    $isReported = $item->link_status === 'dead' || $domainReportState === 'confirmed';
-                                    $isPendingReport = $item->link_status === 'reported' || $domainReportState === 'pending';
-                                    $isWhitelistedReport = $domainReportState === 'whitelist';
-                                    $canReport = auth()->loggedIn() && !empty($item->lien) && !$isReported && !$isPendingReport && !$isWhitelistedReport;
+                                    $isReported = !$isPersonalDivision && ($item->link_status === 'dead' || $domainReportState === 'confirmed');
+                                    $isPendingReport = !$isPersonalDivision && ($item->link_status === 'reported' || $domainReportState === 'pending');
+                                    $isWhitelistedReport = !$isPersonalDivision && $domainReportState === 'whitelist';
+                                    $canReport = !$isPersonalDivision && auth()->loggedIn() && !empty($item->lien) && !$isReported && !$isPendingReport && !$isWhitelistedReport;
 
                                     $isFuture = false;
                                     $dateSortieFormatted = '';

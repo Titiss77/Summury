@@ -408,12 +408,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressFields = document.getElementById('progress-fields');
     const publicCheckbox = document.getElementById('is_public');
     const publicPreview = document.getElementById('public-preview');
+    const publicOption = document.getElementById('public-option');
 
     const updateFormHints = () => {
         const type = (divisionSelect?.selectedOptions[0]?.textContent || '')
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .toLocaleLowerCase('fr');
+        const isPersonalDivision = type.trim() === 'personnelles';
+        if (publicOption) publicOption.hidden = isPersonalDivision;
+        if (publicOption) publicOption.style.display = isPersonalDivision ? 'none' : 'flex';
+        if (isPersonalDivision && publicCheckbox) publicCheckbox.checked = false;
         if (progressFields) progressFields.hidden = !/(serie|tv|anime|animation|manga)/i.test(type);
         if (publicPreview && publicCheckbox) publicPreview.hidden = !publicCheckbox.checked;
     };

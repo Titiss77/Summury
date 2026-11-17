@@ -75,6 +75,15 @@ class ItemController extends BaseController
         $item = $itemModel->find($id);
         
         if ($item) {
+            if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
+                $itemModel->update($id, [
+                    'is_public' => 0,
+                    'status' => $item->status === 'Public' ? 'Aucun' : $item->status,
+                ]);
+                (new AuditLogModel())->logAction('Modération : Carte personnelle gardée privée', "La carte personnelle ID {$id} ('{$item->titre}') ne peut pas être publiée.");
+                return redirect()->back()->with('error', 'Cette carte appartient à la division Personnelles et ne peut pas être publiée.');
+            }
+
             $itemModel->update($id, [
                 'is_public' => 1,
                 'status'    => 'Public'
@@ -236,6 +245,7 @@ class ItemController extends BaseController
         $candidates = db_connect()->table('item')
             ->select('id, titre, lien, link_status')
             ->where('deleted_at', null)
+            ->where('id_division !=', ItemModel::PERSONAL_DIVISION_ID)
             ->where('lien IS NOT NULL', null, false)
             ->like('lien', $host)
             ->get()->getResult();
