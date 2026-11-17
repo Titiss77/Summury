@@ -1298,11 +1298,6 @@ select.form-control[hidden] {
     background: var(--danger-bg);
 }
 
-.dead-title {
-    text-decoration: line-through;
-    color: var(--danger) !important;
-}
-
 @media (max-width: 576px) {
     .card-actions-bottom {
         flex-direction: column;
