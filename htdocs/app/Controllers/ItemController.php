@@ -16,10 +16,10 @@ use Config\Services;
 
 class ItemController extends BaseController
 {
-    private const USER_REPORT_LIMIT_PER_HOUR = 100;
-    private const USER_REPORT_LIMIT_PER_DAY = 100;
-    private const IP_REPORT_LIMIT_PER_HOUR = 100;
-    private const IP_REPORT_LIMIT_PER_DAY = 100;
+    private const USER_REPORT_LIMIT_PER_HOUR = 3;
+    private const USER_REPORT_LIMIT_PER_DAY = 21;
+    private const IP_REPORT_LIMIT_PER_HOUR = 7;
+    private const IP_REPORT_LIMIT_PER_DAY = 49;
 
     private $model;
     private $statutModel;
@@ -1148,7 +1148,7 @@ class ItemController extends BaseController
         if ($this->isWhitelistedReportHost($host)) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
+                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 3 jours.',
                 'csrf_token' => csrf_hash(),
             ]);
         }

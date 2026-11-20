@@ -9,7 +9,7 @@ use CodeIgniter\Model;
  */
 class WhitelistModel extends Model
 {
-    public const REPORT_COOLDOWN_DAYS = 7;
+    public const REPORT_COOLDOWN_DAYS = 3;
 
     protected $table = 'whitelist';
     protected $primaryKey = 'id';
