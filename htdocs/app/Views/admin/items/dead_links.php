@@ -200,7 +200,7 @@
                             <?php echo esc($validDomain['expires_at']); ?>)<?php } ?>
                         </small>
                         <?php } else { ?>
-                        <small style="color: var(--text-muted);">Protection 7j expirée</small>
+                        <small style="color: var(--text-muted);">Protection de 7j expirée</small>
                         <?php } ?>
                     </td>
                     <td style="padding: 12px;">
