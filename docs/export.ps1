@@ -1,18 +1,29 @@
 ﻿$htdocs = (Resolve-Path (Join-Path $PSScriptRoot '..\htdocs')).Path
-$appDir = if (Test-Path (Join-Path $htdocs 'app')) { Join-Path $htdocs 'app' } else { $htdocs }
 $root = $htdocs + '\'
-$out = Join-Path $PSScriptRoot 'context.md'
+$out = Join-Path $PSScriptRoot 'context.txt'
 
-@(
-  (Join-Path $appDir 'Controllers'),
-  (Join-Path $appDir 'Views'),
-  (Join-Path $appDir 'Config\Routes.php'),
-  (Join-Path $appDir 'Models')
-) | Get-ChildItem -File -Recurse | ForEach-Object {
-  "## $($_.FullName.Replace($root, ''))"
-  '```php'
-  Get-Content $_.FullName -Encoding UTF8
-  '```'
-} | Set-Content $out -Encoding UTF8
+$excludedExtensions = @('.ico', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.woff', '.woff2', '.ttf', '.eot', '.zip', '.pdf')
+$excludedNames = @('.gitkeep')
 
-Write-Host "Fichier généré : $out"
+$targets = @('app', 'public') | ForEach-Object { Join-Path $htdocs $_ } | Where-Object { Test-Path $_ }
+
+$blocks = $targets | Get-ChildItem -File -Recurse | Where-Object {
+  ($excludedExtensions -notcontains $_.Extension.ToLower()) -and
+  ($excludedNames -notcontains $_.Name)
+} | Sort-Object FullName | ForEach-Object {
+  $relPath = $_.FullName.Replace($root, '').Replace('\', '/')
+  $lang = switch ($_.Extension.ToLower()) {
+    '.php' { 'php' }
+    '.js' { 'javascript' }
+    '.css' { 'css' }
+    '.html' { 'html' }
+    '.json' { 'json' }
+    '.sql' { 'sql' }
+    default { '' }
+  }
+  $content = [string](Get-Content $_.FullName -Raw -Encoding UTF8)
+  "## $relPath`r`n``````$lang`r`n$($content.TrimEnd())`r`n``````"
+}
+
+$blocks -join "`r`n`r`n" | Set-Content $out -Encoding UTF8
+Write-Host "Fichier généré ($($blocks.Count) fichiers) : $out"
