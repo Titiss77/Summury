@@ -1035,7 +1035,7 @@ class ItemController extends BaseController
         $normalizedHost = $normalize($host);
         if ($normalizedHost === null) return false;
 
-        $cutoff = time() - (WhitelistModel::REPORT_COOLDOWN_DAYS * 86400);
+        $cutoff = time() - (WhitelistModel::PROTECTION_DAYS * 86400);
         foreach ((new WhitelistModel())->findAll() as $entry) {
             if ($normalize((string) ($entry['domain'] ?? '')) !== $normalizedHost) continue;
             $addedAt = strtotime((string) ($entry['created_at'] ?? ''));

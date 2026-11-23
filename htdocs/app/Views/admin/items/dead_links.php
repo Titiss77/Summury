@@ -84,8 +84,9 @@
                                 <button type="submit" class="btn-action"
                                     style="background: var(--success); color: #fff;">Rejeter / fonctionnel</button>
                             </form>
-                            <a href="<?php echo esc($report['url_testee'], 'attr'); ?>" target="_blank" rel="noopener noreferrer"
-                                class="btn-action" style="background: var(--text-muted); color: #fff;">Tester</a>
+                            <a href="<?php echo esc($report['url_testee'], 'attr'); ?>" target="_blank"
+                                rel="noopener noreferrer" class="btn-action"
+                                style="background: var(--text-muted); color: #fff;">Tester</a>
                         </div>
                     </td>
                 </tr>
@@ -100,7 +101,7 @@
     <h3>Domaines confirmés comme morts</h3>
     <?php if (empty($deadItems)) { ?>
     <div class="empty-state"
-        style="text-align: center; padding: 40px 0; color: var(--text-muted); background: var(--bg-body); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+        style="text-align: center; padding: 40px 0; color: var(--text-muted); background: var(--bg-body); border-radius: var(--radius-md); border: 1px dashed var(--border-color); margin-bottom: 30px;">
         <p style="font-size: 1.2em; margin: 0;">Aucun domaine n’a été signalé comme mort pour le moment.</p>
     </div>
     <?php
@@ -115,7 +116,7 @@
         $grouped[$url][] = $item;
     }
     ?>
-    <div class="admin-table-container fade-in">
+    <div class="admin-table-container fade-in" style="margin-bottom: 30px;">
         <table class="admin-table" style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr>
@@ -144,7 +145,76 @@
                                 style="background-color: var(--warning); color: #fff;"
                                 onclick="return confirm('Marquer ce domaine comme fonctionnel (Faux Négatif) pour toutes ces cartes ? L\'alerte disparaîtra.');">Faux
                                 Négatif</a>
-                            <a href="<?php echo esc($url); ?>" target="_blank" class="btn-action"
+                            <a href="<?php echo esc($url, 'attr'); ?>" target="_blank" rel="noopener noreferrer"
+                                class="btn-action" style="background: var(--text-muted); color: #fff;">Tester le
+                                lien</a>
+                        </div>
+                    </td>
+                </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+    <?php } ?>
+
+    <h3>Domaines déclarés comme valides (<?php echo count($validDomains ?? []); ?>)</h3>
+    <?php if (empty($validDomains)) { ?>
+    <div class="empty-state"
+        style="text-align: center; padding: 40px 0; color: var(--text-muted); background: var(--bg-body); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+        <p style="font-size: 1.2em; margin: 0;">Aucun domaine n’a été déclaré comme valide pour le moment.</p>
+    </div>
+    <?php } else { ?>
+    <div class="admin-table-container fade-in">
+        <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Domaine déclaré valide</th>
+                    <th>Cartes associées</th>
+                    <th>Validé le</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($validDomains as $validDomain) { ?>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td
+                        style="padding: 12px; max-width: 300px; word-break: break-all; font-family: monospace; font-size: 0.9em; color: var(--success);">
+                        <strong><?php echo esc($validDomain['url']); ?></strong>
+                    </td>
+                    <td style="padding: 12px;">
+                        <?php if (!empty($validDomain['items'])) { ?>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 0.9em; color: var(--text-main);">
+                            <?php foreach ($validDomain['items'] as $card) { ?>
+                            <li><strong><?php echo esc($card->titre); ?></strong></li>
+                            <?php } ?>
+                        </ul>
+                        <?php } else { ?>
+                        <span style="font-size: 0.9em; color: var(--text-muted);">Aucune carte active</span>
+                        <?php } ?>
+                    </td>
+                    <td style="padding: 12px; font-size: 0.9em;">
+                        <div><?php echo esc($validDomain['created_at'] ?? '-'); ?></div>
+                        <?php if (!empty($validDomain['is_protected'])) { ?>
+                        <small style="color: var(--success);">
+                            Protection 7j active<?php if (!empty($validDomain['expires_at'])) { ?> (jusqu’au
+                            <?php echo esc($validDomain['expires_at']); ?>)<?php } ?>
+                        </small>
+                        <?php } else { ?>
+                        <small style="color: var(--text-muted);">Protection 7j expirée</small>
+                        <?php } ?>
+                    </td>
+                    <td style="padding: 12px;">
+                        <div class="action-links" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <form action="<?php echo base_url('a/d/valid/' . $validDomain['id'] . '/dead'); ?>"
+                                method="post">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="btn-action" style="background: var(--danger); color: #fff;"
+                                    onclick="return confirm('Retirer ce domaine des liens valides et déclarer toutes ses cartes actives comme mortes ?');">
+                                    Déclarer mort
+                                </button>
+                            </form>
+                            <a href="<?php echo esc($validDomain['url'], 'attr'); ?>" target="_blank"
+                                rel="noopener noreferrer" class="btn-action"
                                 style="background: var(--text-muted); color: #fff;">Tester le lien</a>
                         </div>
                     </td>

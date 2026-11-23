@@ -42,7 +42,7 @@ class HomeController extends BaseController
             if (! isset($states[$host]) || $state === 'confirmed') $states[$host] = $state;
         }
 
-        $whitelistCutoff = date('Y-m-d H:i:s', time() - (WhitelistModel::REPORT_COOLDOWN_DAYS * 86400));
+        $whitelistCutoff = date('Y-m-d H:i:s', time() - (WhitelistModel::PROTECTION_DAYS * 86400));
         $whitelist = (new WhitelistModel())->where('created_at >=', $whitelistCutoff)->findAll();
         foreach ($whitelist as $entry) {
             $host = $normalizeHost((string) ($entry['domain'] ?? ''));

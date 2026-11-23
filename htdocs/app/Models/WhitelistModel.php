@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use CodeIgniter\Model;
 
 class WhitelistModel extends Model
 {
+    public const PROTECTION_DAYS = 7;
+
     protected $table            = 'whitelist';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
@@ -15,41 +19,62 @@ class WhitelistModel extends Model
     protected $useTimestamps    = false;
 
     /**
-     * Récupère tous les domaines en liste blanche avec le nombre de cartes actives associées.
+     * Retourne tous les domaines déclarés comme valides, du plus récent au plus ancien.
      */
-    public function getAllWithItemCount(): array
+    public function getAllOrdered(): array
     {
-        $entries = $this->orderBy('created_at', 'DESC')->findAll();
-        $db      = \Config\Database::connect();
-
-        foreach ($entries as &$entry) {
-            $cleanDomain = preg_replace('#^https?://#i', '', trim((string) $entry['domain']));
-            $cleanDomain = rtrim($cleanDomain, '/');
-
-            $entry['clean_domain'] = $cleanDomain;
-            $entry['items_count']  = $db->table('item')
-                ->where('deleted_at', null)
-                ->like('lien', $cleanDomain, 'both')
-                ->countAllResults();
-        }
-
-        return $entries;
+        return $this->orderBy('created_at', 'DESC')->findAll();
     }
 
     /**
-     * Supprime une entrée par domaine normalisé (avec ou sans schéma).
+     * Ajoute ou renouvelle la date de validation d'un domaine dans la whitelist.
      */
-    public function removeByDomain(string $domain): bool
+    public function upsertDomain(string $host): bool
     {
-        $clean = preg_replace('#^https?://#i', '', trim($domain));
-        $clean = rtrim($clean, '/');
+        $now      = date('Y-m-d H:i:s');
+        $existing = $this->where('domain', $host)->first();
 
-        return (bool) $this->groupStart()
-                ->where('domain', $domain)
-                ->orWhere('domain', $clean)
-                ->orWhere('domain', 'https://' . $clean)
-                ->orWhere('domain', 'http://' . $clean)
-            ->groupEnd()
-            ->delete();
+        if ($existing) {
+            return (bool) $this->update($existing['id'], ['created_at' => $now]);
+        }
+
+        return (bool) $this->insert([
+            'domain'     => $host,
+            'created_at' => $now,
+        ]);
+    }
+
+    /**
+     * Indique si le délai de protection de 7 jours est toujours actif.
+     */
+    public function isProtectionActive(?string $createdAt): bool
+    {
+        if (empty($createdAt)) {
+            return false;
+        }
+
+        $timestamp = strtotime($createdAt);
+        if ($timestamp === false) {
+            return false;
+        }
+
+        return ($timestamp + (self::PROTECTION_DAYS * 86400)) > time();
+    }
+
+    /**
+     * Calcule la date de fin de protection (created_at + 7 jours).
+     */
+    public function getProtectionExpiresAt(?string $createdAt): ?string
+    {
+        if (empty($createdAt)) {
+            return null;
+        }
+
+        $timestamp = strtotime($createdAt);
+        if ($timestamp === false) {
+            return null;
+        }
+
+        return date('Y-m-d H:i:s', $timestamp + (self::PROTECTION_DAYS * 86400));
     }
 }

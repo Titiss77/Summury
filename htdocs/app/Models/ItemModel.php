@@ -433,77 +433,19 @@ class ItemModel extends Model
     }
 
     /**
-     * Récupère les cartes actives dont le lien est déclaré valide (link_status = 'ok').
+     * Récupère les cartes actives non-personnelles candidates pour un domaine donné.
      */
-    public function getValidLinks(): array
+    public function getActiveNonPersonalCandidatesByHost(string $host): array
     {
-        $select = 'item.id, item.titre, item.lien, item.link_status, item.is_public, item.episode, item.saison, item.updated_at, users.username';
-
-        if ($this->db->fieldExists('link_checked_at', 'item')) {
-            $select .= ', item.link_checked_at';
-        }
-
-        return $this->select($select)
-            ->join('users', 'users.id = item.id_user', 'left')
-            ->where('item.deleted_at', null)
-            ->where('item.lien !=', '')
-            ->where('item.lien IS NOT NULL', null, false)
-            ->where('item.link_status', 'ok')
-            ->orderBy('item.updated_at', 'DESC')
-            ->findAll();
-    }
-
-    /**
-     * Déclare une carte précise comme ayant un lien mort.
-     */
-    public function markAsDead(int $itemId): bool
-    {
-        $data = [
-            'link_status' => 'dead',
-            'updated_at'  => date('Y-m-d H:i:s'),
-        ];
-
-        if ($this->db->fieldExists('link_checked_at', 'item')) {
-            $data['link_checked_at'] = date('Y-m-d H:i:s');
-        }
-
-        return (bool) $this->update($itemId, $data);
-    }
-
-    /**
-     * Déclare toutes les cartes actives d'un domaine comme ayant un lien mort.
-     *
-     * @return array Liste des cartes impactées
-     */
-    public function markDomainAsDead(string $domain): array
-    {
-        $cleanDomain = preg_replace('#^https?://#i', '', trim($domain));
-        $cleanDomain = rtrim($cleanDomain, '/');
-
-        if ($cleanDomain === '') {
-            return [];
-        }
-
-        $items = $this->where('deleted_at', null)
-            ->like('lien', $cleanDomain, 'both')
-            ->findAll();
-
-        if (empty($items)) {
-            return [];
-        }
-
-        $data = [
-            'link_status' => 'dead',
-            'updated_at'  => date('Y-m-d H:i:s'),
-        ];
-
-        if ($this->db->fieldExists('link_checked_at', 'item')) {
-            $data['link_checked_at'] = date('Y-m-d H:i:s');
-        }
-
-        $ids = array_column($items, 'id');
-        $this->whereIn('id', $ids)->set($data)->update();
-
-        return $items;
+        return $this->db
+            ->table($this->table)
+            ->select('id, titre, lien, link_status')
+            ->where('deleted_at', null)
+            ->where('id_division !=', self::PERSONAL_DIVISION_ID)
+            ->where('lien IS NOT NULL', null, false)
+            ->like('lien', $host)
+            ->get()
+            ->getResult()
+        ;
     }
 }
