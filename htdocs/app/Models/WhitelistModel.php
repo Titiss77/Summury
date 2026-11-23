@@ -8,7 +8,7 @@ use CodeIgniter\Model;
 
 class WhitelistModel extends Model
 {
-    public const PROTECTION_DAYS = 7;
+    public const PROTECTION_DAYS = 3;
 
     protected $table            = 'whitelist';
     protected $primaryKey       = 'id';
