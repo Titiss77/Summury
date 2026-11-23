@@ -1,6 +1,0 @@
-@(
-  "app/Controllers",
-  "app/Views",
-  "app/Config/Routes.php",
-  "app/Models"
-) | ForEach-Object { "===== $_ ====="; Get-Content $_ } | Set-Content context.txt -Encoding UTF8
