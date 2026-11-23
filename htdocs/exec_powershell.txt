@@ -1,0 +1,8 @@
+@(
+  "app/Controllers/Admin/ItemController.php",
+  "app/Views/admin/items/dead_links.php",
+  "app/Config/Routes.php",
+  "app/Models/ItemModel.php",
+  "app/Models/WhitelistModel.php",
+  "app/Libraries/ExternalUrlGuard.php"
+) | ForEach-Object { "===== $_ ====="; Get-Content $_ } | Set-Content context.txt -Encoding UTF8

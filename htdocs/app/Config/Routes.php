@@ -104,6 +104,10 @@ $routes->group('items', ['namespace' => 'App\Controllers\Admin', 'filter' => 'gr
     $routes->get('dead-links', static fn() => redirect()->to('a/d'));
     $routes->get('delete/(:num)', static fn(string $id) => redirect()->to('a/d/' . $id));
     $routes->post('bulk-update-domain', 'ItemController::bulkUpdateDomain');
+    
+    $routes->post('items/test-valid-link', 'Admin\ItemController::testValidLink');
+    $routes->post('items/declare-dead/(:num)', 'Admin\ItemController::declareItemDead/$1');
+    $routes->post('items/declare-domain-dead/(:num)', 'Admin\ItemController::declareWhitelistDomainDead/$1');
 });
 $routes->group('audit', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('/', static fn() => redirect()->to('a/l'));
