@@ -245,6 +245,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // 4. INCREMENTATION ASYNCHRONE (+1 Episode)
     // ==========================================
+    async function refreshCardDispo(itemId, targetUrl) {
+        const liveStatus = document.getElementById(`live-status-${itemId}`);
+        if (!liveStatus || !targetUrl) return;
+
+        const domains = Array.isArray(window.siteSupportedDomains) ? window.siteSupportedDomains : [];
+        const isSupported = domains.some(domain => targetUrl.includes(domain));
+        if (!isSupported) return;
+
+        liveStatus.style.color = 'var(--info)';
+        liveStatus.textContent = 'Vérification...';
+
+        const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
+        try {
+            const resp = await fetch(`${baseUrl}q?urlCible=${encodeURIComponent(targetUrl)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const dispoData = await resp.json();
+            if (dispoData.success) {
+                if (dispoData.disponible) {
+                    liveStatus.style.color = 'var(--success)';
+                    liveStatus.textContent = '✔ Disponible';
+                } else {
+                    liveStatus.style.color = 'var(--danger)';
+                    liveStatus.textContent = '✖ Indisponible';
+                }
+            } else {
+                liveStatus.style.color = 'var(--text-muted)';
+                liveStatus.textContent = 'Indisponible';
+            }
+        } catch (_) {
+            liveStatus.style.color = 'var(--text-muted)';
+            liveStatus.textContent = 'Vérif. impossible';
+        }
+    }
+
     document.querySelectorAll('.btn-increment-episode').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -281,7 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (data.success) {
-                    // 1. Mise à jour de l'épisode + animation
                     if (epSpan) {
                         epSpan.innerText = data.new_episode;
                         epSpan.style.color = 'var(--success)';
@@ -292,17 +326,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         }, 400);
                     }
 
-                    // 2. Mise à jour de la saison (si changement de saison)
                     if (seasonSpan && data.new_saison) {
                         seasonSpan.innerText = data.new_saison;
                     }
 
-                    // 3. Mise à jour du total d'épisodes de la saison
                     if (epTotalSpan && 'new_total_episodes' in data) {
                         epTotalSpan.innerText = data.new_total_episodes ? ` / ${data.new_total_episodes}` : '';
                     }
 
-                    // 4. Mise à jour du statut
                     if (data.status) {
                         if (statusSpan) statusSpan.innerText = data.status;
                         if (card) {
@@ -311,15 +342,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                 card.classList.add('status-completed');
                                 card.classList.remove('needs-dispo-check');
                                 const liveStatus = document.getElementById(`live-status-${itemId}`);
-                                if (liveStatus) liveStatus.remove();
+                                if (liveStatus) liveStatus.style.display = 'none';
                             }
                         }
+                    }
 
-                    // 5. Mise à jour du lien de la carte (pour ouvrir directement le nouvel épisode)
                     if (card && data.new_link) {
                         card.dataset.url = data.new_link;
                         const linkEl = card.querySelector('.card-link-block');
                         if (linkEl) linkEl.href = data.new_link;
+                        if (data.status !== 'Terminé') {
+                            refreshCardDispo(itemId, data.new_link);
+                        }
                     }
 
                     if (typeof showToast === 'function') {
@@ -329,7 +363,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         showToast(msg, 'success');
                     }
                 } else {
-                    console.error("Erreur renvoyée par PHP :", data);
                     if (typeof showToast === 'function') {
                         showToast(data.error || 'Erreur lors de la mise à jour.', 'danger');
                     }
@@ -339,6 +372,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (typeof showToast === 'function') {
                     showToast('Erreur réseau lors de la mise à jour.', 'danger');
                 }
+            } finally {
+                button.disabled = false;
             }
         });
     });

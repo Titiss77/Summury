@@ -585,12 +585,12 @@ class ItemController extends BaseController
         if ($item) {
             $itemModel->update($id, [
                 'is_public' => 0,
-                'status'    => 'Privé',
+                'status'    => 'Aucun',
             ]);
             (new AuditLogModel())->logAction('Modération : Refus Carte', "Le SuperAdmin a refusé la publication de la carte ID {$id} ('{$item->titre}'). Rétrogradation en privée.");
         }
 
-        return redirect()->back()->with('error', "Nouvelle carte refusée. Elle est repassée en privée pour l'utilisateur avec le statut Privé.");
+        return redirect()->back()->with('error', "Nouvelle carte refusée. Elle est repassée en privée pour l'utilisateur.");
     }
 
     /**
@@ -697,7 +697,6 @@ class ItemController extends BaseController
             ->where('deleted_at', null)
             ->get()->getResultArray();
 
-        // Build the migration menu from the same dead item records, grouped by host.
         $domains = [];
         $normalizedDeadItems = [];
         foreach ($deadItems as $deadItem) {
@@ -712,7 +711,6 @@ class ItemController extends BaseController
         $domains = array_values($domains);
         sort($domains);
 
-        // Récupère les domaines déclarés comme valides (whitelist) et leurs cartes associées.
         $whitelistModel = new WhitelistModel();
         $validDomains = [];
         foreach ($whitelistModel->getAllOrdered() as $entry) {
@@ -895,10 +893,8 @@ class ItemController extends BaseController
                 }
             }
 
-            // Retire le domaine de la liste des domaines valides.
             $whitelistModel->delete($id);
 
-            // Nettoie les logs existants pour ce domaine afin d'éviter les doublons.
             $existingLogs = $cronLogs->whereIn('task_name', [
                 CronLogModel::TASK_PENDING_USER_REPORT,
                 CronLogModel::TASK_CONFIRMED_DEAD,
@@ -997,7 +993,6 @@ class ItemController extends BaseController
         $itemModel = new ItemModel();
         $whitelistModel = new WhitelistModel();
 
-        // Le domaine est protégé temporairement contre un nouveau faux signalement.
         $host = $this->normalizeReportHost((string) $url) ?? '';
         $count = 0;
         if ($host !== '') {
@@ -1013,7 +1008,6 @@ class ItemController extends BaseController
             $whitelistModel->upsertDomain($host);
         }
 
-        // Supprime l'alerte du tableau de bord
         $logs = $cronLogModel->where('task_name', CronLogModel::TASK_CONFIRMED_DEAD)->findAll();
         foreach ($logs as $log) {
             if ($this->normalizeReportHost((string) ($log['url_testee'] ?? '')) === $host) {
@@ -1069,7 +1063,7 @@ class SiteConfigController extends BaseController
     public function form($id = null)
     {
         $this->checkSuperAdmin();
-        
+
         $config = null;
         if ($id !== null) {
             $config = $this->model->find($id);
@@ -1077,7 +1071,7 @@ class SiteConfigController extends BaseController
                 return redirect()->to('a/sc')->with('error', 'Configuration introuvable.');
             }
         }
-        
+
         return view('admin/site_config/form', ['config' => $config]);
     }
 
@@ -1097,7 +1091,6 @@ class SiteConfigController extends BaseController
         $indPage = $this->request->getPost('indicateurs_page_invalide') ?: '[]';
         $indLec = $this->request->getPost('indicateurs_lecteur') ?: '[]';
 
-        // Vérification que les champs sont bien du JSON valide
         if (json_decode($indPage) === null || json_decode($indLec) === null) {
             return redirect()->back()->withInput()->with('error', 'Le format JSON des indicateurs est invalide.');
         }
@@ -1106,8 +1099,8 @@ class SiteConfigController extends BaseController
         $data = [
             'domain' => $this->request->getPost('domain'),
             'regex_episode' => $this->request->getPost('regex_episode'),
-            'indicateurs_page_invalide' => $this->request->getPost('indicateurs_page_invalide') ?: '[]',
-            'indicateurs_lecteur' => $this->request->getPost('indicateurs_lecteur') ?: '[]',
+            'indicateurs_page_invalide' => $indPage,
+            'indicateurs_lecteur' => $indLec,
             'is_active' => $this->request->getPost('is_active') ? 1 : 0,
         ];
 
@@ -1121,6 +1114,9 @@ class SiteConfigController extends BaseController
             $message = 'Nouvelle configuration ajoutée avec succès.';
         }
 
+        // Vide le cache pour appliquer la nouvelle config immédiatement sur checkDispo()
+        cache()->delete('parsing_sites_config');
+
         return redirect()->to('a/sc')->with('message', $message);
     }
 
@@ -1128,13 +1124,14 @@ class SiteConfigController extends BaseController
     {
         $this->checkSuperAdmin();
         $config = $this->model->find($id);
-        
+
         if ($config) {
             $this->model->delete($id);
+            cache()->delete('parsing_sites_config');
             (new AuditLogModel())->logAction('Suppression Config', "Le SuperAdmin a supprimé la configuration du domaine '{$config['domain']}'.");
             return redirect()->back()->with('message', 'Configuration supprimée.');
         }
-        
+
         return redirect()->back()->with('error', 'Configuration introuvable.');
     }
 }
@@ -1440,11 +1437,11 @@ class HomeController extends BaseController
 
         // Évite la boucle infinie de redirection si un paramètre "i" est présent
         if (!empty($headersWithNoLogin) && !$this->request->getGet('i')) {
-            return redirect()->to('p/'.$headersWithNoLogin[0]['id']);
+            return redirect()->to('c/' . $headersWithNoLogin[0]['id']);
         }
 
         if (!empty($headersWithLogin) && !$this->request->getGet('i') && empty($headersWithNoLogin)) {
-            return redirect()->to('p/'.$headersWithLogin[0]['id']);
+            return redirect()->to('c/' . $headersWithLogin[0]['id']);
         }
 
         $headerId = !empty($headersWithNoLogin) ? $headersWithNoLogin[0]['id'] : (!empty($headersWithLogin) ? $headersWithLogin[0]['id'] : null);
@@ -1480,7 +1477,6 @@ class HomeController extends BaseController
         $pendingRevisionIds = [];
         $passedReleases = [];
 
-        // Récupération des compteurs d'administration et des révisions pour les utilisateurs connectés
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = array_fill_keys(
@@ -1488,7 +1484,6 @@ class HomeController extends BaseController
                 true,
             );
 
-            // Cartes dont la date de sortie vient de passer dans les 7 derniers jours
             $passedReleases = $model->select('item.*, d.nom')
                 ->join('division d', 'item.id_division = d.id')
                 ->where('item.id_user', $userId)
@@ -1770,7 +1765,6 @@ class ItemController extends BaseController
                 $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
                 $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
 
-                // Si la carte repasse en privé, on supprime ses brouillons en attente
                 if (1 == $existing->is_public && 0 == $data['is_public']) {
                     (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
                     $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
@@ -1781,6 +1775,12 @@ class ItemController extends BaseController
                 $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
 
                 $item = new Item($data);
+                if (!empty($data['saison']) && !empty($data['episode'])) {
+                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                    $item->episode_global = $globalData['episode_global'];
+                    $item->total_episodes_global = $globalData['total_episodes_global'];
+                }
+
                 $this->model->save($item);
                 $newId = $this->model->getInsertID();
 
@@ -1869,7 +1869,7 @@ class ItemController extends BaseController
                     $newTotalEpisodes = null;
                     $updateData['saison'] = $newSaison;
                     $updateData['episode'] = $newEpisode;
-                    $updateData['total_episodes'] = null;  // Vide l'ancien total par sécurité
+                    $updateData['total_episodes'] = null;
 
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode} (Saison {$newSaison})";
                 }
@@ -1878,16 +1878,19 @@ class ItemController extends BaseController
                 $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode}";
             }
 
+            // Passage automatique de "À voir" à "En cours" dès le premier +1 (sauf si déjà passé en Terminé)
+            if ('À voir' === $item->status && empty($updateData['status'])) {
+                $updateData['status'] = 'En cours';
+            }
+
             $this->model->update($id, $updateData);
 
             $wasComplete = 'Terminé' === $item->status;
             if (!empty($updateData['saison'])) {
                 $updatedItem = $this->model->find($id);
                 if ($updatedItem) {
-                    // Récupération du nombre d'épisodes de la nouvelle saison + compteurs globaux via TMDB
                     $syncData = $this->syncGlobalEpisodesWithTMDB($updatedItem, true);
 
-                    // Fallback sur Jikan (MyAnimeList) si TMDB n'a pas trouvé le total de la saison
                     if (empty($syncData['total_episodes'])) {
                         $jikanTotal = $this->fetchSeasonEpisodesFromJikan((string) $updatedItem->titre, $newSaison);
                         if (null !== $jikanTotal) {
@@ -1980,7 +1983,6 @@ class ItemController extends BaseController
         ]);
 
         try {
-            // Lecture des métadonnées directes si l'entrée est une URL
             if (filter_var($query, FILTER_VALIDATE_URL)) {
                 $metaData = $this->scrapeOpenGraph($query);
                 $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
@@ -1991,7 +1993,6 @@ class ItemController extends BaseController
             $unifiedResults = [];
             $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
 
-            // Requête TMDB
             $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
             $response = $client->get($url);
 
@@ -2059,7 +2060,6 @@ class ItemController extends BaseController
                 }
             }
 
-            // Requête Mangadex
             try {
                 $mdUrl = 'https://api.mangadex.org/manga?title=' . urlencode($query) . '&limit=5&includes[]=cover_art&order[relevance]=desc';
                 $mdResponse = $client->get($mdUrl, [
@@ -2213,7 +2213,6 @@ class ItemController extends BaseController
         $urlParts = parse_url((string) $urlCible);
         $host = strtolower(rtrim((string) ($urlParts['host'] ?? ''), '.'));
 
-        // 1. Mise en cache de la table sites_config (Validité: 12 heures)
         $cacheKey = 'parsing_sites_config';
         if (!$sites = cache($cacheKey)) {
             $sites = (new SiteConfigModel())->where('is_active', 1)->findAll();
@@ -2463,13 +2462,10 @@ class ItemController extends BaseController
                                 if ($currentSaison > 1 && $currentSaison > $tmdbTotalSaisons && $totalEpisodesGlobal > 0) {
                                     $currentTotalEpisodes = (int) $item->total_episodes;
 
-                                    // 1. Déduction mathématique si l'utilisateur a saisi le total de la saison manuellement
                                     if ($currentTotalEpisodes > 0 && $totalEpisodesGlobal >= $currentTotalEpisodes) {
                                         $previousEpisodes = $totalEpisodesGlobal - $currentTotalEpisodes;
                                         $episodeGlobal = $previousEpisodes + (int) $item->episode;
-                                    }
-                                    // 2. Fallback automatique via Jikan (MyAnimeList) pour retrouver les épisodes de la saison
-                                    else {
+                                    } else {
                                         $jikanEps = $this->fetchSeasonEpisodesFromJikan((string) $item->titre, $currentSaison);
                                         if (null !== $jikanEps && $jikanEps > 0 && $totalEpisodesGlobal >= $jikanEps) {
                                             $previousEpisodes = $totalEpisodesGlobal - $jikanEps;
@@ -2482,7 +2478,6 @@ class ItemController extends BaseController
                                         $item->total_saisons = $currentSaison;
                                     }
                                 } else {
-                                    // Comportement standard (TMDB a correctement séparé les saisons)
                                     if (isset($tvBody['seasons']) && is_array($tvBody['seasons'])) {
                                         $previousEpisodes = 0;
                                         foreach ($tvBody['seasons'] as $season) {
@@ -2763,7 +2758,7 @@ class ItemController extends BaseController
         if ($this->isWhitelistedReportHost($host)) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 3 jours.',
+                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -3731,7 +3726,7 @@ class PasswordResetController extends BaseController
     public function sendCode()
     {
         $email = $this->request->getPost('email');
-        
+
         if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return redirect()->back()->with('error', 'Veuillez fournir une adresse e-mail valide.');
         }
@@ -3743,39 +3738,39 @@ class PasswordResetController extends BaseController
             $code = (string) random_int(100000, 999999);
             cache()->save('reset_code_' . md5($email), $code, 900);
 
-            // Chargement de la configuration via l'instance fraîche
             $emailConfig = config('Email');
             $emailService = \Config\Services::email();
             $emailService->initialize($emailConfig);
-            
-            // Assignation stricte de l'expéditeur
+
             $emailService->setFrom($emailConfig->fromEmail, $emailConfig->fromName);
             $emailService->setTo($email);
             $emailService->setSubject('Code de réinitialisation de mot de passe');
-            
+
+            $siteName = esc((string) env('SITENAME', ''));
+
             $message = "
             <div style='font-family: \"Inter\", Helvetica, Arial, sans-serif; background-color: #f3f5f8; padding: 40px 20px; color: #182131;'>
                 <div style='max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e1e5ec;'>
                     <div style='text-align: center; margin-bottom: 20px;'>
-                        <h2 style='color: #182131; margin: 0; font-size: 22px; font-weight: 800;'><?php echo env('SITENAME'); ?></h2>
+                        <h2 style='color: #182131; margin: 0; font-size: 22px; font-weight: 800;'>{$siteName}</h2>
                     </div>
-                    
+
                     <p style='font-size: 15px; line-height: 1.6; color: #657084;'>Bonjour,</p>
                     <p style='font-size: 15px; line-height: 1.6; color: #657084;'>Vous avez demandé à réinitialiser votre mot de passe. Voici votre code de vérification :</p>
-                    
+
                     <div style='text-align: center; margin: 35px 0;'>
                         <span style='display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #ffffff; background-color: #98733d; padding: 15px 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(152, 115, 61, 0.2);'>{$code}</span>
                     </div>
-                    
+
                     <p style='font-size: 14px; text-align: center; color: #657084;'>Ce code est valide pendant <strong>15 minutes</strong>.</p>
-                    
+
                     <hr style='border: none; border-top: 1px solid #e1e5ec; margin: 30px 0;'>
-                    
+
                     <p style='font-size: 12px; text-align: center; color: #8791a1; margin: 0; line-height: 1.5;'>Si vous n'avez pas fait cette demande, vous pouvez ignorer cet e-mail en toute sécurité. Votre compte reste protégé.</p>
                 </div>
             </div>
             ";
-            
+
             $emailService->setMessage($message);
 
             if (!$emailService->send()) {
@@ -3830,7 +3825,7 @@ class PasswordResetController extends BaseController
         }
 
         $rules = [
-            'password'         => 'required|min_length[8]',
+            'password'         => 'required|min_length[12]',
             'password_confirm' => 'required|matches[password]',
         ];
 
@@ -3848,7 +3843,6 @@ class PasswordResetController extends BaseController
             (new AuditLogModel())->logAction('Réinitialisation Mot de passe', "L'utilisateur ID {$user->id} a réinitialisé son mot de passe via un code de secours e-mail.");
         }
 
-        // Nettoyage
         cache()->delete('reset_code_' . md5($email));
         session()->remove(['reset_email', 'reset_verified']);
 
@@ -6447,7 +6441,6 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 <?php } else { ?>
 <!-- VUE UTILISATEUR CONNECTÉ : Notifications de sorties et actions -->
-<!-- Badges de sorties d'œuvres passées récemment -->
 <?php if (!empty($passedReleases)) { ?>
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 2rem;">
     <?php
@@ -6587,7 +6580,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 $lineOpacity = $isSansSub ? '0.4' : '0.7';
                 $useDetails = (!$isSansSub || $hasMultipleGroups);
 
-                // Vérification des droits pour le Drag & Drop
                 $canDragSub = false;
                 if (auth()->loggedIn()) {
                     $isSuperAdmin = auth()->user()->inGroup('superadmin');
@@ -6657,7 +6649,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || $isOwner);
                                     $isPersonalDivision = (int) $item->id_division === \App\Models\ItemModel::PERSONAL_DIVISION_ID;
 
-                                    // Variables d'état du lien
                                     $linkForReportHost = trim((string) $item->lien);
                                     if (str_starts_with($linkForReportHost, '//'))
                                         $linkForReportHost = 'https:' . $linkForReportHost;
@@ -6708,7 +6699,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <?php } ?>
                                             </div>
 
-                                            <!-- Vérification asynchrone de la disponibilité du lien -->
                                             <?php
                                             $isCheckable = false;
                                             if (!empty($item->episode) && !$isFuture && isset($supportedDomains) && is_array($supportedDomains)) {
@@ -6734,7 +6724,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     id="status-text-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->status); ?></span>
                                             </p>
 
-                                            <!-- Étiquette si brouillon ou en attente d'approbation -->
                                             <?php
                                             $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
                                             $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
@@ -6751,7 +6740,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <?php echo htmlspecialchars($item->description); ?></p>
                                             <?php } ?>
 
-                                            <!-- SIGNALEMENT (Dans la zone blanche) UNIQUEMENT SI NON-PROPRIÉTAIRE -->
                                             <?php if (!$isOwner && ($isReported || $isPendingReport || $isWhitelistedReport || $canReport)) { ?>
                                             <div style="margin-top: 12px; margin-bottom: -4px;">
                                                 <?php if ($isPendingReport) { ?>
@@ -6805,7 +6793,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             class="btn-increment btn-increment-episode"
                                                             data-id="<?php echo $item->id; ?>"
                                                             data-division="<?php echo $item->id_division; ?>"
-                                                            data-sub="<?php echo htmlspecialchars($item->sous_categorie ?? ''); ?>">+1</button>
+                                                            data-sub="<?php echo htmlspecialchars($item->sous_categorie ?? ''); ?>"
+                                                            title="Épisode suivant">+1</button>
                                                         <?php } ?>
                                                     </span>
                                                 </div>
@@ -6822,7 +6811,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <?php } ?>
                                     </a>
 
-                                    <!-- Barre grise d'édition (Propriétaire uniquement) -->
                                     <?php if ($isOwner) { ?>
                                     <div class="card-actions-bottom">
                                         <?php if ($isPendingReport) { ?>
@@ -6862,7 +6850,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                             class="btn-icon btn-delete-sm">Supprimer</a>
                                     </div>
                                     <?php } else { ?>
-                                    <!-- Padding de compensation pour l'équilibre visuel des cartes sans barre grise -->
                                     <div style="padding-bottom: 1.5rem;"></div>
                                     <?php } ?>
                                 </div>
@@ -6886,7 +6873,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <script>
 window.siteSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
-// Sauvegarde l'URL exacte des cartes (ex: .../c/1) pour pouvoir y revenir
 sessionStorage.setItem('last_cards_url', window.location.href);
 </script>
 
@@ -7432,7 +7418,9 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
     <script>
     let initialTheme = 'light';
-    try { initialTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'; } catch (_) {}
+    try {
+        initialTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+    } catch (_) {}
     if (initialTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.setAttribute('data-bs-theme', 'dark');
@@ -7444,7 +7432,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
 
     <!-- Gestion du cache des assets (force le rechargement si le fichier a été modifié) -->
     <?php
-        $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
+    $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
     $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
     $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
     $mediaAutofillVersion = file_exists(FCPATH.'assets/media-autofill.js') ? filemtime(FCPATH.'assets/media-autofill.js') : '1';
@@ -7525,7 +7513,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <?php if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithLogin as $h) { ?>
-        <a href="<?php echo base_url('p/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/'.$h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
@@ -7534,7 +7522,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <?php } else { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithNoLogin as $h) { ?>
-        <a href="<?php echo base_url('p/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/'.$h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
@@ -7615,12 +7603,16 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
         var banner = document.getElementById('site-consent-box');
         var btn = document.getElementById('btn-understand-consent');
         var consentAccepted = false;
-        try { consentAccepted = localStorage.getItem('site_consent_ok') === 'true'; } catch (_) {}
+        try {
+            consentAccepted = localStorage.getItem('site_consent_ok') === 'true';
+        } catch (_) {}
         if (!consentAccepted) {
             banner.style.display = 'flex';
         }
         btn.addEventListener('click', function() {
-            try { localStorage.setItem('site_consent_ok', 'true'); } catch (_) {}
+            try {
+                localStorage.setItem('site_consent_ok', 'true');
+            } catch (_) {}
             banner.style.display = 'none';
         });
     })();
@@ -8841,7 +8833,7 @@ window.retourAuxCartes = function(event, fallbackUrl) {
 
         // Si la page EXACTE précédente est l'accueil (/) ou une catégorie (/p/1, /p/2...)
         // On fait un "retour arrière" natif pour conserver le défilement
-        if (path === '/' || /^\/p\/\d+$/.test(path)) {
+        if (path === '/' || /^\/[pc]\/\d+$/.test(path)) {
             window.history.back();
             return false;
         }
@@ -8984,6 +8976,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // 4. INCREMENTATION ASYNCHRONE (+1 Episode)
     // ==========================================
+    async function refreshCardDispo(itemId, targetUrl) {
+        const liveStatus = document.getElementById(`live-status-${itemId}`);
+        if (!liveStatus || !targetUrl) return;
+
+        const domains = Array.isArray(window.siteSupportedDomains) ? window.siteSupportedDomains : [];
+        const isSupported = domains.some(domain => targetUrl.includes(domain));
+        if (!isSupported) return;
+
+        liveStatus.style.color = 'var(--info)';
+        liveStatus.textContent = 'Vérification...';
+
+        const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
+        try {
+            const resp = await fetch(`${baseUrl}q?urlCible=${encodeURIComponent(targetUrl)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const dispoData = await resp.json();
+            if (dispoData.success) {
+                if (dispoData.disponible) {
+                    liveStatus.style.color = 'var(--success)';
+                    liveStatus.textContent = '✔ Disponible';
+                } else {
+                    liveStatus.style.color = 'var(--danger)';
+                    liveStatus.textContent = '✖ Indisponible';
+                }
+            } else {
+                liveStatus.style.color = 'var(--text-muted)';
+                liveStatus.textContent = 'Indisponible';
+            }
+        } catch (_) {
+            liveStatus.style.color = 'var(--text-muted)';
+            liveStatus.textContent = 'Vérif. impossible';
+        }
+    }
+
     document.querySelectorAll('.btn-increment-episode').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -9020,7 +9047,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (data.success) {
-                    // 1. Mise à jour de l'épisode + animation
                     if (epSpan) {
                         epSpan.innerText = data.new_episode;
                         epSpan.style.color = 'var(--success)';
@@ -9031,17 +9057,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         }, 400);
                     }
 
-                    // 2. Mise à jour de la saison (si changement de saison)
                     if (seasonSpan && data.new_saison) {
                         seasonSpan.innerText = data.new_saison;
                     }
 
-                    // 3. Mise à jour du total d'épisodes de la saison
                     if (epTotalSpan && 'new_total_episodes' in data) {
                         epTotalSpan.innerText = data.new_total_episodes ? ` / ${data.new_total_episodes}` : '';
                     }
 
-                    // 4. Mise à jour du statut
                     if (data.status) {
                         if (statusSpan) statusSpan.innerText = data.status;
                         if (card) {
@@ -9050,16 +9073,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                 card.classList.add('status-completed');
                                 card.classList.remove('needs-dispo-check');
                                 const liveStatus = document.getElementById(`live-status-${itemId}`);
-                                if (liveStatus) liveStatus.remove();
+                                if (liveStatus) liveStatus.style.display = 'none';
                             }
                         }
                     }
 
-                    // 5. Mise à jour du lien de la carte (pour ouvrir directement le nouvel épisode)
                     if (card && data.new_link) {
                         card.dataset.url = data.new_link;
                         const linkEl = card.querySelector('.card-link-block');
                         if (linkEl) linkEl.href = data.new_link;
+                        if (data.status !== 'Terminé') {
+                            refreshCardDispo(itemId, data.new_link);
+                        }
                     }
 
                     if (typeof showToast === 'function') {
@@ -9069,7 +9094,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         showToast(msg, 'success');
                     }
                 } else {
-                    console.error("Erreur renvoyée par PHP :", data);
                     if (typeof showToast === 'function') {
                         showToast(data.error || 'Erreur lors de la mise à jour.', 'danger');
                     }
@@ -9178,6 +9202,7 @@ document.addEventListener('DOMContentLoaded', function() {
         statusFilter?.addEventListener('change', applyFilters);
         categoryFilter?.addEventListener('change', applyFilters);
         applyFilters();
+        window.applyCardFilters = applyFilters;
     }
 
     // ==========================================
