@@ -32,7 +32,6 @@
 </div>
 <?php } else { ?>
 <!-- VUE UTILISATEUR CONNECTÉ : Notifications de sorties et actions -->
-<!-- Badges de sorties d'œuvres passées récemment -->
 <?php if (!empty($passedReleases)) { ?>
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 2rem;">
     <?php
@@ -172,7 +171,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 $lineOpacity = $isSansSub ? '0.4' : '0.7';
                 $useDetails = (!$isSansSub || $hasMultipleGroups);
 
-                // Vérification des droits pour le Drag & Drop
                 $canDragSub = false;
                 if (auth()->loggedIn()) {
                     $isSuperAdmin = auth()->user()->inGroup('superadmin');
@@ -242,7 +240,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || $isOwner);
                                     $isPersonalDivision = (int) $item->id_division === \App\Models\ItemModel::PERSONAL_DIVISION_ID;
 
-                                    // Variables d'état du lien
                                     $linkForReportHost = trim((string) $item->lien);
                                     if (str_starts_with($linkForReportHost, '//'))
                                         $linkForReportHost = 'https:' . $linkForReportHost;
@@ -293,7 +290,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <?php } ?>
                                             </div>
 
-                                            <!-- Vérification asynchrone de la disponibilité du lien -->
                                             <?php
                                             $isCheckable = false;
                                             if (!empty($item->episode) && !$isFuture && isset($supportedDomains) && is_array($supportedDomains)) {
@@ -319,7 +315,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     id="status-text-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->status); ?></span>
                                             </p>
 
-                                            <!-- Étiquette si brouillon ou en attente d'approbation -->
                                             <?php
                                             $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
                                             $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
@@ -336,7 +331,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <?php echo htmlspecialchars($item->description); ?></p>
                                             <?php } ?>
 
-                                            <!-- SIGNALEMENT (Dans la zone blanche) UNIQUEMENT SI NON-PROPRIÉTAIRE -->
                                             <?php if (!$isOwner && ($isReported || $isPendingReport || $isWhitelistedReport || $canReport)) { ?>
                                             <div style="margin-top: 12px; margin-bottom: -4px;">
                                                 <?php if ($isPendingReport) { ?>
@@ -390,7 +384,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             class="btn-increment btn-increment-episode"
                                                             data-id="<?php echo $item->id; ?>"
                                                             data-division="<?php echo $item->id_division; ?>"
-                                                            data-sub="<?php echo htmlspecialchars($item->sous_categorie ?? ''); ?>">+1</button>
+                                                            data-sub="<?php echo htmlspecialchars($item->sous_categorie ?? ''); ?>"
+                                                            title="Épisode suivant">+1</button>
                                                         <?php } ?>
                                                     </span>
                                                 </div>
@@ -407,7 +402,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <?php } ?>
                                     </a>
 
-                                    <!-- Barre grise d'édition (Propriétaire uniquement) -->
                                     <?php if ($isOwner) { ?>
                                     <div class="card-actions-bottom">
                                         <?php if ($isPendingReport) { ?>
@@ -447,7 +441,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                             class="btn-icon btn-delete-sm">Supprimer</a>
                                     </div>
                                     <?php } else { ?>
-                                    <!-- Padding de compensation pour l'équilibre visuel des cartes sans barre grise -->
                                     <div style="padding-bottom: 1.5rem;"></div>
                                     <?php } ?>
                                 </div>
@@ -471,7 +464,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <script>
 window.siteSupportedDomains = <?php echo json_encode($supportedDomains ?? []); ?>;
-// Sauvegarde l'URL exacte des cartes (ex: .../c/1) pour pouvoir y revenir
 sessionStorage.setItem('last_cards_url', window.location.href);
 </script>
 

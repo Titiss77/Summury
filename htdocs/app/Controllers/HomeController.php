@@ -70,11 +70,11 @@ class HomeController extends BaseController
 
         // Évite la boucle infinie de redirection si un paramètre "i" est présent
         if (!empty($headersWithNoLogin) && !$this->request->getGet('i')) {
-            return redirect()->to('p/'.$headersWithNoLogin[0]['id']);
+            return redirect()->to('c/' . $headersWithNoLogin[0]['id']);
         }
 
         if (!empty($headersWithLogin) && !$this->request->getGet('i') && empty($headersWithNoLogin)) {
-            return redirect()->to('p/'.$headersWithLogin[0]['id']);
+            return redirect()->to('c/' . $headersWithLogin[0]['id']);
         }
 
         $headerId = !empty($headersWithNoLogin) ? $headersWithNoLogin[0]['id'] : (!empty($headersWithLogin) ? $headersWithLogin[0]['id'] : null);
@@ -110,7 +110,6 @@ class HomeController extends BaseController
         $pendingRevisionIds = [];
         $passedReleases = [];
 
-        // Récupération des compteurs d'administration et des révisions pour les utilisateurs connectés
         if (auth()->loggedIn()) {
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = array_fill_keys(
@@ -118,7 +117,6 @@ class HomeController extends BaseController
                 true,
             );
 
-            // Cartes dont la date de sortie vient de passer dans les 7 derniers jours
             $passedReleases = $model->select('item.*, d.nom')
                 ->join('division d', 'item.id_division = d.id')
                 ->where('item.id_user', $userId)

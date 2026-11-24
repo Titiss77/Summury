@@ -102,7 +102,7 @@ window.retourAuxCartes = function(event, fallbackUrl) {
 
         // Si la page EXACTE précédente est l'accueil (/) ou une catégorie (/p/1, /p/2...)
         // On fait un "retour arrière" natif pour conserver le défilement
-        if (path === '/' || /^\/p\/\d+$/.test(path)) {
+        if (path === '/' || /^\/[pc]\/\d+$/.test(path)) {
             window.history.back();
             return false;
         }
@@ -314,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (liveStatus) liveStatus.remove();
                             }
                         }
-                    }
 
                     // 5. Mise à jour du lien de la carte (pour ouvrir directement le nouvel épisode)
                     if (card && data.new_link) {
@@ -340,8 +339,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (typeof showToast === 'function') {
                     showToast('Erreur réseau lors de la mise à jour.', 'danger');
                 }
-            } finally {
-                button.disabled = false;
             }
         });
     });
@@ -439,6 +436,7 @@ document.addEventListener('DOMContentLoaded', function() {
         statusFilter?.addEventListener('change', applyFilters);
         categoryFilter?.addEventListener('change', applyFilters);
         applyFilters();
+        window.applyCardFilters = applyFilters;
     }
 
     // ==========================================

@@ -41,7 +41,9 @@
     <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
     <script>
     let initialTheme = 'light';
-    try { initialTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'; } catch (_) {}
+    try {
+        initialTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+    } catch (_) {}
     if (initialTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.documentElement.setAttribute('data-bs-theme', 'dark');
@@ -53,7 +55,7 @@
 
     <!-- Gestion du cache des assets (force le rechargement si le fichier a été modifié) -->
     <?php
-        $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
+    $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
     $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
     $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
     $mediaAutofillVersion = file_exists(FCPATH.'assets/media-autofill.js') ? filemtime(FCPATH.'assets/media-autofill.js') : '1';
@@ -134,7 +136,7 @@
     <?php if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithLogin as $h) { ?>
-        <a href="<?php echo base_url('p/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/'.$h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
@@ -143,7 +145,7 @@
     <?php } else { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithNoLogin as $h) { ?>
-        <a href="<?php echo base_url('p/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/'.$h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
@@ -224,12 +226,16 @@
         var banner = document.getElementById('site-consent-box');
         var btn = document.getElementById('btn-understand-consent');
         var consentAccepted = false;
-        try { consentAccepted = localStorage.getItem('site_consent_ok') === 'true'; } catch (_) {}
+        try {
+            consentAccepted = localStorage.getItem('site_consent_ok') === 'true';
+        } catch (_) {}
         if (!consentAccepted) {
             banner.style.display = 'flex';
         }
         btn.addEventListener('click', function() {
-            try { localStorage.setItem('site_consent_ok', 'true'); } catch (_) {}
+            try {
+                localStorage.setItem('site_consent_ok', 'true');
+            } catch (_) {}
             banner.style.display = 'none';
         });
     })();

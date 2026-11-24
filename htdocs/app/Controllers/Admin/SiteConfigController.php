@@ -37,7 +37,7 @@ class SiteConfigController extends BaseController
     public function form($id = null)
     {
         $this->checkSuperAdmin();
-        
+
         $config = null;
         if ($id !== null) {
             $config = $this->model->find($id);
@@ -45,7 +45,7 @@ class SiteConfigController extends BaseController
                 return redirect()->to('a/sc')->with('error', 'Configuration introuvable.');
             }
         }
-        
+
         return view('admin/site_config/form', ['config' => $config]);
     }
 
@@ -65,7 +65,6 @@ class SiteConfigController extends BaseController
         $indPage = $this->request->getPost('indicateurs_page_invalide') ?: '[]';
         $indLec = $this->request->getPost('indicateurs_lecteur') ?: '[]';
 
-        // Vérification que les champs sont bien du JSON valide
         if (json_decode($indPage) === null || json_decode($indLec) === null) {
             return redirect()->back()->withInput()->with('error', 'Le format JSON des indicateurs est invalide.');
         }
@@ -74,8 +73,8 @@ class SiteConfigController extends BaseController
         $data = [
             'domain' => $this->request->getPost('domain'),
             'regex_episode' => $this->request->getPost('regex_episode'),
-            'indicateurs_page_invalide' => $this->request->getPost('indicateurs_page_invalide') ?: '[]',
-            'indicateurs_lecteur' => $this->request->getPost('indicateurs_lecteur') ?: '[]',
+            'indicateurs_page_invalide' => $indPage,
+            'indicateurs_lecteur' => $indLec,
             'is_active' => $this->request->getPost('is_active') ? 1 : 0,
         ];
 
@@ -89,6 +88,9 @@ class SiteConfigController extends BaseController
             $message = 'Nouvelle configuration ajoutée avec succès.';
         }
 
+        // Vide le cache pour appliquer la nouvelle config immédiatement sur checkDispo()
+        cache()->delete('parsing_sites_config');
+
         return redirect()->to('a/sc')->with('message', $message);
     }
 
@@ -96,13 +98,14 @@ class SiteConfigController extends BaseController
     {
         $this->checkSuperAdmin();
         $config = $this->model->find($id);
-        
+
         if ($config) {
             $this->model->delete($id);
+            cache()->delete('parsing_sites_config');
             (new AuditLogModel())->logAction('Suppression Config', "Le SuperAdmin a supprimé la configuration du domaine '{$config['domain']}'.");
             return redirect()->back()->with('message', 'Configuration supprimée.');
         }
-        
+
         return redirect()->back()->with('error', 'Configuration introuvable.');
     }
 }

@@ -221,7 +221,6 @@ class ItemController extends BaseController
                 $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
                 $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
 
-                // Si la carte repasse en privé, on supprime ses brouillons en attente
                 if (1 == $existing->is_public && 0 == $data['is_public']) {
                     (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
                     $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
@@ -232,6 +231,12 @@ class ItemController extends BaseController
                 $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
 
                 $item = new Item($data);
+                if (!empty($data['saison']) && !empty($data['episode'])) {
+                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                    $item->episode_global = $globalData['episode_global'];
+                    $item->total_episodes_global = $globalData['total_episodes_global'];
+                }
+
                 $this->model->save($item);
                 $newId = $this->model->getInsertID();
 
@@ -320,7 +325,7 @@ class ItemController extends BaseController
                     $newTotalEpisodes = null;
                     $updateData['saison'] = $newSaison;
                     $updateData['episode'] = $newEpisode;
-                    $updateData['total_episodes'] = null;  // Vide l'ancien total par sécurité
+                    $updateData['total_episodes'] = null;
 
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode} (Saison {$newSaison})";
                 }
@@ -329,16 +334,19 @@ class ItemController extends BaseController
                 $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode}";
             }
 
+            // Passage automatique de "À voir" à "En cours" dès le premier +1 (sauf si déjà passé en Terminé)
+            if ('À voir' === $item->status && empty($updateData['status'])) {
+                $updateData['status'] = 'En cours';
+            }
+
             $this->model->update($id, $updateData);
 
             $wasComplete = 'Terminé' === $item->status;
             if (!empty($updateData['saison'])) {
                 $updatedItem = $this->model->find($id);
                 if ($updatedItem) {
-                    // Récupération du nombre d'épisodes de la nouvelle saison + compteurs globaux via TMDB
                     $syncData = $this->syncGlobalEpisodesWithTMDB($updatedItem, true);
 
-                    // Fallback sur Jikan (MyAnimeList) si TMDB n'a pas trouvé le total de la saison
                     if (empty($syncData['total_episodes'])) {
                         $jikanTotal = $this->fetchSeasonEpisodesFromJikan((string) $updatedItem->titre, $newSaison);
                         if (null !== $jikanTotal) {
@@ -431,7 +439,6 @@ class ItemController extends BaseController
         ]);
 
         try {
-            // Lecture des métadonnées directes si l'entrée est une URL
             if (filter_var($query, FILTER_VALIDATE_URL)) {
                 $metaData = $this->scrapeOpenGraph($query);
                 $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
@@ -442,7 +449,6 @@ class ItemController extends BaseController
             $unifiedResults = [];
             $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
 
-            // Requête TMDB
             $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
             $response = $client->get($url);
 
@@ -510,7 +516,6 @@ class ItemController extends BaseController
                 }
             }
 
-            // Requête Mangadex
             try {
                 $mdUrl = 'https://api.mangadex.org/manga?title=' . urlencode($query) . '&limit=5&includes[]=cover_art&order[relevance]=desc';
                 $mdResponse = $client->get($mdUrl, [
@@ -664,7 +669,6 @@ class ItemController extends BaseController
         $urlParts = parse_url((string) $urlCible);
         $host = strtolower(rtrim((string) ($urlParts['host'] ?? ''), '.'));
 
-        // 1. Mise en cache de la table sites_config (Validité: 12 heures)
         $cacheKey = 'parsing_sites_config';
         if (!$sites = cache($cacheKey)) {
             $sites = (new SiteConfigModel())->where('is_active', 1)->findAll();
@@ -914,13 +918,10 @@ class ItemController extends BaseController
                                 if ($currentSaison > 1 && $currentSaison > $tmdbTotalSaisons && $totalEpisodesGlobal > 0) {
                                     $currentTotalEpisodes = (int) $item->total_episodes;
 
-                                    // 1. Déduction mathématique si l'utilisateur a saisi le total de la saison manuellement
                                     if ($currentTotalEpisodes > 0 && $totalEpisodesGlobal >= $currentTotalEpisodes) {
                                         $previousEpisodes = $totalEpisodesGlobal - $currentTotalEpisodes;
                                         $episodeGlobal = $previousEpisodes + (int) $item->episode;
-                                    }
-                                    // 2. Fallback automatique via Jikan (MyAnimeList) pour retrouver les épisodes de la saison
-                                    else {
+                                    } else {
                                         $jikanEps = $this->fetchSeasonEpisodesFromJikan((string) $item->titre, $currentSaison);
                                         if (null !== $jikanEps && $jikanEps > 0 && $totalEpisodesGlobal >= $jikanEps) {
                                             $previousEpisodes = $totalEpisodesGlobal - $jikanEps;
@@ -933,7 +934,6 @@ class ItemController extends BaseController
                                         $item->total_saisons = $currentSaison;
                                     }
                                 } else {
-                                    // Comportement standard (TMDB a correctement séparé les saisons)
                                     if (isset($tvBody['seasons']) && is_array($tvBody['seasons'])) {
                                         $previousEpisodes = 0;
                                         foreach ($tvBody['seasons'] as $season) {
@@ -1214,7 +1214,7 @@ class ItemController extends BaseController
         if ($this->isWhitelistedReportHost($host)) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 3 jours.',
+                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
                 'csrf_token' => csrf_hash(),
             ]);
         }

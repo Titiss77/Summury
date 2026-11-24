@@ -108,12 +108,12 @@ class ItemController extends BaseController
         if ($item) {
             $itemModel->update($id, [
                 'is_public' => 0,
-                'status'    => 'Privé',
+                'status'    => 'Aucun',
             ]);
             (new AuditLogModel())->logAction('Modération : Refus Carte', "Le SuperAdmin a refusé la publication de la carte ID {$id} ('{$item->titre}'). Rétrogradation en privée.");
         }
 
-        return redirect()->back()->with('error', "Nouvelle carte refusée. Elle est repassée en privée pour l'utilisateur avec le statut Privé.");
+        return redirect()->back()->with('error', "Nouvelle carte refusée. Elle est repassée en privée pour l'utilisateur.");
     }
 
     /**
@@ -220,7 +220,6 @@ class ItemController extends BaseController
             ->where('deleted_at', null)
             ->get()->getResultArray();
 
-        // Build the migration menu from the same dead item records, grouped by host.
         $domains = [];
         $normalizedDeadItems = [];
         foreach ($deadItems as $deadItem) {
@@ -235,7 +234,6 @@ class ItemController extends BaseController
         $domains = array_values($domains);
         sort($domains);
 
-        // Récupère les domaines déclarés comme valides (whitelist) et leurs cartes associées.
         $whitelistModel = new WhitelistModel();
         $validDomains = [];
         foreach ($whitelistModel->getAllOrdered() as $entry) {
@@ -418,10 +416,8 @@ class ItemController extends BaseController
                 }
             }
 
-            // Retire le domaine de la liste des domaines valides.
             $whitelistModel->delete($id);
 
-            // Nettoie les logs existants pour ce domaine afin d'éviter les doublons.
             $existingLogs = $cronLogs->whereIn('task_name', [
                 CronLogModel::TASK_PENDING_USER_REPORT,
                 CronLogModel::TASK_CONFIRMED_DEAD,
@@ -520,7 +516,6 @@ class ItemController extends BaseController
         $itemModel = new ItemModel();
         $whitelistModel = new WhitelistModel();
 
-        // Le domaine est protégé temporairement contre un nouveau faux signalement.
         $host = $this->normalizeReportHost((string) $url) ?? '';
         $count = 0;
         if ($host !== '') {
@@ -536,7 +531,6 @@ class ItemController extends BaseController
             $whitelistModel->upsertDomain($host);
         }
 
-        // Supprime l'alerte du tableau de bord
         $logs = $cronLogModel->where('task_name', CronLogModel::TASK_CONFIRMED_DEAD)->findAll();
         foreach ($logs as $log) {
             if ($this->normalizeReportHost((string) ($log['url_testee'] ?? '')) === $host) {
