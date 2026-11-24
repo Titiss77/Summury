@@ -137,8 +137,6 @@ class ItemController extends BaseController
             if ($data['is_public'] == 1) {
                 $data['status'] = 'Public';
             } elseif ($data['is_public'] == 0) {
-                // Si la carte est privée, on garde le statut choisi dans le formulaire.
-                // Sauf si le statut a été forcé à "Public", auquel cas on le remet à "Aucun".
                 if (empty($data['status']) || $data['status'] === 'Public') {
                     $data['status'] = 'Aucun';
                 }
@@ -281,7 +279,8 @@ class ItemController extends BaseController
     }
 
     /**
-     * Incrémente rapidement l'épisode depuis le dashboard et gère la complétion via Jikan/MyAnimeList.
+     * Incrémente rapidement l'épisode depuis le dashboard et récupère le total d'épisodes
+     * de la nouvelle saison via TMDB (avec fallback Jikan pour les animes).
      *
      * @param mixed $id
      */
@@ -305,6 +304,7 @@ class ItemController extends BaseController
             $newSaison = (int) $item->saison;
             $totalEpisodes = (int) $item->total_episodes;
             $totalSaisons = (int) $item->total_saisons;
+            $newTotalEpisodes = $totalEpisodes > 0 ? $totalEpisodes : null;
             $updateData = [];
 
             // Détection automatique du passage à la saison suivante ou de la fin
@@ -317,32 +317,12 @@ class ItemController extends BaseController
                 } else {
                     $newEpisode = 1;
                     ++$newSaison;
+                    $newTotalEpisodes = null;
                     $updateData['saison'] = $newSaison;
                     $updateData['episode'] = $newEpisode;
-                    $updateData['total_episodes'] = null;  // Vide l'ancien total par sécurité
+                    $updateData['total_episodes'] = null; // Vide l'ancien total par sécurité
 
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode} (Saison {$newSaison})";
-
-                    // Recherche automatique de la nouvelle saison sur Jikan (MyAnimeList)
-                    $client = Services::curlrequest([
-                        'timeout' => 5,
-                        'http_errors' => false,
-                    ]);
-
-                    try {
-                        $jikanUrl = 'https://api.jikan.moe/v4/anime?q=' . urlencode($item->titre . ' season ' . $newSaison) . '&limit=1';
-                        $response = $client->get($jikanUrl);
-
-                        if (200 === $response->getStatusCode()) {
-                            $body = json_decode($response->getBody(), true);
-                            // On récupère le total d'épisodes de la nouvelle fiche trouvée
-                            if (!empty($body['data']) && isset($body['data'][0]['episodes'])) {
-                                $updateData['total_episodes'] = $body['data'][0]['episodes'];
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        // Silence l'erreur API
-                    }
                 }
             } else {
                 $updateData['episode'] = $newEpisode;
@@ -355,7 +335,22 @@ class ItemController extends BaseController
             if (!empty($updateData['saison'])) {
                 $updatedItem = $this->model->find($id);
                 if ($updatedItem) {
-                    $this->model->update($id, $this->syncGlobalEpisodesWithTMDB($updatedItem));
+                    // Récupération du nombre d'épisodes de la nouvelle saison + compteurs globaux via TMDB
+                    $syncData = $this->syncGlobalEpisodesWithTMDB($updatedItem, true);
+
+                    // Fallback sur Jikan (MyAnimeList) si TMDB n'a pas trouvé le total de la saison
+                    if (empty($syncData['total_episodes'])) {
+                        $jikanTotal = $this->fetchSeasonEpisodesFromJikan((string) $updatedItem->titre, $newSaison);
+                        if (null !== $jikanTotal) {
+                            $syncData['total_episodes'] = $jikanTotal;
+                        }
+                    }
+
+                    if (!empty($syncData['total_episodes'])) {
+                        $newTotalEpisodes = (int) $syncData['total_episodes'];
+                    }
+
+                    $this->model->update($id, $syncData);
                 }
             } else {
                 $this->model->update($id, [
@@ -370,6 +365,8 @@ class ItemController extends BaseController
                 return $this->response->setJSON([
                     'success' => true,
                     'new_episode' => $newEpisode,
+                    'new_saison' => $newSaison,
+                    'new_total_episodes' => $newTotalEpisodes,
                     'status' => $updateData['status'] ?? $item->status,
                     'csrf_token' => csrf_hash(),
                 ]);
@@ -668,7 +665,6 @@ class ItemController extends BaseController
         $cacheKey = 'parsing_sites_config';
         if (!$sites = cache($cacheKey)) {
             $sites = (new SiteConfigModel())->where('is_active', 1)->findAll();
-            // Pré-décodage JSON pour soulager le CPU lors des requêtes ultérieures
             foreach ($sites as &$site) {
                 $site['ind_page'] = json_decode($site['indicateurs_page_invalide'], true) ?? [];
                 $site['ind_lect'] = json_decode($site['indicateurs_lecteur'], true) ?? [];
@@ -706,12 +702,10 @@ class ItemController extends BaseController
                 return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']]);
             }
 
-            // Récupération du HTML
             $html = (string) $response->getBody();
             $estSurFicheAnime = false;
             $lecteurPresent = false;
 
-            // 2. Early-exit : dès qu'on trouve un match, on stoppe l'analyse avec 'break'
             foreach ($currentConfig['ind_page'] as $indicator) {
                 if (stripos($html, $indicator) !== false) {
                     $estSurFicheAnime = true;
@@ -729,7 +723,6 @@ class ItemController extends BaseController
                 }
             }
 
-            // 3. Libération immédiate de la mémoire (garbage collection) sur les gros volumes
             unset($html);
 
             return $this->response->setJSON([
@@ -880,9 +873,10 @@ class ItemController extends BaseController
     }
 
     /**
-     * Interroge TMDB pour calculer les compteurs globaux (épisodes vus au total et total de la série).
+     * Interroge TMDB pour calculer les compteurs globaux (épisodes vus au total et total de la série)
+     * et, si demandé, récupérer le nombre d'épisodes de la saison en cours.
      */
-    private function syncGlobalEpisodesWithTMDB(Item $item): array
+    private function syncGlobalEpisodesWithTMDB(Item $item, bool $updateSeasonTotal = false): array
     {
         $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
         $client = Services::curlrequest([
@@ -892,6 +886,7 @@ class ItemController extends BaseController
 
         $episodeGlobal = (int) $item->episode;
         $totalEpisodesGlobal = null;
+        $seasonTotalEpisodes = null;
         $currentSaison = (int) $item->saison;
 
         try {
@@ -921,41 +916,36 @@ class ItemController extends BaseController
                                         $previousEpisodes = $totalEpisodesGlobal - $currentTotalEpisodes;
                                         $episodeGlobal = $previousEpisodes + (int) $item->episode;
                                     }
-                                    // 2. Fallback automatique via Jikan (MyAnimeList) pour retrouver les épisodes de la saison précédente
+                                    // 2. Fallback automatique via Jikan (MyAnimeList) pour retrouver les épisodes de la saison
                                     else {
-                                        try {
-                                            $jikanUrl = 'https://api.jikan.moe/v4/anime?q=' . urlencode($item->titre . ' season ' . $currentSaison) . '&limit=1';
-                                            $jResp = $client->get($jikanUrl);
-
-                                            if (200 === $jResp->getStatusCode()) {
-                                                $jBody = json_decode($jResp->getBody(), true);
-                                                if (!empty($jBody['data']) && isset($jBody['data'][0]['episodes'])) {
-                                                    $jikanEps = (int) $jBody['data'][0]['episodes'];
-                                                    if ($jikanEps > 0 && $totalEpisodesGlobal >= $jikanEps) {
-                                                        $previousEpisodes = $totalEpisodesGlobal - $jikanEps;
-                                                        $episodeGlobal = $previousEpisodes + (int) $item->episode;
-                                                        // Auto-correction des champs locaux de la base de données
-                                                        $item->total_episodes = $jikanEps;
-                                                    }
-                                                }
-                                            }
-                                        } catch (\Exception $e) {
+                                        $jikanEps = $this->fetchSeasonEpisodesFromJikan((string) $item->titre, $currentSaison);
+                                        if (null !== $jikanEps && $jikanEps > 0 && $totalEpisodesGlobal >= $jikanEps) {
+                                            $previousEpisodes = $totalEpisodesGlobal - $jikanEps;
+                                            $episodeGlobal = $previousEpisodes + (int) $item->episode;
+                                            $seasonTotalEpisodes = $jikanEps;
+                                            $item->total_episodes = $jikanEps;
                                         }
                                     }
-                                    // Assure que le compteur de saisons respecte au moins la saison actuelle de l'utilisateur
                                     if ((int) $item->total_saisons < $currentSaison) {
                                         $item->total_saisons = $currentSaison;
                                     }
                                 } else {
                                     // Comportement standard (TMDB a correctement séparé les saisons)
-                                    if (isset($tvBody['seasons']) && $currentSaison > 1) {
+                                    if (isset($tvBody['seasons']) && is_array($tvBody['seasons'])) {
                                         $previousEpisodes = 0;
                                         foreach ($tvBody['seasons'] as $season) {
-                                            if ($season['season_number'] > 0 && $season['season_number'] < $currentSaison) {
-                                                $previousEpisodes += $season['episode_count'];
+                                            $seasonNum = (int) ($season['season_number'] ?? -1);
+                                            $epCount = (int) ($season['episode_count'] ?? 0);
+
+                                            if ($seasonNum > 0 && $seasonNum < $currentSaison) {
+                                                $previousEpisodes += $epCount;
+                                            } elseif ($seasonNum === $currentSaison && $epCount > 0) {
+                                                $seasonTotalEpisodes = $epCount;
                                             }
                                         }
-                                        $episodeGlobal = $previousEpisodes + (int) $item->episode;
+                                        if ($currentSaison > 1) {
+                                            $episodeGlobal = $previousEpisodes + (int) $item->episode;
+                                        }
                                     }
                                 }
                             }
@@ -968,10 +958,43 @@ class ItemController extends BaseController
             // Silence
         }
 
-        return [
+        $result = [
             'episode_global' => $episodeGlobal,
             'total_episodes_global' => $totalEpisodesGlobal,
         ];
+
+        if ($updateSeasonTotal && null !== $seasonTotalEpisodes) {
+            $result['total_episodes'] = $seasonTotalEpisodes;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Fallback via Jikan (MyAnimeList) pour récupérer le nombre d'épisodes d'une saison d'anime.
+     */
+    private function fetchSeasonEpisodesFromJikan(string $titre, int $saison): ?int
+    {
+        $client = Services::curlrequest([
+            'timeout' => 5,
+            'http_errors' => false,
+        ]);
+
+        try {
+            $jikanUrl = 'https://api.jikan.moe/v4/anime?q=' . urlencode($titre . ' season ' . $saison) . '&limit=1';
+            $response = $client->get($jikanUrl);
+
+            if (200 === $response->getStatusCode()) {
+                $body = json_decode($response->getBody(), true);
+                if (!empty($body['data']) && !empty($body['data'][0]['episodes'])) {
+                    return (int) $body['data'][0]['episodes'];
+                }
+            }
+        } catch (\Exception $e) {
+            // Silence l'erreur API
+        }
+
+        return null;
     }
 
     private function canManageItem(?Item $item): bool
@@ -1154,7 +1177,6 @@ class ItemController extends BaseController
         }
 
         $db = db_connect();
-        // Serialize reports for a domain so simultaneous clicks cannot create duplicates.
         $lockName = 'deadlink_' . substr(hash('sha256', $host), 0, 48);
         $lockedHost = $host;
         $lock = $db->query('SELECT GET_LOCK(?, 8) AS acquired', [$lockName])->getRowArray();
@@ -1166,7 +1188,6 @@ class ItemController extends BaseController
 
         try {
             $db->transBegin();
-            // Re-read under the domain lock in case another request changed it.
             $item = $this->model->find($itemId);
             if (! $item || empty($item->lien)) {
                 $db->transRollback();
@@ -1219,7 +1240,6 @@ class ItemController extends BaseController
             }
 
             $now = date('Y-m-d H:i:s');
-            // The 7-day entry is unique per domain. Reuse an expired row instead of inserting another.
             $this->refreshExistingReportWhitelistEntry($host, $now);
             $cronLogId = (new CronLogModel())->insert([
                 'task_name' => CronLogModel::TASK_PENDING_USER_REPORT,
