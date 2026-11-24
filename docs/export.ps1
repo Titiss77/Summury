@@ -3,13 +3,15 @@ $root = $htdocs + '\'
 $out = Join-Path $PSScriptRoot 'context.txt'
 
 $excludedExtensions = @('.ico', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.woff', '.woff2', '.ttf', '.eot', '.zip', '.pdf')
-$excludedNames = @('.gitkeep')
+$excludedNames = @('.gitkeep', 'welcome_message.php', 'index.html', 'robots.txt')
+$excludedPathRegex = '(\\|/)Views(\\|/)errors(\\|/)|(\\|/)Config(\\|/)(?!(Routes|Filters|Database|AuthRoutes)\.php$)'
 
 $targets = @('app', 'public') | ForEach-Object { Join-Path $htdocs $_ } | Where-Object { Test-Path $_ }
 
-$blocks = $targets | Get-ChildItem -File -Recurse | Where-Object {
+$blocks = $targets | Get-ChildItem -File -Recurse -Force | Where-Object {
   ($excludedExtensions -notcontains $_.Extension.ToLower()) -and
-  ($excludedNames -notcontains $_.Name)
+  ($excludedNames -notcontains $_.Name) -and
+  ($_.FullName -notmatch $excludedPathRegex)
 } | Sort-Object FullName | ForEach-Object {
   $relPath = $_.FullName.Replace($root, '').Replace('\', '/')
   $lang = switch ($_.Extension.ToLower()) {
