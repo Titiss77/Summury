@@ -223,21 +223,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     const textarea = document.getElementById('description');
     const charCount = document.getElementById('char-count');
-    
+
     if (textarea && charCount) {
-        const maxLength = textarea.getAttribute('maxlength');
-        
+        const maxLengthAttr = textarea.getAttribute('maxlength');
+        const maxLength = maxLengthAttr ? parseInt(maxLengthAttr, 10) : null;
+
         function updateCounter() {
             const currentLength = textarea.value.length;
-            charCount.textContent = `${currentLength} / ${maxLength}`;
-            
-            if (currentLength >= maxLength) {
-                charCount.style.color = 'var(--danger)';
+            if (maxLength !== null && !Number.isNaN(maxLength)) {
+                charCount.textContent = `${currentLength} / ${maxLength}`;
+                charCount.style.color = currentLength >= maxLength ? 'var(--danger)' : 'var(--text-muted)';
             } else {
+                charCount.textContent = `${currentLength} caractères`;
                 charCount.style.color = 'var(--text-muted)';
             }
         }
-        
+
         updateCounter();
         textarea.addEventListener('input', updateCounter);
     }

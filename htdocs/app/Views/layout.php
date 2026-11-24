@@ -27,17 +27,6 @@
     <!-- Choices.js JS -->
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js" defer></script>
 
-    <!-- Analytics (à configurer) -->
-    <script>
-    window.dataLayer = window.dataLayer || [];
-
-    function gtag() {
-        dataLayer.push(arguments);
-    }
-    gtag('js', new Date());
-    gtag('config', 'TAG_ID_ICI');
-    </script>
-
     <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
     <script>
     let initialTheme = 'light';

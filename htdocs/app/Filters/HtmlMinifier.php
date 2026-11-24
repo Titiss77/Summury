@@ -25,11 +25,24 @@ class HtmlMinifier implements FilterInterface
         if (str_contains($contentType ?: 'text/html', 'text/html')) {
             $html = (string) $response->getBody();
 
+            // Protège les blocs sensibles aux retours à la ligne et espaces
+            $preserved = [];
+            $html = preg_replace_callback(
+                '#<(script|style|textarea|pre)\b[^>]*>.*?</\1>#is',
+                static function (array $matches) use (&$preserved): string {
+                    $key = '___MINIFY_PRESERVE_' . count($preserved) . '___';
+                    $preserved[$key] = $matches[0];
+
+                    return $key;
+                },
+                $html
+            ) ?? $html;
+
             $search = [
                 '/\>[^\S ]+/s',
                 '/[^\S ]+\</s',
                 '/(\s)+/s',
-                '/<!--(.*?)-->/s',   // Corrigé : remplace l'ancienne regex invalide '//s'
+                '/<!--(.*?)-->/s',
             ];
 
             $replace = [
@@ -39,10 +52,13 @@ class HtmlMinifier implements FilterInterface
                 '',
             ];
 
-            $minifiedHtml = preg_replace($search, $replace, $html);
+            $minifiedHtml = preg_replace($search, $replace, $html) ?? $html;
 
-            // Corrigé : on injecte le résultat minifié (avec un fallback de sécurité)
-            $response->setBody($minifiedHtml ?? $html);
+            if ($preserved !== []) {
+                $minifiedHtml = strtr($minifiedHtml, $preserved);
+            }
+
+            $response->setBody($minifiedHtml);
         }
     }
 }

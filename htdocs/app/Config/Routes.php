@@ -28,7 +28,6 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->post('s', 'ItemController::save');
     $routes->get('d/(:num)', 'ItemController::delete/$1');
     $routes->post('e/(:num)', 'ItemController::incrementEpisode/$1');
-    $routes->post('n/(:num)', 'ItemController::incrementSaison/$1');
     $routes->post('o', 'ItemController::updateOrder');
     $routes->get('g', 'ItemController::checkToGlobal');
     $routes->get('u/(:num)', 'ItemController::turnToAdmin/$1');
@@ -51,7 +50,6 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->post('item/save', 'ItemController::save');
     $routes->get('item/delete/(:num)', static fn(string $id) => redirect()->to('d/' . $id));
     $routes->post('item/increment-episode/(:num)', 'ItemController::incrementEpisode/$1');
-    $routes->post('item/increment-saison/(:num)', 'ItemController::incrementSaison/$1');
     $routes->post('items/update-order', 'ItemController::updateOrder');
     $routes->get('items/check-to-global', static fn() => redirect()->to('g'));
     $routes->get('item/turn/(:num)', static fn(string $id) => redirect()->to('u/' . $id));

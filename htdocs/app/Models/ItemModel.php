@@ -69,8 +69,6 @@ class ItemModel extends Model
             ->where('i.deleted_at IS NULL')
         ;
 
-        // Cartes publiques pour les visiteurs,
-        // cartes personnelles + publiques pour le propriétaire.
         if (null === $userId) {
             $builder->where('i.is_public', 1)
                 ->where('i.id_division !=', self::PERSONAL_DIVISION_ID);
@@ -278,10 +276,12 @@ class ItemModel extends Model
                 "SUM(
                     CASE
                         WHEN {$enCoursCondition}
-                        THEN
+                        THEN GREATEST(
+                            0,
                             COALESCE(total_episodes_global, total_episodes)
                             - COALESCE(episode_global, episode, 1)
                             + 1
+                        )
                         ELSE 0
                     END
                 ) AS total_episodes_en_cours",
@@ -293,7 +293,7 @@ class ItemModel extends Model
                 "SUM(
                     CASE
                         WHEN {$enCoursCondition}
-                        THEN total_saisons - saison + 1
+                        THEN GREATEST(0, COALESCE(total_saisons, 0) - COALESCE(saison, 0) + 1)
                         ELSE 0
                     END
                 ) AS total_series_en_cours",
@@ -305,10 +305,12 @@ class ItemModel extends Model
                 "SUM(
                     CASE
                         WHEN {$enPauseCondition}
-                        THEN
+                        THEN GREATEST(
+                            0,
                             COALESCE(total_episodes_global, total_episodes)
                             - COALESCE(episode_global, episode, 1)
                             + 1
+                        )
                         ELSE 0
                     END
                 ) AS total_episodes_en_pause",
@@ -320,7 +322,7 @@ class ItemModel extends Model
                 "SUM(
                     CASE
                         WHEN {$enPauseCondition}
-                        THEN total_saisons - saison + 1
+                        THEN GREATEST(0, COALESCE(total_saisons, 0) - COALESCE(saison, 0) + 1)
                         ELSE 0
                     END
                 ) AS total_series_en_pause",
@@ -355,9 +357,6 @@ class ItemModel extends Model
     /**
      * Récupère toutes les séries en cours et en pause
      * avec UNE SEULE requête SQL.
-     *
-     * Le découpage En cours / En pause est ensuite effectué
-     * en PHP afin d'éviter deux requêtes identiques.
      */
     public function getUserProfileSeries(int $userId): array
     {
@@ -388,9 +387,8 @@ class ItemModel extends Model
         ];
 
         foreach ($rows as $row) {
-            // Calcul identique à l'ancien fonctionnement.
             $row->vu_global = null !== $row->episode_global
-                ? (int) $row->episode_global - 1
+                ? max(0, (int) $row->episode_global - 1)
                 : null;
 
             if (
@@ -404,9 +402,10 @@ class ItemModel extends Model
                     ?? $row->episode
                     ?? 1;
 
-                $row->reste_global = (int) $totalEpisodes
-                    - (int) $episodeActuel
-                    + 1;
+                $row->reste_global = max(
+                    0,
+                    (int) $totalEpisodes - (int) $episodeActuel + 1
+                );
             } else {
                 $row->reste_global = null;
             }
@@ -415,9 +414,10 @@ class ItemModel extends Model
                 null !== $row->total_saisons
                 && null !== $row->saison
             ) {
-                $row->reste_s = (int) $row->total_saisons
-                    - (int) $row->saison
-                    + 1;
+                $row->reste_s = max(
+                    0,
+                    (int) $row->total_saisons - (int) $row->saison + 1
+                );
             } else {
                 $row->reste_s = null;
             }

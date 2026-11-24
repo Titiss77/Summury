@@ -95,7 +95,7 @@ class ItemController extends BaseController
                 'sous_categorie_select' => 'permit_empty|max_length[255]',
                 'sous_categorie_new' => 'permit_empty|max_length[255]',
                 'image' => 'permit_empty|max_length[255]',
-                'lien' => 'permit_empty|max_length[255]',
+                'lien' => 'permit_empty|max_length[2048]',
                 'date_sortie' => 'permit_empty|valid_date[Y-m-d\TH:i]',
             ];
 
@@ -342,6 +342,8 @@ class ItemController extends BaseController
             $this->model->update($id, $updateData);
 
             $wasComplete = 'Terminé' === $item->status;
+            $justCompleted = ('Terminé' === ($updateData['status'] ?? null));
+
             if (!empty($updateData['saison'])) {
                 $updatedItem = $this->model->find($id);
                 if ($updatedItem) {
@@ -361,9 +363,15 @@ class ItemController extends BaseController
                     $this->model->update($id, $syncData);
                 }
             } else {
+                $newEpisodeGlobal = (int) ($item->episode_global ?? $item->episode ?? 0) + (($wasComplete || $justCompleted) ? 0 : 1);
+                $totalGlobal = $item->total_episodes_global ?? $item->total_episodes;
+                if (null !== $totalGlobal && (int) $totalGlobal > 0 && $newEpisodeGlobal > (int) $totalGlobal) {
+                    $newEpisodeGlobal = (int) $totalGlobal;
+                }
+
                 $this->model->update($id, [
-                    'episode_global' => (int) ($item->episode_global ?? $item->episode ?? 0) + ($wasComplete ? 0 : 1),
-                    'total_episodes_global' => $item->total_episodes_global ?? $item->total_episodes,
+                    'episode_global' => $newEpisodeGlobal,
+                    'total_episodes_global' => $totalGlobal,
                 ]);
             }
 
@@ -384,196 +392,6 @@ class ItemController extends BaseController
             }
         }
         return redirect()->back();
-    }
-
-    /**
-     * Incrémente rapidement la saison.
-     *
-     * @param mixed $id
-     */
-    public function incrementSaison($id)
-    {
-        $item = $this->model->find($id);
-
-        if ($item) {
-            if (!$this->canManageItem($item)) {
-                if ($this->request->isAJAX()) {
-                    return $this->response->setStatusCode(403)->setJSON([
-                        'success' => false,
-                        'error' => 'Vous ne pouvez pas modifier cette carte.',
-                        'csrf_token' => csrf_hash(),
-                    ]);
-                }
-                return redirect()->back()->with('error', 'Vous ne pouvez pas modifier cette carte.');
-            }
-
-            $newSaison = (int) $item->saison + 1;
-            $this->model->update($id, ['saison' => $newSaison]);
-
-            (new AuditLogModel())->logAction('Incrémentation Rapide', "Mise à jour de la carte ID {$id} ('{$item->titre}') : Saison passée à {$newSaison}.");
-
-            if ($this->request->isAJAX()) {
-                return $this->response->setJSON(['success' => true, 'new_saison' => $newSaison, 'csrf_token' => csrf_hash()]);
-            }
-        }
-        return redirect()->back();
-    }
-
-    /**
-     * Moteur de recherche multi-sources (TMDB & Mangadex).
-     */
-    public function search()
-    {
-        $query = $this->request->getGet('q');
-        $type = $this->request->getGet('type');
-
-        if (empty($query)) {
-            return $this->response->setJSON([]);
-        }
-
-        $client = Services::curlrequest([
-            'timeout' => 8,
-            'connect_timeout' => 5,
-            'http_errors' => false,
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/site',
-        ]);
-
-        try {
-            if (filter_var($query, FILTER_VALIDATE_URL)) {
-                $metaData = $this->scrapeOpenGraph($query);
-                $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
-
-                return $this->response->setJSON($body);
-            }
-
-            $unifiedResults = [];
-            $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
-
-            $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
-            $response = $client->get($url);
-
-            if (200 === $response->getStatusCode()) {
-                $body = json_decode($response->getBody(), true);
-
-                if (isset($body['results']) && is_array($body['results'])) {
-                    foreach ($body['results'] as $result) {
-                        if (isset($result['media_type']) && 'person' === $result['media_type']) {
-                            continue;
-                        }
-
-                        $isAnime = false;
-                        if (isset($result['genre_ids']) && is_array($result['genre_ids']) && in_array(16, $result['genre_ids'])) {
-                            if (isset($result['origin_country']) && is_array($result['origin_country']) && in_array('JP', $result['origin_country'])) {
-                                $isAnime = true;
-                            }
-                        }
-
-                        $mediaLabel = strtoupper($result['media_type'] ?? 'TMDB');
-                        if ('TV' === $mediaLabel) {
-                            $mediaLabel = $isAnime ? 'ANIME' : 'TV';
-                        } elseif ('MOVIE' === $mediaLabel) {
-                            $mediaLabel = $isAnime ? 'FILM ANIME' : 'MOVIE';
-                        }
-
-                        $item = [
-                            'titre' => $result['title'] ?? $result['name'] ?? $result['original_name'] ?? 'Inconnu',
-                            'imageThumb' => !empty($result['poster_path']) ? "https://image.tmdb.org/t/p/w200{$result['poster_path']}" : '',
-                            'imageLarge' => !empty($result['poster_path']) ? "https://image.tmdb.org/t/p/w500{$result['poster_path']}" : '',
-                            'description' => $result['overview'] ?? '',
-                            'info' => substr($result['release_date'] ?? $result['first_air_date'] ?? '', 0, 4) . ' - ' . $mediaLabel,
-                            'lien' => '',
-                            'total_episodes' => '',
-                            'total_saisons' => '',
-                            'seasons_data' => null,
-                        ];
-
-                        if (isset($result['media_type']) && 'tv' === $result['media_type'] && isset($result['id'])) {
-                            try {
-                                $tvUrl = "https://api.themoviedb.org/3/tv/{$result['id']}?api_key={$apiKey}&language=fr-FR";
-                                $tvResponse = $client->get($tvUrl);
-                                if (200 === $tvResponse->getStatusCode()) {
-                                    $tvBody = json_decode($tvResponse->getBody(), true);
-                                    if (isset($tvBody['number_of_episodes'])) {
-                                        $item['total_episodes'] = $tvBody['number_of_episodes'];
-                                    }
-                                    if (isset($tvBody['number_of_seasons'])) {
-                                        $item['total_saisons'] = $tvBody['number_of_seasons'];
-                                    }
-                                    if (isset($tvBody['seasons'])) {
-                                        $seasons = [];
-                                        foreach ($tvBody['seasons'] as $season) {
-                                            $seasons[$season['season_number']] = $season['episode_count'];
-                                        }
-                                        $item['seasons_data'] = $seasons;
-                                    }
-                                }
-                            } catch (\Exception $e) {
-                            }
-                        }
-
-                        $unifiedResults[] = $item;
-                    }
-                }
-            }
-
-            try {
-                $mdUrl = 'https://api.mangadex.org/manga?title=' . urlencode($query) . '&limit=5&includes[]=cover_art&order[relevance]=desc';
-                $mdResponse = $client->get($mdUrl, [
-                    'headers' => [
-                        'User-Agent' => 'site-App/1.0',
-                        'Accept' => 'application/json',
-                    ],
-                ]);
-
-                if (200 === $mdResponse->getStatusCode()) {
-                    $mdBody = json_decode($mdResponse->getBody(), true);
-
-                    if (isset($mdBody['data']) && is_array($mdBody['data'])) {
-                        foreach ($mdBody['data'] as $m) {
-                            $attr = $m['attributes'] ?? [];
-                            $titre = $attr['title']['en'] ?? $attr['title']['ja-ro'] ?? $attr['title']['fr'] ?? 'Inconnu';
-                            if (is_array($titre)) {
-                                $titre = 'Inconnu';
-                            }
-                            $description = $attr['description']['fr'] ?? $attr['description']['en'] ?? '';
-                            $year = $attr['year'] ?? '';
-
-                            $fileName = '';
-                            if (isset($m['relationships'])) {
-                                foreach ($m['relationships'] as $rel) {
-                                    if ('cover_art' === $rel['type'] && isset($rel['attributes']['fileName'])) {
-                                        $fileName = $rel['attributes']['fileName'];
-                                        break;
-                                    }
-                                }
-                            }
-
-                            $imageThumb = $fileName ? "https://uploads.mangadex.org/covers/{$m['id']}/{$fileName}.256.jpg" : '';
-                            $imageLarge = $fileName ? "https://uploads.mangadex.org/covers/{$m['id']}/{$fileName}" : '';
-
-                            $unifiedResults[] = [
-                                'titre' => $titre,
-                                'imageThumb' => $imageThumb,
-                                'imageLarge' => $imageLarge,
-                                'description' => strip_tags((string) $description),
-                                'info' => ($year ? $year . ' - ' : '') . 'MANGA',
-                                'lien' => '',
-                                'total_episodes' => $attr['lastChapter'] ?? '',
-                                'total_saisons' => $attr['lastVolume'] ?? '',
-                                'seasons_data' => null,
-                            ];
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-            }
-
-            $finalBody = ['unified' => $unifiedResults];
-
-            return $this->response->setJSON($finalBody);
-        } catch (\Exception $e) {
-            return $this->response->setJSON(['error' => 'Erreur de recherche : ' . $e->getMessage()]);
-        }
     }
 
     /**
@@ -839,47 +657,6 @@ class ItemController extends BaseController
     }
 
     /**
-     * Récupère les métadonnées OpenGraph (Titre, Image, Description) d'une URL fournie.
-     */
-    private function scrapeOpenGraph(string $url): ?array
-    {
-        $html = @file_get_contents($url);
-        if (!$html) {
-            return null;
-        }
-
-        $doc = new \DOMDocument();
-        @$doc->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
-
-        $tags = $doc->getElementsByTagName('meta');
-        $data = ['titre' => '', 'description' => '', 'image' => '', 'lien' => $url, 'is_link' => true];
-
-        foreach ($tags as $tag) {
-            if ($tag->hasAttribute('property')) {
-                $property = $tag->getAttribute('property');
-                if ('og:title' === $property) {
-                    $data['titre'] = $tag->getAttribute('content');
-                }
-                if ('og:description' === $property) {
-                    $data['description'] = $tag->getAttribute('content');
-                }
-                if ('og:image' === $property) {
-                    $data['image'] = $tag->getAttribute('content');
-                }
-            }
-        }
-
-        if (empty($data['titre'])) {
-            $titles = $doc->getElementsByTagName('title');
-            if ($titles->length > 0) {
-                $data['titre'] = $titles->item(0)->nodeValue;
-            }
-        }
-
-        return $data;
-    }
-
-    /**
      * Interroge TMDB pour calculer les compteurs globaux (épisodes vus au total et total de la série)
      * et, si demandé, récupérer le nombre d'épisodes de la saison en cours.
      */
@@ -1090,27 +867,6 @@ class ItemController extends BaseController
     }
 
     /**
-     * Refresh an expired whitelist row when its domain is reported again.
-     */
-    private function refreshExistingReportWhitelistEntry(string $host, string $updatedAt): void
-    {
-        $whitelist = new WhitelistModel();
-        foreach ($whitelist->findAll() as $entry) {
-            $entryHost = $this->reportedLinkHost((string) ($entry['domain'] ?? ''));
-            if ($entryHost === null)
-                continue;
-            $entryHost = (string) preg_replace('/^www\./i', '', $entryHost);
-            if ($entryHost !== $host)
-                continue;
-
-            if (!$whitelist->update($entry['id'], ['created_at' => $updatedAt])) {
-                throw new \RuntimeException('Impossible de renouveler la date de protection du domaine.');
-            }
-            return;
-        }
-    }
-
-    /**
      * Enforce rolling quotas per authenticated account and source IP.
      */
     private function reportRateLimitMessage(): ?string
@@ -1287,7 +1043,6 @@ class ItemController extends BaseController
             }
 
             $now = date('Y-m-d H:i:s');
-            $this->refreshExistingReportWhitelistEntry($host, $now);
             $cronLogId = (new CronLogModel())->insert([
                 'task_name' => CronLogModel::TASK_PENDING_USER_REPORT,
                 'last_run' => $now,
