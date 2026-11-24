@@ -320,7 +320,7 @@ class ItemController extends BaseController
                     $newTotalEpisodes = null;
                     $updateData['saison'] = $newSaison;
                     $updateData['episode'] = $newEpisode;
-                    $updateData['total_episodes'] = null; // Vide l'ancien total par sécurité
+                    $updateData['total_episodes'] = null;  // Vide l'ancien total par sécurité
 
                     $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode} (Saison {$newSaison})";
                 }
@@ -362,12 +362,15 @@ class ItemController extends BaseController
             (new AuditLogModel())->logAction('Incrémentation Rapide', $logMessage);
 
             if ($this->request->isAJAX()) {
+                $finalItem = $this->model->find($id);
+
                 return $this->response->setJSON([
                     'success' => true,
                     'new_episode' => $newEpisode,
                     'new_saison' => $newSaison,
                     'new_total_episodes' => $newTotalEpisodes,
                     'status' => $updateData['status'] ?? $item->status,
+                    'new_link' => $finalItem ? $finalItem->getFinalLink() : null,
                     'csrf_token' => csrf_hash(),
                 ]);
             }
@@ -1008,47 +1011,63 @@ class ItemController extends BaseController
             $user->inGroup('admin', 'superadmin');
     }
 
-    /** Normalize any card URL to its lowercase hostname. */
+    /**
+     * Normalize any card URL to its lowercase hostname.
+     */
     private function reportedLinkHost(string $url): ?string
     {
         $url = trim($url);
-        if ($url === '') return null;
-        if (str_starts_with($url, '//')) $url = 'https:' . $url;
-        elseif (! preg_match('~^https?://~i', $url)) $url = 'https://' . $url;
+        if ($url === '')
+            return null;
+        if (str_starts_with($url, '//'))
+            $url = 'https:' . $url;
+        elseif (!preg_match('~^https?://~i', $url))
+            $url = 'https://' . $url;
 
         $host = parse_url($url, PHP_URL_HOST);
-        if (! is_string($host) || $host === '') return null;
+        if (!is_string($host) || $host === '')
+            return null;
         $host = strtolower(rtrim($host, '.'));
         return (string) preg_replace('/^www\./i', '', $host);
     }
 
-    /** Check both historical reports and cards already marked dead for this host. */
+    /**
+     * Check both historical reports and cards already marked dead for this host.
+     */
     private function domainAlreadyReported(string $host): bool
     {
         $db = db_connect();
-        $logs = $db->table('cron_logs')
+        $logs = $db
+            ->table('cron_logs')
             ->select('url_testee')
             ->whereIn('task_name', [CronLogModel::TASK_CONFIRMED_DEAD, CronLogModel::TASK_PENDING_USER_REPORT])
             ->like('url_testee', $host)
-            ->get()->getResultArray();
+            ->get()
+            ->getResultArray();
         foreach ($logs as $log) {
-            if ($this->reportedLinkHost((string) ($log['url_testee'] ?? '')) === $host) return true;
+            if ($this->reportedLinkHost((string) ($log['url_testee'] ?? '')) === $host)
+                return true;
         }
 
-        $deadItems = $db->table('item')
+        $deadItems = $db
+            ->table('item')
             ->select('lien')
             ->where('deleted_at', null)
             ->whereIn('link_status', ['reported', 'dead'])
             ->like('lien', $host)
-            ->get()->getResultArray();
+            ->get()
+            ->getResultArray();
         foreach ($deadItems as $deadItem) {
-            if ($this->reportedLinkHost((string) ($deadItem['lien'] ?? '')) === $host) return true;
+            if ($this->reportedLinkHost((string) ($deadItem['lien'] ?? '')) === $host)
+                return true;
         }
 
         return false;
     }
 
-    /** Whitelisted hosts, with or without the conventional www prefix, cannot be reported. */
+    /**
+     * Whitelisted hosts, with or without the conventional www prefix, cannot be reported.
+     */
     private function isWhitelistedReportHost(string $host): bool
     {
         $normalize = function (string $domain): ?string {
@@ -1056,35 +1075,44 @@ class ItemController extends BaseController
             return $domain === null ? null : (string) preg_replace('/^www\./i', '', $domain);
         };
         $normalizedHost = $normalize($host);
-        if ($normalizedHost === null) return false;
+        if ($normalizedHost === null)
+            return false;
 
         $cutoff = time() - (WhitelistModel::PROTECTION_DAYS * 86400);
         foreach ((new WhitelistModel())->findAll() as $entry) {
-            if ($normalize((string) ($entry['domain'] ?? '')) !== $normalizedHost) continue;
+            if ($normalize((string) ($entry['domain'] ?? '')) !== $normalizedHost)
+                continue;
             $addedAt = strtotime((string) ($entry['created_at'] ?? ''));
-            if ($addedAt !== false && $addedAt >= $cutoff) return true;
+            if ($addedAt !== false && $addedAt >= $cutoff)
+                return true;
         }
         return false;
     }
 
-    /** Refresh an expired whitelist row when its domain is reported again. */
+    /**
+     * Refresh an expired whitelist row when its domain is reported again.
+     */
     private function refreshExistingReportWhitelistEntry(string $host, string $updatedAt): void
     {
         $whitelist = new WhitelistModel();
         foreach ($whitelist->findAll() as $entry) {
             $entryHost = $this->reportedLinkHost((string) ($entry['domain'] ?? ''));
-            if ($entryHost === null) continue;
-            $entryHost = (string) preg_replace('/^www\\./i', '', $entryHost);
-            if ($entryHost !== $host) continue;
+            if ($entryHost === null)
+                continue;
+            $entryHost = (string) preg_replace('/^www\./i', '', $entryHost);
+            if ($entryHost !== $host)
+                continue;
 
-            if (! $whitelist->update($entry['id'], ['created_at' => $updatedAt])) {
+            if (!$whitelist->update($entry['id'], ['created_at' => $updatedAt])) {
                 throw new \RuntimeException('Impossible de renouveler la date de protection du domaine.');
             }
             return;
         }
     }
 
-    /** Enforce rolling quotas per authenticated account and source IP. */
+    /**
+     * Enforce rolling quotas per authenticated account and source IP.
+     */
     private function reportRateLimitMessage(): ?string
     {
         $db = db_connect();
@@ -1106,28 +1134,35 @@ class ItemController extends BaseController
         return null;
     }
 
-    /** Find active cards whose parsed hostname exactly matches the reported domain. */
+    /**
+     * Find active cards whose parsed hostname exactly matches the reported domain.
+     */
     private function activeItemsForReportHost(string $host): array
     {
-        $candidates = db_connect()->table('item')
+        $candidates = db_connect()
+            ->table('item')
             ->select('id, titre, lien, link_status')
             ->where('deleted_at', null)
             ->where('id_division !=', ItemModel::PERSONAL_DIVISION_ID)
             ->where('lien IS NOT NULL', null, false)
             ->like('lien', $host)
-            ->get()->getResult();
+            ->get()
+            ->getResult();
 
         $matches = [];
         foreach ($candidates as $candidate) {
-            if ($this->reportedLinkHost((string) $candidate->lien) === $host) $matches[] = $candidate;
+            if ($this->reportedLinkHost((string) $candidate->lien) === $host)
+                $matches[] = $candidate;
         }
         return $matches;
     }
 
-    /** Record user reports without making unreliable network checks. */
+    /**
+     * Record user reports without making unreliable network checks.
+     */
     public function reportLink()
     {
-        if (! auth()->loggedIn()) {
+        if (!auth()->loggedIn()) {
             return $this->response->setStatusCode(401)->setJSON([
                 'success' => false,
                 'message' => 'Vous devez être connecté pour signaler un lien.',
@@ -1139,14 +1174,18 @@ class ItemController extends BaseController
         $itemId = filter_var($json->id ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($itemId === false) {
             return $this->response->setStatusCode(400)->setJSON([
-                'success' => false, 'message' => 'ID de carte invalide.', 'csrf_token' => csrf_hash(),
+                'success' => false,
+                'message' => 'ID de carte invalide.',
+                'csrf_token' => csrf_hash(),
             ]);
         }
 
         $item = $this->model->find($itemId);
-        if (! $item || empty($item->lien)) {
+        if (!$item || empty($item->lien)) {
             return $this->response->setStatusCode(404)->setJSON([
-                'success' => false, 'message' => 'Carte introuvable ou lien vide.', 'csrf_token' => csrf_hash(),
+                'success' => false,
+                'message' => 'Carte introuvable ou lien vide.',
+                'csrf_token' => csrf_hash(),
             ]);
         }
         if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
@@ -1160,12 +1199,16 @@ class ItemController extends BaseController
         $host = $this->reportedLinkHost((string) $item->lien);
         if ($host === null) {
             return $this->response->setStatusCode(400)->setJSON([
-                'success' => false, 'message' => 'Le lien de cette carte ne contient pas de domaine valide.', 'csrf_token' => csrf_hash(),
+                'success' => false,
+                'message' => 'Le lien de cette carte ne contient pas de domaine valide.',
+                'csrf_token' => csrf_hash(),
             ]);
         }
         if ($rateLimitMessage = $this->reportRateLimitMessage()) {
             return $this->response->setStatusCode(429)->setJSON([
-                'success' => false, 'message' => $rateLimitMessage, 'csrf_token' => csrf_hash(),
+                'success' => false,
+                'message' => $rateLimitMessage,
+                'csrf_token' => csrf_hash(),
             ]);
         }
         if ($this->isWhitelistedReportHost($host)) {
@@ -1182,17 +1225,21 @@ class ItemController extends BaseController
         $lock = $db->query('SELECT GET_LOCK(?, 8) AS acquired', [$lockName])->getRowArray();
         if ((int) ($lock['acquired'] ?? 0) !== 1) {
             return $this->response->setStatusCode(503)->setJSON([
-                'success' => false, 'message' => 'Le signalement est temporairement occupé. Réessayez.', 'csrf_token' => csrf_hash(),
+                'success' => false,
+                'message' => 'Le signalement est temporairement occupé. Réessayez.',
+                'csrf_token' => csrf_hash(),
             ]);
         }
 
         try {
             $db->transBegin();
             $item = $this->model->find($itemId);
-            if (! $item || empty($item->lien)) {
+            if (!$item || empty($item->lien)) {
                 $db->transRollback();
                 return $this->response->setStatusCode(404)->setJSON([
-                    'success' => false, 'message' => 'Carte introuvable ou lien vide.', 'csrf_token' => csrf_hash(),
+                    'success' => false,
+                    'message' => 'Carte introuvable ou lien vide.',
+                    'csrf_token' => csrf_hash(),
                 ]);
             }
             if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
@@ -1234,7 +1281,7 @@ class ItemController extends BaseController
                 throw new \RuntimeException('Aucune carte active ne correspond à ce domaine.');
             }
             foreach ($domainItems as $domainItem) {
-                if (! $this->model->update($domainItem->id, ['link_status' => 'reported'])) {
+                if (!$this->model->update($domainItem->id, ['link_status' => 'reported'])) {
                     throw new \RuntimeException('Impossible de mettre à jour le statut des cartes du domaine.');
                 }
             }
@@ -1249,7 +1296,7 @@ class ItemController extends BaseController
                 'url_testee' => 'https://' . $host . '/',
                 'code_erreur' => 0,
             ]);
-            if (! $cronLogId) {
+            if (!$cronLogId) {
                 throw new \RuntimeException('Impossible d’enregistrer l’historique du signalement.');
             }
 
@@ -1257,7 +1304,7 @@ class ItemController extends BaseController
                 'Signalement Utilisateur',
                 'L’utilisateur ' . auth()->user()->username . " a signalé manuellement le domaine {$host} comme mort (carte ID {$itemId})."
             );
-            if (! $auditId || ! $db->transStatus()) {
+            if (!$auditId || !$db->transStatus()) {
                 throw new \RuntimeException('Impossible d’enregistrer le journal d’audit.');
             }
 

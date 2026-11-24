@@ -250,13 +250,18 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
 
-            const itemId = button.getAttribute('data-id');
-            const divisionId = button.getAttribute('data-division');
-            const subCategory = button.getAttribute('data-sub');
+            if (button.disabled) return;
+            button.disabled = true;
 
+            const itemId = button.getAttribute('data-id');
             const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             const url = baseUrl + 'e/' + itemId;
-            const counterSpan = document.getElementById(`ep-count-${itemId}`);
+
+            const card = document.getElementById(`card-${itemId}`);
+            const epSpan = document.getElementById(`ep-count-${itemId}`);
+            const epTotalSpan = document.getElementById(`ep-total-${itemId}`);
+            const seasonSpan = document.getElementById(`s-count-${itemId}`);
+            const statusSpan = document.getElementById(`status-text-${itemId}`);
 
             try {
                 const response = await fetch(url, {
@@ -266,42 +271,77 @@ document.addEventListener('DOMContentLoaded', function() {
                         [siteConfig.csrfHeader]: siteConfig.csrfToken
                     }
                 });
-                
+
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-                
+
                 const data = await response.json();
-                
+
+                if (data.csrf_token) {
+                    siteConfig.csrfToken = data.csrf_token;
+                }
+
                 if (data.success) {
-                    counterSpan.innerText = data.new_episode;
-                    
-                    counterSpan.style.color = 'var(--success)';
-                    counterSpan.style.transform = 'scale(1.2)';
-                    
-                    setTimeout(() => {
-                        counterSpan.style.color = '';
-                        counterSpan.style.transform = 'scale(1)';
-                        
-                        const currentUrl = new URL(window.location.href.split('?')[0].split('#')[0]);
-                        
-                        if (divisionId) {
-                            currentUrl.searchParams.set('open', divisionId);
-                            currentUrl.hash = 'card-' + itemId; 
-                        }
-                        if (subCategory) {
-                            currentUrl.searchParams.set('subopen', subCategory);
-                        }
-                        
-                        window.location.href = currentUrl.toString();
-                    }, 400);
+                    // 1. Mise à jour de l'épisode + animation
+                    if (epSpan) {
+                        epSpan.innerText = data.new_episode;
+                        epSpan.style.color = 'var(--success)';
+                        epSpan.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            epSpan.style.color = '';
+                            epSpan.style.transform = 'scale(1)';
+                        }, 400);
+                    }
 
-                    if (data.csrf_token) siteConfig.csrfToken = data.csrf_token; 
-                    if (typeof showToast === 'function') showToast('Épisode ajouté avec succès !', 'success');
+                    // 2. Mise à jour de la saison (si changement de saison)
+                    if (seasonSpan && data.new_saison) {
+                        seasonSpan.innerText = data.new_saison;
+                    }
 
+                    // 3. Mise à jour du total d'épisodes de la saison
+                    if (epTotalSpan && 'new_total_episodes' in data) {
+                        epTotalSpan.innerText = data.new_total_episodes ? ` / ${data.new_total_episodes}` : '';
+                    }
+
+                    // 4. Mise à jour du statut
+                    if (data.status) {
+                        if (statusSpan) statusSpan.innerText = data.status;
+                        if (card) {
+                            card.dataset.status = data.status;
+                            if (data.status === 'Terminé') {
+                                card.classList.add('status-completed');
+                                card.classList.remove('needs-dispo-check');
+                                const liveStatus = document.getElementById(`live-status-${itemId}`);
+                                if (liveStatus) liveStatus.remove();
+                            }
+                        }
+                    }
+
+                    // 5. Mise à jour du lien de la carte (pour ouvrir directement le nouvel épisode)
+                    if (card && data.new_link) {
+                        card.dataset.url = data.new_link;
+                        const linkEl = card.querySelector('.card-link-block');
+                        if (linkEl) linkEl.href = data.new_link;
+                    }
+
+                    if (typeof showToast === 'function') {
+                        const msg = data.status === 'Terminé'
+                            ? 'Série marquée comme terminée !'
+                            : 'Épisode ajouté avec succès !';
+                        showToast(msg, 'success');
+                    }
                 } else {
                     console.error("Erreur renvoyée par PHP :", data);
+                    if (typeof showToast === 'function') {
+                        showToast(data.error || 'Erreur lors de la mise à jour.', 'danger');
+                    }
                 }
             } catch (error) {
                 console.error("Échec de la requête Fetch :", error);
+                if (typeof showToast === 'function') {
+                    showToast('Erreur réseau lors de la mise à jour.', 'danger');
+                }
+            } finally {
+                button.disabled = false;
             }
         });
     });

@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <?php
     $openDivision = $_GET['open'] ?? null;
     $openSub = $_GET['subopen'] ?? null;
-    ?>
+?>
 
 <!-- Boucle principale d'affichage : Header > Division > Sous-catégories > Cartes -->
 <?php foreach ($groupedItems as $headerName => $divisions) { ?>
@@ -241,11 +241,13 @@ document.addEventListener("DOMContentLoaded", function() {
                                     $isOwner = auth()->loggedIn() && (int) $item->id_user === (int) auth()->id();
                                     $canDragItem = auth()->loggedIn() && (auth()->user()->inGroup('superadmin') || $isOwner);
                                     $isPersonalDivision = (int) $item->id_division === \App\Models\ItemModel::PERSONAL_DIVISION_ID;
-                                    
+
                                     // Variables d'état du lien
                                     $linkForReportHost = trim((string) $item->lien);
-                                    if (str_starts_with($linkForReportHost, '//')) $linkForReportHost = 'https:' . $linkForReportHost;
-                                    elseif (!preg_match('~^https?://~i', $linkForReportHost)) $linkForReportHost = 'https://' . $linkForReportHost;
+                                    if (str_starts_with($linkForReportHost, '//'))
+                                        $linkForReportHost = 'https:' . $linkForReportHost;
+                                    elseif (!preg_match('~^https?://~i', $linkForReportHost))
+                                        $linkForReportHost = 'https://' . $linkForReportHost;
                                     $reportHost = parse_url($linkForReportHost, PHP_URL_HOST);
                                     $reportHost = is_string($reportHost) ? (string) preg_replace('/^www\./i', '', strtolower(rtrim($reportHost, '.'))) : '';
                                     $domainReportState = $reportDomainStates[$reportHost] ?? null;
@@ -313,7 +315,9 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 style="<?php echo $textColor; ?>">
                                                 <?php echo htmlspecialchars($item->titre); ?></h4>
                                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
-                                                <?php echo htmlspecialchars($item->status); ?></p>
+                                                <span
+                                                    id="status-text-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->status); ?></span>
+                                            </p>
 
                                             <!-- Étiquette si brouillon ou en attente d'approbation -->
                                             <?php
@@ -377,9 +381,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <div
                                                     style="display: flex; flex-direction: column; align-items: center;">
                                                     <span class="badge badge-episode">Ép. <span
-                                                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
+                                                            id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><span
+                                                            id="ep-total-<?php echo $item->id; ?>"><?php if (!empty($item->total_episodes)) {
                                             echo ' / ' . htmlspecialchars($item->total_episodes);
-                                        } ?>
+                                        } ?></span>
                                                         <?php if ($isOwner) { ?>
                                                         <button type="button"
                                                             class="btn-increment btn-increment-episode"
