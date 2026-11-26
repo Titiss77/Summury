@@ -24,5 +24,11 @@ jobs:
         run: composer install --no-interaction --prefer-dist
       - name: PHP syntax checks
         run: find app -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: JavaScript syntax checks
+        run: node --check public/assets/script.js && node --check public/assets/media-autofill.js
       - name: Run PHPUnit
         run: php vendor/bin/phpunit
