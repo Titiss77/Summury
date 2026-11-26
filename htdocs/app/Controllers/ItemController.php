@@ -106,14 +106,6 @@ class ItemController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Erreur dans le formulaire.');
         }
 
-        $submittedLink = trim((string) $this->request->getPost('lien'));
-        if ('' !== $submittedLink) {
-            $normalizedLink = preg_replace('/\\{(?:ep|s|ep2|ep3|ep4)\\}/i', '1', $submittedLink) ?? $submittedLink;
-            if (!ExternalUrlGuard::isSafeHttpUrl($normalizedLink)) {
-                return redirect()->back()->withInput()->with('error', 'Le lien doit être une URL HTTP ou HTTPS valide.');
-            }
-        }
-
         $data = $this->request->getPost();
         $id = $this->request->getPost('id');
         $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
@@ -448,49 +440,33 @@ class ItemController extends BaseController
      */
     public function updateOrder()
     {
-        if (!$this->request->is('ajax') || !auth()->loggedIn()) {
-            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'error' => 'Requête invalide.', 'csrf_token' => csrf_hash()]);
-        }
-        $json = $this->request->getJSON();
-        $order = $json->order ?? null;
-        if (!is_array($order) || $order === [] || count($order) > 200) {
-            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'error' => 'Ordre invalide.', 'csrf_token' => csrf_hash()]);
-        }
-        $ids = [];
-        foreach ($order as $id) {
-            if (filter_var($id, FILTER_VALIDATE_INT) === false || (int) $id < 1) {
-                return $this->response->setStatusCode(400)->setJSON(['success' => false, 'error' => 'Identifiant invalide.', 'csrf_token' => csrf_hash()]);
+        if ($this->request->is('ajax')) {
+            $json = $this->request->getJSON();
+            if (isset($json->order) && is_array($json->order)) {
+                if (!auth()->loggedIn()) {
+                    return $this->response->setJSON(['success' => false, 'error' => 'Session expirée.']);
+                }
+
+                $userId = auth()->id();
+                $isSuperAdmin = auth()->user()->inGroup('superadmin');
+
+                $count = 0;
+                foreach ($json->order as $index => $itemId) {
+                    $item = $this->model->find($itemId);
+                    if ($item && ((int) $item->id_user === (int) $userId || $isSuperAdmin)) {
+                        $this->model->update($itemId, ['position' => $index]);
+                        ++$count;
+                    }
+                }
+
+                if ($count > 0) {
+                    (new AuditLogModel())->logAction('Reorganisation', "Ordre d'affichage de {$count} carte(s) modifié.");
+                }
+
+                return $this->response->setJSON(['success' => true, 'message' => 'Ordre mis à jour.', 'csrf_token' => csrf_hash()]);
             }
-            $ids[] = (int) $id;
         }
-        if (count($ids) !== count(array_unique($ids))) {
-            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'error' => 'Identifiants dupliqués.', 'csrf_token' => csrf_hash()]);
-        }
-        $userId = (int) auth()->id();
-        $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        $query = $this->model->builder()->select('id');
-        if (!$isSuperAdmin) $query->where('id_user', $userId);
-        $allowedIds = array_map('intval', array_column($query->whereIn('id', $ids)->get()->getResultArray(), 'id'));
-        if ($allowedIds === []) {
-            return $this->response->setJSON(['success' => false, 'error' => 'Aucune carte autorisée.', 'csrf_token' => csrf_hash()]);
-        }
-        $allowedLookup = array_fill_keys($allowedIds, true);
-        $cases = [];
-        foreach ($ids as $position => $id) {
-            if (isset($allowedLookup[$id])) $cases[] = 'WHEN ' . $id . ' THEN ' . $position;
-        }
-        $db = db_connect();
-        $db->transStart();
-        $this->model->builder()
-            ->set('position', 'CASE id ' . implode(' ', $cases) . ' ELSE position END', false)
-            ->whereIn('id', $allowedIds)
-            ->update();
-        $db->transComplete();
-        if ($db->transStatus() === false) {
-            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'error' => 'Échec de la sauvegarde.', 'csrf_token' => csrf_hash()]);
-        }
-        (new AuditLogModel())->logAction('Reorganisation', 'Ordre d’affichage de ' . count($allowedIds) . ' carte(s) modifié.');
-        return $this->response->setJSON(['success' => true, 'message' => 'Ordre mis à jour.', 'csrf_token' => csrf_hash()]);
+        return $this->response->setJSON(['success' => false, 'error' => 'Requête invalide.']);
     }
 
     /**
@@ -542,12 +518,16 @@ class ItemController extends BaseController
                 'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
 
-            $response = $client->get($urlCible);
+            $response = $client->get($urlCible, [
+                'stream' => true,
+                'read_timeout' => 3,
+            ]);
             if ($response->getStatusCode() === 404) {
                 return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']]);
             }
 
-            $html = (string) $response->getBody();
+            $body = $response->getBody();
+            $html = method_exists($body, 'read') ? $body->read(1_048_576) : substr((string) $body, 0, 1_048_576);
             $estSurFicheAnime = false;
             $lecteurPresent = false;
 

@@ -26,86 +26,84 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->get('m', 'ItemController::form');
     $routes->get('m/(:num)', 'ItemController::form/$1');
     $routes->post('s', 'ItemController::save');
-    $routes->get('d/(:num)', 'ItemController::delete/$1');
+    $routes->post('d/(:num)', 'ItemController::delete/$1');
     $routes->post('e/(:num)', 'ItemController::incrementEpisode/$1');
     $routes->post('o', 'ItemController::updateOrder');
     $routes->get('g', 'ItemController::checkToGlobal');
-    $routes->get('u/(:num)', 'ItemController::turnToAdmin/$1');
+    $routes->post('u/(:num)', 'ItemController::turnToAdmin/$1');
     $routes->get('f', 'MediaSearchController::search');
     $routes->get('r', 'ItemController::viewDeleted');
-    $routes->get('rr/(:num)', 'ItemController::restore/$1');
-    $routes->get('rd/(:num)', 'ItemController::permanentDelete/$1');
-    $routes->get('ra', 'ItemController::restoreAll');
-    $routes->get('re', 'ItemController::emptyTrash');
+    $routes->post('rr/(:num)', 'ItemController::restore/$1');
+    $routes->post('rd/(:num)', 'ItemController::permanentDelete/$1');
+    $routes->post('ra', 'ItemController::restoreAll');
+    $routes->post('re', 'ItemController::emptyTrash');
     $routes->get('p', 'ProfileController::index');
     $routes->post('pw', 'ProfileController::updatePassword');
     $routes->post('delete-account', 'ProfileController::deleteAccount');
-
-    // NOUVELLE ROUTE : Signalement de lien mort
     $routes->post('report-link', 'ItemController::reportLink');
 
-    // Anciennes URL : elles restent utilisables sans redirection des formulaires POST.
+    // Anciennes URL mutatrices conservées en POST pour éviter les opérations via GET.
     $routes->get('item/form', static fn() => redirect()->to('m'));
     $routes->get('item/form/(:num)', static fn(string $id) => redirect()->to('m/' . $id));
     $routes->post('item/save', 'ItemController::save');
-    $routes->get('item/delete/(:num)', static fn(string $id) => redirect()->to('d/' . $id));
+    $routes->post('item/delete/(:num)', 'ItemController::delete/$1');
     $routes->post('item/increment-episode/(:num)', 'ItemController::incrementEpisode/$1');
     $routes->post('items/update-order', 'ItemController::updateOrder');
     $routes->get('items/check-to-global', static fn() => redirect()->to('g'));
-    $routes->get('item/turn/(:num)', static fn(string $id) => redirect()->to('u/' . $id));
+    $routes->post('item/turn/(:num)', 'ItemController::turnToAdmin/$1');
     $routes->get('item/search', 'MediaSearchController::search');
     $routes->get('items/deleted', static fn() => redirect()->to('r'));
-    $routes->get('item/restore/(:num)', static fn(string $id) => redirect()->to('rr/' . $id));
-    $routes->get('item/permanent-delete/(:num)', static fn(string $id) => redirect()->to('rd/' . $id));
-    $routes->get('items/restore-all', static fn() => redirect()->to('ra'));
-    $routes->get('items/empty-trash', static fn() => redirect()->to('re'));
+    $routes->post('item/restore/(:num)', 'ItemController::restore/$1');
+    $routes->post('item/permanent-delete/(:num)', 'ItemController::permanentDelete/$1');
+    $routes->post('items/restore-all', 'ItemController::restoreAll');
+    $routes->post('items/empty-trash', 'ItemController::emptyTrash');
     $routes->get('profile', static fn() => redirect()->to('p'));
     $routes->post('profile/update-password', 'ProfileController::updatePassword');
     $routes->post('update-email', 'ProfileController::updateEmail');
 });
 
-// Administration : filtres de rôle inchangés.
-$routes->group('a', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
+// Administration : toutes les opérations qui changent l'état utilisent POST.
+$routes->group('a', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('u', 'UserController::index');
     $routes->get('u/(:num)', 'UserController::edit/$1');
     $routes->post('u/(:num)', 'UserController::update/$1');
-    $routes->get('u/(:num)/x', 'UserController::delete/$1');
-    $routes->get('u/(:num)/b', 'UserController::unban/$1');
+    $routes->post('u/(:num)/x', 'UserController::delete/$1');
+    $routes->post('u/(:num)/b', 'UserController::unban/$1');
     $routes->get('i', 'ItemController::pending');
-    $routes->get('i/(:num)', 'ItemController::approve/$1');
-    $routes->get('i/(:num)/x', 'ItemController::reject/$1');
-    $routes->get('v/(:num)', 'ItemController::approveRevision/$1');
-    $routes->get('v/(:num)/x', 'ItemController::rejectRevision/$1');
+    $routes->post('i/(:num)', 'ItemController::approve/$1');
+    $routes->post('i/(:num)/x', 'ItemController::reject/$1');
+    $routes->post('v/(:num)', 'ItemController::approveRevision/$1');
+    $routes->post('v/(:num)/x', 'ItemController::rejectRevision/$1');
     $routes->get('d', 'ItemController::deadLinks');
     $routes->post('d/report/(:num)/approve', 'ItemController::approveUserLinkReport/$1');
     $routes->post('d/report/(:num)/reject', 'ItemController::rejectUserLinkReport/$1');
     $routes->post('d/valid/(:num)/dead', 'ItemController::declareValidDomainDead/$1');
-    $routes->get('d/(:num)', 'ItemController::delete/$1');
+    $routes->post('d/(:num)', 'ItemController::delete/$1');
     $routes->post('b', 'ItemController::bulkUpdateDomain');
     $routes->get('l', 'AuditController::index');
     $routes->get('fnd', 'ItemController::falseNegativeDomain');
 });
 
 // Anciennes URL d'administration.
-$routes->group('users', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
+$routes->group('users', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('/', static fn() => redirect()->to('a/u'));
     $routes->get('edit/(:num)', static fn(string $id) => redirect()->to('a/u/' . $id));
     $routes->post('update/(:num)', 'UserController::update/$1');
-    $routes->get('delete/(:num)', static fn(string $id) => redirect()->to('a/u/' . $id . '/x'));
-    $routes->get('unban/(:num)', static fn(string $id) => redirect()->to('a/u/' . $id . '/b'));
+    $routes->post('delete/(:num)', 'UserController::delete/$1');
+    $routes->post('unban/(:num)', 'UserController::unban/$1');
 });
-$routes->group('items', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
+$routes->group('items', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('pending', static fn() => redirect()->to('a/i'));
-    $routes->get('approve/(:num)', static fn(string $id) => redirect()->to('a/i/' . $id));
-    $routes->get('reject/(:num)', static fn(string $id) => redirect()->to('a/i/' . $id . '/x'));
-    $routes->get('approve-revision/(:num)', static fn(string $id) => redirect()->to('a/v/' . $id));
-    $routes->get('reject-revision/(:num)', static fn(string $id) => redirect()->to('a/v/' . $id . '/x'));
+    $routes->post('approve/(:num)', 'ItemController::approve/$1');
+    $routes->post('reject/(:num)', 'ItemController::reject/$1');
+    $routes->post('approve-revision/(:num)', 'ItemController::approveRevision/$1');
+    $routes->post('reject-revision/(:num)', 'ItemController::rejectRevision/$1');
     $routes->get('dead-links', static fn() => redirect()->to('a/d'));
-    $routes->get('delete/(:num)', static fn(string $id) => redirect()->to('a/d/' . $id));
+    $routes->post('delete/(:num)', 'ItemController::delete/$1');
     $routes->post('bulk-update-domain', 'ItemController::bulkUpdateDomain');
     $routes->post('valid-domain/(:num)/dead', 'ItemController::declareValidDomainDead/$1');
 });
-$routes->group('audit', ['namespace' => 'App\Controllers\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
+$routes->group('audit', ['namespace' => 'App\\Controllers\\Admin', 'filter' => 'group:superadmin,admin'], static function (RouteCollection $routes): void {
     $routes->get('/', static fn() => redirect()->to('a/l'));
 });
 
@@ -113,7 +111,7 @@ $routes->group('audit', ['namespace' => 'App\Controllers\Admin', 'filter' => 'gr
 if (class_exists(Auth::class)) {
     service('auth')->routes($routes);
 }
-$routes->group('/', ['namespace' => 'CodeIgniter\Shield\Controllers'], static function (RouteCollection $routes): void {
+$routes->group('/', ['namespace' => 'CodeIgniter\\Shield\\Controllers'], static function (RouteCollection $routes): void {
     $routes->get('register', static fn() => redirect()->to('y'));
     $routes->post('register', 'RegisterController::registerAction');
     $routes->get('login', static fn() => redirect()->to('z'));
@@ -127,8 +125,8 @@ $routes->group('/', ['namespace' => 'CodeIgniter\Shield\Controllers'], static fu
     $routes->post('auth/a/verify', 'ActionController::verify');
 });
 
-// Système de récupération de mot de passe
-$routes->group('forgot-password', ['namespace' => 'App\Controllers'], static function ($routes) {
+// Récupération de mot de passe
+$routes->group('forgot-password', ['namespace' => 'App\\Controllers'], static function ($routes) {
     $routes->get('/', 'PasswordResetController::forgotPasswordView', ['as' => 'forgot-password']);
     $routes->post('/', 'PasswordResetController::sendCode');
     $routes->get('verify', 'PasswordResetController::verifyCodeView', ['as' => 'verify-reset-code']);
@@ -137,11 +135,11 @@ $routes->group('forgot-password', ['namespace' => 'App\Controllers'], static fun
     $routes->post('reset', 'PasswordResetController::updatePassword');
 });
 
-// Routes pour la gestion des configurations de scraping (Super Admin)
+// Configuration de scraping (Super Admin)
 $routes->group('a/sc', ['filter' => 'group:superadmin'], static function ($routes) {
-    $routes->get('/', 'Admin\SiteConfigController::index');
-    $routes->get('new', 'Admin\SiteConfigController::form');
-    $routes->get('(:num)', 'Admin\SiteConfigController::form/$1');
-    $routes->post('save', 'Admin\SiteConfigController::save');
-    $routes->get('delete/(:num)', 'Admin\SiteConfigController::delete/$1');
+    $routes->get('/', 'Admin\\SiteConfigController::index');
+    $routes->get('new', 'Admin\\SiteConfigController::form');
+    $routes->get('(:num)', 'Admin\\SiteConfigController::form/$1');
+    $routes->post('save', 'Admin\\SiteConfigController::save');
+    $routes->post('delete/(:num)', 'Admin\\SiteConfigController::delete/$1');
 });
