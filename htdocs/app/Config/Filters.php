@@ -23,39 +23,28 @@ use CodeIgniter\Filters\SecureHeaders;
 class Filters extends BaseFilters
 {
     public array $aliases = [
-        'csrf' => CSRF::class,
-        'toolbar' => DebugToolbar::class,
-        'honeypot' => Honeypot::class,
-        'invalidchars' => InvalidChars::class,
+        'csrf'          => CSRF::class,
+        'toolbar'       => DebugToolbar::class,
+        'honeypot'      => Honeypot::class,
+        'invalidchars'  => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
-        'cors' => Cors::class,
-        'forcehttps' => ForceHTTPS::class,
-        'pagecache' => PageCache::class,
-        'performance' => PerformanceMetrics::class,
-        'minifier' => HtmlMinifier::class,
-        'errorlogger' => ErrorLogger::class,
-        'antiinspect' => AntiInspectFilter::class,
+        'cors'          => Cors::class,
+        'forcehttps'    => ForceHTTPS::class,
+        'pagecache'     => PageCache::class,
+        'performance'   => PerformanceMetrics::class,
+        'minifier'      => HtmlMinifier::class,
+        'errorlogger'   => ErrorLogger::class,
+        'antiinspect'   => AntiInspectFilter::class,
         'headercloaker' => HeaderCloaker::class,
         'emailobfuscator' => EmailObfuscator::class,
     ];
 
-    /*
-     * Les filtres PageCache et PerformanceMetrics étaient exécutés
-     * automatiquement sur toutes les requêtes.
-     *
-     * Ils ajoutent du traitement inutile à chaque page.
-     *
-     * La Debug Toolbar est uniquement activée lorsque CI_DEBUG est actif.
-     */
     public array $required = [
         'before' => [],
-        'after' => CI_DEBUG ? ['toolbar'] : [],
+        'after'  => CI_DEBUG ? ['toolbar'] : [],
     ];
 
     /**
-     * List of filter aliases that are always
-     * applied before and after every request.
-     *
      * @var array<string, array<string, array<string, string>>>|array<string, list<string>>
      */
     public array $globals = ENVIRONMENT === 'production'
@@ -67,8 +56,6 @@ class Filters extends BaseFilters
             'after' => [
                 'antiinspect',
                 'headercloaker',
-                'emailobfuscator',
-                'minifier',
                 'honeypot',
                 'errorlogger',
             ],
