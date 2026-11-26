@@ -965,63 +965,59 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ==========================================
 // 11. VERIFICATION DE DISPONIBILITE EN DIRECT
+// Vérification différée : seules les cartes proches de l'écran déclenchent
+// une requête réseau. Cela évite de bloquer le chargement avec des dizaines
+// de vérifications externes.
 // ==========================================
 window.addEventListener('load', function() {
-    
     const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));
     const supportedDomains = window.siteSupportedDomains || [];
-    
-    async function processBatch(cards, batchSize = 5) {
-        for (let i = 0; i < cards.length; i += batchSize) {
-            const batch = cards.slice(i, i + batchSize);
-            
-            await Promise.all(batch.map(card => checkCardDispo(card, supportedDomains)));
-            
-            if (i + batchSize < cards.length) {
-                await new Promise(resolve => setTimeout(resolve, 150));
-            }
-        }
-    }
-    
-    async function checkCardDispo(card, supportedDomains) {
+
+    async function checkCardDispo(card) {
+        if (card.dataset.dispoChecking === '1' || card.dataset.dispoChecked === '1') return;
+
         const itemId = card.getAttribute('data-id');
         const url = card.getAttribute('data-url');
         const statusDiv = document.getElementById(`live-status-${itemId}`);
         const dateContainer = document.getElementById(`date-container-${itemId}`);
+        const normalizedUrl = typeof url === 'string' ? url.toLowerCase() : '';
+        const isSupported = normalizedUrl && supportedDomains.some(domain =>
+            normalizedUrl.includes(String(domain).toLowerCase())
+        );
 
-        const isSupported = url && supportedDomains.some(domain => url.includes(domain));
-        
         if (!isSupported) {
             if (statusDiv) statusDiv.style.display = 'none';
+            card.dataset.dispoChecked = '1';
             return;
         }
-        
+
         const cacheKey = `dispo_check_${itemId}_${url}`;
-        
         try {
             const cachedResult = sessionStorage.getItem(cacheKey);
             if (cachedResult) {
                 const cacheData = JSON.parse(cachedResult);
                 const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;
-
                 if (ageInMinutes < 60) {
                     applyDispoResult(cacheData.disponible, statusDiv, dateContainer);
+                    card.dataset.dispoChecked = '1';
                     return;
                 }
             }
-        } catch (e) {
-            console.warn("sessionStorage bloqué par le navigateur");
-        }
+        } catch (_) {}
+
+        card.dataset.dispoChecking = '1';
+        const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
 
         try {
-            const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             const response = await fetch(`${baseUrl}q?urlCible=${encodeURIComponent(url)}`, {
                 method: 'GET',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal
             });
-            
-            if (!response.ok) return;
 
+            if (!response.ok) return;
             const data = await response.json();
             if (!data.success) return;
 
@@ -1030,32 +1026,48 @@ window.addEventListener('load', function() {
                     timestamp: Date.now(),
                     disponible: data.disponible
                 }));
-            } catch (e) {
-            }
+            } catch (_) {}
 
             applyDispoResult(data.disponible, statusDiv, dateContainer);
-
-        } catch (err) {
+            card.dataset.dispoChecked = '1';
+        } catch (_) {
+            // Une indisponibilité temporaire ne doit pas ralentir ni bloquer la page.
             if (statusDiv) statusDiv.style.display = 'none';
+        } finally {
+            clearTimeout(timeoutId);
+            delete card.dataset.dispoChecking;
         }
     }
-    
+
     function applyDispoResult(disponible, statusDiv, dateContainer) {
-        
         if (statusDiv) statusDiv.style.display = 'none';
-        
         if (!disponible && dateContainer) {
-            
             dateContainer.style.display = 'block';
-            
             if (dateContainer.innerHTML.trim() === '') {
-                dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Épisode non disponible.</p>`;
+                const message = document.createElement('p');
+                message.className = 'card-date';
+                message.style.color = 'var(--danger)';
+                message.textContent = 'Épisode non disponible.';
+                dateContainer.appendChild(message);
             }
         }
     }
-    
-    if (cardsToCheck.length > 0) {
-        setTimeout(() => processBatch(cardsToCheck, 5), 500);
+
+    if (!cardsToCheck.length) return;
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                observer.unobserve(entry.target);
+                checkCardDispo(entry.target);
+            });
+        }, { rootMargin: '180px 0px', threshold: 0.01 });
+
+        cardsToCheck.forEach(card => observer.observe(card));
+    } else {
+        // Fallback ancien navigateur : vérifier uniquement les 6 premières cartes.
+        cardsToCheck.slice(0, 6).forEach(card => checkCardDispo(card));
     }
 });
 });

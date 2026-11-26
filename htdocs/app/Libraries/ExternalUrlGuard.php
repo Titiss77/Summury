@@ -24,20 +24,30 @@ final class ExternalUrlGuard
         if (!self::isSafeHttpUrl($url)) return false;
         $host = strtolower(rtrim((string) parse_url($url, PHP_URL_HOST), '.'));
         if (filter_var($host, FILTER_VALIDATE_IP)) return self::isPublicIp($host);
-        $addresses = [];
-        $records = @dns_get_record($host, DNS_A | DNS_AAAA);
-        if (is_array($records)) {
-            foreach ($records as $record) {
-                if (!empty($record['ip'])) $addresses[] = $record['ip'];
-                if (!empty($record['ipv6'])) $addresses[] = $record['ipv6'];
+        // Résolution DNS mise en cache pour éviter un lookup à chaque carte.
+        // Les résultats privés sont également mémorisés, jamais autorisés.
+        $cacheKey = 'url_guard_dns_v1_' . hash('sha256', $host);
+        $addresses = cache()->get($cacheKey);
+
+        if (!is_array($addresses)) {
+            $addresses = [];
+            $records = @dns_get_record($host, DNS_A | DNS_AAAA);
+            if (is_array($records)) {
+                foreach ($records as $record) {
+                    if (!empty($record['ip'])) $addresses[] = $record['ip'];
+                    if (!empty($record['ipv6'])) $addresses[] = $record['ipv6'];
+                }
             }
+            if ($addresses === []) {
+                $ipv4 = @gethostbynamel($host);
+                if (is_array($ipv4)) $addresses = array_merge($addresses, $ipv4);
+            }
+            $addresses = array_values(array_unique(array_filter($addresses, 'is_string')));
+            if ($addresses !== []) cache()->save($cacheKey, $addresses, 300);
         }
-        if ($addresses === []) {
-            $ipv4 = @gethostbynamel($host);
-            if (is_array($ipv4)) $addresses = array_merge($addresses, $ipv4);
-        }
+
         if ($addresses === []) return false;
-        foreach (array_unique($addresses) as $address) {
+        foreach ($addresses as $address) {
             if (!self::isPublicIp((string) $address)) return false;
         }
         return true;
