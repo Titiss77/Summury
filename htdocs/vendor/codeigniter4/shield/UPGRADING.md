@@ -1,53 +1,5 @@
 # Upgrade Guide
 
-## Version 1.4 to 1.5
-
-### Security Fixes
-
-This release fixes security vulnerabilities. Upgrading is strongly recommended.
-
-#### HMAC Token Expiration Enforcement
-
-See [GHSA-mq48-cjch-9gvp](https://github.com/codeigniter4/shield/security/advisories/GHSA-mq48-cjch-9gvp).
-
-HMAC tokens with an explicitly configured expiration date are now rejected during authentication once they have expired. Previously, the `HmacSha256` authenticator did not enforce the configured expiration date, allowing expired tokens to remain usable if their signatures were valid.
-
-HMAC tokens without an explicitly configured expiration date retain their existing behavior and remain subject to the configured `unusedTokenLifetime` restriction.
-
-#### Default Rate Limiting for Authentication Action Routes
-
-See [GHSA-5j45-j4v6-34wj](https://github.com/codeigniter4/shield/security/advisories/GHSA-5j45-j4v6-34wj).
-
-Shield now automatically applies the `auth-rates` filter to its built-in authentication action routes (`auth/a/*`) when routes are registered using `auth()->routes()`.
-
-Applications no longer need to configure the `auth-rates` filter manually for these routes.
-
-If your application previously included `auth/*` in its `auth-rates` filter configuration solely to protect Shield's built-in authentication action routes, you can remove that pattern. Keep it if you also need to protect custom authentication routes.
-
-### Login Timing Hardening
-
-Failed password logins now return `Auth.badAttempt` for both unknown users and
-incorrect passwords. `Auth.invalidPassword` remains in the language files for
-application code that uses it, so no new translations are required. Update any
-custom views or tests that expect the old incorrect-password message.
-
-Unknown-user logins now verify against `Auth::$dummyPasswordHash`. The default
-hash uses bcrypt cost 12. If your application changes the password algorithm or
-cost, run `php spark shield:generate-dummy-hash` with its current configuration.
-Copy the printed property declaration into **app/Config/Auth.php**, or set
-`auth.dummyPasswordHash = '<generated hash>'` in **.env** using only the hash
-value. The command does not modify either file. Accounts with older password
-hash settings can still have different verification times until their hashes
-are upgraded.
-
-### Base Classes Are Now Abstract
-
-- `CodeIgniter\Shield\Authentication\Passwords\BaseValidator` is now `abstract`.
-  Code that instantiated it directly with `new BaseValidator()` will now throw
-  an `Error`.
-- `CodeIgniter\Shield\Config\BaseAuthToken` is now `abstract`. Code that
-  instantiated it directly with `new BaseAuthToken()` will now throw an `Error`.
-
 ## Version 1.2 to 1.3
 
 ### JWT: Minimum Key Length Now Enforced

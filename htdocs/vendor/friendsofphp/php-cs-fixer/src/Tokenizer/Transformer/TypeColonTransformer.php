@@ -48,38 +48,36 @@ final class TypeColonTransformer extends AbstractTransformer
         return $tokens->isTokenKindFound(':');
     }
 
-    public function process(Tokens $tokens): void
+    public function processToken(Tokens $tokens, Token $token, int $index): void
     {
-        foreach ($tokens as $index => $token) {
-            if (!$tokens[$index]->equals(':')) {
-                continue;
-            }
+        if (!$token->equals(':')) {
+            return;
+        }
 
-            $endIndex = $tokens->getPrevMeaningfulToken($index);
+        $endIndex = $tokens->getPrevMeaningfulToken($index);
 
-            if ($tokens[$tokens->getPrevMeaningfulToken($endIndex)]->isGivenKind(FCT::T_ENUM)) {
-                $tokens[$index] = new Token([CT::T_TYPE_COLON, ':']);
+        if ($tokens[$tokens->getPrevMeaningfulToken($endIndex)]->isGivenKind(FCT::T_ENUM)) {
+            $tokens[$index] = new Token([CT::T_TYPE_COLON, ':']);
 
-                continue;
-            }
+            return;
+        }
 
-            if (!$tokens[$endIndex]->equals(')')) {
-                continue;
-            }
+        if (!$tokens[$endIndex]->equals(')')) {
+            return;
+        }
 
-            $startIndex = $tokens->findBlockStart(Tokens::BLOCK_TYPE_PARENTHESIS, $endIndex);
-            $prevIndex = $tokens->getPrevMeaningfulToken($startIndex);
+        $startIndex = $tokens->findBlockStart(Tokens::BLOCK_TYPE_PARENTHESIS, $endIndex);
+        $prevIndex = $tokens->getPrevMeaningfulToken($startIndex);
+        $prevToken = $tokens[$prevIndex];
+
+        // if this could be a function name we need to take one more step
+        if ($prevToken->isGivenKind(\T_STRING)) {
+            $prevIndex = $tokens->getPrevMeaningfulToken($prevIndex);
             $prevToken = $tokens[$prevIndex];
+        }
 
-            // if this could be a function name we need to take one more step
-            if ($prevToken->isGivenKind(\T_STRING)) {
-                $prevIndex = $tokens->getPrevMeaningfulToken($prevIndex);
-                $prevToken = $tokens[$prevIndex];
-            }
-
-            if ($prevToken->isGivenKind([\T_FUNCTION, CT::T_RETURN_REF, CT::T_USE_LAMBDA, \T_FN])) {
-                $tokens[$index] = new Token([CT::T_TYPE_COLON, ':']);
-            }
+        if ($prevToken->isGivenKind([\T_FUNCTION, CT::T_RETURN_REF, CT::T_USE_LAMBDA, \T_FN])) {
+            $tokens[$index] = new Token([CT::T_TYPE_COLON, ':']);
         }
     }
 

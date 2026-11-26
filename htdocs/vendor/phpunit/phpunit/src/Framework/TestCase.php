@@ -1935,9 +1935,7 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
                 $message = 'Test code or tested code removed error handlers other than its own';
             }
 
-            $numberOfActiveErrorHandlers = count($activeErrorHandlers);
-
-            for ($i = 0; $i < $numberOfActiveErrorHandlers; $i++) {
+            foreach ($activeErrorHandlers as $handler) {
                 restore_error_handler();
             }
 
@@ -1964,9 +1962,7 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
                 $message = 'Test code or tested code removed exception handlers other than its own';
             }
 
-            $numberOfActiveExceptionHandlers = count($activeExceptionHandlers);
-
-            for ($i = 0; $i < $numberOfActiveExceptionHandlers; $i++) {
+            foreach ($activeExceptionHandlers as $handler) {
                 restore_exception_handler();
             }
 

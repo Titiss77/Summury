@@ -827,10 +827,7 @@ final class Mbstring
     public static function mb_strwidth($s, $encoding = null)
     {
         $encoding = self::getEncoding($encoding);
-        static $wideChars = null;
-        if (null === $wideChars) {
-            $wideChars = self::getData('eastAsianWidthRegexp');
-        }
+        $wideChars = '/[\x{1100}-\x{115F}\x{2329}\x{232A}\x{2E80}-\x{303E}\x{3040}-\x{A4CF}\x{AC00}-\x{D7A3}\x{F900}-\x{FAFF}\x{FE10}-\x{FE19}\x{FE30}-\x{FE6F}\x{FF00}-\x{FF60}\x{FFE0}-\x{FFE6}\x{20000}-\x{2FFFD}\x{30000}-\x{3FFFD}]/u';
 
         if ('UTF-8' !== $encoding) {
             $s = self::iconv($encoding, 'UTF-8', $s);
@@ -1377,12 +1374,7 @@ final class Mbstring
 
     private static function title_case(array $s)
     {
-        static $titleCase = null;
-        if (null === $titleCase) {
-            $titleCase = self::getData('titleCase');
-        }
-
-        return ($titleCase[$s[1]] ?? self::mb_convert_case($s[1], \MB_CASE_UPPER, 'UTF-8')).self::mb_convert_case($s[2], \MB_CASE_LOWER, 'UTF-8');
+        return self::mb_convert_case($s[1], \MB_CASE_UPPER, 'UTF-8').self::mb_convert_case($s[2], \MB_CASE_LOWER, 'UTF-8');
     }
 
     private static function getData($file)
@@ -1420,10 +1412,6 @@ final class Mbstring
 
         if ('UTF-16' === $encoding) {
             return 'UTF-16BE';
-        }
-
-        if ('UCS-2' === $encoding) {
-            return 'UCS-2BE';
         }
 
         return $encoding;

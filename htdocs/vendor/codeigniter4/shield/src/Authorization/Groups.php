@@ -29,7 +29,7 @@ class Groups
     {
         $info = setting('AuthGroups.groups')[strtolower($group)] ?? null;
 
-        if ($info === null || $info === []) {
+        if (empty($info)) {
             return null;
         }
 
@@ -43,7 +43,7 @@ class Groups
      */
     public function save(Group $group): void
     {
-        if (($group->title ?? '') === '') {
+        if (empty($group->title)) {
             throw new RuntimeException(lang('Auth.missingTitle'));
         }
 
@@ -51,7 +51,7 @@ class Groups
 
         $alias = $group->alias;
 
-        if (($alias ?? '') === '') {
+        if (empty($alias)) {
             $alias = strtolower(url_title($group->title));
         }
 

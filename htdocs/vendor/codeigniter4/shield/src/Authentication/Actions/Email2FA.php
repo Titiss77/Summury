@@ -72,7 +72,7 @@ class Email2FA implements ActionInterface
             throw new RuntimeException('Cannot get the pending login User.');
         }
 
-        if ($email !== $user->email) {
+        if (empty($email) || $email !== $user->email) {
             return redirect()->route('auth-action-show')->with('error', lang('Auth.invalidEmail', [$email]));
         }
 

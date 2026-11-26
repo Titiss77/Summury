@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+FROM php:8.4-apache
+>>>>>>> parent of 986f7f3 (okk)
 
 FROM php:8.4-apache
 

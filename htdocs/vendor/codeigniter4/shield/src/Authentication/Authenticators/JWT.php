@@ -94,7 +94,6 @@ class JWT implements AuthenticatorInterface
             return $result;
         }
 
-        /** @var User $user */
         $user = $result->extraInfo();
 
         if ($user->isBanned()) {

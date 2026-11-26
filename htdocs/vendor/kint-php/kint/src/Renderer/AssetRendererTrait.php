@@ -31,7 +31,7 @@ trait AssetRendererTrait
 {
     public static ?string $theme = null;
 
-    /** @psalm-var array{js?:string, css?:array<path, false|string>} */
+    /** @psalm-var array{js?:string, css?:array<path, string|false>} */
     private static array $assetCache = [];
 
     /** @psalm-api */

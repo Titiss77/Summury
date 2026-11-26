@@ -13,10 +13,6 @@ declare(strict_types=1);
 
 namespace CodeIgniter\Shield\Traits;
 
-/**
- * @property string|null $status
- * @property string|null $status_message
- */
 trait Bannable
 {
     /**
@@ -24,7 +20,7 @@ trait Bannable
      */
     public function isBanned(): bool
     {
-        return $this->status === 'banned';
+        return $this->status && $this->status === 'banned';
     }
 
     /**

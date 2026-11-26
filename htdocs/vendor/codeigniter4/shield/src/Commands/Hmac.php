@@ -16,7 +16,6 @@ namespace CodeIgniter\Shield\Commands;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\Shield\Authentication\HMAC\HmacEncrypter;
 use CodeIgniter\Shield\Commands\Exceptions\BadInputException;
-use CodeIgniter\Shield\Entities\UserIdentity;
 use CodeIgniter\Shield\Exceptions\RuntimeException;
 use CodeIgniter\Shield\Models\UserIdentityModel;
 use Exception;
@@ -24,8 +23,6 @@ use ReflectionException;
 
 class Hmac extends BaseCommand
 {
-    private const CHUNK_SIZE = 100;
-
     /**
      * The Command's name
      *
@@ -77,11 +74,6 @@ class Hmac extends BaseCommand
     private HmacEncrypter $encrypter;
 
     /**
-     * Persists identities while chunk() iterates through another model.
-     */
-    private UserIdentityModel $saver;
-
-    /**
      * the Command's Options
      *
      * @var array<string, string>
@@ -96,7 +88,6 @@ class Hmac extends BaseCommand
         $action = $params[0] ?? null;
 
         $this->encrypter = new HmacEncrypter();
-        $this->saver     = new UserIdentityModel();
 
         try {
             match ($action) {
@@ -104,7 +95,8 @@ class Hmac extends BaseCommand
                 'decrypt'       => $this->decrypt(),
                 'reencrypt'     => $this->reEncrypt(),
                 'invalidateAll' => $this->invalidateAll(),
-                default         => throw new BadInputException('Unrecognized Command'),
+
+                default => throw new BadInputException('Unrecognized Command'),
             };
         } catch (Exception $e) {
             $this->write($e->getMessage(), 'red');
@@ -120,24 +112,30 @@ class Hmac extends BaseCommand
      *
      * @throws ReflectionException
      */
-    private function encrypt(): void
+    public function encrypt(): void
     {
-        (new UserIdentityModel())->where('type', 'hmac_sha256')->orderBy('id')->chunk(
-            self::CHUNK_SIZE,
-            function (UserIdentity $identity): void {
-                if ($this->encrypter->isEncrypted($identity->secret2)) {
-                    $this->write(sprintf('id: %s, already encrypted, skipped.', $identity->id));
+        $uIdModel    = new UserIdentityModel();
+        $uIdModelSub = new UserIdentityModel(); // For saving.
+        $encrypter   = $this->encrypter;
+
+        $that = $this;
+
+        $uIdModel->where('type', 'hmac_sha256')->orderBy('id')->chunk(
+            100,
+            static function ($identity) use ($uIdModelSub, $encrypter, $that): void {
+                if ($encrypter->isEncrypted($identity->secret2)) {
+                    $that->write('id: ' . $identity->id . ', already encrypted, skipped.');
 
                     return;
                 }
 
                 try {
-                    $identity->secret2 = $this->encrypter->encrypt($identity->secret2);
-                    $this->saver->save($identity);
+                    $identity->secret2 = $encrypter->encrypt($identity->secret2);
+                    $uIdModelSub->save($identity);
 
-                    $this->write(sprintf('id: %s, encrypted.', $identity->id));
+                    $that->write('id: ' . $identity->id . ', encrypted.');
                 } catch (RuntimeException $e) {
-                    $this->error(sprintf('id: %s, %s', $identity->id, $e->getMessage()));
+                    $that->error('id: ' . $identity->id . ', ' . $e->getMessage());
                 }
             },
         );
@@ -148,21 +146,27 @@ class Hmac extends BaseCommand
      *
      * @throws ReflectionException
      */
-    private function decrypt(): void
+    public function decrypt(): void
     {
-        (new UserIdentityModel())->where('type', 'hmac_sha256')->orderBy('id')->chunk(
-            self::CHUNK_SIZE,
-            function (UserIdentity $identity): void {
-                if (! $this->encrypter->isEncrypted($identity->secret2)) {
-                    $this->write(sprintf('id: %s, not encrypted, skipped.', $identity->id));
+        $uIdModel    = new UserIdentityModel();
+        $uIdModelSub = new UserIdentityModel(); // For saving.
+        $encrypter   = $this->encrypter;
+
+        $that = $this;
+
+        $uIdModel->where('type', 'hmac_sha256')->orderBy('id')->chunk(
+            100,
+            static function ($identity) use ($uIdModelSub, $encrypter, $that): void {
+                if (! $encrypter->isEncrypted($identity->secret2)) {
+                    $that->write('id: ' . $identity->id . ', not encrypted, skipped.');
 
                     return;
                 }
 
-                $identity->secret2 = $this->encrypter->decrypt($identity->secret2);
-                $this->saver->save($identity);
+                $identity->secret2 = $encrypter->decrypt($identity->secret2);
+                $uIdModelSub->save($identity);
 
-                $this->write(sprintf('id: %s, decrypted.', $identity->id));
+                $that->write('id: ' . $identity->id . ', decrypted.');
             },
         );
     }
@@ -173,22 +177,28 @@ class Hmac extends BaseCommand
      *
      * @throws ReflectionException
      */
-    private function reEncrypt(): void
+    public function reEncrypt(): void
     {
-        (new UserIdentityModel())->where('type', 'hmac_sha256')->orderBy('id')->chunk(
-            self::CHUNK_SIZE,
-            function (UserIdentity $identity): void {
-                if ($this->encrypter->isEncryptedWithCurrentKey($identity->secret2)) {
-                    $this->write(sprintf('id: %s, already encrypted with current key, skipped.', $identity->id));
+        $uIdModel    = new UserIdentityModel();
+        $uIdModelSub = new UserIdentityModel(); // For saving.
+        $encrypter   = $this->encrypter;
+
+        $that = $this;
+
+        $uIdModel->where('type', 'hmac_sha256')->orderBy('id')->chunk(
+            100,
+            static function ($identity) use ($uIdModelSub, $encrypter, $that): void {
+                if ($encrypter->isEncryptedWithCurrentKey($identity->secret2)) {
+                    $that->write('id: ' . $identity->id . ', already encrypted with current key, skipped.');
 
                     return;
                 }
 
-                $identity->secret2 = $this->encrypter->decrypt($identity->secret2);
-                $identity->secret2 = $this->encrypter->encrypt($identity->secret2);
-                $this->saver->save($identity);
+                $identity->secret2 = $encrypter->decrypt($identity->secret2);
+                $identity->secret2 = $encrypter->encrypt($identity->secret2);
+                $uIdModelSub->save($identity);
 
-                $this->write(sprintf('id: %s, Re-encrypted.', $identity->id));
+                $that->write('id: ' . $identity->id . ', Re-encrypted.');
             },
         );
     }
@@ -196,23 +206,26 @@ class Hmac extends BaseCommand
     /**
      * Invalidates all HMAC Keys/Tokens for every user.
      */
-    private function invalidateAll(): void
+    public function invalidateAll(): void
     {
-        (new UserIdentityModel())->where('type', 'hmac_sha256')->orderBy('id')->chunk(
-            self::CHUNK_SIZE,
-            function (UserIdentity $identity): void {
+        $uIdModel    = new UserIdentityModel();
+        $uIdModelSub = new UserIdentityModel();
+
+        $uIdModel->where('type', 'hmac_sha256')->orderBy('id')->chunk(
+            100,
+            function ($identity) use ($uIdModelSub): void {
                 $timeNow = Time::now();
 
                 if (null !== $identity->expires && $identity->expires->isBefore($timeNow)) {
-                    $this->write(sprintf('HMAC Token ID: %s, already expired, skipped.', $identity->id));
+                    $this->write('HMAC Token ID: ' . $identity->id . ', already expired, skipped.');
 
                     return;
                 }
 
                 $identity->expires = $timeNow;
-                $this->saver->save($identity);
+                $uIdModelSub->save($identity);
 
-                $this->write(sprintf('HMAC Token ID: %s, set as expired.', $identity->id));
+                $this->write('HMAC Token ID: ' . $identity->id . ', set as expired.');
             },
         );
     }

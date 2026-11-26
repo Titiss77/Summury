@@ -66,9 +66,11 @@ final class SwitchCaseSpaceFixer extends AbstractFixer
             if (null !== $default) {
                 $index = $default->getIndex();
 
-                if ($tokens[$index + 1]->isWhitespace() && $tokens[$index + 2]->equalsAny([':', ';'])) {
-                    $tokens->clearAt($index + 1);
+                if (!$tokens[$index + 1]->isWhitespace() || !$tokens[$index + 2]->equalsAny([':', ';'])) {
+                    continue;
                 }
+
+                $tokens->clearAt($index + 1);
             }
 
             foreach ($analysis->getCases() as $caseAnalysis) {

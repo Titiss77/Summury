@@ -46,11 +46,7 @@ final class Php85
 
     public static function array_last(array $array)
     {
-        if (!$array) {
-            return null;
-        }
-
-        return \PHP_VERSION_ID >= 70300 ? $array[array_key_last($array)] : current(\array_slice($array, -1));
+        return $array ? current(\array_slice($array, -1)) : null;
     }
 
     // Taken from CLDR 44 (ICU 74); the exact set is ICU-version dependent and won't match every version of the native locale_is_right_to_left().

@@ -29,8 +29,6 @@ return [
     'unableSendEmailToUser' => 'Sorry, there was a problem sending the email. We could not send an email to "{0}".',
     'throttled'             => 'Too many requests made from this IP address. You may try again in {0} seconds.',
     'notEnoughPrivilege'    => 'You do not have the necessary permission to perform the desired operation.',
-    'unsetPasswordLength'   => 'The minimum password length is not specified in the configuration.',
-
     // JWT Exceptions
     'invalidJWT'     => 'The token is invalid.',
     'expiredJWT'     => 'The token has expired.',

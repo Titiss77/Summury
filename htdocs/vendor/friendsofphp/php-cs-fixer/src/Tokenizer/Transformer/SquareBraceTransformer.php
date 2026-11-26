@@ -53,18 +53,16 @@ final class SquareBraceTransformer extends AbstractTransformer
         return $tokens->isTokenKindFound('[');
     }
 
-    public function process(Tokens $tokens): void
+    public function processToken(Tokens $tokens, Token $token, int $index): void
     {
-        foreach ($tokens as $index => $token) {
-            if (!$tokens[$index]->equals('[')) {
-                continue;
-            }
+        if ($this->isArrayDestructing($tokens, $index)) {
+            $this->transformIntoDestructuringSquareBrace($tokens, $index);
 
-            if ($this->isArrayDestructing($tokens, $index)) {
-                $this->transformIntoDestructuringSquareBrace($tokens, $index);
-            } elseif ($this->isShortArray($tokens, $index)) {
-                $this->transformIntoArraySquareBrace($tokens, $index);
-            }
+            return;
+        }
+
+        if ($this->isShortArray($tokens, $index)) {
+            $this->transformIntoArraySquareBrace($tokens, $index);
         }
     }
 

@@ -20,44 +20,44 @@ class AuthRoutes extends BaseConfig
     public array $routes = [
         'register' => [
             [
-                'GET',
+                'get',
                 'register',
                 'RegisterController::registerView',
                 'register', // Route name
             ],
             [
-                'POST',
+                'post',
                 'register',
                 'RegisterController::registerAction',
             ],
         ],
         'login' => [
             [
-                'GET',
+                'get',
                 'login',
                 'LoginController::loginView',
                 'login', // Route name
             ],
             [
-                'POST',
+                'post',
                 'login',
                 'LoginController::loginAction',
             ],
         ],
         'magic-link' => [
             [
-                'GET',
+                'get',
                 'login/magic-link',
                 'MagicLinkController::loginView',
                 'magic-link',        // Route name
             ],
             [
-                'POST',
+                'post',
                 'login/magic-link',
                 'MagicLinkController::loginAction',
             ],
             [
-                'GET',
+                'get',
                 'login/verify-magic-link',
                 'MagicLinkController::verify',
                 'verify-magic-link', // Route name
@@ -65,7 +65,7 @@ class AuthRoutes extends BaseConfig
         ],
         'logout' => [
             [
-                'GET',
+                'get',
                 'logout',
                 'LoginController::logoutAction',
                 'logout', // Route name
@@ -73,25 +73,22 @@ class AuthRoutes extends BaseConfig
         ],
         'auth-actions' => [
             [
-                'GET',
+                'get',
                 'auth/a/show',
                 'ActionController::show',
                 'auth-action-show', // Route name
-                ['filter' => 'auth-rates'],
             ],
             [
-                'POST',
+                'post',
                 'auth/a/handle',
                 'ActionController::handle',
                 'auth-action-handle', // Route name
-                ['filter' => 'auth-rates'],
             ],
             [
-                'POST',
+                'post',
                 'auth/a/verify',
                 'ActionController::verify',
                 'auth-action-verify', // Route name
-                ['filter' => 'auth-rates'],
             ],
         ],
     ];

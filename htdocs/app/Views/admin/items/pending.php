@@ -44,10 +44,15 @@
                     <td>
                         <div class="action-links">
                             <a href="<?php echo base_url('m/'.$item->id); ?>" class="btn-action btn-edit">Examiner</a>
-                            <a href="<?php echo base_url('a/i/'.$item->id); ?>" class="btn-action"
-                                style="background:var(--success); color:#fff;">Valider</a>
-                            <a href="<?php echo base_url('a/i/'.$item->id.'/x'); ?>" class="btn-action btn-ban"
-                                onclick="return confirm('Refuser cette carte ? Elle redeviendra privée.')">Refuser</a>
+                            <form action="<?php echo base_url('a/i/'.$item->id); ?>" method="post">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="btn-action" style="background:var(--success); color:#fff;">Valider</button>
+                            </form>
+                            <form action="<?php echo base_url('a/i/'.$item->id.'/x'); ?>" method="post"
+                                onsubmit="return confirm('Refuser cette carte ? Elle redeviendra privée.')">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="btn-action btn-ban">Refuser</button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -146,11 +151,16 @@
 
                     <td>
                         <div class="action-links">
-                            <a href="<?php echo base_url('a/v/'.$revision['id']); ?>" class="btn-action"
-                                style="background:var(--success); color:#fff;"
-                                onclick="return confirm('Approuver cette modification ? Elle écrasera la version publique actuelle.')">Approuver</a>
-                            <a href="<?php echo base_url('a/v/'.$revision['id'].'/x'); ?>" class="btn-action btn-ban"
-                                onclick="return confirm('Refuser cette modification ? Elle sera rejetée sans impacter la carte publique.')">Refuser</a>
+                            <form action="<?php echo base_url('a/v/'.$revision['id']); ?>" method="post"
+                                onsubmit="return confirm('Approuver cette modification ? Elle écrasera la version publique actuelle.')">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="btn-action" style="background:var(--success); color:#fff;">Approuver</button>
+                            </form>
+                            <form action="<?php echo base_url('a/v/'.$revision['id'].'/x'); ?>" method="post"
+                                onsubmit="return confirm('Refuser cette modification ? Elle sera rejetée sans impacter la carte publique.')">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="btn-action btn-ban">Refuser</button>
+                            </form>
                         </div>
                     </td>
                 </tr>

@@ -23,9 +23,7 @@ use CodeIgniter\I18n\Time;
  * for authenticating users for an API.
  *
  * @property string|Time|null $expires
- * @property list<string>     $extra
  * @property string|Time|null $last_used_at
- * @property int|string       $user_id
  */
 class AccessToken extends Entity
 {

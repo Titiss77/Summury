@@ -63,7 +63,7 @@ class XdebugHandler
     private $envOriginalInis;
 
     /** @var bool */
-    private $persistent = false;
+    private $persistent;
 
     /** @var string|null */
     private $script;
@@ -98,12 +98,7 @@ class XdebugHandler
             $this->debug = (string) getenv(self::DEBUG);
         }
 
-        $this->statusWriter = new Status(
-            $this->envAllowXdebug,
-            (bool) $this->debug,
-            self::$xdebugVersion,
-            self::$xdebugMode
-        );
+        $this->statusWriter = new Status($this->envAllowXdebug, (bool) $this->debug);
     }
 
     /**
@@ -142,12 +137,12 @@ class XdebugHandler
      */
     public function check(): void
     {
-        $this->statusWriter->reportCheck(get_class($this));
+        $this->notify(Status::CHECK, self::$xdebugVersion.'|'.self::$xdebugMode);
         $envArgs = explode('|', (string) getenv($this->envAllowXdebug));
 
         if (!((bool) $envArgs[0]) && $this->requiresRestart(self::$xdebugActive)) {
             // Restart required
-            $this->statusWriter->reportRequired();
+            $this->notify(Status::RESTART);
             $command = $this->prepareRestart();
 
             if ($command !== null) {
@@ -158,7 +153,7 @@ class XdebugHandler
 
         if (self::RESTART_ID === $envArgs[0] && count($envArgs) === 5) {
             // Restarted, so unset environment variable and use saved values
-            $this->statusWriter->reportRestarted();
+            $this->notify(Status::RESTARTED);
 
             Process::setEnv($this->envAllowXdebug);
             self::$inRestart = true;
@@ -175,13 +170,12 @@ class XdebugHandler
             return;
         }
 
-        $this->statusWriter->reportNoRestart();
+        $this->notify(Status::NORESTART);
         $settings = self::getRestartSettings();
 
         if ($settings !== null) {
             // Called with existing settings, so sync our settings
             $this->syncSettings($settings);
-            $this->statusWriter->reportExisting();
         }
     }
 
@@ -261,28 +255,6 @@ class XdebugHandler
     }
 
     /**
-     * Allows an extending class to output an error status message
-     *
-     * This will be logged at WARNING level if a logger has been set and output
-     * to STDERR if XDEBUG_HANDLER_DEBUG=1.
-     */
-    protected function outputError(string $message): void
-    {
-        $this->statusWriter->error(trim($message));
-    }
-
-    /**
-     * Allows an extending class to output an informational status message
-     *
-     * This will be logged at DEBUG level if a logger has been set and output to
-     * STDERR if XDEBUG_HANDLER_DEBUG=1.
-     */
-    protected function outputInfo(string $message): void
-    {
-        $this->statusWriter->info(trim($message));
-    }
-
-    /**
      * Allows an extending class to decide if there should be a restart
      *
      * The default is to restart if Xdebug is loaded and its mode is not "off".
@@ -312,16 +284,18 @@ class XdebugHandler
     {
         if (PHP_VERSION_ID >= 70400) {
             $cmd = $command;
+            $displayCmd = sprintf('[%s]', implode(', ', $cmd));
         } else {
             $cmd = Process::escapeShellCommand($command);
             if (defined('PHP_WINDOWS_VERSION_BUILD')) {
                 // Outer quotes required on cmd string below PHP 8
                 $cmd = '"'.$cmd.'"';
             }
+            $displayCmd = $cmd;
         }
 
         $this->tryEnableSignals();
-        $this->statusWriter->reportRestarting($cmd);
+        $this->notify(Status::RESTARTING, $displayCmd);
 
         $process = proc_open($cmd, [], $pipes);
         if (is_resource($process)) {
@@ -330,14 +304,14 @@ class XdebugHandler
 
         if (!isset($exitCode)) {
             // Unlikely that php or the default shell cannot be invoked
-            $this->statusWriter->error('Unable to restart process');
+            $this->notify(Status::ERROR, 'Unable to restart process');
             $exitCode = -1;
         } else {
-            $this->statusWriter->reportExit($exitCode);
+            $this->notify(Status::INFO, 'Restarted process exited '.$exitCode);
         }
 
         if ($this->debug === '2') {
-            $this->statusWriter->info('Temp ini saved: '.$this->tmpIni);
+            $this->notify(Status::INFO, 'Temp ini saved: '.$this->tmpIni);
         } else {
             @unlink((string) $this->tmpIni);
         }
@@ -358,23 +332,23 @@ class XdebugHandler
     private function prepareRestart(): ?array
     {
         if (!$this->cli) {
-            $this->statusWriter->configError('Unsupported SAPI: '.PHP_SAPI);
+            $this->notify(Status::ERROR, 'Unsupported SAPI: '.PHP_SAPI);
             return null;
         }
 
         if (($argv = $this->checkServerArgv()) === null) {
-            $this->statusWriter->configError('$_SERVER[argv] is not as expected');
+            $this->notify(Status::ERROR, '$_SERVER[argv] is not as expected');
             return null;
         }
 
         if (!$this->checkConfiguration($info)) {
-            $this->statusWriter->configError((string) $info);
+            $this->notify(Status::ERROR, $info);
             return null;
         }
 
         $mainScript = (string) $this->script;
         if (!$this->checkMainScript($mainScript, $argv)) {
-            $this->statusWriter->configError('Unable to access main script: '.$mainScript);
+            $this->notify(Status::ERROR, 'Unable to access main script: '.$mainScript);
             return null;
         }
 
@@ -382,7 +356,7 @@ class XdebugHandler
         $iniError = 'Unable to create temp ini file at: '.$tmpDir;
 
         if (($tmpfile = @tempnam($tmpDir, '')) === false) {
-            $this->statusWriter->configError($iniError);
+            $this->notify(Status::ERROR, $iniError);
             return null;
         }
 
@@ -391,13 +365,13 @@ class XdebugHandler
         $scannedInis = count($iniFiles) > 1;
 
         if (!$this->writeTmpIni($tmpfile, $iniFiles, $error)) {
-            $this->statusWriter->configError($error ?? $iniError);
+            $this->notify(Status::ERROR, $error ?? $iniError);
             @unlink($tmpfile);
             return null;
         }
 
         if (!$this->setEnvironment($scannedInis, $iniFiles, $tmpfile)) {
-            $this->statusWriter->configError('Unable to set environment variables');
+            $this->notify(Status::ERROR, 'Unable to set environment variables');
             @unlink($tmpfile);
             return null;
         }
@@ -509,6 +483,14 @@ class XdebugHandler
     }
 
     /**
+     * Logs status messages
+     */
+    private function notify(string $op, ?string $data = null): void
+    {
+        $this->statusWriter->report($op, $data);
+    }
+
+    /**
      * Returns default, changed and command-line ini settings
      *
      * @param mixed[] $loadedConfig All current ini settings
@@ -595,6 +577,7 @@ class XdebugHandler
         }
 
         self::$skipped = $settings['skipped'];
+        $this->notify(Status::INFO, 'Process called with existing restart settings');
     }
 
     /**
@@ -649,6 +632,7 @@ class XdebugHandler
     {
         if (function_exists('pcntl_async_signals') && function_exists('pcntl_signal')) {
             pcntl_async_signals(true);
+            $message = 'Async signals enabled';
 
             if (!self::$inRestart) {
                 // Restarting, so ignore SIGINT in parent
@@ -657,11 +641,9 @@ class XdebugHandler
                 // Restarted, no handler set so force default action
                 pcntl_signal(SIGINT, SIG_DFL);
             }
-
-            return;
         }
 
-        if (function_exists('sapi_windows_set_ctrl_handler') && !self::$inRestart) {
+        if (!self::$inRestart && function_exists('sapi_windows_set_ctrl_handler')) {
             // Restarting, so set a handler to ignore CTRL events in the parent.
             // This ensures that CTRL+C events will be available in the child
             // process without having to enable them there, which is unreliable.
@@ -709,7 +691,6 @@ class XdebugHandler
         self::$xdebugVersion = $version !== false ? $version : 'unknown';
 
         if (version_compare(self::$xdebugVersion, '3.1', '>=')) {
-            /** @var list<string> $modes */
             $modes = xdebug_info('mode');
             self::$xdebugMode = count($modes) === 0 ? 'off' : implode(',', $modes);
             self::$xdebugActive = self::$xdebugMode !== 'off';

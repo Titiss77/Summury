@@ -75,7 +75,7 @@ class UserIdentityModel extends BaseModel
      * Creates a new identity for this user with an email/password
      * combination.
      *
-     * @param array{email: string, password: string} $credentials
+     * @phpstan-param array{email: string, password: string} $credentials
      */
     public function createEmailIdentity(User $user, array $credentials): void
     {

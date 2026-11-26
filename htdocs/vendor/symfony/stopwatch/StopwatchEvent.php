@@ -87,7 +87,7 @@ class StopwatchEvent
      */
     public function stop(): static
     {
-        if (!$this->started) {
+        if (!\count($this->started)) {
             throw new \LogicException('stop() called but start() has not been called before.');
         }
 
@@ -119,7 +119,7 @@ class StopwatchEvent
      */
     public function ensureStopped(): void
     {
-        while ($this->started) {
+        while (\count($this->started)) {
             $this->stop();
         }
     }
@@ -139,7 +139,7 @@ class StopwatchEvent
      */
     public function getLastPeriod(): ?StopwatchPeriod
     {
-        if (!$this->periods) {
+        if ([] === $this->periods) {
             return null;
         }
 
@@ -151,17 +151,15 @@ class StopwatchEvent
      */
     public function getStartTime(): int|float
     {
-        $startTime = null;
-
-        foreach ($this->periods as $period) {
-            $startTime = min($startTime ?? $period->getStartTime(), $period->getStartTime());
+        if (isset($this->periods[0])) {
+            return $this->periods[0]->getStartTime();
         }
 
         if ($this->started) {
-            $startTime = min($startTime ?? $this->started[0], $this->started[0]);
+            return $this->started[0];
         }
 
-        return $startTime ?? 0;
+        return 0;
     }
 
     /**

@@ -10,6 +10,7 @@
 namespace PHPUnit\Framework;
 
 use const PHP_EOL;
+use function assert;
 use function extension_loaded;
 use function sprintf;
 use function xdebug_is_debugger_active;
@@ -93,11 +94,24 @@ final class TestRunner
             } elseif ($e instanceof SkippedTest) {
                 $skipped = true;
             }
-        } catch (AssertionError) {
+        } catch (AssertionError $e) {
             $test->addToAssertionCount(1);
 
             $failure = true;
-        } catch (Throwable) {
+            $frame   = $e->getTrace()[0];
+
+            assert(isset($frame['file']));
+            assert(isset($frame['line']));
+
+            $e = new AssertionFailedError(
+                sprintf(
+                    '%s in %s:%s',
+                    $e->getMessage(),
+                    $frame['file'],
+                    $frame['line'],
+                ),
+            );
+        } catch (Throwable $e) {
             $error = true;
         }
 
@@ -159,8 +173,10 @@ final class TestRunner
                     PHP_EOL .
                     $cce->getMessage(),
                 );
-            } catch (OriginalCodeCoverageException) {
+            } catch (OriginalCodeCoverageException $cce) {
                 $error = true;
+
+                $e = $e ?? $cce;
             }
         }
 

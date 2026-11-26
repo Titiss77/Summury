@@ -688,7 +688,7 @@ final class ConfigurationResolver
 
                 $agentDetector = new AgentDetector\Detector();
 
-                if ($agentDetector->isAgentPresent()) {
+                if ($agentDetector->isAgentPresent(array_fill_keys(array_keys(getenv()), ''))) {
                     $this->format = 'json';
 
                     return $this->format;

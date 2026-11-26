@@ -15,7 +15,7 @@ namespace CodeIgniter\Shield\Authentication\Passwords;
 
 use CodeIgniter\Shield\Config\Auth as AuthConfig;
 
-abstract class BaseValidator
+class BaseValidator
 {
     protected ?string $error      = null;
     protected ?string $suggestion = null;

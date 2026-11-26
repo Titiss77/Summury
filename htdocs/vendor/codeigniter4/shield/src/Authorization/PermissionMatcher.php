@@ -71,8 +71,8 @@ final class PermissionMatcher
     }
 
     /**
-     * @param non-empty-list<string> $grantSegments
-     * @param list<string>           $permissionSegments
+     * @param list<string> $grantSegments
+     * @param list<string> $permissionSegments
      */
     private static function matchesWildcardGrant(array $grantSegments, array $permissionSegments, int $permissionSegmentCount): bool
     {
@@ -105,7 +105,7 @@ final class PermissionMatcher
     }
 
     /**
-     * @return non-empty-list<string>|null
+     * @return list<string>|null
      */
     private static function splitIfValid(string $permission): ?array
     {

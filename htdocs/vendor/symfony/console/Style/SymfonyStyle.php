@@ -548,7 +548,7 @@ class SymfonyStyle extends OutputStyle
                 : str_repeat(' ', $paddingLength);
 
             if ($style) {
-                $line = \sprintf('<%s>%s</>', $style, OutputFormatter::escapeTrailingBackslash($line));
+                $line = \sprintf('<%s>%s</>', $style, $line);
             }
         }
 
@@ -594,7 +594,7 @@ class SymfonyStyle extends OutputStyle
         foreach ($lines as $line) {
             $lineContentWidth = Helper::width(Helper::removeDecoration($this->getFormatter(), $line));
             $padded = $line.str_repeat(' ', max($contentWidth - $lineContentWidth, 0));
-            $result[] = $style ? \sprintf('<%s> │ </>%s<%1$s> │</>', $style, OutputFormatter::escapeTrailingBackslash($padded)) : ' │ '.$padded.' │';
+            $result[] = $style ? \sprintf('<%s> │ </>%s<%1$s> │</>', $style, $padded) : ' │ '.$padded.' │';
         }
 
         $borderDashes = str_repeat('─', max(0, $this->lineLength - 3));

@@ -87,12 +87,12 @@ abstract class MultiplePcreFilterIterator extends \FilterIterator
             $end = substr($m[1], -1);
 
             if ($start === $end) {
-                return !preg_match('/[*?[:alnum:] \\\\]/', $start) && false !== @preg_match($str, '');
+                return !preg_match('/[*?[:alnum:] \\\\]/', $start);
             }
 
             foreach ([['{', '}'], ['(', ')'], ['[', ']'], ['<', '>']] as $delimiters) {
                 if ($start === $delimiters[0] && $end === $delimiters[1]) {
-                    return false !== @preg_match($str, '');
+                    return true;
                 }
             }
         }

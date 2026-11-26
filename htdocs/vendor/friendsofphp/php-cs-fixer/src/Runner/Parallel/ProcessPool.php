@@ -68,14 +68,9 @@ final class ProcessPool
         $this->processes[$identifier->toString()] = $process;
     }
 
-    public function isKnown(ProcessIdentifier $identifier): bool
-    {
-        return isset($this->processes[$identifier->toString()]);
-    }
-
     public function endProcessIfKnown(ProcessIdentifier $identifier): void
     {
-        if (!$this->isKnown($identifier)) {
+        if (!isset($this->processes[$identifier->toString()])) {
             return;
         }
 

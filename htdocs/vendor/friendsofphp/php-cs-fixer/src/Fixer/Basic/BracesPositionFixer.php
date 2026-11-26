@@ -270,16 +270,8 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
 
                 $positionOption = 'control_structures_opening_brace';
             } elseif ($token->isGivenKind(\T_VARIABLE)) {
-                $nextMeaningfulIndex = $tokens->getNextMeaningfulToken($index);
-
-                if (
-                    !$tokens[$nextMeaningfulIndex]->equals('=')
-                    && !$tokens[$nextMeaningfulIndex]->isGivenKind(CT::T_PROPERTY_HOOK_BRACE_OPEN)
-                ) {
-                    continue;
-                }
-
                 // handle default value - explicitly skip array as default value
+                $nextMeaningfulIndex = $tokens->getNextMeaningfulToken($index);
                 if ($tokens[$nextMeaningfulIndex]->equals('=')) {
                     $nextMeaningfulIndex = $tokens->getNextMeaningfulToken($nextMeaningfulIndex);
 
@@ -306,14 +298,14 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
 
                 $positionOption = 'control_structures_opening_brace';
             } elseif ($token->isGivenKind(\T_STRING)) {
-                $prevIndex = $tokens->getPrevMeaningfulToken($index);
-                if (!$tokens[$prevIndex]->equalsAny(['}', ';']) && !$tokens[$prevIndex]->isGivenKind([CT::T_ATTRIBUTE_CLOSE, CT::T_PROPERTY_HOOK_BRACE_OPEN])) {
-                    continue;
-                }
-
                 $parenthesisEndIndex = $this->findParenthesisEnd($tokens, $index);
                 $openBraceIndex = $tokens->getNextMeaningfulToken($parenthesisEndIndex);
                 if (!$tokens[$openBraceIndex]->equals('{')) {
+                    continue;
+                }
+
+                $prevIndex = $tokens->getPrevMeaningfulToken($index);
+                if (!$tokens[$prevIndex]->equalsAny(['}', ';', [CT::T_ATTRIBUTE_CLOSE], [CT::T_PROPERTY_HOOK_BRACE_OPEN]])) {
                     continue;
                 }
                 $allowSingleLine = true === $this->configuration['allow_single_line_anonymous_functions'];
@@ -333,7 +325,7 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
 
                     if (
                         ($allowSingleLineIfEmpty && !$tokenInsideBraces->isWhitespace() && !$tokenInsideBraces->isComment())
-                        || ($tokenInsideBraces->isWhitespace() && false !== strpbrk($tokenInsideBraces->getContent(), "\r\n"))
+                        || ($tokenInsideBraces->isWhitespace() && Preg::match('/\R/', $tokenInsideBraces->getContent()))
                     ) {
                         $addNewlinesInsideBraces = true;
 
@@ -373,7 +365,7 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
                     }
                     if (
                         $tokens[$previousTokenIndex]->isWhitespace()
-                        && false !== strpbrk($tokens[$previousTokenIndex]->getContent(), "\r\n")
+                        && Preg::match('/\R/', $tokens[$previousTokenIndex]->getContent())
                     ) {
                         $whitespace = ' ';
                     }
@@ -396,9 +388,9 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
                         $moveBraceToIndex = $previousMeaningfulIndex + 1;
                     }
                 }
-            } elseif (!$tokens[$openBraceIndex - 1]->isWhitespace() || false === strpbrk($tokens[$openBraceIndex - 1]->getContent(), "\r\n")) {
+            } elseif (!$tokens[$openBraceIndex - 1]->isWhitespace() || !Preg::match('/\R/', $tokens[$openBraceIndex - 1]->getContent())) {
                 for ($indexAfterOpenBrace = $openBraceIndex + 1; $indexAfterOpenBrace < $closeBraceIndex; ++$indexAfterOpenBrace) {
-                    if ($tokens[$indexAfterOpenBrace]->isWhitespace() && false !== strpbrk($tokens[$indexAfterOpenBrace]->getContent(), "\r\n")) {
+                    if ($tokens[$indexAfterOpenBrace]->isWhitespace() && Preg::match('/\R/', $tokens[$indexAfterOpenBrace]->getContent())) {
                         break;
                     }
 
@@ -414,7 +406,7 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
                 $delta = $openBraceIndex < $moveBraceToIndex ? 1 : -1;
 
                 if ($tokens[$openBraceIndex + $delta]->isWhitespace()) {
-                    if (-1 === $delta && false !== strpbrk($tokens[$openBraceIndex - 1]->getContent(), "\r\n")) {
+                    if (-1 === $delta && Preg::match('/\R/', $tokens[$openBraceIndex - 1]->getContent())) {
                         $content = Preg::replace('/^(\h*?\R)?\h*/', '', $tokens[$openBraceIndex + 1]->getContent());
                         if ('' !== $content) {
                             $tokens[$openBraceIndex + 1] = new Token([\T_WHITESPACE, $content]);
@@ -465,7 +457,7 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
 
             $prevToken = $tokens[$prevIndex];
 
-            if ($prevToken->isWhitespace() && false !== strpbrk($prevToken->getContent(), "\r\n")) {
+            if ($prevToken->isWhitespace() && Preg::match('/\R/', $prevToken->getContent())) {
                 continue;
             }
 
@@ -492,7 +484,7 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
         for (++$index, $max = \count($tokens) - 1; $index < $max; ++$index) {
             $token = $tokens[$index];
             if (!$token->isComment()) {
-                return $token->isWhitespace() && false !== strpbrk($token->getContent(), "\r\n");
+                return $token->isWhitespace() && Preg::match('/\R/', $token->getContent());
             }
         }
 
@@ -503,7 +495,7 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
     {
         $token = $tokens[$index + 1];
 
-        if ($token->isWhitespace() && false === strpbrk($token->getContent(), "\r\n")) {
+        if ($token->isWhitespace() && !Preg::match('/\R/', $token->getContent())) {
             $token = $tokens[$index + 2];
         }
 

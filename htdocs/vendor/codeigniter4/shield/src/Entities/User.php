@@ -83,7 +83,7 @@ class User extends Entity
     {
         $identities = $this->getIdentities($type);
 
-        return $identities !== [] ? array_shift($identities) : null;
+        return count($identities) ? array_shift($identities) : null;
     }
 
     /**
@@ -126,7 +126,7 @@ class User extends Entity
         return $identities;
     }
 
-    public function setIdentities(?array $identities): void
+    public function setIdentities(array $identities): void
     {
         $this->identities = $identities;
     }
@@ -135,7 +135,7 @@ class User extends Entity
      * Creates a new identity for this user with an email/password
      * combination.
      *
-     * @param array{email: string, password: string} $credentials
+     * @phpstan-param array{email: string, password: string} $credentials
      */
     public function createEmailIdentity(array $credentials): void
     {
@@ -229,7 +229,9 @@ class User extends Entity
      */
     public function getEmail(): ?string
     {
-        $this->email ??= $this->getEmailIdentity()->secret ?? null;
+        if ($this->email === null) {
+            $this->email = $this->getEmailIdentity()->secret ?? null;
+        }
 
         return $this->email;
     }
@@ -265,7 +267,9 @@ class User extends Entity
      */
     public function getPasswordHash(): ?string
     {
-        $this->password_hash ??= $this->getEmailIdentity()->secret2 ?? null;
+        if ($this->password_hash === null) {
+            $this->password_hash = $this->getEmailIdentity()->secret2 ?? null;
+        }
 
         return $this->password_hash;
     }

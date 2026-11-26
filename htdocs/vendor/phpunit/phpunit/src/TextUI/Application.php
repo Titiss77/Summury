@@ -11,6 +11,7 @@ namespace PHPUnit\TextUI;
 
 use const PHP_EOL;
 use const PHP_VERSION;
+use function assert;
 use function class_exists;
 use function explode;
 use function function_exists;
@@ -322,6 +323,8 @@ final readonly class Application
 
             exit($result->shellExitCode());
         }
+
+        assert(isset($resultCollectedFromEvents));
 
         print 'There were errors:' . PHP_EOL;
 

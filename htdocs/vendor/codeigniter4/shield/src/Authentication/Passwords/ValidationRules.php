@@ -45,7 +45,7 @@ class ValidationRules
         /** @var Passwords $checker */
         $checker = service('passwords');
 
-        if (function_exists('auth') && auth()->user() !== null) {
+        if (function_exists('auth') && auth()->user()) {
             $user = auth()->user();
         } else {
             /** @phpstan-ignore-next-line */

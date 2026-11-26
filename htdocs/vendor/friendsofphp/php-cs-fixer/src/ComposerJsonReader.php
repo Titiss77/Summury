@@ -134,20 +134,16 @@ final class ComposerJsonReader
     {
         $version = [];
 
-        // @see https://getcomposer.org/doc/articles/composer-platform-dependencies.md#different-types-of-platform-packages
-        foreach (['php', 'php-64bit', 'php-ipv6', 'php-zts', 'php-debug'] as $platform) {
-            $platformVersion = $composerJson['config']['platform'][$platform] ?? null;
-            if (\is_string($platformVersion)) {
-                $version[] = $platformVersion;
-            }
+        if (isset($composerJson['config']['platform']['php'])) {
+            $version[] = $composerJson['config']['platform']['php'];
+        }
 
-            if (isset($composerJson['require-dev'][$platform])) {
-                $version[] = $composerJson['require-dev'][$platform];
-            }
+        if (isset($composerJson['require-dev']['php'])) {
+            $version[] = $composerJson['require-dev']['php'];
+        }
 
-            if (isset($composerJson['require'][$platform])) {
-                $version[] = $composerJson['require'][$platform];
-            }
+        if (isset($composerJson['require']['php'])) {
+            $version[] = $composerJson['require']['php'];
         }
 
         if (\count($version) > 0) {

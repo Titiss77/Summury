@@ -1192,6 +1192,10 @@ final class Builder
             $iniSettings = null;
         }
 
+        if (empty($coverageFilter)) {
+            $coverageFilter = null;
+        }
+
         if (empty($extensions)) {
             $extensions = null;
         }

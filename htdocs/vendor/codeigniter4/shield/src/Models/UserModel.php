@@ -130,7 +130,7 @@ class UserModel extends BaseModel
         // Get our identities for all users
         $identities = $identityModel->getIdentitiesByUserIds($userIds);
 
-        if ($identities === []) {
+        if (empty($identities)) {
             return $data;
         }
 
@@ -151,7 +151,8 @@ class UserModel extends BaseModel
      * @param array              $data       Event $data
      * @param list<UserIdentity> $identities
      *
-     * @return array<int|string, User> UserId => User object
+     * @return         list<User>              UserId => User object
+     * @phpstan-return array<int|string, User> UserId => User object
      */
     private function assignIdentities(array $data, array $identities): array
     {
@@ -279,7 +280,7 @@ class UserModel extends BaseModel
         // Assign properties to all users (empty array if no properties found)
         foreach ($mappedUsers as $userId => $user) {
             $propertyArray = $properties[$userId] ?? [];
-            $user->{$method}($propertyArray); // @phpstan-ignore method.dynamicName
+            $user->{$method}($propertyArray);
         }
         unset($properties);
 
@@ -296,7 +297,7 @@ class UserModel extends BaseModel
 
         $groupModel = model(GroupModel::class);
 
-        if ($defaultGroup === null || $defaultGroup === '' || ! $groupModel->isValidGroup($defaultGroup)) {
+        if (empty($defaultGroup) || ! $groupModel->isValidGroup($defaultGroup)) {
             throw new InvalidArgumentException(lang('Auth.unknownGroup', [$defaultGroup ?? '--not found--']));
         }
 

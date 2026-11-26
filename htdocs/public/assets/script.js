@@ -686,15 +686,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         divItem.onmouseout = () => divItem.style.background = 'transparent';
 
                         const fallbackImg = 'https://via.placeholder.com/40x60?text=IMG';
-                        const imgSrc = res.imageThumb || fallbackImg;
+                        const image = document.createElement('img');
+                        const candidateImage = typeof res.imageThumb === 'string' ? res.imageThumb : '';
+                        image.src = /^https?:\/\//i.test(candidateImage) ? candidateImage : fallbackImg;
+                        image.alt = 'Affiche';
+                        image.loading = 'lazy';
+                        image.referrerPolicy = 'no-referrer';
+                        image.style.cssText = 'width: 40px; height: 60px; object-fit: cover; border-radius: var(--radius-md); margin-right: 15px;';
 
-                        divItem.innerHTML = `
-                            <img src="${imgSrc}" alt="Affiche" style="width: 40px; height: 60px; object-fit: cover; border-radius: var(--radius-md); margin-right: 15px;">
-                            <div style="flex-grow: 1; overflow: hidden;">
-                                <strong style="display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${res.titre}</strong>
-                                <small style="color: gray;">${res.info}</small>
-                            </div>
-                        `;
+                        const textContainer = document.createElement('div');
+                        textContainer.style.cssText = 'flex-grow: 1; overflow: hidden;';
+                        const title = document.createElement('strong');
+                        title.style.cssText = 'display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;';
+                        title.textContent = String(res.titre || '');
+                        const info = document.createElement('small');
+                        info.style.color = 'gray';
+                        info.textContent = String(res.info || '');
+                        textContainer.append(title, info);
+                        divItem.append(image, textContainer);
 
                         divItem.addEventListener('click', () => {
                             document.getElementById('titre').value = res.titre;
@@ -956,63 +965,59 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ==========================================
 // 11. VERIFICATION DE DISPONIBILITE EN DIRECT
+// Vérification différée : seules les cartes proches de l'écran déclenchent
+// une requête réseau. Cela évite de bloquer le chargement avec des dizaines
+// de vérifications externes.
 // ==========================================
 window.addEventListener('load', function() {
-    
     const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));
     const supportedDomains = window.siteSupportedDomains || [];
-    
-    async function processBatch(cards, batchSize = 5) {
-        for (let i = 0; i < cards.length; i += batchSize) {
-            const batch = cards.slice(i, i + batchSize);
-            
-            await Promise.all(batch.map(card => checkCardDispo(card, supportedDomains)));
-            
-            if (i + batchSize < cards.length) {
-                await new Promise(resolve => setTimeout(resolve, 150));
-            }
-        }
-    }
-    
-    async function checkCardDispo(card, supportedDomains) {
+
+    async function checkCardDispo(card) {
+        if (card.dataset.dispoChecking === '1' || card.dataset.dispoChecked === '1') return;
+
         const itemId = card.getAttribute('data-id');
         const url = card.getAttribute('data-url');
         const statusDiv = document.getElementById(`live-status-${itemId}`);
         const dateContainer = document.getElementById(`date-container-${itemId}`);
+        const normalizedUrl = typeof url === 'string' ? url.toLowerCase() : '';
+        const isSupported = normalizedUrl && supportedDomains.some(domain =>
+            normalizedUrl.includes(String(domain).toLowerCase())
+        );
 
-        const isSupported = url && supportedDomains.some(domain => url.includes(domain));
-        
         if (!isSupported) {
             if (statusDiv) statusDiv.style.display = 'none';
+            card.dataset.dispoChecked = '1';
             return;
         }
-        
+
         const cacheKey = `dispo_check_${itemId}_${url}`;
-        
         try {
             const cachedResult = sessionStorage.getItem(cacheKey);
             if (cachedResult) {
                 const cacheData = JSON.parse(cachedResult);
                 const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;
-
                 if (ageInMinutes < 60) {
                     applyDispoResult(cacheData.disponible, statusDiv, dateContainer);
+                    card.dataset.dispoChecked = '1';
                     return;
                 }
             }
-        } catch (e) {
-            console.warn("sessionStorage bloqué par le navigateur");
-        }
+        } catch (_) {}
+
+        card.dataset.dispoChecking = '1';
+        const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
 
         try {
-            const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
             const response = await fetch(`${baseUrl}q?urlCible=${encodeURIComponent(url)}`, {
                 method: 'GET',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal
             });
-            
-            if (!response.ok) return;
 
+            if (!response.ok) return;
             const data = await response.json();
             if (!data.success) return;
 
@@ -1021,32 +1026,71 @@ window.addEventListener('load', function() {
                     timestamp: Date.now(),
                     disponible: data.disponible
                 }));
-            } catch (e) {
-            }
+            } catch (_) {}
 
             applyDispoResult(data.disponible, statusDiv, dateContainer);
-
-        } catch (err) {
+            card.dataset.dispoChecked = '1';
+        } catch (_) {
+            // Une indisponibilité temporaire ne doit pas ralentir ni bloquer la page.
             if (statusDiv) statusDiv.style.display = 'none';
+        } finally {
+            clearTimeout(timeoutId);
+            delete card.dataset.dispoChecking;
         }
     }
-    
+
     function applyDispoResult(disponible, statusDiv, dateContainer) {
-        
         if (statusDiv) statusDiv.style.display = 'none';
-        
         if (!disponible && dateContainer) {
-            
             dateContainer.style.display = 'block';
-            
             if (dateContainer.innerHTML.trim() === '') {
-                dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Épisode non disponible.</p>`;
+                const message = document.createElement('p');
+                message.className = 'card-date';
+                message.style.color = 'var(--danger)';
+                message.textContent = 'Épisode non disponible.';
+                dateContainer.appendChild(message);
             }
         }
     }
-    
-    if (cardsToCheck.length > 0) {
-        setTimeout(() => processBatch(cardsToCheck, 5), 500);
+
+    if (!cardsToCheck.length) return;
+
+    // Limite stricte à trois requêtes simultanées, même si plusieurs cartes
+    // entrent dans la zone visible au même moment.
+    const pendingChecks = [];
+    let activeChecks = 0;
+    const maxConcurrentChecks = 3;
+
+    function enqueueCheck(card) {
+        if (card.dataset.dispoChecking === '1' || card.dataset.dispoChecked === '1') return;
+        pendingChecks.push(card);
+        processCheckQueue();
+    }
+
+    function processCheckQueue() {
+        while (activeChecks < maxConcurrentChecks && pendingChecks.length) {
+            const card = pendingChecks.shift();
+            activeChecks++;
+            checkCardDispo(card).finally(() => {
+                activeChecks--;
+                processCheckQueue();
+            });
+        }
+    }
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                observer.unobserve(entry.target);
+                enqueueCheck(entry.target);
+            });
+        }, { rootMargin: '120px 0px', threshold: 0.01 });
+
+        cardsToCheck.forEach(card => observer.observe(card));
+    } else {
+        // Fallback ancien navigateur : vérifier uniquement les 6 premières cartes.
+        cardsToCheck.slice(0, 6).forEach(enqueueCheck);
     }
 });
 });

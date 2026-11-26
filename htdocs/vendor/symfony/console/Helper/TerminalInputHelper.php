@@ -102,8 +102,7 @@ final class TerminalInputHelper
         // and shell_exec() gives no way to detect that failure. Try the exact restore first so
         // any custom terminal settings survive, but always fall back to "stty sane" so the
         // terminal is left in a usable state even when the exact restore silently fails.
-        $nullDevice = '\\' === \DIRECTORY_SEPARATOR ? 'NUL' : '/dev/null';
-        shell_exec('stty '.$this->initialState.' 2>'.$nullDevice.' || stty sane');
+        shell_exec('stty '.$this->initialState.' 2>/dev/null || stty sane');
         $this->signalToKill = 0;
 
         foreach ($this->signalHandlers as $signal => $originalHandler) {

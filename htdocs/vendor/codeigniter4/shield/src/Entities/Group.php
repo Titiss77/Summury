@@ -19,8 +19,6 @@ use CodeIgniter\Shield\Authorization\PermissionMatcher;
 /**
  * Represents a single User Group
  * and provides utility functions.
- *
- * @property string|null $alias
  */
 class Group extends Entity
 {

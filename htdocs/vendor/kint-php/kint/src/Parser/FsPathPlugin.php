@@ -31,7 +31,6 @@ use Kint\Value\AbstractValue;
 use Kint\Value\Representation\SplFileInfoRepresentation;
 use SplFileInfo;
 use TypeError;
-use ValueError;
 
 class FsPathPlugin extends AbstractPlugin implements PluginCompleteInterface
 {
@@ -65,8 +64,8 @@ class FsPathPlugin extends AbstractPlugin implements PluginCompleteInterface
             if (!@\file_exists($var)) {
                 return $v;
             }
-        } catch (TypeError|ValueError $e) {// @codeCoverageIgnore
-            // TypeError only possible in PHP 7, ValueError from 8.6+
+        } catch (TypeError $e) {// @codeCoverageIgnore
+            // Only possible in PHP 7
             return $v; // @codeCoverageIgnore
         }
 

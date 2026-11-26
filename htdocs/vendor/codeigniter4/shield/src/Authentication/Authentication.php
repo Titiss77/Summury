@@ -49,7 +49,7 @@ class Authentication
         $alias ??= $this->config->defaultAuthenticator;
 
         // Return the cached instance if we have it
-        if (isset($this->instances[$alias])) {
+        if (! empty($this->instances[$alias])) {
             return $this->instances[$alias];
         }
 
