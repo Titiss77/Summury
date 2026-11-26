@@ -6,36 +6,45 @@ namespace App\Libraries;
 
 final class ExternalUrlGuard
 {
-    public static function isPublicHttpUrl(string $url): bool
+    public static function isSafeHttpUrl(string $url): bool
     {
-        if ('' === $url || strlen($url) > 2048 || !filter_var($url, FILTER_VALIDATE_URL)) {
-            return false;
-        }
-
+        if ('' === $url || strlen($url) > 2048 || !filter_var($url, FILTER_VALIDATE_URL)) return false;
         $parts = parse_url($url);
-        if (!is_array($parts)) {
-            return false;
-        }
-
+        if (!is_array($parts)) return false;
         $scheme = strtolower((string) ($parts['scheme'] ?? ''));
         $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
-        if (!in_array($scheme, ['http', 'https'], true) || '' === $host || isset($parts['user']) || isset($parts['pass'])) {
-            return false;
-        }
+        if (!in_array($scheme, ['http', 'https'], true) || '' === $host || isset($parts['user']) || isset($parts['pass'])) return false;
+        if (filter_var($host, FILTER_VALIDATE_IP)) return self::isPublicIp($host);
+        if (!str_contains($host, '.') || preg_match('/\.(?:localhost|local|localdomain|lan|internal|intranet|test)$/i', $host)) return false;
+        return true;
+    }
 
-        $ipHost = trim($host, '[]');
-        if (false !== filter_var($ipHost, FILTER_VALIDATE_IP)) {
-            return false !== filter_var(
-                $ipHost,
-                FILTER_VALIDATE_IP,
-                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
-            );
+    public static function isPublicHttpUrl(string $url): bool
+    {
+        if (!self::isSafeHttpUrl($url)) return false;
+        $host = strtolower(rtrim((string) parse_url($url, PHP_URL_HOST), '.'));
+        if (filter_var($host, FILTER_VALIDATE_IP)) return self::isPublicIp($host);
+        $addresses = [];
+        $records = @dns_get_record($host, DNS_A | DNS_AAAA);
+        if (is_array($records)) {
+            foreach ($records as $record) {
+                if (!empty($record['ip'])) $addresses[] = $record['ip'];
+                if (!empty($record['ipv6'])) $addresses[] = $record['ipv6'];
+            }
         }
-
-        if (!str_contains($host, '.')) {
-            return false;
+        if ($addresses === []) {
+            $ipv4 = @gethostbynamel($host);
+            if (is_array($ipv4)) $addresses = array_merge($addresses, $ipv4);
         }
+        if ($addresses === []) return false;
+        foreach (array_unique($addresses) as $address) {
+            if (!self::isPublicIp((string) $address)) return false;
+        }
+        return true;
+    }
 
-        return !preg_match('/\.(?:localhost|local|localdomain|lan|internal|intranet|test)$/i', $host);
+    private static function isPublicIp(string $ip): bool
+    {
+        return false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
     }
 }

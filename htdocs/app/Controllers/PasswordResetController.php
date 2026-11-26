@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -6,6 +8,11 @@ use App\Models\AuditLogModel;
 
 class PasswordResetController extends BaseController
 {
+    private const CODE_TTL = 900;
+    private const VERIFIED_TTL = 600;
+    private const MAX_ATTEMPTS = 5;
+    private const MAX_SENDS_PER_HOUR = 3;
+
     public function forgotPasswordView()
     {
         return view('auth/forgot_password');
@@ -13,127 +20,126 @@ class PasswordResetController extends BaseController
 
     public function sendCode()
     {
-        $email = $this->request->getPost('email');
-
-        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $email = strtolower(trim((string) $this->request->getPost('email')));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return redirect()->back()->with('error', 'Veuillez fournir une adresse e-mail valide.');
         }
+        $emailHash = hash('sha256', $email);
+        $ipHash = hash('sha256', (string) $this->request->getIPAddress());
+        $sendKey = 'password_reset_send_' . $emailHash;
+        $ipKey = 'password_reset_ip_' . $ipHash;
+        $emailSends = (int) (cache()->get($sendKey) ?? 0);
+        $ipSends = (int) (cache()->get($ipKey) ?? 0);
 
-        $users = auth()->getProvider();
-        $user = $users->findByCredentials(['email' => $email]);
-
-        if ($user) {
-            $code = (string) random_int(100000, 999999);
-            cache()->save('reset_code_' . md5($email), $code, 900);
-
-            $emailConfig = config('Email');
-            $emailService = \Config\Services::email();
-            $emailService->initialize($emailConfig);
-
-            $emailService->setFrom($emailConfig->fromEmail, $emailConfig->fromName);
-            $emailService->setTo($email);
-            $emailService->setSubject('Code de réinitialisation de mot de passe');
-
-            $siteName = esc((string) env('SITENAME', ''));
-
-            $message = "
-            <div style='font-family: \"Inter\", Helvetica, Arial, sans-serif; background-color: #f3f5f8; padding: 40px 20px; color: #182131;'>
-                <div style='max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e1e5ec;'>
-                    <div style='text-align: center; margin-bottom: 20px;'>
-                        <h2 style='color: #182131; margin: 0; font-size: 22px; font-weight: 800;'>{$siteName}</h2>
-                    </div>
-
-                    <p style='font-size: 15px; line-height: 1.6; color: #657084;'>Bonjour,</p>
-                    <p style='font-size: 15px; line-height: 1.6; color: #657084;'>Vous avez demandé à réinitialiser votre mot de passe. Voici votre code de vérification :</p>
-
-                    <div style='text-align: center; margin: 35px 0;'>
-                        <span style='display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #ffffff; background-color: #98733d; padding: 15px 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(152, 115, 61, 0.2);'>{$code}</span>
-                    </div>
-
-                    <p style='font-size: 14px; text-align: center; color: #657084;'>Ce code est valide pendant <strong>15 minutes</strong>.</p>
-
-                    <hr style='border: none; border-top: 1px solid #e1e5ec; margin: 30px 0;'>
-
-                    <p style='font-size: 12px; text-align: center; color: #8791a1; margin: 0; line-height: 1.5;'>Si vous n'avez pas fait cette demande, vous pouvez ignorer cet e-mail en toute sécurité. Votre compte reste protégé.</p>
-                </div>
-            </div>
-            ";
-
-            $emailService->setMessage($message);
-
-            if (!$emailService->send()) {
-                log_message('error', 'Erreur envoi e-mail réinitialisation : ' . $emailService->printDebugger(['headers']));
-                return redirect()->back()->with('error', "Une erreur est survenue lors de l'envoi de l'e-mail. Veuillez réessayer plus tard.");
+        if ($emailSends < self::MAX_SENDS_PER_HOUR && $ipSends < 10) {
+            cache()->save($sendKey, $emailSends + 1, 3600);
+            cache()->save($ipKey, $ipSends + 1, 3600);
+            $user = auth()->getProvider()->findByCredentials(['email' => $email]);
+            if ($user) {
+                $code = (string) random_int(100000, 999999);
+                cache()->save('password_reset_code_' . $emailHash, password_hash($code, PASSWORD_DEFAULT), self::CODE_TTL);
+                cache()->save('password_reset_attempts_' . $emailHash, 0, self::CODE_TTL);
+                cache()->delete('password_reset_verified_' . $emailHash);
+                $emailConfig = config('Email');
+                $emailService = \Config\Services::email();
+                $emailService->initialize($emailConfig);
+                $emailService->setFrom($emailConfig->fromEmail, $emailConfig->fromName);
+                $emailService->setTo($email);
+                $emailService->setSubject('Code de réinitialisation de mot de passe');
+                $siteName = esc((string) env('SITENAME', ''));
+                $message = '<div style="font-family:Arial,sans-serif;padding:24px;color:#182131">'
+                    . '<h2>' . $siteName . '</h2><p>Votre code de réinitialisation :</p>'
+                    . '<p style="font-size:30px;font-weight:bold;letter-spacing:8px">' . esc($code) . '</p>'
+                    . '<p>Ce code expire dans 15 minutes. Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.</p></div>';
+                $emailService->setMessage($message);
+                if (!$emailService->send()) {
+                    log_message('error', 'Échec de l’envoi du code de réinitialisation.');
+                    cache()->delete('password_reset_code_' . $emailHash);
+                }
             }
         }
-
+        session()->remove(['reset_verified', 'reset_token']);
         session()->set('reset_email', $email);
-        return redirect()->to('forgot-password/verify')->with('message', "Si l'adresse e-mail correspond à un compte, un code à 6 chiffres vous a été envoyé.");
+        return redirect()->to('forgot-password/verify')
+            ->with('message', 'Si cette adresse correspond à un compte, un code de vérification a été envoyé.');
     }
 
     public function verifyCodeView()
     {
-        if (!session()->has('reset_email')) {
-            return redirect()->to('forgot-password');
-        }
+        if (!session()->has('reset_email')) return redirect()->to('forgot-password');
         return view('auth/verify_reset_code');
     }
 
     public function verifyCode()
     {
-        $email = session('reset_email');
-        $code = $this->request->getPost('code');
-
-        if (!$email || !$code) {
-            return redirect()->to('forgot-password')->with('error', 'Session expirée ou code manquant.');
+        $email = strtolower(trim((string) session('reset_email')));
+        $code = trim((string) $this->request->getPost('code'));
+        if ('' === $email || !preg_match('/^\d{6}$/', $code)) {
+            return redirect()->to('forgot-password')->with('error', 'Session expirée ou code invalide.');
         }
-
-        $cachedCode = cache('reset_code_' . md5($email));
-
-        if ($cachedCode && $cachedCode === $code) {
-            session()->set('reset_verified', true);
-            return redirect()->to('forgot-password/reset')->with('message', 'Code validé. Veuillez choisir votre nouveau mot de passe.');
+        $emailHash = hash('sha256', $email);
+        $codeKey = 'password_reset_code_' . $emailHash;
+        $attemptKey = 'password_reset_attempts_' . $emailHash;
+        $attempts = (int) (cache()->get($attemptKey) ?? 0);
+        if ($attempts >= self::MAX_ATTEMPTS) {
+            cache()->delete($codeKey);
+            session()->remove(['reset_email', 'reset_verified', 'reset_token']);
+            return redirect()->to('forgot-password')->with('error', 'Trop de tentatives. Demandez un nouveau code.');
         }
-
+        $storedHash = cache()->get($codeKey);
+        if (is_string($storedHash) && password_verify($code, $storedHash)) {
+            $token = bin2hex(random_bytes(32));
+            cache()->save('password_reset_verified_' . $emailHash, hash('sha256', $token), self::VERIFIED_TTL);
+            session()->set(['reset_verified' => true, 'reset_token' => $token]);
+            cache()->delete($attemptKey);
+            return redirect()->to('forgot-password/reset')->with('message', 'Code validé. Choisissez votre nouveau mot de passe.');
+        }
+        cache()->save($attemptKey, $attempts + 1, self::CODE_TTL);
+        if ($attempts + 1 >= self::MAX_ATTEMPTS) {
+            cache()->delete($codeKey);
+            session()->remove(['reset_email', 'reset_verified', 'reset_token']);
+            return redirect()->to('forgot-password')->with('error', 'Trop de tentatives. Demandez un nouveau code.');
+        }
         return redirect()->back()->with('error', 'Code invalide ou expiré.');
     }
 
     public function resetPasswordView()
     {
-        if (!session()->has('reset_email') || !session()->get('reset_verified')) {
-            return redirect()->to('forgot-password');
-        }
+        if (!$this->hasValidResetAuthorization()) return redirect()->to('forgot-password');
         return view('auth/reset_password');
     }
 
     public function updatePassword()
     {
-        if (!session()->has('reset_email') || !session()->get('reset_verified')) {
-            return redirect()->to('forgot-password');
-        }
+        if (!$this->hasValidResetAuthorization()) return redirect()->to('forgot-password');
+        $rules = ['password' => 'required|min_length[12]', 'password_confirm' => 'required|matches[password]'];
+        if (!$this->validate($rules)) return redirect()->back()->with('errors', $this->validator->getErrors());
 
-        $rules = [
-            'password'         => 'required|min_length[12]',
-            'password_confirm' => 'required|matches[password]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->with('errors', $this->validator->getErrors());
-        }
-
-        $email = session('reset_email');
+        $email = strtolower(trim((string) session('reset_email')));
+        $emailHash = hash('sha256', $email);
         $users = auth()->getProvider();
         $user = $users->findByCredentials(['email' => $email]);
-
-        if ($user) {
-            $user->fill(['password' => $this->request->getPost('password')]);
-            $users->save($user);
-            (new AuditLogModel())->logAction('Réinitialisation Mot de passe', "L'utilisateur ID {$user->id} a réinitialisé son mot de passe via un code de secours e-mail.");
+        if (!$user) {
+            session()->remove(['reset_email', 'reset_verified', 'reset_token']);
+            return redirect()->to('forgot-password')->with('error', 'La réinitialisation a expiré. Recommencez.');
         }
+        $user->fill(['password' => $this->request->getPost('password')]);
+        if (!$users->save($user)) return redirect()->back()->with('error', 'Impossible de modifier le mot de passe. Réessayez.');
 
-        cache()->delete('reset_code_' . md5($email));
-        session()->remove(['reset_email', 'reset_verified']);
+        (new AuditLogModel())->logAction('Réinitialisation Mot de passe', 'Un mot de passe a été réinitialisé via le code e-mail.');
+        cache()->delete('password_reset_code_' . $emailHash);
+        cache()->delete('password_reset_attempts_' . $emailHash);
+        cache()->delete('password_reset_verified_' . $emailHash);
+        session()->remove(['reset_email', 'reset_verified', 'reset_token']);
+        return redirect()->to('z')->with('message', 'Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter.');
+    }
 
-        return redirect()->to('z')->with('message', 'Votre mot de passe a été modifié avec succès. Vous pouvez maintenant vous connecter.');
+    private function hasValidResetAuthorization(): bool
+    {
+        $email = strtolower(trim((string) session('reset_email')));
+        $token = (string) session('reset_token');
+        if ('' === $email || '' === $token || !session()->get('reset_verified')) return false;
+        $storedHash = cache()->get('password_reset_verified_' . hash('sha256', $email));
+        return is_string($storedHash) && hash_equals($storedHash, hash('sha256', $token));
     }
 }

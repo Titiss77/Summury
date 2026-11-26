@@ -22,7 +22,7 @@ class MediaSearchController extends BaseController
             'user_agent'      => 'Summury/1.0 CodeIgniter4 Media Search',
         ]);
 
-        $this->tmdbApiKey = trim((string) (env('TMDB_API_KEY') ?: 'ba55da0439797150ed58c4e524584823'));
+        $this->tmdbApiKey = trim((string) env('TMDB_API_KEY', ''));
     }
 
     public function search()
@@ -51,6 +51,9 @@ class MediaSearchController extends BaseController
         }
 
         $type = $this->normalizeType($type);
+        $cacheKey = 'media_search_' . hash('sha256', $type . '|' . mb_strtolower($query));
+        $cachedResults = cache()->get($cacheKey);
+        if (is_array($cachedResults)) return $this->response->setJSON($cachedResults);
         $results = [];
 
         try {
@@ -101,11 +104,9 @@ class MediaSearchController extends BaseController
 
         $results = $this->prepareResults($results, $query, $type);
 
-        return $this->response->setJSON([
-            'unified' => $results,
-            'type'    => $type,
-            'count'   => count($results),
-        ]);
+        $payload = ['unified' => $results, 'type' => $type, 'count' => count($results)];
+        cache()->save($cacheKey, $payload, 900);
+        return $this->response->setJSON($payload);
     }
 
     private function normalizeType(string $type): string
@@ -743,12 +744,14 @@ class MediaSearchController extends BaseController
             $response = $this->client->get($url, [
                 'headers'         => ['Accept-Language' => 'fr-FR,fr;q=0.9,en;q=0.8'],
                 'allow_redirects' => false,
+                'stream'           => true,
+                'read_timeout'     => 3,
             ]);
-            if ($response->getStatusCode() >= 400) {
-                return null;
-            }
-
-            $html = (string) $response->getBody();
+            if ($response->getStatusCode() >= 400) return null;
+            $contentType = strtolower((string) $response->getHeaderLine('Content-Type'));
+            if ('' !== $contentType && !str_contains($contentType, 'text/html') && !str_contains($contentType, 'application/xhtml+xml')) return null;
+            $body = $response->getBody();
+            $html = method_exists($body, 'read') ? $body->read(1_048_576) : substr((string) $body, 0, 1_048_576);
             if ('' === $html) {
                 return null;
             }
