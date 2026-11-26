@@ -320,6 +320,7 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->post('s', 'ItemController::save');
     $routes->get('d/(:num)', 'ItemController::delete/$1');
     $routes->post('e/(:num)', 'ItemController::incrementEpisode/$1');
+    $routes->post('n/(:num)', 'ItemController::incrementSaison/$1');
     $routes->post('o', 'ItemController::updateOrder');
     $routes->get('g', 'ItemController::checkToGlobal');
     $routes->get('u/(:num)', 'ItemController::turnToAdmin/$1');
@@ -342,6 +343,7 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->post('item/save', 'ItemController::save');
     $routes->get('item/delete/(:num)', static fn(string $id) => redirect()->to('d/' . $id));
     $routes->post('item/increment-episode/(:num)', 'ItemController::incrementEpisode/$1');
+    $routes->post('item/increment-saison/(:num)', 'ItemController::incrementSaison/$1');
     $routes->post('items/update-order', 'ItemController::updateOrder');
     $routes->get('items/check-to-global', static fn() => redirect()->to('g'));
     $routes->get('item/turn/(:num)', static fn(string $id) => redirect()->to('u/' . $id));
@@ -1637,7 +1639,7 @@ class ItemController extends BaseController
                 'sous_categorie_select' => 'permit_empty|max_length[255]',
                 'sous_categorie_new' => 'permit_empty|max_length[255]',
                 'image' => 'permit_empty|max_length[255]',
-                'lien' => 'permit_empty|max_length[2048]',
+                'lien' => 'permit_empty|max_length[255]',
                 'date_sortie' => 'permit_empty|valid_date[Y-m-d\TH:i]',
             ];
 
@@ -1884,8 +1886,6 @@ class ItemController extends BaseController
             $this->model->update($id, $updateData);
 
             $wasComplete = 'Terminé' === $item->status;
-            $justCompleted = ('Terminé' === ($updateData['status'] ?? null));
-
             if (!empty($updateData['saison'])) {
                 $updatedItem = $this->model->find($id);
                 if ($updatedItem) {
@@ -1905,15 +1905,9 @@ class ItemController extends BaseController
                     $this->model->update($id, $syncData);
                 }
             } else {
-                $newEpisodeGlobal = (int) ($item->episode_global ?? $item->episode ?? 0) + (($wasComplete || $justCompleted) ? 0 : 1);
-                $totalGlobal = $item->total_episodes_global ?? $item->total_episodes;
-                if (null !== $totalGlobal && (int) $totalGlobal > 0 && $newEpisodeGlobal > (int) $totalGlobal) {
-                    $newEpisodeGlobal = (int) $totalGlobal;
-                }
-
                 $this->model->update($id, [
-                    'episode_global' => $newEpisodeGlobal,
-                    'total_episodes_global' => $totalGlobal,
+                    'episode_global' => (int) ($item->episode_global ?? $item->episode ?? 0) + ($wasComplete ? 0 : 1),
+                    'total_episodes_global' => $item->total_episodes_global ?? $item->total_episodes,
                 ]);
             }
 
@@ -1934,6 +1928,196 @@ class ItemController extends BaseController
             }
         }
         return redirect()->back();
+    }
+
+    /**
+     * Incrémente rapidement la saison.
+     *
+     * @param mixed $id
+     */
+    public function incrementSaison($id)
+    {
+        $item = $this->model->find($id);
+
+        if ($item) {
+            if (!$this->canManageItem($item)) {
+                if ($this->request->isAJAX()) {
+                    return $this->response->setStatusCode(403)->setJSON([
+                        'success' => false,
+                        'error' => 'Vous ne pouvez pas modifier cette carte.',
+                        'csrf_token' => csrf_hash(),
+                    ]);
+                }
+                return redirect()->back()->with('error', 'Vous ne pouvez pas modifier cette carte.');
+            }
+
+            $newSaison = (int) $item->saison + 1;
+            $this->model->update($id, ['saison' => $newSaison]);
+
+            (new AuditLogModel())->logAction('Incrémentation Rapide', "Mise à jour de la carte ID {$id} ('{$item->titre}') : Saison passée à {$newSaison}.");
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['success' => true, 'new_saison' => $newSaison, 'csrf_token' => csrf_hash()]);
+            }
+        }
+        return redirect()->back();
+    }
+
+    /**
+     * Moteur de recherche multi-sources (TMDB & Mangadex).
+     */
+    public function search()
+    {
+        $query = $this->request->getGet('q');
+        $type = $this->request->getGet('type');
+
+        if (empty($query)) {
+            return $this->response->setJSON([]);
+        }
+
+        $client = Services::curlrequest([
+            'timeout' => 8,
+            'connect_timeout' => 5,
+            'http_errors' => false,
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/site',
+        ]);
+
+        try {
+            if (filter_var($query, FILTER_VALIDATE_URL)) {
+                $metaData = $this->scrapeOpenGraph($query);
+                $body = $metaData ? [$metaData] : ['error' => 'Impossible de lire le lien.'];
+
+                return $this->response->setJSON($body);
+            }
+
+            $unifiedResults = [];
+            $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
+
+            $url = 'https://api.themoviedb.org/3/search/multi?query=' . urlencode($query) . "&api_key={$apiKey}&language=fr-FR";
+            $response = $client->get($url);
+
+            if (200 === $response->getStatusCode()) {
+                $body = json_decode($response->getBody(), true);
+
+                if (isset($body['results']) && is_array($body['results'])) {
+                    foreach ($body['results'] as $result) {
+                        if (isset($result['media_type']) && 'person' === $result['media_type']) {
+                            continue;
+                        }
+
+                        $isAnime = false;
+                        if (isset($result['genre_ids']) && is_array($result['genre_ids']) && in_array(16, $result['genre_ids'])) {
+                            if (isset($result['origin_country']) && is_array($result['origin_country']) && in_array('JP', $result['origin_country'])) {
+                                $isAnime = true;
+                            }
+                        }
+
+                        $mediaLabel = strtoupper($result['media_type'] ?? 'TMDB');
+                        if ('TV' === $mediaLabel) {
+                            $mediaLabel = $isAnime ? 'ANIME' : 'TV';
+                        } elseif ('MOVIE' === $mediaLabel) {
+                            $mediaLabel = $isAnime ? 'FILM ANIME' : 'MOVIE';
+                        }
+
+                        $item = [
+                            'titre' => $result['title'] ?? $result['name'] ?? $result['original_name'] ?? 'Inconnu',
+                            'imageThumb' => !empty($result['poster_path']) ? "https://image.tmdb.org/t/p/w200{$result['poster_path']}" : '',
+                            'imageLarge' => !empty($result['poster_path']) ? "https://image.tmdb.org/t/p/w500{$result['poster_path']}" : '',
+                            'description' => $result['overview'] ?? '',
+                            'info' => substr($result['release_date'] ?? $result['first_air_date'] ?? '', 0, 4) . ' - ' . $mediaLabel,
+                            'lien' => '',
+                            'total_episodes' => '',
+                            'total_saisons' => '',
+                            'seasons_data' => null,
+                        ];
+
+                        if (isset($result['media_type']) && 'tv' === $result['media_type'] && isset($result['id'])) {
+                            try {
+                                $tvUrl = "https://api.themoviedb.org/3/tv/{$result['id']}?api_key={$apiKey}&language=fr-FR";
+                                $tvResponse = $client->get($tvUrl);
+                                if (200 === $tvResponse->getStatusCode()) {
+                                    $tvBody = json_decode($tvResponse->getBody(), true);
+                                    if (isset($tvBody['number_of_episodes'])) {
+                                        $item['total_episodes'] = $tvBody['number_of_episodes'];
+                                    }
+                                    if (isset($tvBody['number_of_seasons'])) {
+                                        $item['total_saisons'] = $tvBody['number_of_seasons'];
+                                    }
+                                    if (isset($tvBody['seasons'])) {
+                                        $seasons = [];
+                                        foreach ($tvBody['seasons'] as $season) {
+                                            $seasons[$season['season_number']] = $season['episode_count'];
+                                        }
+                                        $item['seasons_data'] = $seasons;
+                                    }
+                                }
+                            } catch (\Exception $e) {
+                            }
+                        }
+
+                        $unifiedResults[] = $item;
+                    }
+                }
+            }
+
+            try {
+                $mdUrl = 'https://api.mangadex.org/manga?title=' . urlencode($query) . '&limit=5&includes[]=cover_art&order[relevance]=desc';
+                $mdResponse = $client->get($mdUrl, [
+                    'headers' => [
+                        'User-Agent' => 'site-App/1.0',
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+
+                if (200 === $mdResponse->getStatusCode()) {
+                    $mdBody = json_decode($mdResponse->getBody(), true);
+
+                    if (isset($mdBody['data']) && is_array($mdBody['data'])) {
+                        foreach ($mdBody['data'] as $m) {
+                            $attr = $m['attributes'] ?? [];
+                            $titre = $attr['title']['en'] ?? $attr['title']['ja-ro'] ?? $attr['title']['fr'] ?? 'Inconnu';
+                            if (is_array($titre)) {
+                                $titre = 'Inconnu';
+                            }
+                            $description = $attr['description']['fr'] ?? $attr['description']['en'] ?? '';
+                            $year = $attr['year'] ?? '';
+
+                            $fileName = '';
+                            if (isset($m['relationships'])) {
+                                foreach ($m['relationships'] as $rel) {
+                                    if ('cover_art' === $rel['type'] && isset($rel['attributes']['fileName'])) {
+                                        $fileName = $rel['attributes']['fileName'];
+                                        break;
+                                    }
+                                }
+                            }
+
+                            $imageThumb = $fileName ? "https://uploads.mangadex.org/covers/{$m['id']}/{$fileName}.256.jpg" : '';
+                            $imageLarge = $fileName ? "https://uploads.mangadex.org/covers/{$m['id']}/{$fileName}" : '';
+
+                            $unifiedResults[] = [
+                                'titre' => $titre,
+                                'imageThumb' => $imageThumb,
+                                'imageLarge' => $imageLarge,
+                                'description' => strip_tags((string) $description),
+                                'info' => ($year ? $year . ' - ' : '') . 'MANGA',
+                                'lien' => '',
+                                'total_episodes' => $attr['lastChapter'] ?? '',
+                                'total_saisons' => $attr['lastVolume'] ?? '',
+                                'seasons_data' => null,
+                            ];
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+            }
+
+            $finalBody = ['unified' => $unifiedResults];
+
+            return $this->response->setJSON($finalBody);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => 'Erreur de recherche : ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -2199,6 +2383,47 @@ class ItemController extends BaseController
     }
 
     /**
+     * Récupère les métadonnées OpenGraph (Titre, Image, Description) d'une URL fournie.
+     */
+    private function scrapeOpenGraph(string $url): ?array
+    {
+        $html = @file_get_contents($url);
+        if (!$html) {
+            return null;
+        }
+
+        $doc = new \DOMDocument();
+        @$doc->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+
+        $tags = $doc->getElementsByTagName('meta');
+        $data = ['titre' => '', 'description' => '', 'image' => '', 'lien' => $url, 'is_link' => true];
+
+        foreach ($tags as $tag) {
+            if ($tag->hasAttribute('property')) {
+                $property = $tag->getAttribute('property');
+                if ('og:title' === $property) {
+                    $data['titre'] = $tag->getAttribute('content');
+                }
+                if ('og:description' === $property) {
+                    $data['description'] = $tag->getAttribute('content');
+                }
+                if ('og:image' === $property) {
+                    $data['image'] = $tag->getAttribute('content');
+                }
+            }
+        }
+
+        if (empty($data['titre'])) {
+            $titles = $doc->getElementsByTagName('title');
+            if ($titles->length > 0) {
+                $data['titre'] = $titles->item(0)->nodeValue;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
      * Interroge TMDB pour calculer les compteurs globaux (épisodes vus au total et total de la série)
      * et, si demandé, récupérer le nombre d'épisodes de la saison en cours.
      */
@@ -2409,6 +2634,27 @@ class ItemController extends BaseController
     }
 
     /**
+     * Refresh an expired whitelist row when its domain is reported again.
+     */
+    private function refreshExistingReportWhitelistEntry(string $host, string $updatedAt): void
+    {
+        $whitelist = new WhitelistModel();
+        foreach ($whitelist->findAll() as $entry) {
+            $entryHost = $this->reportedLinkHost((string) ($entry['domain'] ?? ''));
+            if ($entryHost === null)
+                continue;
+            $entryHost = (string) preg_replace('/^www\./i', '', $entryHost);
+            if ($entryHost !== $host)
+                continue;
+
+            if (!$whitelist->update($entry['id'], ['created_at' => $updatedAt])) {
+                throw new \RuntimeException('Impossible de renouveler la date de protection du domaine.');
+            }
+            return;
+        }
+    }
+
+    /**
      * Enforce rolling quotas per authenticated account and source IP.
      */
     private function reportRateLimitMessage(): ?string
@@ -2585,6 +2831,7 @@ class ItemController extends BaseController
             }
 
             $now = date('Y-m-d H:i:s');
+            $this->refreshExistingReportWhitelistEntry($host, $now);
             $cronLogId = (new CronLogModel())->insert([
                 'task_name' => CronLogModel::TASK_PENDING_USER_REPORT,
                 'last_run' => $now,
@@ -4048,24 +4295,11 @@ class HtmlMinifier implements FilterInterface
         if (str_contains($contentType ?: 'text/html', 'text/html')) {
             $html = (string) $response->getBody();
 
-            // Protège les blocs sensibles aux retours à la ligne et espaces
-            $preserved = [];
-            $html = preg_replace_callback(
-                '#<(script|style|textarea|pre)\b[^>]*>.*?</\1>#is',
-                static function (array $matches) use (&$preserved): string {
-                    $key = '___MINIFY_PRESERVE_' . count($preserved) . '___';
-                    $preserved[$key] = $matches[0];
-
-                    return $key;
-                },
-                $html
-            ) ?? $html;
-
             $search = [
                 '/\>[^\S ]+/s',
                 '/[^\S ]+\</s',
                 '/(\s)+/s',
-                '/<!--(.*?)-->/s',
+                '/<!--(.*?)-->/s',   // Corrigé : remplace l'ancienne regex invalide '//s'
             ];
 
             $replace = [
@@ -4075,13 +4309,10 @@ class HtmlMinifier implements FilterInterface
                 '',
             ];
 
-            $minifiedHtml = preg_replace($search, $replace, $html) ?? $html;
+            $minifiedHtml = preg_replace($search, $replace, $html);
 
-            if ($preserved !== []) {
-                $minifiedHtml = strtr($minifiedHtml, $preserved);
-            }
-
-            $response->setBody($minifiedHtml);
+            // Corrigé : on injecte le résultat minifié (avec un fallback de sécurité)
+            $response->setBody($minifiedHtml ?? $html);
         }
     }
 }
@@ -4309,6 +4540,8 @@ class ItemModel extends Model
             ->where('i.deleted_at IS NULL')
         ;
 
+        // Cartes publiques pour les visiteurs,
+        // cartes personnelles + publiques pour le propriétaire.
         if (null === $userId) {
             $builder->where('i.is_public', 1)
                 ->where('i.id_division !=', self::PERSONAL_DIVISION_ID);
@@ -4516,12 +4749,10 @@ class ItemModel extends Model
                 "SUM(
                     CASE
                         WHEN {$enCoursCondition}
-                        THEN GREATEST(
-                            0,
+                        THEN
                             COALESCE(total_episodes_global, total_episodes)
                             - COALESCE(episode_global, episode, 1)
                             + 1
-                        )
                         ELSE 0
                     END
                 ) AS total_episodes_en_cours",
@@ -4533,7 +4764,7 @@ class ItemModel extends Model
                 "SUM(
                     CASE
                         WHEN {$enCoursCondition}
-                        THEN GREATEST(0, COALESCE(total_saisons, 0) - COALESCE(saison, 0) + 1)
+                        THEN total_saisons - saison + 1
                         ELSE 0
                     END
                 ) AS total_series_en_cours",
@@ -4545,12 +4776,10 @@ class ItemModel extends Model
                 "SUM(
                     CASE
                         WHEN {$enPauseCondition}
-                        THEN GREATEST(
-                            0,
+                        THEN
                             COALESCE(total_episodes_global, total_episodes)
                             - COALESCE(episode_global, episode, 1)
                             + 1
-                        )
                         ELSE 0
                     END
                 ) AS total_episodes_en_pause",
@@ -4562,7 +4791,7 @@ class ItemModel extends Model
                 "SUM(
                     CASE
                         WHEN {$enPauseCondition}
-                        THEN GREATEST(0, COALESCE(total_saisons, 0) - COALESCE(saison, 0) + 1)
+                        THEN total_saisons - saison + 1
                         ELSE 0
                     END
                 ) AS total_series_en_pause",
@@ -4597,6 +4826,9 @@ class ItemModel extends Model
     /**
      * Récupère toutes les séries en cours et en pause
      * avec UNE SEULE requête SQL.
+     *
+     * Le découpage En cours / En pause est ensuite effectué
+     * en PHP afin d'éviter deux requêtes identiques.
      */
     public function getUserProfileSeries(int $userId): array
     {
@@ -4627,8 +4859,9 @@ class ItemModel extends Model
         ];
 
         foreach ($rows as $row) {
+            // Calcul identique à l'ancien fonctionnement.
             $row->vu_global = null !== $row->episode_global
-                ? max(0, (int) $row->episode_global - 1)
+                ? (int) $row->episode_global - 1
                 : null;
 
             if (
@@ -4642,10 +4875,9 @@ class ItemModel extends Model
                     ?? $row->episode
                     ?? 1;
 
-                $row->reste_global = max(
-                    0,
-                    (int) $totalEpisodes - (int) $episodeActuel + 1
-                );
+                $row->reste_global = (int) $totalEpisodes
+                    - (int) $episodeActuel
+                    + 1;
             } else {
                 $row->reste_global = null;
             }
@@ -4654,10 +4886,9 @@ class ItemModel extends Model
                 null !== $row->total_saisons
                 && null !== $row->saison
             ) {
-                $row->reste_s = max(
-                    0,
-                    (int) $row->total_saisons - (int) $row->saison + 1
-                );
+                $row->reste_s = (int) $row->total_saisons
+                    - (int) $row->saison
+                    + 1;
             } else {
                 $row->reste_s = null;
             }
@@ -6781,28 +7012,26 @@ sessionStorage.setItem('last_cards_url', window.location.href);
 <div class="cards-grid">
     <?php foreach ($items as $item) { ?>
     <div class="card fade-in <?php echo 'Terminé' === $item->status ? 'status-completed' : ''; ?>"
-        id="card-<?php echo esc($item->id); ?>" data-id="<?php echo esc($item->id); ?>"
-        data-status="<?php echo esc($item->status); ?>"
-        data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
+        data-id="<?php echo esc($item->id); ?>">
 
         <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank" class="card-link-block">
             <div class="card-body">
                 <?php
-                $isFuture = false;
-                $dateSortieFormatted = '';
-                $textColor = '';
+                        $isFuture = false;
+        $dateSortieFormatted = '';
+        $textColor = '';
 
-                if (!empty($item->date_sortie)) {
-                    $timezone = new DateTimeZone('Europe/Paris');
-                    $dateSortie = new DateTime($item->date_sortie, $timezone);
-                    $now = new DateTime('now', $timezone);
-                    if ($dateSortie > $now) {
-                        $isFuture = true;
-                        $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
-                        $textColor = 'color: var(--danger);';
-                    }
-                }
-                ?>
+        if (!empty($item->date_sortie)) {
+            $timezone = new DateTimeZone('Europe/Paris');
+            $dateSortie = new DateTime($item->date_sortie, $timezone);
+            $now = new DateTime('now', $timezone);
+            if ($dateSortie > $now) {
+                $isFuture = true;
+                $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
+                $textColor = 'color: var(--danger);';
+            }
+        }
+        ?>
 
                 <h4 class="card-title search-target-title" style="<?php echo $textColor; ?>">
                     <?php echo htmlspecialchars($item->titre); ?></h4>
@@ -6813,16 +7042,14 @@ sessionStorage.setItem('last_cards_url', window.location.href);
                 <?php } ?>
 
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
-                    <span
-                        id="status-text-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->status); ?></span>
-                </p>
+                    <?php echo htmlspecialchars($item->status); ?></p>
 
                 <?php
-                $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-                $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
+            $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+        $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
 
-                if ($isPendingNew || $hasPendingRevision) {
-                    ?>
+        if ($isPendingNew || $hasPendingRevision) {
+            ?>
                 <div
                     style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                     <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>
@@ -6857,10 +7084,9 @@ sessionStorage.setItem('last_cards_url', window.location.href);
                     <div style="display: flex; flex-direction: column; align-items: center;">
                         <span class="badge badge-episode">
                             Ép. <span
-                                id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><span
-                                id="ep-total-<?php echo $item->id; ?>"><?php if (!empty($item->total_episodes)) {
+                                id="ep-count-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->episode); ?></span><?php if (!empty($item->total_episodes)) {
                                     echo ' / '.htmlspecialchars($item->total_episodes);
-                                } ?></span>
+                                } ?>
 
                             <?php if (auth()->loggedIn() && (int) $item->id_user === (int) auth()->id()) { ?>
                             <button type="button" class="btn-increment btn-increment-episode"
@@ -7177,6 +7403,17 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
     <!-- Choices.js JS -->
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js" defer></script>
+
+    <!-- Analytics (à configurer) -->
+    <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'TAG_ID_ICI');
+    </script>
 
     <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
     <script>
@@ -8717,22 +8954,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     const textarea = document.getElementById('description');
     const charCount = document.getElementById('char-count');
-
+    
     if (textarea && charCount) {
-        const maxLengthAttr = textarea.getAttribute('maxlength');
-        const maxLength = maxLengthAttr ? parseInt(maxLengthAttr, 10) : null;
-
+        const maxLength = textarea.getAttribute('maxlength');
+        
         function updateCounter() {
             const currentLength = textarea.value.length;
-            if (maxLength !== null && !Number.isNaN(maxLength)) {
-                charCount.textContent = `${currentLength} / ${maxLength}`;
-                charCount.style.color = currentLength >= maxLength ? 'var(--danger)' : 'var(--text-muted)';
+            charCount.textContent = `${currentLength} / ${maxLength}`;
+            
+            if (currentLength >= maxLength) {
+                charCount.style.color = 'var(--danger)';
             } else {
-                charCount.textContent = `${currentLength} caractères`;
                 charCount.style.color = 'var(--text-muted)';
             }
         }
-
+        
         updateCounter();
         textarea.addEventListener('input', updateCounter);
     }
