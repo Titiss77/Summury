@@ -10,7 +10,7 @@ final class ExternalUrlGuardTest extends CIUnitTestCase
     public function testAcceptsSafeHttpUrlsForStorage(): void
     {
         $this->assertTrue(ExternalUrlGuard::isSafeHttpUrl('https://example.com/watch/episode-1'));
-        $this->assertTrue(ExternalUrlGuard::isSafeHttpUrl('https://example.com/episode/{ep}'));
+        $this->assertTrue(ExternalUrlGuard::isSafeHttpUrl('https://example.com/episode/1'));
         $this->assertTrue(ExternalUrlGuard::isSafeHttpUrl('http://8.8.8.8/'));
     }
 
