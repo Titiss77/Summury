@@ -1,4 +1,11 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+FROM php:8.4-apache
+>>>>>>> parent of 986f7f3 (okk)
+=======
 FROM php:8.2-apache
+>>>>>>> parent of dae359a (Update Dockerfile)
 
 # 1. Installation des dépendances système requises par les extensions PHP
 RUN apt-get update && apt-get install -y \
