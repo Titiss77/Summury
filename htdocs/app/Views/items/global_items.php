@@ -21,28 +21,29 @@
 <div class="cards-grid">
     <?php foreach ($items as $item) { ?>
     <div class="card fade-in <?php echo 'Terminé' === $item->status ? 'status-completed' : ''; ?>"
-        id="card-<?php echo esc($item->id); ?>" data-id="<?php echo esc($item->id); ?>"
+        id="card-<?php echo esc($item->id); ?>"
+        data-id="<?php echo esc($item->id); ?>"
         data-status="<?php echo esc($item->status); ?>"
         data-url="<?php echo htmlspecialchars($item->getFinalLink()); ?>">
 
         <a href="<?php echo htmlspecialchars($item->getFinalLink()); ?>" target="_blank" class="card-link-block">
             <div class="card-body">
                 <?php
-                $isFuture = false;
-                $dateSortieFormatted = '';
-                $textColor = '';
+                        $isFuture = false;
+        $dateSortieFormatted = '';
+        $textColor = '';
 
-                if (!empty($item->date_sortie)) {
-                    $timezone = new DateTimeZone('Europe/Paris');
-                    $dateSortie = new DateTime($item->date_sortie, $timezone);
-                    $now = new DateTime('now', $timezone);
-                    if ($dateSortie > $now) {
-                        $isFuture = true;
-                        $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
-                        $textColor = 'color: var(--danger);';
-                    }
-                }
-                ?>
+        if (!empty($item->date_sortie)) {
+            $timezone = new DateTimeZone('Europe/Paris');
+            $dateSortie = new DateTime($item->date_sortie, $timezone);
+            $now = new DateTime('now', $timezone);
+            if ($dateSortie > $now) {
+                $isFuture = true;
+                $dateSortieFormatted = $dateSortie->format('d/m/Y à H:i');
+                $textColor = 'color: var(--danger);';
+            }
+        }
+        ?>
 
                 <h4 class="card-title search-target-title" style="<?php echo $textColor; ?>">
                     <?php echo htmlspecialchars($item->titre); ?></h4>
@@ -53,16 +54,15 @@
                 <?php } ?>
 
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Status :
-                    <span
-                        id="status-text-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->status); ?></span>
+                    <span id="status-text-<?php echo $item->id; ?>"><?php echo htmlspecialchars($item->status); ?></span>
                 </p>
 
                 <?php
-                $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
-                $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
+            $isPendingNew = (2 == $item->is_public && auth()->loggedIn() && (int) $item->id_user === (int) auth()->id());
+        $hasPendingRevision = isset($pendingRevisionIds[(int) $item->id]);
 
-                if ($isPendingNew || $hasPendingRevision) {
-                    ?>
+        if ($isPendingNew || $hasPendingRevision) {
+            ?>
                 <div
                     style="background-color: var(--warning); color: var(--text-main); padding: 3px 8px; border-radius: var(--radius-md); font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-bottom: 5px;">
                     <?php echo $isPendingNew ? "En cours d'inspection (Non public)" : 'Modification en attente de validation'; ?>

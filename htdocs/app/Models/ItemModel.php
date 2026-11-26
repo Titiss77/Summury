@@ -69,6 +69,8 @@ class ItemModel extends Model
             ->where('i.deleted_at IS NULL')
         ;
 
+        // Cartes publiques pour les visiteurs,
+        // cartes personnelles + publiques pour le propriétaire.
         if (null === $userId) {
             $builder->where('i.is_public', 1)
                 ->where('i.id_division !=', self::PERSONAL_DIVISION_ID);
@@ -357,6 +359,9 @@ class ItemModel extends Model
     /**
      * Récupère toutes les séries en cours et en pause
      * avec UNE SEULE requête SQL.
+     *
+     * Le découpage En cours / En pause est ensuite effectué
+     * en PHP afin d'éviter deux requêtes identiques.
      */
     public function getUserProfileSeries(int $userId): array
     {
@@ -387,6 +392,7 @@ class ItemModel extends Model
         ];
 
         foreach ($rows as $row) {
+            // Calcul identique à l'ancien fonctionnement.
             $row->vu_global = null !== $row->episode_global
                 ? max(0, (int) $row->episode_global - 1)
                 : null;
