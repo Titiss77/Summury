@@ -3,7 +3,7 @@
         'name' => 'titiss/space',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '6e035e6f1e31f78d75abd6a2eda785f602252d8d',
+        'reference' => 'e4d99e86fb2e44b9beede07f073f853764c7b0dc',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -34,15 +34,6 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'laminas/laminas-escaper' => array(
-            'pretty_version' => '2.19.0',
-            'version' => '2.19.0.0',
-            'reference' => '766b8583bbf64be9d3330e7a075197f54c46f642',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../laminas/laminas-escaper',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
         'psr/log' => array(
             'pretty_version' => '3.0.2',
             'version' => '3.0.2.0',
@@ -55,7 +46,7 @@
         'titiss/space' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '6e035e6f1e31f78d75abd6a2eda785f602252d8d',
+            'reference' => 'e4d99e86fb2e44b9beede07f073f853764c7b0dc',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

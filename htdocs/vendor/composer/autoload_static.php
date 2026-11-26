@@ -4,16 +4,12 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita0ecda5c88e4704b72cd713b80d5502b
+class ComposerStaticInit18744c2f2e348d8f3bfa24992b466d88
 {
     public static $prefixLengthsPsr4 = array (
         'P' => 
         array (
             'Psr\\Log\\' => 8,
-        ),
-        'L' => 
-        array (
-            'Laminas\\Escaper\\' => 16,
         ),
         'C' => 
         array (
@@ -27,10 +23,6 @@ class ComposerStaticInita0ecda5c88e4704b72cd713b80d5502b
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/src',
-        ),
-        'Laminas\\Escaper\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/laminas/laminas-escaper/src',
         ),
         'CodeIgniter\\Shield\\' => 
         array (
@@ -560,11 +552,6 @@ class ComposerStaticInita0ecda5c88e4704b72cd713b80d5502b
         'CodeIgniter\\View\\ViewDecoratorInterface' => __DIR__ . '/../..' . '/system/View/ViewDecoratorInterface.php',
         'CodeIgniter\\View\\ViewDecoratorTrait' => __DIR__ . '/../..' . '/system/View/ViewDecoratorTrait.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Laminas\\Escaper\\Escaper' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Escaper.php',
-        'Laminas\\Escaper\\EscaperInterface' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/EscaperInterface.php',
-        'Laminas\\Escaper\\Exception\\ExceptionInterface' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/ExceptionInterface.php',
-        'Laminas\\Escaper\\Exception\\InvalidArgumentException' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/InvalidArgumentException.php',
-        'Laminas\\Escaper\\Exception\\RuntimeException' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/RuntimeException.php',
         'Psr\\Log\\AbstractLogger' => __DIR__ . '/..' . '/psr/log/src/AbstractLogger.php',
         'Psr\\Log\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/log/src/InvalidArgumentException.php',
         'Psr\\Log\\LogLevel' => __DIR__ . '/..' . '/psr/log/src/LogLevel.php',
@@ -578,9 +565,9 @@ class ComposerStaticInita0ecda5c88e4704b72cd713b80d5502b
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita0ecda5c88e4704b72cd713b80d5502b::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita0ecda5c88e4704b72cd713b80d5502b::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInita0ecda5c88e4704b72cd713b80d5502b::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit18744c2f2e348d8f3bfa24992b466d88::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit18744c2f2e348d8f3bfa24992b466d88::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit18744c2f2e348d8f3bfa24992b466d88::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -7,7 +7,6 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Psr\\Log\\' => array($vendorDir . '/psr/log/src'),
-    'Laminas\\Escaper\\' => array($vendorDir . '/laminas/laminas-escaper/src'),
     'CodeIgniter\\Shield\\' => array($vendorDir . '/codeigniter4/shield/src'),
     'CodeIgniter\\Settings\\' => array($vendorDir . '/codeigniter4/settings/src'),
     'CodeIgniter\\' => array($baseDir . '/system'),

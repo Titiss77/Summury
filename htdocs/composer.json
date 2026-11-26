@@ -4,11 +4,10 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": "^8.5",
+        "php": "^8.2",
         "ext-intl": "*",
         "ext-mbstring": "*",
         "codeigniter4/shield": "^1.4",
-        "laminas/laminas-escaper": "^2.19.0",
         "psr/log": "^3.0"
     },
     "require-dev": {
@@ -31,6 +30,9 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "8.2.0"
+        }
     }
 }
