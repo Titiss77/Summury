@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -17,9 +19,9 @@ use Config\Services;
 class ItemController extends BaseController
 {
     private const USER_REPORT_LIMIT_PER_HOUR = 3;
-    private const USER_REPORT_LIMIT_PER_DAY = 21;
-    private const IP_REPORT_LIMIT_PER_HOUR = 7;
-    private const IP_REPORT_LIMIT_PER_DAY = 49;
+    private const USER_REPORT_LIMIT_PER_DAY  = 21;
+    private const IP_REPORT_LIMIT_PER_HOUR   = 7;
+    private const IP_REPORT_LIMIT_PER_DAY    = 49;
 
     private $model;
     private $statutModel;
@@ -34,8 +36,6 @@ class ItemController extends BaseController
      * Affiche le formulaire d'ajout ou de modification d'une carte.
      *
      * @param null|mixed $id
-     *
-     * @var null|Item
      */
     public function form($id = null)
     {
@@ -61,13 +61,13 @@ class ItemController extends BaseController
         }
 
         $data = [
-            'headers' => [],
-            'divisions' => $this->model->getDivisions(),
+            'headers'       => [],
+            'divisions'     => $this->model->getDivisions(),
             'subCategories' => $subCategories,
-            'statuts' => $this->statutModel->where('nom !=', 'Public')->orderBy('ordre', 'ASC')->findAll(),
-            'item' => $item,
-            'view' => 'items/item_form',
-            'redirect_url' => old('redirect_url') ?: ($this->request->getUserAgent()->getReferrer() ?? site_url('/')),
+            'statuts'       => $this->statutModel->where('nom !=', 'Public')->orderBy('ordre', 'ASC')->findAll(),
+            'item'          => $item,
+            'view'          => 'items/item_form',
+            'redirect_url'  => old('redirect_url') ?: ($this->request->getUserAgent()->getReferrer() ?? site_url('/')),
         ];
 
         return view('items/item_form', $data);
@@ -78,182 +78,179 @@ class ItemController extends BaseController
      */
     public function save()
     {
-        if ($this->request->is('post')) {
-            if (!auth()->loggedIn()) {
-                return redirect()->to('z');
-            }
-
-            $rules = [
-                'titre' => 'required|max_length[100]',
-                'id' => 'permit_empty|is_natural_no_zero|is_not_unique[item.id]',
-                'id_division' => 'required|is_natural_no_zero|is_not_unique[division.id]',
-                'status' => 'required|is_not_unique[statuts.nom]',
-                'saison' => 'permit_empty|is_natural',
-                'total_saisons' => 'permit_empty|is_natural',
-                'episode' => 'permit_empty|is_natural',
-                'total_episodes' => 'permit_empty|is_natural',
-                'sous_categorie_select' => 'permit_empty|max_length[255]',
-                'sous_categorie_new' => 'permit_empty|max_length[255]',
-                'image' => 'permit_empty|max_length[255]',
-                'lien' => 'permit_empty|max_length[2048]',
-                'date_sortie' => 'permit_empty|valid_date[Y-m-d\TH:i]',
-            ];
-
-            if (!$this->validate($rules)) {
-                return redirect()->back()->withInput()->with('error', 'Erreur dans le formulaire.');
-            }
-
-            $data = $this->request->getPost();
-            $id = $this->request->getPost('id');
-            $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
-            $isSuperAdmin = auth()->user()->inGroup('superadmin');
-            $audit = new AuditLogModel();
-
-            $wantsPublic = $this->request->getPost('is_public');
-            $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
-            if ((int) ($data['id_division'] ?? 0) === ItemModel::PERSONAL_DIVISION_ID) {
-                $data['is_public'] = 0;
-            }
-
-            // Formatage des données optionnelles
-            $releaseDate = $this->request->getPost('date_sortie');
-            $data['date_sortie'] = empty($releaseDate) ? null : str_replace('T', ' ', (string) $releaseDate) . ':00';
-
-            $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
-            $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
-            $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
-            $data['total_episodes'] = ('' === $this->request->getPost('total_episodes')) ? null : $this->request->getPost('total_episodes');
-
-            $sousCatSelect = $this->request->getPost('sous_categorie_select');
-            $sousCatNew = $this->request->getPost('sous_categorie_new');
-
-            if ('__NEW__' === $sousCatSelect) {
-                $data['sous_categorie'] = empty($sousCatNew) ? null : trim((string) $sousCatNew);
-            } else {
-                $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string) $sousCatSelect);
-            }
-
-            // FORCER LE STATUT SELON LA VISIBILITÉ
-            if ($data['is_public'] == 1) {
-                $data['status'] = 'Public';
-            } elseif ($data['is_public'] == 0) {
-                if (empty($data['status']) || $data['status'] === 'Public') {
-                    $data['status'] = 'Aucun';
-                }
-            }
-
-            $existing = null;
-            if ($id) {
-                $existing = $this->model->find($id);
-                if ($existing) {
-                    $data['id_user'] = $existing->id_user;
-                }
-            } else {
-                $data['id_user'] = auth()->id();
-            }
-
-            $backUrl = $this->request->getPost('redirect_url') ?: site_url('/');
-            $separator = (str_contains($backUrl, '?')) ? '&' : '?';
-
-            // MISE À JOUR D'UNE CARTE EXISTANTE
-            if ($id) {
-                $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
-
-                if (!$canEdit) {
-                    $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
-                    return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
-                }
-
-                // Gère la proposition de brouillon si un utilisateur standard modifie une carte déjà publique
-                if (1 == $existing->is_public && 0 != $data['is_public'] && !$isSuperAdmin) {
-                    $revisionModel = new ItemRevisionModel();
-                    $existingRevision = $revisionModel->where('original_item_id', $id)->where('revision_status', 'pending')->first();
-
-                    $revisionData = [
-                        'original_item_id' => $id,
-                        'id_user' => auth()->id(),
-                        'titre' => $data['titre'],
-                        'sous_categorie' => $data['sous_categorie'] ?? $existing->sous_categorie,
-                        'status' => $data['status'],
-                        'image' => $data['image'] ?? $existing->image,
-                        'lien' => $data['lien'] ?? null,
-                        'description' => $data['description'] ?? null,
-                        'episode' => $data['episode'] ?? null,
-                        'total_episodes' => $data['total_episodes'] ?? null,
-                        'saison' => $data['saison'] ?? null,
-                        'total_saisons' => $data['total_saisons'] ?? null,
-                        'position' => $existing->position,
-                        'date_sortie' => $data['date_sortie'],
-                        'revision_status' => 'pending',
-                    ];
-
-                    if ($existingRevision) {
-                        $revisionData['id'] = $existingRevision['id'];
-                    }
-
-                    $revisionModel->save($revisionData);
-                    $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
-                    $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
-
-                    return redirect()->to($backUrl . $separator . 'open=' . $existing->id_division . '#card-' . $id)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
-                }
-
-                $item = new Item($data);
-                $progressChanged = !$existing;
-
-                if ($existing) {
-                    foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
-                        if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
-                            $progressChanged = true;
-                            break;
-                        }
-                    }
-                }
-
-                if ($progressChanged && !empty($data['saison']) && !empty($data['episode'])) {
-                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
-                    $item->episode_global = $globalData['episode_global'];
-                    $item->total_episodes_global = $globalData['total_episodes_global'];
-                }
-
-                $this->model->save($item);
-
-                $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
-                $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
-
-                if (1 == $existing->is_public && 0 == $data['is_public']) {
-                    (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
-                    $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
-                }
-            } else {
-                // CRÉATION D'UNE NOUVELLE CARTE
-                $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
-                $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
-
-                $item = new Item($data);
-                if (!empty($data['saison']) && !empty($data['episode'])) {
-                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
-                    $item->episode_global = $globalData['episode_global'];
-                    $item->total_episodes_global = $globalData['total_episodes_global'];
-                }
-
-                $this->model->save($item);
-                $newId = $this->model->getInsertID();
-
-                $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
-                $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
-            }
-
-            $subParam = !empty($data['sous_categorie']) ? '&subopen=' . urlencode($data['sous_categorie']) : '';
-
-            if ($this->request->getPost('save_add_another')) {
-                return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
-            }
-
-            $targetId = $id ?: ($newId ?? '');
-
-            return redirect()->to($backUrl . $separator . 'open=' . $data['id_division'] . $subParam . '#card-' . $targetId)->with('success', 'Carte enregistrée.');
+        if (!$this->request->is('post')) {
+            return redirect()->to('/');
         }
+
+        if (!auth()->loggedIn()) {
+            return redirect()->to('z');
+        }
+
+        $rules = [
+            'titre'                 => 'required|max_length[100]',
+            'id'                    => 'permit_empty|is_natural_no_zero|is_not_unique[item.id]',
+            'id_division'           => 'required|is_natural_no_zero|is_not_unique[division.id]',
+            'status'                => 'required|is_not_unique[statuts.nom]',
+            'saison'                => 'permit_empty|is_natural',
+            'total_saisons'         => 'permit_empty|is_natural',
+            'episode'               => 'permit_empty|is_natural',
+            'total_episodes'        => 'permit_empty|is_natural',
+            'sous_categorie_select' => 'permit_empty|max_length[255]',
+            'sous_categorie_new'    => 'permit_empty|max_length[255]',
+            'image'                 => 'permit_empty|max_length[255]',
+            'lien'                  => 'permit_empty|max_length[2048]',
+            'date_sortie'           => 'permit_empty|valid_date[Y-m-d\TH:i]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('error', 'Erreur dans le formulaire.');
+        }
+
+        $data = $this->request->getPost();
+        $id = $this->request->getPost('id');
+        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+        $isSuperAdmin = auth()->user()->inGroup('superadmin');
+        $audit = new AuditLogModel();
+
+        $wantsPublic = $this->request->getPost('is_public');
+        $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
+        if ((int) ($data['id_division'] ?? 0) === ItemModel::PERSONAL_DIVISION_ID) {
+            $data['is_public'] = 0;
+        }
+
+        $releaseDate = $this->request->getPost('date_sortie');
+        $data['date_sortie'] = empty($releaseDate) ? null : str_replace('T', ' ', (string) $releaseDate) . ':00';
+
+        $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
+        $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
+        $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
+        $data['total_episodes'] = ('' === $this->request->getPost('total_episodes')) ? null : $this->request->getPost('total_episodes');
+
+        $sousCatSelect = $this->request->getPost('sous_categorie_select');
+        $sousCatNew = $this->request->getPost('sous_categorie_new');
+
+        if ('__NEW__' === $sousCatSelect) {
+            $data['sous_categorie'] = empty($sousCatNew) ? null : trim((string) $sousCatNew);
+        } else {
+            $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string) $sousCatSelect);
+        }
+
+        if ($data['is_public'] == 1) {
+            $data['status'] = 'Public';
+        } elseif ($data['is_public'] == 0) {
+            if (empty($data['status']) || $data['status'] === 'Public') {
+                $data['status'] = 'Aucun';
+            }
+        }
+
+        $existing = null;
+        if ($id) {
+            $existing = $this->model->find($id);
+            if ($existing) {
+                $data['id_user'] = $existing->id_user;
+            }
+        } else {
+            $data['id_user'] = auth()->id();
+        }
+
+        $backUrl = $this->request->getPost('redirect_url') ?: site_url('/');
+        $separator = (str_contains($backUrl, '?')) ? '&' : '?';
+
+        if ($id) {
+            $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
+
+            if (!$canEdit) {
+                $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
+                return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
+            }
+
+            if (1 == $existing->is_public && 0 != $data['is_public'] && !$isSuperAdmin) {
+                $revisionModel = new ItemRevisionModel();
+                $existingRevision = $revisionModel->where('original_item_id', $id)->where('revision_status', 'pending')->first();
+
+                $revisionData = [
+                    'original_item_id' => $id,
+                    'id_user'          => auth()->id(),
+                    'titre'            => $data['titre'],
+                    'sous_categorie'   => $data['sous_categorie'] ?? $existing->sous_categorie,
+                    'status'           => $data['status'],
+                    'image'            => $data['image'] ?? $existing->image,
+                    'lien'             => $data['lien'] ?? null,
+                    'description'      => $data['description'] ?? null,
+                    'episode'          => $data['episode'] ?? null,
+                    'total_episodes'   => $data['total_episodes'] ?? null,
+                    'saison'           => $data['saison'] ?? null,
+                    'total_saisons'    => $data['total_saisons'] ?? null,
+                    'position'         => $existing->position,
+                    'date_sortie'      => $data['date_sortie'],
+                    'revision_status'  => 'pending',
+                ];
+
+                if ($existingRevision) {
+                    $revisionData['id'] = $existingRevision['id'];
+                }
+
+                $revisionModel->save($revisionData);
+                $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
+                $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
+
+                return redirect()->to($backUrl . $separator . 'open=' . $existing->id_division . '#card-' . $id)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
+            }
+
+            $item = new Item($data);
+            $progressChanged = !$existing;
+
+            if ($existing) {
+                foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
+                    if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
+                        $progressChanged = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($progressChanged && !empty($data['saison']) && !empty($data['episode'])) {
+                $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                $item->episode_global = $globalData['episode_global'];
+                $item->total_episodes_global = $globalData['total_episodes_global'];
+            }
+
+            $this->model->save($item);
+
+            $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
+            $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
+
+            if (1 == $existing->is_public && 0 == $data['is_public']) {
+                (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
+                $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
+            }
+        } else {
+            $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
+            $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
+
+            $item = new Item($data);
+            if (!empty($data['saison']) && !empty($data['episode'])) {
+                $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                $item->episode_global = $globalData['episode_global'];
+                $item->total_episodes_global = $globalData['total_episodes_global'];
+            }
+
+            $this->model->save($item);
+            $newId = $this->model->getInsertID();
+
+            $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
+            $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
+        }
+
+        $subParam = !empty($data['sous_categorie']) ? '&subopen=' . urlencode($data['sous_categorie']) : '';
+
+        if ($this->request->getPost('save_add_another')) {
+            return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
+        }
+
+        $targetId = $id ?: ($newId ?? '');
+
+        return redirect()->to($backUrl . $separator . 'open=' . $data['id_division'] . $subParam . '#card-' . $targetId)->with('success', 'Carte enregistrée.');
     }
 
     /**
@@ -297,8 +294,8 @@ class ItemController extends BaseController
             if (!$this->canManageItem($item)) {
                 if ($this->request->isAJAX()) {
                     return $this->response->setStatusCode(403)->setJSON([
-                        'success' => false,
-                        'error' => 'Vous ne pouvez pas modifier cette carte.',
+                        'success'    => false,
+                        'error'      => 'Vous ne pouvez pas modifier cette carte.',
                         'csrf_token' => csrf_hash(),
                     ]);
                 }
@@ -312,7 +309,6 @@ class ItemController extends BaseController
             $newTotalEpisodes = $totalEpisodes > 0 ? $totalEpisodes : null;
             $updateData = [];
 
-            // Détection automatique du passage à la saison suivante ou de la fin
             if ($totalEpisodes > 0 && $newEpisode > $totalEpisodes) {
                 if ($totalSaisons > 0 && $newSaison >= $totalSaisons) {
                     $updateData['status'] = 'Terminé';
@@ -334,7 +330,6 @@ class ItemController extends BaseController
                 $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode}";
             }
 
-            // Passage automatique de "À voir" à "En cours" dès le premier +1 (sauf si déjà passé en Terminé)
             if ('À voir' === $item->status && empty($updateData['status'])) {
                 $updateData['status'] = 'En cours';
             }
@@ -370,7 +365,7 @@ class ItemController extends BaseController
                 }
 
                 $this->model->update($id, [
-                    'episode_global' => $newEpisodeGlobal,
+                    'episode_global'        => $newEpisodeGlobal,
                     'total_episodes_global' => $totalGlobal,
                 ]);
             }
@@ -381,13 +376,13 @@ class ItemController extends BaseController
                 $finalItem = $this->model->find($id);
 
                 return $this->response->setJSON([
-                    'success' => true,
-                    'new_episode' => $newEpisode,
-                    'new_saison' => $newSaison,
+                    'success'            => true,
+                    'new_episode'        => $newEpisode,
+                    'new_saison'         => $newSaison,
                     'new_total_episodes' => $newTotalEpisodes,
-                    'status' => $updateData['status'] ?? $item->status,
-                    'new_link' => $finalItem ? $finalItem->getFinalLink() : null,
-                    'csrf_token' => csrf_hash(),
+                    'status'             => $updateData['status'] ?? $item->status,
+                    'new_link'           => $finalItem ? $finalItem->getFinalLink() : null,
+                    'csrf_token'         => csrf_hash(),
                 ]);
             }
         }
@@ -415,9 +410,9 @@ class ItemController extends BaseController
             ->findColumn('domain') ?? [];
 
         return view('items/global_items', [
-            'items' => $this->model->checkToGlobal(),
+            'items'              => $this->model->checkToGlobal(),
             'pendingRevisionIds' => $pendingRevisionIds,
-            'supportedDomains' => $supportedDomains,
+            'supportedDomains'   => $supportedDomains,
         ]);
     }
 
@@ -506,8 +501,9 @@ class ItemController extends BaseController
             }
         }
 
-        if (!$currentConfig)
+        if (!$currentConfig) {
             return $this->response->setJSON(['success' => false, 'error' => 'Domaine non supporté.']);
+        }
 
         $matches = [];
         @preg_match($currentConfig['regex_episode'], (string) $urlCible, $matches);
@@ -515,11 +511,11 @@ class ItemController extends BaseController
 
         try {
             $client = Services::curlrequest([
-                'timeout' => 3,
+                'timeout'         => 3,
                 'connect_timeout' => 2,
-                'http_errors' => false,
+                'http_errors'     => false,
                 'allow_redirects' => false,
-                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker'
+                'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
 
             $response = $client->get($urlCible);
@@ -551,9 +547,9 @@ class ItemController extends BaseController
             unset($html);
 
             return $this->response->setJSON([
-                'success' => true,
+                'success'    => true,
                 'disponible' => !$estSurFicheAnime && $lecteurPresent,
-                'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent],
+                'details'    => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent],
             ]);
         } catch (\Throwable $e) {
             return $this->response->setJSON(['success' => false, 'error' => 'Timeout']);
@@ -656,16 +652,13 @@ class ItemController extends BaseController
         return redirect()->back()->with('message', 'Vos cartes supprimées ont été vidées définitivement.');
     }
 
-    /**
-     * Interroge TMDB pour calculer les compteurs globaux (épisodes vus au total et total de la série)
-     * et, si demandé, récupérer le nombre d'épisodes de la saison en cours.
-     */
     private function syncGlobalEpisodesWithTMDB(Item $item, bool $updateSeasonTotal = false): array
     {
         $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
         $client = Services::curlrequest([
-            'timeout' => 5,
-            'http_errors' => false,
+            'timeout'         => 3,
+            'connect_timeout' => 2,
+            'http_errors'     => false,
         ]);
 
         $episodeGlobal = (int) $item->episode;
@@ -691,7 +684,6 @@ class ItemController extends BaseController
                                 $totalEpisodesGlobal = $tvBody['number_of_episodes'] ?? null;
                                 $tmdbTotalSaisons = $tvBody['number_of_seasons'] ?? 1;
 
-                                // Si l'utilisateur est sur une saison supérieure à celle connue par TMDB (Cas des animes fusionnés comme Frieren)
                                 if ($currentSaison > 1 && $currentSaison > $tmdbTotalSaisons && $totalEpisodesGlobal > 0) {
                                     $currentTotalEpisodes = (int) $item->total_episodes;
 
@@ -734,12 +726,12 @@ class ItemController extends BaseController
                     }
                 }
             }
-        } catch (\Exception $e) {
-            // Silence
+        } catch (\Throwable $e) {
+            log_message('warning', 'syncGlobalEpisodesWithTMDB: ' . $e->getMessage());
         }
 
         $result = [
-            'episode_global' => $episodeGlobal,
+            'episode_global'        => $episodeGlobal,
             'total_episodes_global' => $totalEpisodesGlobal,
         ];
 
@@ -750,14 +742,12 @@ class ItemController extends BaseController
         return $result;
     }
 
-    /**
-     * Fallback via Jikan (MyAnimeList) pour récupérer le nombre d'épisodes d'une saison d'anime.
-     */
     private function fetchSeasonEpisodesFromJikan(string $titre, int $saison): ?int
     {
         $client = Services::curlrequest([
-            'timeout' => 5,
-            'http_errors' => false,
+            'timeout'         => 3,
+            'connect_timeout' => 2,
+            'http_errors'     => false,
         ]);
 
         try {
@@ -770,8 +760,8 @@ class ItemController extends BaseController
                     return (int) $body['data'][0]['episodes'];
                 }
             }
-        } catch (\Exception $e) {
-            // Silence l'erreur API
+        } catch (\Throwable $e) {
+            log_message('warning', 'fetchSeasonEpisodesFromJikan: ' . $e->getMessage());
         }
 
         return null;
@@ -788,29 +778,26 @@ class ItemController extends BaseController
             $user->inGroup('admin', 'superadmin');
     }
 
-    /**
-     * Normalize any card URL to its lowercase hostname.
-     */
     private function reportedLinkHost(string $url): ?string
     {
         $url = trim($url);
-        if ($url === '')
+        if ($url === '') {
             return null;
-        if (str_starts_with($url, '//'))
+        }
+        if (str_starts_with($url, '//')) {
             $url = 'https:' . $url;
-        elseif (!preg_match('~^https?://~i', $url))
+        } elseif (!preg_match('~^https?://~i', $url)) {
             $url = 'https://' . $url;
+        }
 
         $host = parse_url($url, PHP_URL_HOST);
-        if (!is_string($host) || $host === '')
+        if (!is_string($host) || $host === '') {
             return null;
+        }
         $host = strtolower(rtrim($host, '.'));
         return (string) preg_replace('/^www\./i', '', $host);
     }
 
-    /**
-     * Check both historical reports and cards already marked dead for this host.
-     */
     private function domainAlreadyReported(string $host): bool
     {
         $db = db_connect();
@@ -822,8 +809,9 @@ class ItemController extends BaseController
             ->get()
             ->getResultArray();
         foreach ($logs as $log) {
-            if ($this->reportedLinkHost((string) ($log['url_testee'] ?? '')) === $host)
+            if ($this->reportedLinkHost((string) ($log['url_testee'] ?? '')) === $host) {
                 return true;
+            }
         }
 
         $deadItems = $db
@@ -835,16 +823,14 @@ class ItemController extends BaseController
             ->get()
             ->getResultArray();
         foreach ($deadItems as $deadItem) {
-            if ($this->reportedLinkHost((string) ($deadItem['lien'] ?? '')) === $host)
+            if ($this->reportedLinkHost((string) ($deadItem['lien'] ?? '')) === $host) {
                 return true;
+            }
         }
 
         return false;
     }
 
-    /**
-     * Whitelisted hosts, with or without the conventional www prefix, cannot be reported.
-     */
     private function isWhitelistedReportHost(string $host): bool
     {
         $normalize = function (string $domain): ?string {
@@ -852,23 +838,23 @@ class ItemController extends BaseController
             return $domain === null ? null : (string) preg_replace('/^www\./i', '', $domain);
         };
         $normalizedHost = $normalize($host);
-        if ($normalizedHost === null)
+        if ($normalizedHost === null) {
             return false;
+        }
 
         $cutoff = time() - (WhitelistModel::PROTECTION_DAYS * 86400);
         foreach ((new WhitelistModel())->findAll() as $entry) {
-            if ($normalize((string) ($entry['domain'] ?? '')) !== $normalizedHost)
+            if ($normalize((string) ($entry['domain'] ?? '')) !== $normalizedHost) {
                 continue;
+            }
             $addedAt = strtotime((string) ($entry['created_at'] ?? ''));
-            if ($addedAt !== false && $addedAt >= $cutoff)
+            if ($addedAt !== false && $addedAt >= $cutoff) {
                 return true;
+            }
         }
         return false;
     }
 
-    /**
-     * Enforce rolling quotas per authenticated account and source IP.
-     */
     private function reportRateLimitMessage(): ?string
     {
         $db = db_connect();
@@ -890,9 +876,6 @@ class ItemController extends BaseController
         return null;
     }
 
-    /**
-     * Find active cards whose parsed hostname exactly matches the reported domain.
-     */
     private function activeItemsForReportHost(string $host): array
     {
         $candidates = db_connect()
@@ -907,21 +890,19 @@ class ItemController extends BaseController
 
         $matches = [];
         foreach ($candidates as $candidate) {
-            if ($this->reportedLinkHost((string) $candidate->lien) === $host)
+            if ($this->reportedLinkHost((string) $candidate->lien) === $host) {
                 $matches[] = $candidate;
+            }
         }
         return $matches;
     }
 
-    /**
-     * Record user reports without making unreliable network checks.
-     */
     public function reportLink()
     {
         if (!auth()->loggedIn()) {
             return $this->response->setStatusCode(401)->setJSON([
-                'success' => false,
-                'message' => 'Vous devez être connecté pour signaler un lien.',
+                'success'    => false,
+                'message'    => 'Vous devez être connecté pour signaler un lien.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -930,8 +911,8 @@ class ItemController extends BaseController
         $itemId = filter_var($json->id ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($itemId === false) {
             return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'ID de carte invalide.',
+                'success'    => false,
+                'message'    => 'ID de carte invalide.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -939,15 +920,15 @@ class ItemController extends BaseController
         $item = $this->model->find($itemId);
         if (!$item || empty($item->lien)) {
             return $this->response->setStatusCode(404)->setJSON([
-                'success' => false,
-                'message' => 'Carte introuvable ou lien vide.',
+                'success'    => false,
+                'message'    => 'Carte introuvable ou lien vide.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
         if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
             return $this->response->setStatusCode(403)->setJSON([
-                'success' => false,
-                'message' => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
+                'success'    => false,
+                'message'    => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -955,22 +936,22 @@ class ItemController extends BaseController
         $host = $this->reportedLinkHost((string) $item->lien);
         if ($host === null) {
             return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Le lien de cette carte ne contient pas de domaine valide.',
+                'success'    => false,
+                'message'    => 'Le lien de cette carte ne contient pas de domaine valide.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
         if ($rateLimitMessage = $this->reportRateLimitMessage()) {
             return $this->response->setStatusCode(429)->setJSON([
-                'success' => false,
-                'message' => $rateLimitMessage,
+                'success'    => false,
+                'message'    => $rateLimitMessage,
                 'csrf_token' => csrf_hash(),
             ]);
         }
         if ($this->isWhitelistedReportHost($host)) {
             return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
+                'success'    => false,
+                'message'    => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -978,11 +959,11 @@ class ItemController extends BaseController
         $db = db_connect();
         $lockName = 'deadlink_' . substr(hash('sha256', $host), 0, 48);
         $lockedHost = $host;
-        $lock = $db->query('SELECT GET_LOCK(?, 8) AS acquired', [$lockName])->getRowArray();
+        $lock = $db->query('SELECT GET_LOCK(?, 5) AS acquired', [$lockName])->getRowArray();
         if ((int) ($lock['acquired'] ?? 0) !== 1) {
             return $this->response->setStatusCode(503)->setJSON([
-                'success' => false,
-                'message' => 'Le signalement est temporairement occupé. Réessayez.',
+                'success'    => false,
+                'message'    => 'Le signalement est temporairement occupé. Réessayez.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -993,16 +974,16 @@ class ItemController extends BaseController
             if (!$item || empty($item->lien)) {
                 $db->transRollback();
                 return $this->response->setStatusCode(404)->setJSON([
-                    'success' => false,
-                    'message' => 'Carte introuvable ou lien vide.',
+                    'success'    => false,
+                    'message'    => 'Carte introuvable ou lien vide.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
             if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
                 $db->transRollback();
                 return $this->response->setStatusCode(403)->setJSON([
-                    'success' => false,
-                    'message' => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
+                    'success'    => false,
+                    'message'    => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
@@ -1010,24 +991,24 @@ class ItemController extends BaseController
             if ($host === null || $host !== $lockedHost) {
                 $db->transRollback();
                 return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'Le lien de cette carte a changé. Rechargez la page avant de le signaler.',
+                    'success'    => false,
+                    'message'    => 'Le lien de cette carte a changé. Rechargez la page avant de le signaler.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
             if ($this->isWhitelistedReportHost($host)) {
                 $db->transRollback();
                 return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
+                    'success'    => false,
+                    'message'    => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
             if ($this->domainAlreadyReported($host)) {
                 $db->transRollback();
                 return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'Ce domaine a déjà un signalement en attente ou traité.',
+                    'success'    => false,
+                    'message'    => 'Ce domaine a déjà un signalement en attente ou traité.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
@@ -1044,11 +1025,11 @@ class ItemController extends BaseController
 
             $now = date('Y-m-d H:i:s');
             $cronLogId = (new CronLogModel())->insert([
-                'task_name' => CronLogModel::TASK_PENDING_USER_REPORT,
-                'last_run' => $now,
-                'item_id' => $itemId,
-                'titre' => $item->titre,
-                'url_testee' => 'https://' . $host . '/',
+                'task_name'   => CronLogModel::TASK_PENDING_USER_REPORT,
+                'last_run'    => $now,
+                'item_id'     => $itemId,
+                'titre'       => $item->titre,
+                'url_testee'  => 'https://' . $host . '/',
                 'code_erreur' => 0,
             ]);
             if (!$cronLogId) {
@@ -1065,19 +1046,19 @@ class ItemController extends BaseController
 
             $db->transCommit();
             return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Signalement enregistré. Merci pour votre aide !',
+                'success'    => true,
+                'message'    => 'Signalement enregistré. Merci pour votre aide !',
                 'csrf_token' => csrf_hash(),
             ]);
         } catch (\Throwable $e) {
             $db->transRollback();
             log_message('error', '[ReportLink] Échec du signalement du domaine {host}: {message}', [
-                'host' => $host,
+                'host'    => $host,
                 'message' => $e->getMessage(),
             ]);
             return $this->response->setStatusCode(500)->setJSON([
-                'success' => false,
-                'message' => 'Le signalement n’a pas pu être enregistré. Réessayez plus tard.',
+                'success'    => false,
+                'message'    => 'Le signalement n’a pas pu être enregistré. Réessayez plus tard.',
                 'csrf_token' => csrf_hash(),
             ]);
         } finally {
