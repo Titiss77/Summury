@@ -19,7 +19,7 @@ jobs:
         with:
           php-version: "8.4"
           extensions: intl, mbstring, sqlite3, dom, curl
-          coverage: none
+          coverage: pcov
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
       - name: PHP syntax checks
