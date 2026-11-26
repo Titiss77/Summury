@@ -3,7 +3,7 @@
         'name' => 'titiss/space',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '51ed4ef5912f2092935210ca732f7bcb812db72c',
+        'reference' => '46b0a700837eb8a6cc969686916e61c0bd33d8e2',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -55,7 +55,7 @@
         'titiss/space' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '51ed4ef5912f2092935210ca732f7bcb812db72c',
+            'reference' => '46b0a700837eb8a6cc969686916e61c0bd33d8e2',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
