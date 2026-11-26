@@ -25,4 +25,4 @@ jobs:
       - name: PHP syntax checks
         run: find app -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Run PHPUnit
-        run: vendor/bin/phpunit
+        run: php vendor/bin/phpunit
