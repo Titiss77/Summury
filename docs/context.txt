@@ -83,7 +83,7 @@ class Database extends Config
     /**
      * Répertoire des migrations/seeds.
      */
-    public string $filesPath = APPPATH . 'Database' . DIRECTORY_SEPARATOR;
+    public string $filesPath = APPPATH.'Database'.DIRECTORY_SEPARATOR;
 
     /**
      * Groupe par défaut.
@@ -92,62 +92,62 @@ class Database extends Config
     public string $defaultGroup = 'development';
 
     /**
-     * Configuration DEVELOPMENT (remplie par .env).
+     * Configuration DEVELOPMENT (vide, remplie par .env).
      */
     public array $development = [
-        'DSN'          => '',
-        'hostname'     => '',
-        'username'     => '',
-        'password'     => '',
-        'database'     => '',
-        'DBDriver'     => 'MySQLi',
-        'DBPrefix'     => '',
-        'pConnect'     => false,
-        'DBDebug'      => true,
-        'charset'      => 'utf8mb4',
-        'DBCollat'     => 'utf8mb4_general_ci',
-        'swapPre'      => '',
-        'encrypt'      => false,
-        'compress'     => false,
-        'strictOn'     => false,
-        'failover'     => [],
-        'port'         => 3306,
+        'DSN' => '',
+        'hostname' => '',
+        'username' => '',
+        'password' => '',
+        'database' => '',
+        'DBDriver' => 'MySQLi',
+        'DBPrefix' => '',
+        'pConnect' => false,
+        'DBDebug' => true,
+        'charset' => 'utf8mb4',
+        'DBCollat' => 'utf8mb4_general_ci',
+        'swapPre' => '',
+        'encrypt' => false,
+        'compress' => false,
+        'strictOn' => false,
+        'failover' => [],
+        'port' => 3306,
         'numberNative' => false,
-        'foundRows'    => false,
-        'dateFormat'   => [
-            'date'     => 'Y-m-d',
+        'foundRows' => false,
+        'dateFormat' => [
+            'date' => 'Y-m-d',
             'datetime' => 'Y-m-d H:i:s',
-            'time'     => 'H:i:s',
+            'time' => 'H:i:s',
         ],
     ];
 
     /**
-     * Configuration PRODUCTION (remplie par .env).
+     * Configuration PRODUCTION (vide, remplie par .env).
      */
     public array $production = [
-        'DSN'          => '',
-        'hostname'     => '',
-        'username'     => '',
-        'password'     => '',
-        'database'     => '',
-        'DBDriver'     => 'MySQLi',
-        'DBPrefix'     => '',
-        'pConnect'     => false,
-        'DBDebug'      => false,
-        'charset'      => 'utf8mb4',
-        'DBCollat'     => 'utf8mb4_general_ci',
-        'swapPre'      => '',
-        'encrypt'      => false,
-        'compress'     => false,
-        'strictOn'     => false,
-        'failover'     => [],
-        'port'         => 3306,
+        'DSN' => '',
+        'hostname' => '',
+        'username' => '',
+        'password' => '',
+        'database' => '',
+        'DBDriver' => 'MySQLi',
+        'DBPrefix' => '',
+        'pConnect' => false,
+        'DBDebug' => true,
+        'charset' => 'utf8mb4',
+        'DBCollat' => 'utf8mb4_general_ci',
+        'swapPre' => '',
+        'encrypt' => false,
+        'compress' => false,
+        'strictOn' => false,
+        'failover' => [],
+        'port' => 3306,
         'numberNative' => false,
-        'foundRows'    => false,
-        'dateFormat'   => [
-            'date'     => 'Y-m-d',
+        'foundRows' => false,
+        'dateFormat' => [
+            'date' => 'Y-m-d',
             'datetime' => 'Y-m-d H:i:s',
-            'time'     => 'H:i:s',
+            'time' => 'H:i:s',
         ],
     ];
 
@@ -155,29 +155,29 @@ class Database extends Config
      * Isolated in-memory database used by the PHPUnit suite.
      */
     public array $tests = [
-        'DSN'          => '',
-        'hostname'     => '',
-        'username'     => '',
-        'password'     => '',
-        'database'     => ':memory:',
-        'DBDriver'     => 'SQLite3',
-        'DBPrefix'     => 'tests_',
-        'pConnect'     => false,
-        'DBDebug'      => true,
-        'charset'      => 'utf8',
-        'DBCollat'     => 'utf8_general_ci',
-        'swapPre'      => '',
-        'encrypt'      => false,
-        'compress'     => false,
-        'strictOn'     => false,
-        'failover'     => [],
-        'port'         => 3306,
-        'foreignKeys'  => true,
-        'busyTimeout'  => 1000,
-        'dateFormat'   => [
-            'date'     => 'Y-m-d',
+        'DSN' => '',
+        'hostname' => '',
+        'username' => '',
+        'password' => '',
+        'database' => ':memory:',
+        'DBDriver' => 'SQLite3',
+        'DBPrefix' => 'tests_',
+        'pConnect' => false,
+        'DBDebug' => true,
+        'charset' => 'utf8',
+        'DBCollat' => 'utf8_general_ci',
+        'swapPre' => '',
+        'encrypt' => false,
+        'compress' => false,
+        'strictOn' => false,
+        'failover' => [],
+        'port' => 3306,
+        'foreignKeys' => true,
+        'busyTimeout' => 1000,
+        'dateFormat' => [
+            'date' => 'Y-m-d',
             'datetime' => 'Y-m-d H:i:s',
-            'time'     => 'H:i:s',
+            'time' => 'H:i:s',
         ],
     ];
 
@@ -185,6 +185,10 @@ class Database extends Config
     {
         parent::__construct();
 
+        // MAGIE ICI :
+        // On force le groupe par défaut à être égal au nom de l'environnement.
+        // Si CI_ENVIRONMENT = production, ça utilisera le groupe $production.
+        // Si CI_ENVIRONMENT = development, ça utilisera le groupe $development.
         $this->defaultGroup = ENVIRONMENT;
     }
 }
@@ -1536,9 +1540,7 @@ class HomeController extends BaseController
 
 ## app/Controllers/ItemController.php
 ```php
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -1557,9 +1559,9 @@ use Config\Services;
 class ItemController extends BaseController
 {
     private const USER_REPORT_LIMIT_PER_HOUR = 3;
-    private const USER_REPORT_LIMIT_PER_DAY  = 21;
-    private const IP_REPORT_LIMIT_PER_HOUR   = 7;
-    private const IP_REPORT_LIMIT_PER_DAY    = 49;
+    private const USER_REPORT_LIMIT_PER_DAY = 21;
+    private const IP_REPORT_LIMIT_PER_HOUR = 7;
+    private const IP_REPORT_LIMIT_PER_DAY = 49;
 
     private $model;
     private $statutModel;
@@ -1574,6 +1576,8 @@ class ItemController extends BaseController
      * Affiche le formulaire d'ajout ou de modification d'une carte.
      *
      * @param null|mixed $id
+     *
+     * @var null|Item
      */
     public function form($id = null)
     {
@@ -1599,13 +1603,13 @@ class ItemController extends BaseController
         }
 
         $data = [
-            'headers'       => [],
-            'divisions'     => $this->model->getDivisions(),
+            'headers' => [],
+            'divisions' => $this->model->getDivisions(),
             'subCategories' => $subCategories,
-            'statuts'       => $this->statutModel->where('nom !=', 'Public')->orderBy('ordre', 'ASC')->findAll(),
-            'item'          => $item,
-            'view'          => 'items/item_form',
-            'redirect_url'  => old('redirect_url') ?: ($this->request->getUserAgent()->getReferrer() ?? site_url('/')),
+            'statuts' => $this->statutModel->where('nom !=', 'Public')->orderBy('ordre', 'ASC')->findAll(),
+            'item' => $item,
+            'view' => 'items/item_form',
+            'redirect_url' => old('redirect_url') ?: ($this->request->getUserAgent()->getReferrer() ?? site_url('/')),
         ];
 
         return view('items/item_form', $data);
@@ -1616,179 +1620,182 @@ class ItemController extends BaseController
      */
     public function save()
     {
-        if (!$this->request->is('post')) {
-            return redirect()->to('/');
-        }
-
-        if (!auth()->loggedIn()) {
-            return redirect()->to('z');
-        }
-
-        $rules = [
-            'titre'                 => 'required|max_length[100]',
-            'id'                    => 'permit_empty|is_natural_no_zero|is_not_unique[item.id]',
-            'id_division'           => 'required|is_natural_no_zero|is_not_unique[division.id]',
-            'status'                => 'required|is_not_unique[statuts.nom]',
-            'saison'                => 'permit_empty|is_natural',
-            'total_saisons'         => 'permit_empty|is_natural',
-            'episode'               => 'permit_empty|is_natural',
-            'total_episodes'        => 'permit_empty|is_natural',
-            'sous_categorie_select' => 'permit_empty|max_length[255]',
-            'sous_categorie_new'    => 'permit_empty|max_length[255]',
-            'image'                 => 'permit_empty|max_length[255]',
-            'lien'                  => 'permit_empty|max_length[2048]',
-            'date_sortie'           => 'permit_empty|valid_date[Y-m-d\TH:i]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('error', 'Erreur dans le formulaire.');
-        }
-
-        $data = $this->request->getPost();
-        $id = $this->request->getPost('id');
-        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
-        $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        $audit = new AuditLogModel();
-
-        $wantsPublic = $this->request->getPost('is_public');
-        $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
-        if ((int) ($data['id_division'] ?? 0) === ItemModel::PERSONAL_DIVISION_ID) {
-            $data['is_public'] = 0;
-        }
-
-        $releaseDate = $this->request->getPost('date_sortie');
-        $data['date_sortie'] = empty($releaseDate) ? null : str_replace('T', ' ', (string) $releaseDate) . ':00';
-
-        $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
-        $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
-        $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
-        $data['total_episodes'] = ('' === $this->request->getPost('total_episodes')) ? null : $this->request->getPost('total_episodes');
-
-        $sousCatSelect = $this->request->getPost('sous_categorie_select');
-        $sousCatNew = $this->request->getPost('sous_categorie_new');
-
-        if ('__NEW__' === $sousCatSelect) {
-            $data['sous_categorie'] = empty($sousCatNew) ? null : trim((string) $sousCatNew);
-        } else {
-            $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string) $sousCatSelect);
-        }
-
-        if ($data['is_public'] == 1) {
-            $data['status'] = 'Public';
-        } elseif ($data['is_public'] == 0) {
-            if (empty($data['status']) || $data['status'] === 'Public') {
-                $data['status'] = 'Aucun';
-            }
-        }
-
-        $existing = null;
-        if ($id) {
-            $existing = $this->model->find($id);
-            if ($existing) {
-                $data['id_user'] = $existing->id_user;
-            }
-        } else {
-            $data['id_user'] = auth()->id();
-        }
-
-        $backUrl = $this->request->getPost('redirect_url') ?: site_url('/');
-        $separator = (str_contains($backUrl, '?')) ? '&' : '?';
-
-        if ($id) {
-            $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
-
-            if (!$canEdit) {
-                $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
-                return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
+        if ($this->request->is('post')) {
+            if (!auth()->loggedIn()) {
+                return redirect()->to('z');
             }
 
-            if (1 == $existing->is_public && 0 != $data['is_public'] && !$isSuperAdmin) {
-                $revisionModel = new ItemRevisionModel();
-                $existingRevision = $revisionModel->where('original_item_id', $id)->where('revision_status', 'pending')->first();
+            $rules = [
+                'titre' => 'required|max_length[100]',
+                'id' => 'permit_empty|is_natural_no_zero|is_not_unique[item.id]',
+                'id_division' => 'required|is_natural_no_zero|is_not_unique[division.id]',
+                'status' => 'required|is_not_unique[statuts.nom]',
+                'saison' => 'permit_empty|is_natural',
+                'total_saisons' => 'permit_empty|is_natural',
+                'episode' => 'permit_empty|is_natural',
+                'total_episodes' => 'permit_empty|is_natural',
+                'sous_categorie_select' => 'permit_empty|max_length[255]',
+                'sous_categorie_new' => 'permit_empty|max_length[255]',
+                'image' => 'permit_empty|max_length[255]',
+                'lien' => 'permit_empty|max_length[2048]',
+                'date_sortie' => 'permit_empty|valid_date[Y-m-d\TH:i]',
+            ];
 
-                $revisionData = [
-                    'original_item_id' => $id,
-                    'id_user'          => auth()->id(),
-                    'titre'            => $data['titre'],
-                    'sous_categorie'   => $data['sous_categorie'] ?? $existing->sous_categorie,
-                    'status'           => $data['status'],
-                    'image'            => $data['image'] ?? $existing->image,
-                    'lien'             => $data['lien'] ?? null,
-                    'description'      => $data['description'] ?? null,
-                    'episode'          => $data['episode'] ?? null,
-                    'total_episodes'   => $data['total_episodes'] ?? null,
-                    'saison'           => $data['saison'] ?? null,
-                    'total_saisons'    => $data['total_saisons'] ?? null,
-                    'position'         => $existing->position,
-                    'date_sortie'      => $data['date_sortie'],
-                    'revision_status'  => 'pending',
-                ];
+            if (!$this->validate($rules)) {
+                return redirect()->back()->withInput()->with('error', 'Erreur dans le formulaire.');
+            }
 
-                if ($existingRevision) {
-                    $revisionData['id'] = $existingRevision['id'];
+            $data = $this->request->getPost();
+            $id = $this->request->getPost('id');
+            $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+            $isSuperAdmin = auth()->user()->inGroup('superadmin');
+            $audit = new AuditLogModel();
+
+            $wantsPublic = $this->request->getPost('is_public');
+            $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
+            if ((int) ($data['id_division'] ?? 0) === ItemModel::PERSONAL_DIVISION_ID) {
+                $data['is_public'] = 0;
+            }
+
+            // Formatage des données optionnelles
+            $releaseDate = $this->request->getPost('date_sortie');
+            $data['date_sortie'] = empty($releaseDate) ? null : str_replace('T', ' ', (string) $releaseDate) . ':00';
+
+            $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
+            $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
+            $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
+            $data['total_episodes'] = ('' === $this->request->getPost('total_episodes')) ? null : $this->request->getPost('total_episodes');
+
+            $sousCatSelect = $this->request->getPost('sous_categorie_select');
+            $sousCatNew = $this->request->getPost('sous_categorie_new');
+
+            if ('__NEW__' === $sousCatSelect) {
+                $data['sous_categorie'] = empty($sousCatNew) ? null : trim((string) $sousCatNew);
+            } else {
+                $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string) $sousCatSelect);
+            }
+
+            // FORCER LE STATUT SELON LA VISIBILITÉ
+            if ($data['is_public'] == 1) {
+                $data['status'] = 'Public';
+            } elseif ($data['is_public'] == 0) {
+                if (empty($data['status']) || $data['status'] === 'Public') {
+                    $data['status'] = 'Aucun';
+                }
+            }
+
+            $existing = null;
+            if ($id) {
+                $existing = $this->model->find($id);
+                if ($existing) {
+                    $data['id_user'] = $existing->id_user;
+                }
+            } else {
+                $data['id_user'] = auth()->id();
+            }
+
+            $backUrl = $this->request->getPost('redirect_url') ?: site_url('/');
+            $separator = (str_contains($backUrl, '?')) ? '&' : '?';
+
+            // MISE À JOUR D'UNE CARTE EXISTANTE
+            if ($id) {
+                $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
+
+                if (!$canEdit) {
+                    $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
+                    return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
                 }
 
-                $revisionModel->save($revisionData);
-                $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
-                $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
+                // Gère la proposition de brouillon si un utilisateur standard modifie une carte déjà publique
+                if (1 == $existing->is_public && 0 != $data['is_public'] && !$isSuperAdmin) {
+                    $revisionModel = new ItemRevisionModel();
+                    $existingRevision = $revisionModel->where('original_item_id', $id)->where('revision_status', 'pending')->first();
 
-                return redirect()->to($backUrl . $separator . 'open=' . $existing->id_division . '#card-' . $id)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
-            }
+                    $revisionData = [
+                        'original_item_id' => $id,
+                        'id_user' => auth()->id(),
+                        'titre' => $data['titre'],
+                        'sous_categorie' => $data['sous_categorie'] ?? $existing->sous_categorie,
+                        'status' => $data['status'],
+                        'image' => $data['image'] ?? $existing->image,
+                        'lien' => $data['lien'] ?? null,
+                        'description' => $data['description'] ?? null,
+                        'episode' => $data['episode'] ?? null,
+                        'total_episodes' => $data['total_episodes'] ?? null,
+                        'saison' => $data['saison'] ?? null,
+                        'total_saisons' => $data['total_saisons'] ?? null,
+                        'position' => $existing->position,
+                        'date_sortie' => $data['date_sortie'],
+                        'revision_status' => 'pending',
+                    ];
 
-            $item = new Item($data);
-            $progressChanged = !$existing;
+                    if ($existingRevision) {
+                        $revisionData['id'] = $existingRevision['id'];
+                    }
 
-            if ($existing) {
-                foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
-                    if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
-                        $progressChanged = true;
-                        break;
+                    $revisionModel->save($revisionData);
+                    $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
+                    $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
+
+                    return redirect()->to($backUrl . $separator . 'open=' . $existing->id_division . '#card-' . $id)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
+                }
+
+                $item = new Item($data);
+                $progressChanged = !$existing;
+
+                if ($existing) {
+                    foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
+                        if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
+                            $progressChanged = true;
+                            break;
+                        }
                     }
                 }
+
+                if ($progressChanged && !empty($data['saison']) && !empty($data['episode'])) {
+                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                    $item->episode_global = $globalData['episode_global'];
+                    $item->total_episodes_global = $globalData['total_episodes_global'];
+                }
+
+                $this->model->save($item);
+
+                $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
+                $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
+
+                if (1 == $existing->is_public && 0 == $data['is_public']) {
+                    (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
+                    $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
+                }
+            } else {
+                // CRÉATION D'UNE NOUVELLE CARTE
+                $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
+                $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
+
+                $item = new Item($data);
+                if (!empty($data['saison']) && !empty($data['episode'])) {
+                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                    $item->episode_global = $globalData['episode_global'];
+                    $item->total_episodes_global = $globalData['total_episodes_global'];
+                }
+
+                $this->model->save($item);
+                $newId = $this->model->getInsertID();
+
+                $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
+                $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
             }
 
-            if ($progressChanged && !empty($data['saison']) && !empty($data['episode'])) {
-                $globalData = $this->syncGlobalEpisodesWithTMDB($item);
-                $item->episode_global = $globalData['episode_global'];
-                $item->total_episodes_global = $globalData['total_episodes_global'];
+            $subParam = !empty($data['sous_categorie']) ? '&subopen=' . urlencode($data['sous_categorie']) : '';
+
+            if ($this->request->getPost('save_add_another')) {
+                return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
             }
 
-            $this->model->save($item);
+            $targetId = $id ?: ($newId ?? '');
 
-            $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
-            $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
-
-            if (1 == $existing->is_public && 0 == $data['is_public']) {
-                (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
-                $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
-            }
-        } else {
-            $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
-            $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
-
-            $item = new Item($data);
-            if (!empty($data['saison']) && !empty($data['episode'])) {
-                $globalData = $this->syncGlobalEpisodesWithTMDB($item);
-                $item->episode_global = $globalData['episode_global'];
-                $item->total_episodes_global = $globalData['total_episodes_global'];
-            }
-
-            $this->model->save($item);
-            $newId = $this->model->getInsertID();
-
-            $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
-            $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
+            return redirect()->to($backUrl . $separator . 'open=' . $data['id_division'] . $subParam . '#card-' . $targetId)->with('success', 'Carte enregistrée.');
         }
-
-        $subParam = !empty($data['sous_categorie']) ? '&subopen=' . urlencode($data['sous_categorie']) : '';
-
-        if ($this->request->getPost('save_add_another')) {
-            return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
-        }
-
-        $targetId = $id ?: ($newId ?? '');
-
-        return redirect()->to($backUrl . $separator . 'open=' . $data['id_division'] . $subParam . '#card-' . $targetId)->with('success', 'Carte enregistrée.');
     }
 
     /**
@@ -1832,8 +1839,8 @@ class ItemController extends BaseController
             if (!$this->canManageItem($item)) {
                 if ($this->request->isAJAX()) {
                     return $this->response->setStatusCode(403)->setJSON([
-                        'success'    => false,
-                        'error'      => 'Vous ne pouvez pas modifier cette carte.',
+                        'success' => false,
+                        'error' => 'Vous ne pouvez pas modifier cette carte.',
                         'csrf_token' => csrf_hash(),
                     ]);
                 }
@@ -1847,6 +1854,7 @@ class ItemController extends BaseController
             $newTotalEpisodes = $totalEpisodes > 0 ? $totalEpisodes : null;
             $updateData = [];
 
+            // Détection automatique du passage à la saison suivante ou de la fin
             if ($totalEpisodes > 0 && $newEpisode > $totalEpisodes) {
                 if ($totalSaisons > 0 && $newSaison >= $totalSaisons) {
                     $updateData['status'] = 'Terminé';
@@ -1868,6 +1876,7 @@ class ItemController extends BaseController
                 $logMessage = "Mise à jour de la carte ID {$id} ('{$item->titre}') : Épisode passé à {$newEpisode}";
             }
 
+            // Passage automatique de "À voir" à "En cours" dès le premier +1 (sauf si déjà passé en Terminé)
             if ('À voir' === $item->status && empty($updateData['status'])) {
                 $updateData['status'] = 'En cours';
             }
@@ -1903,7 +1912,7 @@ class ItemController extends BaseController
                 }
 
                 $this->model->update($id, [
-                    'episode_global'        => $newEpisodeGlobal,
+                    'episode_global' => $newEpisodeGlobal,
                     'total_episodes_global' => $totalGlobal,
                 ]);
             }
@@ -1914,13 +1923,13 @@ class ItemController extends BaseController
                 $finalItem = $this->model->find($id);
 
                 return $this->response->setJSON([
-                    'success'            => true,
-                    'new_episode'        => $newEpisode,
-                    'new_saison'         => $newSaison,
+                    'success' => true,
+                    'new_episode' => $newEpisode,
+                    'new_saison' => $newSaison,
                     'new_total_episodes' => $newTotalEpisodes,
-                    'status'             => $updateData['status'] ?? $item->status,
-                    'new_link'           => $finalItem ? $finalItem->getFinalLink() : null,
-                    'csrf_token'         => csrf_hash(),
+                    'status' => $updateData['status'] ?? $item->status,
+                    'new_link' => $finalItem ? $finalItem->getFinalLink() : null,
+                    'csrf_token' => csrf_hash(),
                 ]);
             }
         }
@@ -1948,9 +1957,9 @@ class ItemController extends BaseController
             ->findColumn('domain') ?? [];
 
         return view('items/global_items', [
-            'items'              => $this->model->checkToGlobal(),
+            'items' => $this->model->checkToGlobal(),
             'pendingRevisionIds' => $pendingRevisionIds,
-            'supportedDomains'   => $supportedDomains,
+            'supportedDomains' => $supportedDomains,
         ]);
     }
 
@@ -2039,9 +2048,8 @@ class ItemController extends BaseController
             }
         }
 
-        if (!$currentConfig) {
+        if (!$currentConfig)
             return $this->response->setJSON(['success' => false, 'error' => 'Domaine non supporté.']);
-        }
 
         $matches = [];
         @preg_match($currentConfig['regex_episode'], (string) $urlCible, $matches);
@@ -2049,11 +2057,11 @@ class ItemController extends BaseController
 
         try {
             $client = Services::curlrequest([
-                'timeout'         => 3,
+                'timeout' => 3,
                 'connect_timeout' => 2,
-                'http_errors'     => false,
+                'http_errors' => false,
                 'allow_redirects' => false,
-                'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
+                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker'
             ]);
 
             $response = $client->get($urlCible);
@@ -2085,9 +2093,9 @@ class ItemController extends BaseController
             unset($html);
 
             return $this->response->setJSON([
-                'success'    => true,
+                'success' => true,
                 'disponible' => !$estSurFicheAnime && $lecteurPresent,
-                'details'    => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent],
+                'details' => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent],
             ]);
         } catch (\Throwable $e) {
             return $this->response->setJSON(['success' => false, 'error' => 'Timeout']);
@@ -2190,13 +2198,16 @@ class ItemController extends BaseController
         return redirect()->back()->with('message', 'Vos cartes supprimées ont été vidées définitivement.');
     }
 
+    /**
+     * Interroge TMDB pour calculer les compteurs globaux (épisodes vus au total et total de la série)
+     * et, si demandé, récupérer le nombre d'épisodes de la saison en cours.
+     */
     private function syncGlobalEpisodesWithTMDB(Item $item, bool $updateSeasonTotal = false): array
     {
         $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
         $client = Services::curlrequest([
-            'timeout'         => 3,
-            'connect_timeout' => 2,
-            'http_errors'     => false,
+            'timeout' => 5,
+            'http_errors' => false,
         ]);
 
         $episodeGlobal = (int) $item->episode;
@@ -2222,6 +2233,7 @@ class ItemController extends BaseController
                                 $totalEpisodesGlobal = $tvBody['number_of_episodes'] ?? null;
                                 $tmdbTotalSaisons = $tvBody['number_of_seasons'] ?? 1;
 
+                                // Si l'utilisateur est sur une saison supérieure à celle connue par TMDB (Cas des animes fusionnés comme Frieren)
                                 if ($currentSaison > 1 && $currentSaison > $tmdbTotalSaisons && $totalEpisodesGlobal > 0) {
                                     $currentTotalEpisodes = (int) $item->total_episodes;
 
@@ -2264,12 +2276,12 @@ class ItemController extends BaseController
                     }
                 }
             }
-        } catch (\Throwable $e) {
-            log_message('warning', 'syncGlobalEpisodesWithTMDB: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            // Silence
         }
 
         $result = [
-            'episode_global'        => $episodeGlobal,
+            'episode_global' => $episodeGlobal,
             'total_episodes_global' => $totalEpisodesGlobal,
         ];
 
@@ -2280,12 +2292,14 @@ class ItemController extends BaseController
         return $result;
     }
 
+    /**
+     * Fallback via Jikan (MyAnimeList) pour récupérer le nombre d'épisodes d'une saison d'anime.
+     */
     private function fetchSeasonEpisodesFromJikan(string $titre, int $saison): ?int
     {
         $client = Services::curlrequest([
-            'timeout'         => 3,
-            'connect_timeout' => 2,
-            'http_errors'     => false,
+            'timeout' => 5,
+            'http_errors' => false,
         ]);
 
         try {
@@ -2298,8 +2312,8 @@ class ItemController extends BaseController
                     return (int) $body['data'][0]['episodes'];
                 }
             }
-        } catch (\Throwable $e) {
-            log_message('warning', 'fetchSeasonEpisodesFromJikan: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            // Silence l'erreur API
         }
 
         return null;
@@ -2316,26 +2330,29 @@ class ItemController extends BaseController
             $user->inGroup('admin', 'superadmin');
     }
 
+    /**
+     * Normalize any card URL to its lowercase hostname.
+     */
     private function reportedLinkHost(string $url): ?string
     {
         $url = trim($url);
-        if ($url === '') {
+        if ($url === '')
             return null;
-        }
-        if (str_starts_with($url, '//')) {
+        if (str_starts_with($url, '//'))
             $url = 'https:' . $url;
-        } elseif (!preg_match('~^https?://~i', $url)) {
+        elseif (!preg_match('~^https?://~i', $url))
             $url = 'https://' . $url;
-        }
 
         $host = parse_url($url, PHP_URL_HOST);
-        if (!is_string($host) || $host === '') {
+        if (!is_string($host) || $host === '')
             return null;
-        }
         $host = strtolower(rtrim($host, '.'));
         return (string) preg_replace('/^www\./i', '', $host);
     }
 
+    /**
+     * Check both historical reports and cards already marked dead for this host.
+     */
     private function domainAlreadyReported(string $host): bool
     {
         $db = db_connect();
@@ -2347,9 +2364,8 @@ class ItemController extends BaseController
             ->get()
             ->getResultArray();
         foreach ($logs as $log) {
-            if ($this->reportedLinkHost((string) ($log['url_testee'] ?? '')) === $host) {
+            if ($this->reportedLinkHost((string) ($log['url_testee'] ?? '')) === $host)
                 return true;
-            }
         }
 
         $deadItems = $db
@@ -2361,14 +2377,16 @@ class ItemController extends BaseController
             ->get()
             ->getResultArray();
         foreach ($deadItems as $deadItem) {
-            if ($this->reportedLinkHost((string) ($deadItem['lien'] ?? '')) === $host) {
+            if ($this->reportedLinkHost((string) ($deadItem['lien'] ?? '')) === $host)
                 return true;
-            }
         }
 
         return false;
     }
 
+    /**
+     * Whitelisted hosts, with or without the conventional www prefix, cannot be reported.
+     */
     private function isWhitelistedReportHost(string $host): bool
     {
         $normalize = function (string $domain): ?string {
@@ -2376,23 +2394,23 @@ class ItemController extends BaseController
             return $domain === null ? null : (string) preg_replace('/^www\./i', '', $domain);
         };
         $normalizedHost = $normalize($host);
-        if ($normalizedHost === null) {
+        if ($normalizedHost === null)
             return false;
-        }
 
         $cutoff = time() - (WhitelistModel::PROTECTION_DAYS * 86400);
         foreach ((new WhitelistModel())->findAll() as $entry) {
-            if ($normalize((string) ($entry['domain'] ?? '')) !== $normalizedHost) {
+            if ($normalize((string) ($entry['domain'] ?? '')) !== $normalizedHost)
                 continue;
-            }
             $addedAt = strtotime((string) ($entry['created_at'] ?? ''));
-            if ($addedAt !== false && $addedAt >= $cutoff) {
+            if ($addedAt !== false && $addedAt >= $cutoff)
                 return true;
-            }
         }
         return false;
     }
 
+    /**
+     * Enforce rolling quotas per authenticated account and source IP.
+     */
     private function reportRateLimitMessage(): ?string
     {
         $db = db_connect();
@@ -2414,6 +2432,9 @@ class ItemController extends BaseController
         return null;
     }
 
+    /**
+     * Find active cards whose parsed hostname exactly matches the reported domain.
+     */
     private function activeItemsForReportHost(string $host): array
     {
         $candidates = db_connect()
@@ -2428,19 +2449,21 @@ class ItemController extends BaseController
 
         $matches = [];
         foreach ($candidates as $candidate) {
-            if ($this->reportedLinkHost((string) $candidate->lien) === $host) {
+            if ($this->reportedLinkHost((string) $candidate->lien) === $host)
                 $matches[] = $candidate;
-            }
         }
         return $matches;
     }
 
+    /**
+     * Record user reports without making unreliable network checks.
+     */
     public function reportLink()
     {
         if (!auth()->loggedIn()) {
             return $this->response->setStatusCode(401)->setJSON([
-                'success'    => false,
-                'message'    => 'Vous devez être connecté pour signaler un lien.',
+                'success' => false,
+                'message' => 'Vous devez être connecté pour signaler un lien.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -2449,8 +2472,8 @@ class ItemController extends BaseController
         $itemId = filter_var($json->id ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($itemId === false) {
             return $this->response->setStatusCode(400)->setJSON([
-                'success'    => false,
-                'message'    => 'ID de carte invalide.',
+                'success' => false,
+                'message' => 'ID de carte invalide.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -2458,15 +2481,15 @@ class ItemController extends BaseController
         $item = $this->model->find($itemId);
         if (!$item || empty($item->lien)) {
             return $this->response->setStatusCode(404)->setJSON([
-                'success'    => false,
-                'message'    => 'Carte introuvable ou lien vide.',
+                'success' => false,
+                'message' => 'Carte introuvable ou lien vide.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
         if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
             return $this->response->setStatusCode(403)->setJSON([
-                'success'    => false,
-                'message'    => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
+                'success' => false,
+                'message' => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -2474,22 +2497,22 @@ class ItemController extends BaseController
         $host = $this->reportedLinkHost((string) $item->lien);
         if ($host === null) {
             return $this->response->setStatusCode(400)->setJSON([
-                'success'    => false,
-                'message'    => 'Le lien de cette carte ne contient pas de domaine valide.',
+                'success' => false,
+                'message' => 'Le lien de cette carte ne contient pas de domaine valide.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
         if ($rateLimitMessage = $this->reportRateLimitMessage()) {
             return $this->response->setStatusCode(429)->setJSON([
-                'success'    => false,
-                'message'    => $rateLimitMessage,
+                'success' => false,
+                'message' => $rateLimitMessage,
                 'csrf_token' => csrf_hash(),
             ]);
         }
         if ($this->isWhitelistedReportHost($host)) {
             return $this->response->setJSON([
-                'success'    => false,
-                'message'    => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
+                'success' => false,
+                'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -2497,11 +2520,11 @@ class ItemController extends BaseController
         $db = db_connect();
         $lockName = 'deadlink_' . substr(hash('sha256', $host), 0, 48);
         $lockedHost = $host;
-        $lock = $db->query('SELECT GET_LOCK(?, 5) AS acquired', [$lockName])->getRowArray();
+        $lock = $db->query('SELECT GET_LOCK(?, 8) AS acquired', [$lockName])->getRowArray();
         if ((int) ($lock['acquired'] ?? 0) !== 1) {
             return $this->response->setStatusCode(503)->setJSON([
-                'success'    => false,
-                'message'    => 'Le signalement est temporairement occupé. Réessayez.',
+                'success' => false,
+                'message' => 'Le signalement est temporairement occupé. Réessayez.',
                 'csrf_token' => csrf_hash(),
             ]);
         }
@@ -2512,16 +2535,16 @@ class ItemController extends BaseController
             if (!$item || empty($item->lien)) {
                 $db->transRollback();
                 return $this->response->setStatusCode(404)->setJSON([
-                    'success'    => false,
-                    'message'    => 'Carte introuvable ou lien vide.',
+                    'success' => false,
+                    'message' => 'Carte introuvable ou lien vide.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
             if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
                 $db->transRollback();
                 return $this->response->setStatusCode(403)->setJSON([
-                    'success'    => false,
-                    'message'    => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
+                    'success' => false,
+                    'message' => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
@@ -2529,24 +2552,24 @@ class ItemController extends BaseController
             if ($host === null || $host !== $lockedHost) {
                 $db->transRollback();
                 return $this->response->setJSON([
-                    'success'    => false,
-                    'message'    => 'Le lien de cette carte a changé. Rechargez la page avant de le signaler.',
+                    'success' => false,
+                    'message' => 'Le lien de cette carte a changé. Rechargez la page avant de le signaler.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
             if ($this->isWhitelistedReportHost($host)) {
                 $db->transRollback();
                 return $this->response->setJSON([
-                    'success'    => false,
-                    'message'    => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
+                    'success' => false,
+                    'message' => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
             if ($this->domainAlreadyReported($host)) {
                 $db->transRollback();
                 return $this->response->setJSON([
-                    'success'    => false,
-                    'message'    => 'Ce domaine a déjà un signalement en attente ou traité.',
+                    'success' => false,
+                    'message' => 'Ce domaine a déjà un signalement en attente ou traité.',
                     'csrf_token' => csrf_hash(),
                 ]);
             }
@@ -2563,11 +2586,11 @@ class ItemController extends BaseController
 
             $now = date('Y-m-d H:i:s');
             $cronLogId = (new CronLogModel())->insert([
-                'task_name'   => CronLogModel::TASK_PENDING_USER_REPORT,
-                'last_run'    => $now,
-                'item_id'     => $itemId,
-                'titre'       => $item->titre,
-                'url_testee'  => 'https://' . $host . '/',
+                'task_name' => CronLogModel::TASK_PENDING_USER_REPORT,
+                'last_run' => $now,
+                'item_id' => $itemId,
+                'titre' => $item->titre,
+                'url_testee' => 'https://' . $host . '/',
                 'code_erreur' => 0,
             ]);
             if (!$cronLogId) {
@@ -2584,19 +2607,19 @@ class ItemController extends BaseController
 
             $db->transCommit();
             return $this->response->setJSON([
-                'success'    => true,
-                'message'    => 'Signalement enregistré. Merci pour votre aide !',
+                'success' => true,
+                'message' => 'Signalement enregistré. Merci pour votre aide !',
                 'csrf_token' => csrf_hash(),
             ]);
         } catch (\Throwable $e) {
             $db->transRollback();
             log_message('error', '[ReportLink] Échec du signalement du domaine {host}: {message}', [
-                'host'    => $host,
+                'host' => $host,
                 'message' => $e->getMessage(),
             ]);
             return $this->response->setStatusCode(500)->setJSON([
-                'success'    => false,
-                'message'    => 'Le signalement n’a pas pu être enregistré. Réessayez plus tard.',
+                'success' => false,
+                'message' => 'Le signalement n’a pas pu être enregistré. Réessayez plus tard.',
                 'csrf_token' => csrf_hash(),
             ]);
         } finally {
@@ -2617,6 +2640,15 @@ namespace App\Controllers;
 use App\Libraries\ExternalUrlGuard;
 use Config\Services;
 
+/**
+ * Recherche multi-sources pour l'auto-remplissage des cartes.
+ *
+ * Sources utilisées :
+ * - TMDB : films, séries, anime, streaming légal
+ * - AniList : anime et mangas
+ * - MangaDex : mangas
+ * - YouTube Data API : vidéos (si YOUTUBE_API_KEY est défini dans .env)
+ */
 class MediaSearchController extends BaseController
 {
     private $client;
@@ -2625,13 +2657,15 @@ class MediaSearchController extends BaseController
     public function __construct()
     {
         $this->client = Services::curlrequest([
-            'timeout'         => 3,
+            'timeout' => 3,
             'connect_timeout' => 2,
-            'http_errors'     => false,
+            'http_errors' => false,
             'allow_redirects' => true,
-            'user_agent'      => 'Summury/1.0 CodeIgniter4 Media Search',
+            'user_agent' => 'Summury/1.0 CodeIgniter4 Media Search',
         ]);
 
+        // On conserve la clé actuellement utilisée par Summury pour éviter
+        // de casser le fonctionnement si le .env ne contient pas encore TMDB_API_KEY.
         $this->tmdbApiKey = trim((string) (env('TMDB_API_KEY') ?: 'ba55da0439797150ed58c4e524584823'));
     }
 
@@ -2650,6 +2684,7 @@ class MediaSearchController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Requête trop longue.']);
         }
 
+        // Une URL reste traitée comme avant : récupération des métadonnées OpenGraph.
         if (filter_var($query, FILTER_VALIDATE_URL)) {
             if (!ExternalUrlGuard::isPublicHttpUrl($query)) {
                 return $this->response->setStatusCode(400)->setJSON(['error' => 'URL invalide.']);
@@ -2667,10 +2702,12 @@ class MediaSearchController extends BaseController
             switch ($type) {
                 case 'film':
                     $results = $this->searchTmdbMovies($query);
+
                     break;
 
                 case 'serie':
                     $results = $this->searchTmdbSeries($query);
+
                     break;
 
                 case 'anime':
@@ -2679,6 +2716,7 @@ class MediaSearchController extends BaseController
                         $this->searchAniList($query, 'ANIME'),
                         $this->searchMangaDex($query, true)
                     );
+
                     break;
 
                 case 'manga':
@@ -2686,35 +2724,40 @@ class MediaSearchController extends BaseController
                         $this->searchAniList($query, 'MANGA'),
                         $this->searchMangaDex($query, false)
                     );
+
                     break;
 
                 case 'video':
                     $results = $this->searchYouTube($query);
+
                     break;
 
                 case 'streaming':
                     $results = $this->searchStreaming($query);
+
                     break;
 
                 default:
+                    // Pour une catégorie générique, on cherche dans les films/séries/anime/manga.
                     $results = array_merge(
                         $this->searchTmdbMovies($query, 4),
                         $this->searchTmdbSeries($query, 4),
                         $this->searchAniList($query, 'ANIME', 4),
                         $this->searchAniList($query, 'MANGA', 4)
                     );
+
                     break;
             }
         } catch (\Throwable $e) {
-            log_message('error', 'MediaSearchController: ' . $e->getMessage());
+            log_message('error', 'MediaSearchController: '.$e->getMessage());
         }
 
         $results = $this->prepareResults($results, $query, $type);
 
         return $this->response->setJSON([
             'unified' => $results,
-            'type'    => $type,
-            'count'   => count($results),
+            'type' => $type,
+            'count' => count($results),
         ]);
     }
 
@@ -2747,10 +2790,10 @@ class MediaSearchController extends BaseController
     private function searchTmdbMovies(string $query, int $limit = 8): array
     {
         $data = $this->tmdbGet('/search/movie', [
-            'query'         => $query,
-            'language'      => 'fr-FR',
+            'query' => $query,
+            'language' => 'fr-FR',
             'include_adult' => 'false',
-            'page'          => 1,
+            'page' => 1,
         ]);
 
         $results = [];
@@ -2764,21 +2807,21 @@ class MediaSearchController extends BaseController
             $year = substr((string) ($result['release_date'] ?? ''), 0, 4);
 
             $results[] = [
-                'titre'          => $title,
-                'imageThumb'     => 'https://image.tmdb.org/t/p/w200' . $poster,
-                'imageLarge'     => 'https://image.tmdb.org/t/p/w500' . $poster,
-                'description'    => (string) ($result['overview'] ?? ''),
-                'info'           => ($year ? $year . ' - ' : '') . 'FILM',
-                'lien'           => '',
+                'titre' => $title,
+                'imageThumb' => 'https://image.tmdb.org/t/p/w200'.$poster,
+                'imageLarge' => 'https://image.tmdb.org/t/p/w500'.$poster,
+                'description' => (string) ($result['overview'] ?? ''),
+                'info' => ($year ? $year.' - ' : '').'FILM',
+                'lien' => '',
                 'total_episodes' => '',
-                'total_saisons'  => '',
-                'seasons_data'   => null,
-                'source'         => 'TMDB',
+                'total_saisons' => '',
+                'seasons_data' => null,
+                'source' => 'TMDB',
                 'sourcePriority' => 100,
-                'externalId'     => $result['id'] ?? null,
-                'mediaType'      => 'movie',
-                'providers'      => [],
-                'score'          => 0,
+                'externalId' => $result['id'] ?? null,
+                'mediaType' => 'movie',
+                'providers' => [],
+                'score' => 0,
             ];
         }
 
@@ -2788,10 +2831,10 @@ class MediaSearchController extends BaseController
     private function searchTmdbSeries(string $query, int $limit = 8, int $detailLimit = 3): array
     {
         $data = $this->tmdbGet('/search/tv', [
-            'query'         => $query,
-            'language'      => 'fr-FR',
+            'query' => $query,
+            'language' => 'fr-FR',
             'include_adult' => 'false',
-            'page'          => 1,
+            'page' => 1,
         ]);
 
         $results = [];
@@ -2804,7 +2847,7 @@ class MediaSearchController extends BaseController
             $title = (string) ($result['name'] ?? $result['original_name'] ?? 'Inconnu');
             $year = substr((string) ($result['first_air_date'] ?? ''), 0, 4);
             $details = count($results) < $detailLimit
-                ? $this->tmdbGet('/tv/' . (int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
+                ? $this->tmdbGet('/tv/'.(int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
                 : [];
 
             $seasonsData = [];
@@ -2816,21 +2859,21 @@ class MediaSearchController extends BaseController
             }
 
             $results[] = [
-                'titre'          => $title,
-                'imageThumb'     => 'https://image.tmdb.org/t/p/w200' . $poster,
-                'imageLarge'     => 'https://image.tmdb.org/t/p/w500' . $poster,
-                'description'    => (string) ($result['overview'] ?? ''),
-                'info'           => ($year ? $year . ' - ' : '') . 'SÉRIE',
-                'lien'           => '',
+                'titre' => $title,
+                'imageThumb' => 'https://image.tmdb.org/t/p/w200'.$poster,
+                'imageLarge' => 'https://image.tmdb.org/t/p/w500'.$poster,
+                'description' => (string) ($result['overview'] ?? ''),
+                'info' => ($year ? $year.' - ' : '').'SÉRIE',
+                'lien' => '',
                 'total_episodes' => (int) ($details['number_of_episodes'] ?? 0),
-                'total_saisons'  => (int) ($details['number_of_seasons'] ?? 0),
-                'seasons_data'   => $seasonsData,
-                'source'         => 'TMDB',
+                'total_saisons' => (int) ($details['number_of_seasons'] ?? 0),
+                'seasons_data' => $seasonsData,
+                'source' => 'TMDB',
                 'sourcePriority' => 100,
-                'externalId'     => $result['id'] ?? null,
-                'mediaType'      => 'tv',
-                'providers'      => [],
-                'score'          => 0,
+                'externalId' => $result['id'] ?? null,
+                'mediaType' => 'tv',
+                'providers' => [],
+                'score' => 0,
             ];
         }
 
@@ -2840,10 +2883,10 @@ class MediaSearchController extends BaseController
     private function searchTmdbAnime(string $query, int $limit = 8): array
     {
         $data = $this->tmdbGet('/search/multi', [
-            'query'         => $query,
-            'language'      => 'fr-FR',
+            'query' => $query,
+            'language' => 'fr-FR',
             'include_adult' => 'false',
-            'page'          => 1,
+            'page' => 1,
         ]);
 
         $results = [];
@@ -2869,7 +2912,7 @@ class MediaSearchController extends BaseController
             $title = (string) ($result['title'] ?? $result['name'] ?? $result['original_name'] ?? 'Inconnu');
             $year = substr((string) ($result['release_date'] ?? $result['first_air_date'] ?? ''), 0, 4);
             $details = 'tv' === $mediaType && count($results) < 2
-                ? $this->tmdbGet('/tv/' . (int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
+                ? $this->tmdbGet('/tv/'.(int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
                 : [];
 
             $seasonsData = [];
@@ -2881,21 +2924,21 @@ class MediaSearchController extends BaseController
             }
 
             $results[] = [
-                'titre'          => $title,
-                'imageThumb'     => 'https://image.tmdb.org/t/p/w200' . $poster,
-                'imageLarge'     => 'https://image.tmdb.org/t/p/w500' . $poster,
-                'description'    => (string) ($result['overview'] ?? ''),
-                'info'           => ($year ? $year . ' - ' : '') . 'ANIME',
-                'lien'           => '',
+                'titre' => $title,
+                'imageThumb' => 'https://image.tmdb.org/t/p/w200'.$poster,
+                'imageLarge' => 'https://image.tmdb.org/t/p/w500'.$poster,
+                'description' => (string) ($result['overview'] ?? ''),
+                'info' => ($year ? $year.' - ' : '').'ANIME',
+                'lien' => '',
                 'total_episodes' => (int) ($details['number_of_episodes'] ?? 0),
-                'total_saisons'  => (int) ($details['number_of_seasons'] ?? 0),
-                'seasons_data'   => $seasonsData,
-                'source'         => 'TMDB',
+                'total_saisons' => (int) ($details['number_of_seasons'] ?? 0),
+                'seasons_data' => $seasonsData,
+                'source' => 'TMDB',
                 'sourcePriority' => 100,
-                'externalId'     => $result['id'] ?? null,
-                'mediaType'      => $mediaType,
-                'providers'      => [],
-                'score'          => 0,
+                'externalId' => $result['id'] ?? null,
+                'mediaType' => $mediaType,
+                'providers' => [],
+                'score' => 0,
             ];
 
             if (count($results) >= $limit) {
@@ -2931,13 +2974,13 @@ class MediaSearchController extends BaseController
             $response = $this->client->post('https://graphql.anilist.co', [
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'Accept'       => 'application/json',
+                    'Accept' => 'application/json',
                 ],
                 'json' => [
-                    'query'     => $graphql,
+                    'query' => $graphql,
                     'variables' => [
-                        'search'  => $query,
-                        'type'    => $mediaType,
+                        'search' => $query,
+                        'type' => $mediaType,
                         'perPage' => $limit,
                     ],
                 ],
@@ -2974,27 +3017,27 @@ class MediaSearchController extends BaseController
                 $label = 'ANIME' === $mediaType ? 'ANIME' : 'MANGA';
 
                 $results[] = [
-                    'titre'          => $title,
-                    'imageThumb'     => $image,
-                    'imageLarge'     => $image,
-                    'description'    => trim(strip_tags((string) ($item['description'] ?? ''))),
-                    'info'           => ($year ? $year . ' - ' : '') . $label,
-                    'lien'           => 'https://anilist.co/' . strtolower('ANIME' === $mediaType ? 'anime' : 'manga') . '/' . (int) ($item['id'] ?? 0),
+                    'titre' => $title,
+                    'imageThumb' => $image,
+                    'imageLarge' => $image,
+                    'description' => trim(strip_tags((string) ($item['description'] ?? ''))),
+                    'info' => ($year ? $year.' - ' : '').$label,
+                    'lien' => 'https://anilist.co/'.strtolower('ANIME' === $mediaType ? 'anime' : 'manga').'/'.(int) ($item['id'] ?? 0),
                     'total_episodes' => 'ANIME' === $mediaType ? (int) ($item['episodes'] ?? 0) : (int) ($item['chapters'] ?? 0),
-                    'total_saisons'  => 'MANGA' === $mediaType ? (int) ($item['volumes'] ?? 0) : '',
-                    'seasons_data'   => null,
-                    'source'         => 'AniList',
+                    'total_saisons' => 'MANGA' === $mediaType ? (int) ($item['volumes'] ?? 0) : '',
+                    'seasons_data' => null,
+                    'source' => 'AniList',
                     'sourcePriority' => 'MANGA' === $mediaType ? 110 : 95,
-                    'externalId'     => $item['id'] ?? null,
-                    'mediaType'      => strtolower($mediaType),
-                    'providers'      => [],
-                    'score'          => 0,
+                    'externalId' => $item['id'] ?? null,
+                    'mediaType' => strtolower($mediaType),
+                    'providers' => [],
+                    'score' => 0,
                 ];
             }
 
             return $results;
         } catch (\Throwable $e) {
-            log_message('warning', 'AniList indisponible: ' . $e->getMessage());
+            log_message('warning', 'AniList indisponible: '.$e->getMessage());
 
             return [];
         }
@@ -3005,14 +3048,14 @@ class MediaSearchController extends BaseController
         try {
             $response = $this->client->get('https://api.mangadex.org/manga', [
                 'query' => [
-                    'title'           => $query,
-                    'limit'           => $limit,
-                    'includes[]'      => 'cover_art',
+                    'title' => $query,
+                    'limit' => $limit,
+                    'includes[]' => 'cover_art',
                     'order[relevance]' => 'desc',
                     'contentRating[]' => ['safe', 'suggestive'],
                 ],
                 'headers' => [
-                    'Accept'     => 'application/json',
+                    'Accept' => 'application/json',
                     'User-Agent' => 'Summury/1.0',
                 ],
             ]);
@@ -3037,42 +3080,44 @@ class MediaSearchController extends BaseController
                 foreach ($manga['relationships'] ?? [] as $relationship) {
                     if (($relationship['type'] ?? '') === 'cover_art' && !empty($relationship['attributes']['fileName'])) {
                         $fileName = (string) $relationship['attributes']['fileName'];
+
                         break;
                     }
                 }
 
+                // Aucun fallback générique : une couverture absente ne doit pas polluer les résultats.
                 if ('' === $fileName) {
                     continue;
                 }
 
                 $id = (string) ($manga['id'] ?? '');
-                $imageThumb = 'https://uploads.mangadex.org/covers/' . $id . '/' . $fileName . '.256.jpg';
-                $imageLarge = 'https://uploads.mangadex.org/covers/' . $id . '/' . $fileName . '.512.jpg';
+                $imageThumb = 'https://uploads.mangadex.org/covers/'.$id.'/'.$fileName.'.256.jpg';
+                $imageLarge = 'https://uploads.mangadex.org/covers/'.$id.'/'.$fileName.'.512.jpg';
                 $description = $attr['description']['fr'] ?? $attr['description']['en'] ?? '';
                 $year = (string) ($attr['year'] ?? '');
 
                 $results[] = [
-                    'titre'          => $title,
-                    'imageThumb'     => $imageThumb,
-                    'imageLarge'     => $imageLarge,
-                    'description'    => trim(strip_tags((string) $description)),
-                    'info'           => ($year ? $year . ' - ' : '') . ($animeMode ? 'MANGA / ANIME' : 'MANGA'),
-                    'lien'           => 'https://mangadex.org/title/' . $id,
+                    'titre' => $title,
+                    'imageThumb' => $imageThumb,
+                    'imageLarge' => $imageLarge,
+                    'description' => trim(strip_tags((string) $description)),
+                    'info' => ($year ? $year.' - ' : '').($animeMode ? 'MANGA / ANIME' : 'MANGA'),
+                    'lien' => 'https://mangadex.org/title/'.$id,
                     'total_episodes' => $attr['lastChapter'] ?? '',
-                    'total_saisons'  => $attr['lastVolume'] ?? '',
-                    'seasons_data'   => null,
-                    'source'         => 'MangaDex',
+                    'total_saisons' => $attr['lastVolume'] ?? '',
+                    'seasons_data' => null,
+                    'source' => 'MangaDex',
                     'sourcePriority' => $animeMode ? 65 : 90,
-                    'externalId'     => $id,
-                    'mediaType'      => 'manga',
-                    'providers'      => [],
-                    'score'          => 0,
+                    'externalId' => $id,
+                    'mediaType' => 'manga',
+                    'providers' => [],
+                    'score' => 0,
                 ];
             }
 
             return $results;
         } catch (\Throwable $e) {
-            log_message('warning', 'MangaDex indisponible: ' . $e->getMessage());
+            log_message('warning', 'MangaDex indisponible: '.$e->getMessage());
 
             return [];
         }
@@ -3088,15 +3133,15 @@ class MediaSearchController extends BaseController
         try {
             $response = $this->client->get('https://www.googleapis.com/youtube/v3/search', [
                 'query' => [
-                    'part'              => 'snippet',
-                    'q'                 => $query,
-                    'type'              => 'video',
-                    'maxResults'        => $limit,
-                    'regionCode'        => 'FR',
+                    'part' => 'snippet',
+                    'q' => $query,
+                    'type' => 'video',
+                    'maxResults' => $limit,
+                    'regionCode' => 'FR',
                     'relevanceLanguage' => 'fr',
-                    'safeSearch'        => 'moderate',
-                    'videoEmbeddable'   => 'true',
-                    'key'               => $apiKey,
+                    'safeSearch' => 'moderate',
+                    'videoEmbeddable' => 'true',
+                    'key' => $apiKey,
                 ],
             ]);
 
@@ -3118,27 +3163,27 @@ class MediaSearchController extends BaseController
                 $image = $thumbs['high']['url'] ?? $thumbs['medium']['url'] ?? $thumbs['default']['url'] ?? '';
 
                 $results[] = [
-                    'titre'          => html_entity_decode((string) $snippet['title'], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-                    'imageThumb'     => $image,
-                    'imageLarge'     => $image,
-                    'description'    => html_entity_decode((string) ($snippet['description'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-                    'info'           => 'VIDÉO - ' . ((string) ($snippet['channelTitle'] ?? 'YouTube')),
-                    'lien'           => 'https://www.youtube.com/watch?v=' . $videoId,
+                    'titre' => html_entity_decode((string) $snippet['title'], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'imageThumb' => $image,
+                    'imageLarge' => $image,
+                    'description' => html_entity_decode((string) ($snippet['description'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'info' => 'VIDÉO - '.((string) ($snippet['channelTitle'] ?? 'YouTube')),
+                    'lien' => 'https://www.youtube.com/watch?v='.$videoId,
                     'total_episodes' => '',
-                    'total_saisons'  => '',
-                    'seasons_data'   => null,
-                    'source'         => 'YouTube',
+                    'total_saisons' => '',
+                    'seasons_data' => null,
+                    'source' => 'YouTube',
                     'sourcePriority' => 100,
-                    'externalId'     => $videoId,
-                    'mediaType'      => 'video',
-                    'providers'      => [],
-                    'score'          => 0,
+                    'externalId' => $videoId,
+                    'mediaType' => 'video',
+                    'providers' => [],
+                    'score' => 0,
                 ];
             }
 
             return $results;
         } catch (\Throwable $e) {
-            log_message('warning', 'YouTube indisponible: ' . $e->getMessage());
+            log_message('warning', 'YouTube indisponible: '.$e->getMessage());
 
             return [];
         }
@@ -3146,6 +3191,8 @@ class MediaSearchController extends BaseController
 
     private function searchStreaming(string $query, int $limit = 8): array
     {
+        // Les fournisseurs sont interrogés par titre : limiter les candidats
+        // évite une rafale de requêtes séquentielles pour une seule recherche.
         $movies = $this->searchTmdbMovies($query, 2);
         $series = $this->searchTmdbSeries($query, 2, 0);
         $results = array_merge($movies, $series);
@@ -3158,8 +3205,8 @@ class MediaSearchController extends BaseController
             }
 
             $path = 'movie' === $mediaType
-                ? '/movie/' . $id . '/watch/providers'
-                : '/tv/' . $id . '/watch/providers';
+                ? '/movie/'.$id.'/watch/providers'
+                : '/tv/'.$id.'/watch/providers';
 
             $providersBody = $this->tmdbGet($path, []);
             $fr = $providersBody['results']['FR'] ?? [];
@@ -3177,12 +3224,12 @@ class MediaSearchController extends BaseController
             $result['providers'] = $providers;
             $result['lien'] = (string) ($fr['link'] ?? '');
             if ($providers) {
-                $result['info'] .= ' • ' . implode(', ', array_slice($providers, 0, 4));
+                $result['info'] .= ' • '.implode(', ', array_slice($providers, 0, 4));
             }
         }
         unset($result);
 
-        return array_values(array_filter($results, static fn($r) => !empty($r['providers'])));
+        return array_values(array_filter($results, static fn ($r) => !empty($r['providers'])));
     }
 
     private function prepareResults(array $results, string $query, string $type): array
@@ -3190,13 +3237,14 @@ class MediaSearchController extends BaseController
         foreach ($results as &$result) {
             $result['score'] = $this->scoreTitle($query, (string) ($result['titre'] ?? ''));
 
+            // Bonus pour une source adaptée à la catégorie demandée.
             $result['score'] += match ($type) {
                 'film', 'serie' => (($result['source'] ?? '') === 'TMDB' ? 10 : 0),
-                'anime'         => (($result['source'] ?? '') === 'TMDB' ? 12 : (($result['source'] ?? '') === 'AniList' ? 10 : 0)),
-                'manga'         => (($result['source'] ?? '') === 'AniList' ? 12 : (($result['source'] ?? '') === 'MangaDex' ? 9 : 0)),
-                'video'         => (($result['source'] ?? '') === 'YouTube' ? 10 : 0),
-                'streaming'     => (($result['source'] ?? '') === 'TMDB' ? 10 : 0),
-                default         => 0,
+                'anime' => (($result['source'] ?? '') === 'TMDB' ? 12 : (($result['source'] ?? '') === 'AniList' ? 10 : 0)),
+                'manga' => (($result['source'] ?? '') === 'AniList' ? 12 : (($result['source'] ?? '') === 'MangaDex' ? 9 : 0)),
+                'video' => (($result['source'] ?? '') === 'YouTube' ? 10 : 0),
+                'streaming' => (($result['source'] ?? '') === 'TMDB' ? 10 : 0),
+                default => 0,
             };
 
             if (!empty($result['imageLarge'])) {
@@ -3207,19 +3255,26 @@ class MediaSearchController extends BaseController
         }
         unset($result);
 
+        // Déduplication : le même titre provenant de plusieurs APIs devient une seule carte.
         $deduped = [];
         foreach ($results as $result) {
-            if (empty($result['titre']) || mb_strlen(trim((string) $result['titre'])) < 2) {
+            if (empty($result['titre'])) {
+                continue;
+            }
+
+            // On retire les titres très courts qui donnent beaucoup de faux positifs.
+            if (mb_strlen(trim((string) $result['titre'])) < 2) {
                 continue;
             }
 
             $key = $this->normalizeTitle((string) $result['titre']);
             $year = preg_match('/\b(19|20)\d{2}\b/', (string) ($result['info'] ?? ''), $matches) ? $matches[0] : '';
-            $dedupeKey = $key . '|' . $year;
+            $dedupeKey = $key.'|'.$year;
 
             if (!isset($deduped[$dedupeKey])) {
                 $result['sources'] = [$result['source'] ?? 'API'];
                 $deduped[$dedupeKey] = $result;
+
                 continue;
             }
 
@@ -3230,6 +3285,7 @@ class MediaSearchController extends BaseController
                 $existingSources[] = $newSource;
             }
 
+            // On garde la meilleure image selon la priorité de source, pas simplement le dernier résultat.
             if (($result['sourcePriority'] ?? 0) > ($existing['sourcePriority'] ?? 0)) {
                 $result['sources'] = $existingSources;
                 if (empty($result['description']) && !empty($existing['description'])) {
@@ -3266,7 +3322,8 @@ class MediaSearchController extends BaseController
             return ($b['sourcePriority'] ?? 0) <=> ($a['sourcePriority'] ?? 0);
         });
 
-        $results = array_values(array_filter($results, static fn(array $r): bool => ($r['score'] ?? 0) >= 42));
+        // Pas de résultat faible : on préfère peu de bons résultats à une liste de faux positifs.
+        $results = array_values(array_filter($results, static fn (array $r): bool => ($r['score'] ?? 0) >= 42));
 
         foreach ($results as &$result) {
             $result['sourcesLabel'] = implode(' + ', $result['sources'] ?? [$result['source'] ?? 'API']);
@@ -3298,8 +3355,8 @@ class MediaSearchController extends BaseController
         similar_text($q, $t, $percent);
         $score = (int) round($percent * 0.72);
 
-        $qTokens = array_values(array_filter(explode(' ', $q), static fn($v) => mb_strlen($v) >= 2));
-        $tTokens = array_values(array_filter(explode(' ', $t), static fn($v) => mb_strlen($v) >= 2));
+        $qTokens = array_values(array_filter(explode(' ', $q), static fn ($v) => mb_strlen($v) >= 2));
+        $tTokens = array_values(array_filter(explode(' ', $t), static fn ($v) => mb_strlen($v) >= 2));
         if ($qTokens && $tTokens) {
             $intersection = count(array_intersect($qTokens, $tTokens));
             $score += (int) round(($intersection / count($qTokens)) * 25);
@@ -3330,14 +3387,14 @@ class MediaSearchController extends BaseController
         $query['language'] ??= 'fr-FR';
 
         try {
-            $response = $this->client->get('https://api.themoviedb.org/3' . $path, ['query' => $query]);
+            $response = $this->client->get('https://api.themoviedb.org/3'.$path, ['query' => $query]);
             if (200 !== $response->getStatusCode()) {
                 return [];
             }
 
             return json_decode((string) $response->getBody(), true) ?: [];
         } catch (\Throwable $e) {
-            log_message('warning', 'TMDB indisponible: ' . $e->getMessage());
+            log_message('warning', 'TMDB indisponible: '.$e->getMessage());
 
             return [];
         }
@@ -3351,7 +3408,7 @@ class MediaSearchController extends BaseController
 
         try {
             $response = $this->client->get($url, [
-                'headers'         => ['Accept-Language' => 'fr-FR,fr;q=0.9,en;q=0.8'],
+                'headers' => ['Accept-Language' => 'fr-FR,fr;q=0.9,en;q=0.8'],
                 'allow_redirects' => false,
             ]);
             if ($response->getStatusCode() >= 400) {
@@ -3368,11 +3425,11 @@ class MediaSearchController extends BaseController
             $tags = $doc->getElementsByTagName('meta');
 
             $data = [
-                'titre'       => '',
+                'titre' => '',
                 'description' => '',
-                'image'       => '',
-                'lien'        => $url,
-                'is_link'     => true,
+                'image' => '',
+                'lien' => $url,
+                'is_link' => true,
             ];
 
             foreach ($tags as $tag) {

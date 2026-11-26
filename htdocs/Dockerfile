@@ -1,43 +1,88 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-FROM php:8.4-apache
->>>>>>> parent of 986f7f3 (okk)
-=======
-FROM php:8.2-apache
->>>>>>> parent of dae359a (Update Dockerfile)
 
-# 1. Installation des dépendances système requises par les extensions PHP
+FROM php:8.4-apache
+
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+ENV PORT=10000
+
+# Dépendances système
 RUN apt-get update && apt-get install -y \
     libicu-dev \
     libzip-dev \
     libpng-dev \
-    libcurl4-openssl-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
     libonig-dev \
+    libcurl4-openssl-dev \
     unzip \
-    git \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Installation des extensions PHP pour CodeIgniter 4
-RUN docker-php-ext-configure intl \
-    && docker-php-ext-install intl mysqli pdo pdo_mysql zip gd mbstring curl
+# Extensions PHP
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    && docker-php-ext-install \
+    intl \
+    mysqli \
+    pdo \
+    pdo_mysql \
+    zip \
+    gd \
+    mbstring \
+    curl \
+    opcache
 
-# 3. Activation de l'URL Rewriting d'Apache
-RUN a2enmod rewrite
+# Apache
+RUN a2enmod rewrite headers expires deflate
 
-RUN echo "output_buffering = 4096" > /usr/local/etc/php/conf.d/output-buffering.ini
+RUN sed -ri \
+    's!/var/www/html!/var/www/html/public!g' \
+    /etc/apache2/sites-available/*.conf
 
-# 4. Ciblage du dossier public de CodeIgniter
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+RUN sed -ri \
+    's/Listen 80/Listen 10000/g' \
+    /etc/apache2/ports.conf
 
-# 5. Installation de Composer directement dans le conteneur
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN sed -ri \
+    's/<VirtualHost \*:80>/<VirtualHost *:10000>/g' \
+    /etc/apache2/sites-available/*.conf
 
-# Installation et activation de OPcache
-RUN docker-php-ext-install opcache
-RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.revalidate_freq=2" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+RUN printf '%s\n' \
+    '<Directory /var/www/html/public>' \
+    '    AllowOverride All' \
+    '    Require all granted' \
+    '</Directory>' \
+    > /etc/apache2/conf-available/summury.conf \
+    && a2enconf summury
+
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# Dépendances PHP
+COPY composer.json composer.lock ./
+
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader
+
+# Code source
+COPY . .
+
+# Droits d'accès
+RUN mkdir -p writable/cache writable/logs writable/session writable/uploads \
+    && chown -R www-data:www-data writable \
+    && chmod -R 775 writable
+
+# OPcache
+RUN docker-php-ext-enable opcache \
+    && printf '%s\n' \
+    'opcache.enable=1' \
+    'opcache.memory_consumption=128' \
+    'opcache.validate_timestamps=1' \
+    'opcache.revalidate_freq=2' \
+    > /usr/local/etc/php/conf.d/opcache-custom.ini
+
+EXPOSE 10000

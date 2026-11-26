@@ -19,9 +19,10 @@ use Config\Services;
 class ItemController extends BaseController
 {
     private const USER_REPORT_LIMIT_PER_HOUR = 3;
-    private const USER_REPORT_LIMIT_PER_DAY  = 21;
-    private const IP_REPORT_LIMIT_PER_HOUR   = 7;
-    private const IP_REPORT_LIMIT_PER_DAY    = 49;
+    private const USER_REPORT_LIMIT_PER_DAY = 21;
+    private const IP_REPORT_LIMIT_PER_HOUR = 7;
+    private const IP_REPORT_LIMIT_PER_DAY = 49;
+    private const DISPO_CACHE_TTL = 900;
 
     private $model;
     private $statutModel;
@@ -32,11 +33,31 @@ class ItemController extends BaseController
         $this->statutModel = new StatutModel();
     }
 
-    /**
-     * Affiche le formulaire d'ajout ou de modification d'une carte.
-     *
-     * @param null|mixed $id
-     */
+    private function invalidateHomeCaches(?int $userId = null): void
+    {
+        cache()->delete('report_domain_states_v1');
+
+        $headers = $this->model->getHeaders();
+        $ids = array_values(array_unique(array_filter(array_merge(
+            [''],
+            array_map(static fn (array $h): string => (string) ($h['id'] ?? ''), $headers)
+        ), static fn (string $v): bool => $v !== '')));
+
+        $userKeys = ['guest', '1'];
+        if ($userId !== null && $userId > 0) {
+            $userKeys[] = (string) $userId;
+        }
+        $userKeys = array_values(array_unique($userKeys));
+
+        foreach ($ids as $headerId) {
+            foreach ($userKeys as $uKey) {
+                foreach (['0', '1'] as $staffFlag) {
+                    cache()->delete("home_category_v1_{$headerId}_u_{$uKey}_s_{$staffFlag}");
+                }
+            }
+        }
+    }
+
     public function form($id = null)
     {
         $item = null;
@@ -73,191 +94,186 @@ class ItemController extends BaseController
         return view('items/item_form', $data);
     }
 
-    /**
-     * Gère la sauvegarde (création ou mise à jour) d'une carte.
-     */
     public function save()
     {
-        if (!$this->request->is('post')) {
-            return redirect()->to('/');
-        }
-
-        if (!auth()->loggedIn()) {
-            return redirect()->to('z');
-        }
-
-        $rules = [
-            'titre'                 => 'required|max_length[100]',
-            'id'                    => 'permit_empty|is_natural_no_zero|is_not_unique[item.id]',
-            'id_division'           => 'required|is_natural_no_zero|is_not_unique[division.id]',
-            'status'                => 'required|is_not_unique[statuts.nom]',
-            'saison'                => 'permit_empty|is_natural',
-            'total_saisons'         => 'permit_empty|is_natural',
-            'episode'               => 'permit_empty|is_natural',
-            'total_episodes'        => 'permit_empty|is_natural',
-            'sous_categorie_select' => 'permit_empty|max_length[255]',
-            'sous_categorie_new'    => 'permit_empty|max_length[255]',
-            'image'                 => 'permit_empty|max_length[255]',
-            'lien'                  => 'permit_empty|max_length[2048]',
-            'date_sortie'           => 'permit_empty|valid_date[Y-m-d\TH:i]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('error', 'Erreur dans le formulaire.');
-        }
-
-        $data = $this->request->getPost();
-        $id = $this->request->getPost('id');
-        $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
-        $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        $audit = new AuditLogModel();
-
-        $wantsPublic = $this->request->getPost('is_public');
-        $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
-        if ((int) ($data['id_division'] ?? 0) === ItemModel::PERSONAL_DIVISION_ID) {
-            $data['is_public'] = 0;
-        }
-
-        $releaseDate = $this->request->getPost('date_sortie');
-        $data['date_sortie'] = empty($releaseDate) ? null : str_replace('T', ' ', (string) $releaseDate) . ':00';
-
-        $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
-        $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
-        $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
-        $data['total_episodes'] = ('' === $this->request->getPost('total_episodes')) ? null : $this->request->getPost('total_episodes');
-
-        $sousCatSelect = $this->request->getPost('sous_categorie_select');
-        $sousCatNew = $this->request->getPost('sous_categorie_new');
-
-        if ('__NEW__' === $sousCatSelect) {
-            $data['sous_categorie'] = empty($sousCatNew) ? null : trim((string) $sousCatNew);
-        } else {
-            $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string) $sousCatSelect);
-        }
-
-        if ($data['is_public'] == 1) {
-            $data['status'] = 'Public';
-        } elseif ($data['is_public'] == 0) {
-            if (empty($data['status']) || $data['status'] === 'Public') {
-                $data['status'] = 'Aucun';
-            }
-        }
-
-        $existing = null;
-        if ($id) {
-            $existing = $this->model->find($id);
-            if ($existing) {
-                $data['id_user'] = $existing->id_user;
-            }
-        } else {
-            $data['id_user'] = auth()->id();
-        }
-
-        $backUrl = $this->request->getPost('redirect_url') ?: site_url('/');
-        $separator = (str_contains($backUrl, '?')) ? '&' : '?';
-
-        if ($id) {
-            $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
-
-            if (!$canEdit) {
-                $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
-                return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
+        if ($this->request->is('post')) {
+            if (!auth()->loggedIn()) {
+                return redirect()->to('z');
             }
 
-            if (1 == $existing->is_public && 0 != $data['is_public'] && !$isSuperAdmin) {
-                $revisionModel = new ItemRevisionModel();
-                $existingRevision = $revisionModel->where('original_item_id', $id)->where('revision_status', 'pending')->first();
+            $rules = [
+                'titre'                 => 'required|max_length[100]',
+                'id'                    => 'permit_empty|is_natural_no_zero|is_not_unique[item.id]',
+                'id_division'           => 'required|is_natural_no_zero|is_not_unique[division.id]',
+                'status'                => 'required|is_not_unique[statuts.nom]',
+                'saison'                => 'permit_empty|is_natural',
+                'total_saisons'         => 'permit_empty|is_natural',
+                'episode'               => 'permit_empty|is_natural',
+                'total_episodes'        => 'permit_empty|is_natural',
+                'sous_categorie_select' => 'permit_empty|max_length[255]',
+                'sous_categorie_new'    => 'permit_empty|max_length[255]',
+                'image'                 => 'permit_empty|max_length[255]',
+                'lien'                  => 'permit_empty|max_length[2048]',
+                'date_sortie'           => 'permit_empty|valid_date[Y-m-d\TH:i]',
+            ];
 
-                $revisionData = [
-                    'original_item_id' => $id,
-                    'id_user'          => auth()->id(),
-                    'titre'            => $data['titre'],
-                    'sous_categorie'   => $data['sous_categorie'] ?? $existing->sous_categorie,
-                    'status'           => $data['status'],
-                    'image'            => $data['image'] ?? $existing->image,
-                    'lien'             => $data['lien'] ?? null,
-                    'description'      => $data['description'] ?? null,
-                    'episode'          => $data['episode'] ?? null,
-                    'total_episodes'   => $data['total_episodes'] ?? null,
-                    'saison'           => $data['saison'] ?? null,
-                    'total_saisons'    => $data['total_saisons'] ?? null,
-                    'position'         => $existing->position,
-                    'date_sortie'      => $data['date_sortie'],
-                    'revision_status'  => 'pending',
-                ];
+            if (!$this->validate($rules)) {
+                return redirect()->back()->withInput()->with('error', 'Erreur dans le formulaire.');
+            }
 
-                if ($existingRevision) {
-                    $revisionData['id'] = $existingRevision['id'];
+            $data = $this->request->getPost();
+            $id = $this->request->getPost('id');
+            $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
+            $isSuperAdmin = auth()->user()->inGroup('superadmin');
+            $audit = new AuditLogModel();
+
+            $wantsPublic = $this->request->getPost('is_public');
+            $data['is_public'] = $wantsPublic ? ($isSuperAdmin ? 1 : 2) : 0;
+            if ((int) ($data['id_division'] ?? 0) === ItemModel::PERSONAL_DIVISION_ID) {
+                $data['is_public'] = 0;
+            }
+
+            $releaseDate = $this->request->getPost('date_sortie');
+            $data['date_sortie'] = empty($releaseDate) ? null : str_replace('T', ' ', (string) $releaseDate) . ':00';
+
+            $data['saison'] = ('' === $this->request->getPost('saison')) ? null : $this->request->getPost('saison');
+            $data['total_saisons'] = ('' === $this->request->getPost('total_saisons')) ? null : $this->request->getPost('total_saisons');
+            $data['episode'] = ('' === $this->request->getPost('episode')) ? null : $this->request->getPost('episode');
+            $data['total_episodes'] = ('' === $this->request->getPost('total_episodes')) ? null : $this->request->getPost('total_episodes');
+
+            $sousCatSelect = $this->request->getPost('sous_categorie_select');
+            $sousCatNew = $this->request->getPost('sous_categorie_new');
+
+            if ('__NEW__' === $sousCatSelect) {
+                $data['sous_categorie'] = empty($sousCatNew) ? null : trim((string) $sousCatNew);
+            } else {
+                $data['sous_categorie'] = empty($sousCatSelect) ? null : trim((string) $sousCatSelect);
+            }
+
+            if ($data['is_public'] == 1) {
+                $data['status'] = 'Public';
+            } elseif ($data['is_public'] == 0) {
+                if (empty($data['status']) || $data['status'] === 'Public') {
+                    $data['status'] = 'Aucun';
+                }
+            }
+
+            $existing = null;
+            if ($id) {
+                $existing = $this->model->find($id);
+                if ($existing) {
+                    $data['id_user'] = $existing->id_user;
+                }
+            } else {
+                $data['id_user'] = auth()->id();
+            }
+
+            $backUrl = $this->request->getPost('redirect_url') ?: site_url('/');
+            $separator = (str_contains($backUrl, '?')) ? '&' : '?';
+
+            if ($id) {
+                $canEdit = $existing && ((int) $existing->id_user === (int) auth()->id() || $isAdmin);
+
+                if (!$canEdit) {
+                    $audit->logAction('Violation Accès', "Tentative non autorisée de modification sur la carte ID {$id}.");
+
+                    return redirect()->back()->with('error', "Vous n'avez pas les droits pour modifier cette carte.");
                 }
 
-                $revisionModel->save($revisionData);
-                $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
-                $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
+                if (1 == $existing->is_public && 0 != $data['is_public'] && !$isSuperAdmin) {
+                    $revisionModel = new ItemRevisionModel();
+                    $existingRevision = $revisionModel->where('original_item_id', $id)->where('revision_status', 'pending')->first();
 
-                return redirect()->to($backUrl . $separator . 'open=' . $existing->id_division . '#card-' . $id)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
-            }
+                    $revisionData = [
+                        'original_item_id' => $id,
+                        'id_user'          => auth()->id(),
+                        'titre'            => $data['titre'],
+                        'sous_categorie'   => $data['sous_categorie'] ?? $existing->sous_categorie,
+                        'status'           => $data['status'],
+                        'image'            => $data['image'] ?? $existing->image,
+                        'lien'             => $data['lien'] ?? null,
+                        'description'      => $data['description'] ?? null,
+                        'episode'          => $data['episode'] ?? null,
+                        'total_episodes'   => $data['total_episodes'] ?? null,
+                        'saison'           => $data['saison'] ?? null,
+                        'total_saisons'    => $data['total_saisons'] ?? null,
+                        'position'         => $existing->position,
+                        'date_sortie'      => $data['date_sortie'],
+                        'revision_status'  => 'pending',
+                    ];
 
-            $item = new Item($data);
-            $progressChanged = !$existing;
+                    if ($existingRevision) {
+                        $revisionData['id'] = $existingRevision['id'];
+                    }
 
-            if ($existing) {
-                foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
-                    if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
-                        $progressChanged = true;
-                        break;
+                    $revisionModel->save($revisionData);
+                    $actionLog = $existingRevision ? 'Mise à jour Draft' : 'Soumission Draft';
+                    $audit->logAction($actionLog, "L'utilisateur a proposé une modification pour la carte publique ID {$id} ('{$existing->titre}').");
+                    $this->invalidateHomeCaches((int) $existing->id_user);
+
+                    return redirect()->to($backUrl . $separator . 'open=' . $existing->id_division . '#card-' . $id)->with('message', 'Votre modification a été soumise au SuperAdmin pour validation.');
+                }
+
+                $item = new Item($data);
+                $progressChanged = !$existing;
+
+                if ($existing) {
+                    foreach (['titre', 'saison', 'episode', 'total_episodes', 'total_saisons'] as $field) {
+                        if ((string) ($data[$field] ?? '') !== (string) ($existing->{$field} ?? '')) {
+                            $progressChanged = true;
+                            break;
+                        }
                     }
                 }
+
+                if ($progressChanged && !empty($data['saison']) && !empty($data['episode'])) {
+                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                    $item->episode_global = $globalData['episode_global'];
+                    $item->total_episodes_global = $globalData['total_episodes_global'];
+                }
+
+                $this->model->save($item);
+
+                $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
+                $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
+
+                if (1 == $existing->is_public && 0 == $data['is_public']) {
+                    (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
+                    $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
+                }
+
+                $this->invalidateHomeCaches((int) $data['id_user']);
+            } else {
+                $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
+                $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
+
+                $item = new Item($data);
+                if (!empty($data['saison']) && !empty($data['episode'])) {
+                    $globalData = $this->syncGlobalEpisodesWithTMDB($item);
+                    $item->episode_global = $globalData['episode_global'];
+                    $item->total_episodes_global = $globalData['total_episodes_global'];
+                }
+
+                $this->model->save($item);
+                $newId = $this->model->getInsertID();
+
+                $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
+                $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
+                $this->invalidateHomeCaches((int) $data['id_user']);
             }
 
-            if ($progressChanged && !empty($data['saison']) && !empty($data['episode'])) {
-                $globalData = $this->syncGlobalEpisodesWithTMDB($item);
-                $item->episode_global = $globalData['episode_global'];
-                $item->total_episodes_global = $globalData['total_episodes_global'];
+            $subParam = !empty($data['sous_categorie']) ? '&subopen=' . urlencode($data['sous_categorie']) : '';
+
+            if ($this->request->getPost('save_add_another')) {
+                return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
             }
 
-            $this->model->save($item);
+            $targetId = $id ?: ($newId ?? '');
 
-            $statutVisibility = 1 == $data['is_public'] ? 'Publique' : 'Privée';
-            $audit->logAction('Mise à jour Carte', "Modification de la carte ID {$id} ('{$data['titre']}'). Visibilité : {$statutVisibility}.");
-
-            if (1 == $existing->is_public && 0 == $data['is_public']) {
-                (new ItemRevisionModel())->where('original_item_id', $id)->where('revision_status', 'pending')->delete();
-                $audit->logAction('Nettoyage Draft', "Passage en privée de la carte ID {$id} : Suppression automatique des drafts en attente.");
-            }
-        } else {
-            $maxPosition = $this->model->where('id_division', $data['id_division'])->where('id_user', $data['id_user'])->selectMax('position')->get()->getRow()->position;
-            $data['position'] = (null !== $maxPosition) ? ((int) $maxPosition + 1) : 0;
-
-            $item = new Item($data);
-            if (!empty($data['saison']) && !empty($data['episode'])) {
-                $globalData = $this->syncGlobalEpisodesWithTMDB($item);
-                $item->episode_global = $globalData['episode_global'];
-                $item->total_episodes_global = $globalData['total_episodes_global'];
-            }
-
-            $this->model->save($item);
-            $newId = $this->model->getInsertID();
-
-            $statutVisibility = 2 == $data['is_public'] ? 'En attente' : (1 == $data['is_public'] ? 'Publique' : 'Privée');
-            $audit->logAction('Création Carte', "Création de la carte ID {$newId} ('{$data['titre']}'). Visibilité initiale: {$statutVisibility}.");
+            return redirect()->to($backUrl . $separator . 'open=' . $data['id_division'] . $subParam . '#card-' . $targetId)->with('success', 'Carte enregistrée.');
         }
-
-        $subParam = !empty($data['sous_categorie']) ? '&subopen=' . urlencode($data['sous_categorie']) : '';
-
-        if ($this->request->getPost('save_add_another')) {
-            return redirect()->to('m')->with('success', 'Carte enregistrée. Vous pouvez en ajouter une autre.');
-        }
-
-        $targetId = $id ?: ($newId ?? '');
-
-        return redirect()->to($backUrl . $separator . 'open=' . $data['id_division'] . $subParam . '#card-' . $targetId)->with('success', 'Carte enregistrée.');
     }
 
-    /**
-     * Place une carte dans la corbeille.
-     *
-     * @param null|mixed $id
-     */
     public function delete($id = null)
     {
         if (null !== $id) {
@@ -267,9 +283,11 @@ class ItemController extends BaseController
             if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
                 $id_div = $item->id_division;
                 $titre = $item->titre;
+                $ownerId = (int) $item->id_user;
 
                 $this->model->delete($id);
                 (new AuditLogModel())->logAction('Suppression Carte', "Suppression de la carte ID {$id} ('{$titre}').");
+                $this->invalidateHomeCaches($ownerId);
 
                 $backUrl = $this->request->getUserAgent()->getReferrer() ?: site_url('/');
                 $separator = (str_contains($backUrl, '?')) ? '&' : '?';
@@ -277,15 +295,10 @@ class ItemController extends BaseController
                 return redirect()->to($backUrl . $separator . 'open=' . $id_div . '#div-' . $id_div);
             }
         }
+
         return redirect()->back();
     }
 
-    /**
-     * Incrémente rapidement l'épisode depuis le dashboard et récupère le total d'épisodes
-     * de la nouvelle saison via TMDB (avec fallback Jikan pour les animes).
-     *
-     * @param mixed $id
-     */
     public function incrementEpisode($id)
     {
         $item = $this->model->find($id);
@@ -299,6 +312,7 @@ class ItemController extends BaseController
                         'csrf_token' => csrf_hash(),
                     ]);
                 }
+
                 return redirect()->back()->with('error', 'Vous ne pouvez pas modifier cette carte.');
             }
 
@@ -371,6 +385,7 @@ class ItemController extends BaseController
             }
 
             (new AuditLogModel())->logAction('Incrémentation Rapide', $logMessage);
+            $this->invalidateHomeCaches((int) $item->id_user);
 
             if ($this->request->isAJAX()) {
                 $finalItem = $this->model->find($id);
@@ -386,12 +401,10 @@ class ItemController extends BaseController
                 ]);
             }
         }
+
         return redirect()->back();
     }
 
-    /**
-     * Liste des cartes publiques pouvant être transférées.
-     */
     public function checkToGlobal()
     {
         $revisionModel = new ItemRevisionModel();
@@ -416,28 +429,23 @@ class ItemController extends BaseController
         ]);
     }
 
-    /**
-     * Transfère la propriété d'une carte au profil d'administration.
-     *
-     * @param mixed $id
-     */
     public function turnToAdmin($id)
     {
         $item = $this->model->find($id);
         $isAdmin = auth()->user()->inGroup('admin', 'superadmin');
 
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isAdmin)) {
+            $oldOwner = (int) $item->id_user;
             $this->model->update($id, ['id_user' => 1]);
             (new AuditLogModel())->logAction('Transfert Carte', "La carte ID {$id} ('{$item->titre}') a été transférée à l'admin.");
+            $this->invalidateHomeCaches($oldOwner);
 
             return redirect()->back()->with('message', "La carte a été transférée à l'admin avec succès.");
         }
+
         return redirect()->back()->with('error', "Vous n'avez pas les droits pour effectuer cette action.");
     }
 
-    /**
-     * Met à jour l'ordre d'affichage des cartes via un appel AJAX.
-     */
     public function updateOrder()
     {
         if ($this->request->is('ajax')) {
@@ -447,13 +455,13 @@ class ItemController extends BaseController
                     return $this->response->setJSON(['success' => false, 'error' => 'Session expirée.']);
                 }
 
-                $userId = auth()->id();
+                $userId = (int) auth()->id();
                 $isSuperAdmin = auth()->user()->inGroup('superadmin');
 
                 $count = 0;
                 foreach ($json->order as $index => $itemId) {
                     $item = $this->model->find($itemId);
-                    if ($item && ((int) $item->id_user === (int) $userId || $isSuperAdmin)) {
+                    if ($item && ((int) $item->id_user === $userId || $isSuperAdmin)) {
                         $this->model->update($itemId, ['position' => $index]);
                         ++$count;
                     }
@@ -461,16 +469,19 @@ class ItemController extends BaseController
 
                 if ($count > 0) {
                     (new AuditLogModel())->logAction('Reorganisation', "Ordre d'affichage de {$count} carte(s) modifié.");
+                    $this->invalidateHomeCaches($userId);
                 }
 
                 return $this->response->setJSON(['success' => true, 'message' => 'Ordre mis à jour.', 'csrf_token' => csrf_hash()]);
             }
         }
+
         return $this->response->setJSON(['success' => false, 'error' => 'Requête invalide.']);
     }
 
     /**
-     * Vérifie en direct via AJAX la disponibilité d'une vidéo/lecteur sur une URL ciblée.
+     * Vérifie en direct via AJAX la disponibilité d'une vidéo/lecteur sur une URL ciblée,
+     * avec mise en cache pour éviter les appels externes répétés.
      */
     public function checkDispo()
     {
@@ -479,7 +490,13 @@ class ItemController extends BaseController
             return $this->response->setJSON(['success' => false, 'error' => 'URL invalide.']);
         }
 
-        $urlParts = parse_url((string) $urlCible);
+        $dispoCacheKey = 'dispo_check_v1_' . md5($urlCible);
+        $cachedResult = cache($dispoCacheKey);
+        if (is_array($cachedResult)) {
+            return $this->response->setJSON($cachedResult);
+        }
+
+        $urlParts = parse_url($urlCible);
         $host = strtolower(rtrim((string) ($urlParts['host'] ?? ''), '.'));
 
         $cacheKey = 'parsing_sites_config';
@@ -506,28 +523,27 @@ class ItemController extends BaseController
         }
 
         $matches = [];
-        @preg_match($currentConfig['regex_episode'], (string) $urlCible, $matches);
+        @preg_match($currentConfig['regex_episode'], $urlCible, $matches);
         $episodeExtrait = $matches[1] ?? null;
 
         try {
             $client = Services::curlrequest([
-                'timeout'         => 3,
-                'connect_timeout' => 2,
+                'timeout'         => 2,
+                'connect_timeout' => 1,
                 'http_errors'     => false,
                 'allow_redirects' => false,
                 'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
 
-            $response = $client->get($urlCible, [
-                'stream' => true,
-                'read_timeout' => 3,
-            ]);
+            $response = $client->get($urlCible);
             if ($response->getStatusCode() === 404) {
-                return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']]);
+                $payload = ['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']];
+                cache()->save($dispoCacheKey, $payload, self::DISPO_CACHE_TTL);
+
+                return $this->response->setJSON($payload);
             }
 
-            $body = $response->getBody();
-            $html = method_exists($body, 'read') ? $body->read(1_048_576) : substr((string) $body, 0, 1_048_576);
+            $html = (string) $response->getBody();
             $estSurFicheAnime = false;
             $lecteurPresent = false;
 
@@ -550,19 +566,19 @@ class ItemController extends BaseController
 
             unset($html);
 
-            return $this->response->setJSON([
+            $payload = [
                 'success'    => true,
                 'disponible' => !$estSurFicheAnime && $lecteurPresent,
                 'details'    => ['estSurFicheAnime' => $estSurFicheAnime, 'lecteurPresent' => $lecteurPresent],
-            ]);
+            ];
+            cache()->save($dispoCacheKey, $payload, self::DISPO_CACHE_TTL);
+
+            return $this->response->setJSON($payload);
         } catch (\Throwable $e) {
             return $this->response->setJSON(['success' => false, 'error' => 'Timeout']);
         }
     }
 
-    /**
-     * Affiche la vue de la corbeille.
-     */
     public function viewDeleted()
     {
         $userId = auth()->id();
@@ -572,11 +588,6 @@ class ItemController extends BaseController
         return view('items/deleted_items', ['deletedItems' => $deletedItems]);
     }
 
-    /**
-     * Restaure une carte spécifique.
-     *
-     * @param mixed $id
-     */
     public function restore($id)
     {
         $isSuperAdmin = auth()->user()->inGroup('superadmin');
@@ -585,17 +596,14 @@ class ItemController extends BaseController
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
             $this->model->builder()->where('id', $id)->update(['deleted_at' => null]);
             (new AuditLogModel())->logAction('Restauration', "La carte ID {$id} ('{$item->titre}') a été restaurée de la corbeille.");
+            $this->invalidateHomeCaches((int) $item->id_user);
 
             return redirect()->back()->with('message', "La carte '{$item->titre}' a été restaurée avec succès.");
         }
+
         return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de restaurer cette carte.");
     }
 
-    /**
-     * Supprime définitivement une carte.
-     *
-     * @param mixed $id
-     */
     public function permanentDelete($id)
     {
         $isSuperAdmin = auth()->user()->inGroup('superadmin');
@@ -603,22 +611,22 @@ class ItemController extends BaseController
 
         if ($item && ((int) $item->id_user === (int) auth()->id() || $isSuperAdmin)) {
             $titre = $item->titre;
+            $ownerId = (int) $item->id_user;
             $this->model->delete($id, true);
             (new CronLogModel())->where('item_id', $id)->delete();
             (new AuditLogModel())->logAction('Suppression Définitive', "La carte ID {$id} ('{$titre}') a été détruite définitivement.");
+            $this->invalidateHomeCaches($ownerId);
 
             return redirect()->back()->with('message', "La carte '{$titre}' a été définitivement supprimée de la base de données.");
         }
+
         return redirect()->back()->with('error', "Vous n'avez pas l'autorisation de supprimer définitivement cette carte.");
     }
 
-    /**
-     * Restaure l'intégralité des cartes de la corbeille.
-     */
     public function restoreAll()
     {
         $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        $userId = auth()->id();
+        $userId = (int) auth()->id();
 
         $builder = $this->model->builder()->where('deleted_at IS NOT NULL');
         if (!$isSuperAdmin) {
@@ -627,17 +635,15 @@ class ItemController extends BaseController
         $builder->update(['deleted_at' => null]);
 
         (new AuditLogModel())->logAction('Restauration Globale', 'Toutes les cartes de la corbeille ont été restaurées.');
+        $this->invalidateHomeCaches($userId);
 
         return redirect()->back()->with('message', 'Vos cartes ont été restaurées avec succès.');
     }
 
-    /**
-     * Vide intégralement la corbeille.
-     */
     public function emptyTrash()
     {
         $isSuperAdmin = auth()->user()->inGroup('superadmin');
-        $userId = auth()->id();
+        $userId = (int) auth()->id();
 
         $query = $this->model->onlyDeleted();
         if (!$isSuperAdmin) {
@@ -646,11 +652,12 @@ class ItemController extends BaseController
 
         $itemsToDelete = $query->findAll();
         if (!empty($itemsToDelete)) {
-            $itemIds = array_map(static fn(Item $item): int => (int) $item->id, $itemsToDelete);
+            $itemIds = array_map(static fn (Item $item): int => (int) $item->id, $itemsToDelete);
             (new CronLogModel())->whereIn('item_id', $itemIds)->delete();
             $this->model->builder()->whereIn('id', $itemIds)->delete();
 
             (new AuditLogModel())->logAction('Vidage Corbeille', 'La corbeille a été vidée définitivement (' . count($itemIds) . ' cartes détruites).');
+            $this->invalidateHomeCaches($userId);
         }
 
         return redirect()->back()->with('message', 'Vos cartes supprimées ont été vidées définitivement.');
@@ -660,9 +667,8 @@ class ItemController extends BaseController
     {
         $apiKey = env('TMDB_API_KEY') ?? 'ba55da0439797150ed58c4e524584823';
         $client = Services::curlrequest([
-            'timeout'         => 3,
-            'connect_timeout' => 2,
-            'http_errors'     => false,
+            'timeout'      => 5,
+            'http_errors'  => false,
         ]);
 
         $episodeGlobal = (int) $item->episode;
@@ -730,8 +736,8 @@ class ItemController extends BaseController
                     }
                 }
             }
-        } catch (\Throwable $e) {
-            log_message('warning', 'syncGlobalEpisodesWithTMDB: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            // Silence
         }
 
         $result = [
@@ -749,9 +755,8 @@ class ItemController extends BaseController
     private function fetchSeasonEpisodesFromJikan(string $titre, int $saison): ?int
     {
         $client = Services::curlrequest([
-            'timeout'         => 3,
-            'connect_timeout' => 2,
-            'http_errors'     => false,
+            'timeout'     => 5,
+            'http_errors' => false,
         ]);
 
         try {
@@ -764,8 +769,8 @@ class ItemController extends BaseController
                     return (int) $body['data'][0]['episodes'];
                 }
             }
-        } catch (\Throwable $e) {
-            log_message('warning', 'fetchSeasonEpisodesFromJikan: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            // Silence
         }
 
         return null;
@@ -778,6 +783,7 @@ class ItemController extends BaseController
         }
 
         $user = auth()->user();
+
         return (int) $item->id_user === (int) auth()->id() ||
             $user->inGroup('admin', 'superadmin');
     }
@@ -799,6 +805,7 @@ class ItemController extends BaseController
             return null;
         }
         $host = strtolower(rtrim($host, '.'));
+
         return (string) preg_replace('/^www\./i', '', $host);
     }
 
@@ -839,6 +846,7 @@ class ItemController extends BaseController
     {
         $normalize = function (string $domain): ?string {
             $domain = $this->reportedLinkHost($domain);
+
             return $domain === null ? null : (string) preg_replace('/^www\./i', '', $domain);
         };
         $normalizedHost = $normalize($host);
@@ -856,6 +864,7 @@ class ItemController extends BaseController
                 return true;
             }
         }
+
         return false;
     }
 
@@ -877,6 +886,7 @@ class ItemController extends BaseController
         if ($userDay >= self::USER_REPORT_LIMIT_PER_DAY || $ipDay >= self::IP_REPORT_LIMIT_PER_DAY) {
             return 'Limite quotidienne de signalements atteinte.';
         }
+
         return null;
     }
 
@@ -898,6 +908,7 @@ class ItemController extends BaseController
                 $matches[] = $candidate;
             }
         }
+
         return $matches;
     }
 
@@ -963,7 +974,7 @@ class ItemController extends BaseController
         $db = db_connect();
         $lockName = 'deadlink_' . substr(hash('sha256', $host), 0, 48);
         $lockedHost = $host;
-        $lock = $db->query('SELECT GET_LOCK(?, 5) AS acquired', [$lockName])->getRowArray();
+        $lock = $db->query('SELECT GET_LOCK(?, 8) AS acquired', [$lockName])->getRowArray();
         if ((int) ($lock['acquired'] ?? 0) !== 1) {
             return $this->response->setStatusCode(503)->setJSON([
                 'success'    => false,
@@ -977,6 +988,7 @@ class ItemController extends BaseController
             $item = $this->model->find($itemId);
             if (!$item || empty($item->lien)) {
                 $db->transRollback();
+
                 return $this->response->setStatusCode(404)->setJSON([
                     'success'    => false,
                     'message'    => 'Carte introuvable ou lien vide.',
@@ -985,6 +997,7 @@ class ItemController extends BaseController
             }
             if ((int) $item->id_division === ItemModel::PERSONAL_DIVISION_ID) {
                 $db->transRollback();
+
                 return $this->response->setStatusCode(403)->setJSON([
                     'success'    => false,
                     'message'    => 'Les cartes personnelles sont privées et ne peuvent pas être signalées.',
@@ -994,6 +1007,7 @@ class ItemController extends BaseController
             $host = $this->reportedLinkHost((string) $item->lien);
             if ($host === null || $host !== $lockedHost) {
                 $db->transRollback();
+
                 return $this->response->setJSON([
                     'success'    => false,
                     'message'    => 'Le lien de cette carte a changé. Rechargez la page avant de le signaler.',
@@ -1002,6 +1016,7 @@ class ItemController extends BaseController
             }
             if ($this->isWhitelistedReportHost($host)) {
                 $db->transRollback();
+
                 return $this->response->setJSON([
                     'success'    => false,
                     'message'    => 'Ce domaine a été confirmé fonctionnel récemment. Il pourra être signalé à nouveau après 7 jours.',
@@ -1010,6 +1025,7 @@ class ItemController extends BaseController
             }
             if ($this->domainAlreadyReported($host)) {
                 $db->transRollback();
+
                 return $this->response->setJSON([
                     'success'    => false,
                     'message'    => 'Ce domaine a déjà un signalement en attente ou traité.',
@@ -1049,6 +1065,8 @@ class ItemController extends BaseController
             }
 
             $db->transCommit();
+            $this->invalidateHomeCaches();
+
             return $this->response->setJSON([
                 'success'    => true,
                 'message'    => 'Signalement enregistré. Merci pour votre aide !',
@@ -1060,6 +1078,7 @@ class ItemController extends BaseController
                 'host'    => $host,
                 'message' => $e->getMessage(),
             ]);
+
             return $this->response->setStatusCode(500)->setJSON([
                 'success'    => false,
                 'message'    => 'Le signalement n’a pas pu être enregistré. Réessayez plus tard.',

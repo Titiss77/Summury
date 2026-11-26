@@ -42,7 +42,7 @@ class Auth
     /**
      * The current version of CodeIgniter Shield
      */
-    public const SHIELD_VERSION = '1.4.1';
+    public const SHIELD_VERSION = '1.5.0';
 
     protected ?Authentication $authenticate = null;
 
@@ -111,7 +111,7 @@ class Auth
     {
         $user = $this->user();
 
-        return ($user !== null) ? $user->id : null;
+        return $user?->id;
     }
 
     public function authenticate(array $credentials): Result
@@ -130,6 +130,8 @@ class Auth
      * Usage (in Config/Routes.php):
      *      - auth()->routes($routes);
      *      - auth()->routes($routes, ['except' => ['login', 'register']])
+     *
+     * @throws InvalidArgumentException If both "only" and "except" options are specified.
      */
     public function routes(RouteCollection &$routes, array $config = []): void
     {
@@ -153,13 +155,22 @@ class Auth
                     $shouldInclude = ! in_array($name, $config['except'], true);
                 }
 
-                if ($shouldInclude) {
-                    foreach ($row as $params) {
-                        $options = isset($params[3])
-                            ? ['as' => $params[3]]
-                            : null;
-                        $routes->{$params[0]}($params[1], $params[2], $options);
+                if (! $shouldInclude) {
+                    continue;
+                }
+
+                foreach ($row as $params) {
+                    $options = $params[4] ?? [];
+
+                    if (isset($params[3])) {
+                        $options['as'] = $params[3];
                     }
+
+                    $routes->{$params[0]}( // @phpstan-ignore method.dynamicName
+                        $params[1],
+                        $params[2],
+                        $options !== [] ? $options : null,
+                    );
                 }
             }
         });
@@ -199,7 +210,7 @@ class Auth
         $authenticator = $this->authenticate->factory($this->alias);
 
         if (method_exists($authenticator, $method)) {
-            return $authenticator->{$method}(...$args);
+            return $authenticator->{$method}(...$args); // @phpstan-ignore method.dynamicName
         }
     }
 }

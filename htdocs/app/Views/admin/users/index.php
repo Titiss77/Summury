@@ -203,17 +203,11 @@
                                 <a href="<?php echo base_url('a/u/'.$user->id); ?>"
                                     class="btn-action btn-edit">Modifier</a>
                                 <?php if ($user->isBanned()) { ?>
-                                <form action="<?php echo base_url('a/u/'.$user->id.'/b'); ?>" method="post"
-                                    onsubmit="return confirm('Réhabiliter cet utilisateur ?')">
-                                    <?php echo csrf_field(); ?>
-                                    <button type="submit" class="btn-action btn-unban">Débannir</button>
-                                </form>
+                                <a href="<?php echo base_url('a/u/'.$user->id.'/b'); ?>" class="btn-action btn-unban"
+                                    onclick="return confirm('Réhabiliter cet utilisateur ?')">Débannir</a>
                                 <?php } else { ?>
-                                <form action="<?php echo base_url('a/u/'.$user->id.'/x'); ?>" method="post"
-                                    onsubmit="return confirm('Suspendre ce compte ?')">
-                                    <?php echo csrf_field(); ?>
-                                    <button type="submit" class="btn-action btn-ban">Bannir</button>
-                                </form>
+                                <a href="<?php echo base_url('a/u/'.$user->id.'/x'); ?>" class="btn-action btn-ban"
+                                    onclick="return confirm('Suspendre ce compte ?')">Bannir</a>
                                 <?php } ?>
                             </div>
                         </td>

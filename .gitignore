@@ -6,8 +6,3 @@
 /htdocs/.php-cs-fixer.cache
 /htdocs/.php-cs-fixer.php
 *.sql*
-
-/htdocs/vendor/
-/htdocs/build/
-/htdocs/.phpunit.cache/
-/htdocs/tests/coverage/

@@ -14,7 +14,7 @@ class Database extends Config
     /**
      * Répertoire des migrations/seeds.
      */
-    public string $filesPath = APPPATH . 'Database' . DIRECTORY_SEPARATOR;
+    public string $filesPath = APPPATH.'Database'.DIRECTORY_SEPARATOR;
 
     /**
      * Groupe par défaut.
@@ -23,62 +23,62 @@ class Database extends Config
     public string $defaultGroup = 'development';
 
     /**
-     * Configuration DEVELOPMENT (remplie par .env).
+     * Configuration DEVELOPMENT (vide, remplie par .env).
      */
     public array $development = [
-        'DSN'          => '',
-        'hostname'     => '',
-        'username'     => '',
-        'password'     => '',
-        'database'     => '',
-        'DBDriver'     => 'MySQLi',
-        'DBPrefix'     => '',
-        'pConnect'     => false,
-        'DBDebug'      => true,
-        'charset'      => 'utf8mb4',
-        'DBCollat'     => 'utf8mb4_general_ci',
-        'swapPre'      => '',
-        'encrypt'      => false,
-        'compress'     => false,
-        'strictOn'     => false,
-        'failover'     => [],
-        'port'         => 3306,
+        'DSN' => '',
+        'hostname' => '',
+        'username' => '',
+        'password' => '',
+        'database' => '',
+        'DBDriver' => 'MySQLi',
+        'DBPrefix' => '',
+        'pConnect' => false,
+        'DBDebug' => true,
+        'charset' => 'utf8mb4',
+        'DBCollat' => 'utf8mb4_general_ci',
+        'swapPre' => '',
+        'encrypt' => false,
+        'compress' => false,
+        'strictOn' => false,
+        'failover' => [],
+        'port' => 3306,
         'numberNative' => false,
-        'foundRows'    => false,
-        'dateFormat'   => [
-            'date'     => 'Y-m-d',
+        'foundRows' => false,
+        'dateFormat' => [
+            'date' => 'Y-m-d',
             'datetime' => 'Y-m-d H:i:s',
-            'time'     => 'H:i:s',
+            'time' => 'H:i:s',
         ],
     ];
 
     /**
-     * Configuration PRODUCTION (remplie par .env).
+     * Configuration PRODUCTION (vide, remplie par .env).
      */
     public array $production = [
-        'DSN'          => '',
-        'hostname'     => '',
-        'username'     => '',
-        'password'     => '',
-        'database'     => '',
-        'DBDriver'     => 'MySQLi',
-        'DBPrefix'     => '',
-        'pConnect'     => false,
-        'DBDebug'      => false,
-        'charset'      => 'utf8mb4',
-        'DBCollat'     => 'utf8mb4_general_ci',
-        'swapPre'      => '',
-        'encrypt'      => false,
-        'compress'     => false,
-        'strictOn'     => false,
-        'failover'     => [],
-        'port'         => 3306,
+        'DSN' => '',
+        'hostname' => '',
+        'username' => '',
+        'password' => '',
+        'database' => '',
+        'DBDriver' => 'MySQLi',
+        'DBPrefix' => '',
+        'pConnect' => false,
+        'DBDebug' => true,
+        'charset' => 'utf8mb4',
+        'DBCollat' => 'utf8mb4_general_ci',
+        'swapPre' => '',
+        'encrypt' => false,
+        'compress' => false,
+        'strictOn' => false,
+        'failover' => [],
+        'port' => 3306,
         'numberNative' => false,
-        'foundRows'    => false,
-        'dateFormat'   => [
-            'date'     => 'Y-m-d',
+        'foundRows' => false,
+        'dateFormat' => [
+            'date' => 'Y-m-d',
             'datetime' => 'Y-m-d H:i:s',
-            'time'     => 'H:i:s',
+            'time' => 'H:i:s',
         ],
     ];
 
@@ -86,29 +86,29 @@ class Database extends Config
      * Isolated in-memory database used by the PHPUnit suite.
      */
     public array $tests = [
-        'DSN'          => '',
-        'hostname'     => '',
-        'username'     => '',
-        'password'     => '',
-        'database'     => ':memory:',
-        'DBDriver'     => 'SQLite3',
-        'DBPrefix'     => 'tests_',
-        'pConnect'     => false,
-        'DBDebug'      => true,
-        'charset'      => 'utf8',
-        'DBCollat'     => 'utf8_general_ci',
-        'swapPre'      => '',
-        'encrypt'      => false,
-        'compress'     => false,
-        'strictOn'     => false,
-        'failover'     => [],
-        'port'         => 3306,
-        'foreignKeys'  => true,
-        'busyTimeout'  => 1000,
-        'dateFormat'   => [
-            'date'     => 'Y-m-d',
+        'DSN' => '',
+        'hostname' => '',
+        'username' => '',
+        'password' => '',
+        'database' => ':memory:',
+        'DBDriver' => 'SQLite3',
+        'DBPrefix' => 'tests_',
+        'pConnect' => false,
+        'DBDebug' => true,
+        'charset' => 'utf8',
+        'DBCollat' => 'utf8_general_ci',
+        'swapPre' => '',
+        'encrypt' => false,
+        'compress' => false,
+        'strictOn' => false,
+        'failover' => [],
+        'port' => 3306,
+        'foreignKeys' => true,
+        'busyTimeout' => 1000,
+        'dateFormat' => [
+            'date' => 'Y-m-d',
             'datetime' => 'Y-m-d H:i:s',
-            'time'     => 'H:i:s',
+            'time' => 'H:i:s',
         ],
     ];
 
@@ -116,6 +116,10 @@ class Database extends Config
     {
         parent::__construct();
 
+        // MAGIE ICI :
+        // On force le groupe par défaut à être égal au nom de l'environnement.
+        // Si CI_ENVIRONMENT = production, ça utilisera le groupe $production.
+        // Si CI_ENVIRONMENT = development, ça utilisera le groupe $development.
         $this->defaultGroup = ENVIRONMENT;
     }
 }
