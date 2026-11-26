@@ -6,3 +6,4 @@
 /htdocs/.php-cs-fixer.cache
 /htdocs/.php-cs-fixer.php
 *.sql*
+/htdocs/writable2
