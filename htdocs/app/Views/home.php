@@ -436,11 +436,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
                                         <a href="<?php echo base_url('m/' . $item->id); ?>"
                                             class="btn-icon btn-edit-sm">Modifier</a>
-                                        <form action="<?php echo base_url('d/' . $item->id); ?>" method="post"
-                                            onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');">
-                                            <?php echo csrf_field(); ?>
-                                            <button type="submit" class="btn-icon btn-delete-sm">Supprimer</button>
-                                        </form>
+                                        <a href="<?php echo base_url('d/' . $item->id); ?>"
+                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');"
+                                            class="btn-icon btn-delete-sm">Supprimer</a>
                                     </div>
                                     <?php } else { ?>
                                     <div style="padding-bottom: 1.5rem;"></div>

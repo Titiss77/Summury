@@ -45,11 +45,8 @@
                         <div class="action-links">
                             <a href="<?php echo base_url('a/sc/'.$config['id']); ?>"
                                 class="btn-action btn-edit">Modifier</a>
-                            <form action="<?php echo base_url('a/sc/delete/'.$config['id']); ?>" method="post"
-                                onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette configuration ?');">
-                                <?php echo csrf_field(); ?>
-                                <button type="submit" class="btn-action btn-ban">Supprimer</button>
-                            </form>
+                            <a href="<?php echo base_url('a/sc/delete/'.$config['id']); ?>" class="btn-action btn-ban"
+                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette configuration ?');">Supprimer</a>
                         </div>
                     </td>
                 </tr>

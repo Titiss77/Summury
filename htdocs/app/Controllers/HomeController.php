@@ -14,8 +14,6 @@ class HomeController extends BaseController
 {
     private function reportDomainStates(): array
     {
-        $cached = cache()->get('home_report_domain_states_v1');
-        if (is_array($cached)) return $cached;
         $states = [];
         $db = db_connect();
         $normalizeHost = static function (string $url): ?string {
@@ -50,7 +48,6 @@ class HomeController extends BaseController
             $host = $normalizeHost((string) ($entry['domain'] ?? ''));
             if ($host !== null && ! isset($states[$host])) $states[$host] = 'whitelist';
         }
-        cache()->save('home_report_domain_states_v1', $states, 300);
         return $states;
     }
 

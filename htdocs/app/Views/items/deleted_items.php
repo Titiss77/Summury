@@ -14,16 +14,14 @@
 
         <?php if (!empty($deletedItems)) { ?>
         <div style="display: flex; gap: 10px;">
-            <form action="<?php echo base_url('ra'); ?>" method="post"
-                onsubmit="return confirm('Êtes-vous sûr de vouloir restaurer TOUTES les cartes de la corbeille ?');">
-                <?php echo csrf_field(); ?>
-                <button type="submit" class="btn btn-success">Tout restaurer</button>
-            </form>
-            <form action="<?php echo base_url('re'); ?>" method="post"
-                onsubmit="return confirm('ATTENTION ACTION IRRÉVERSIBLE !\nÊtes-vous sûr de vouloir détruire DÉFINITIVEMENT toutes les cartes de cette page ?');">
-                <?php echo csrf_field(); ?>
-                <button type="submit" class="btn" style="background-color: var(--danger); color: #fff;">Tout détruire</button>
-            </form>
+            <a href="<?php echo base_url('ra'); ?>" class="btn btn-success"
+                onclick="return confirm('Êtes-vous sûr de vouloir restaurer TOUTES les cartes de la corbeille ?');">
+                Tout restaurer
+            </a>
+            <a href="<?php echo base_url('re'); ?>" class="btn" style="background-color: var(--danger); color: #fff;"
+                onclick="return confirm('ATTENTION ACTION IRRÉVERSIBLE !\nÊtes-vous sûr de vouloir détruire DÉFINITIVEMENT toutes les cartes de cette page ?');">
+                Tout détruire
+            </a>
         </div>
         <?php } ?>
     </div>
@@ -87,15 +85,15 @@
             </a>
 
             <div class="card-actions-bottom" style="justify-content: space-between;">
-                <form action="<?php echo base_url('rr/'.$item->id); ?>" method="post">
-                    <?php echo csrf_field(); ?>
-                    <button type="submit" class="btn-icon btn-edit-sm" style="color: var(--success); font-weight: bold;">Restaurer</button>
-                </form>
-                <form action="<?php echo base_url('rd/'.$item->id); ?>" method="post"
-                    onsubmit="return confirm('Êtes-vous sûr de vouloir détruire définitivement cette carte ?');">
-                    <?php echo csrf_field(); ?>
-                    <button type="submit" class="btn-icon btn-delete-sm" style="color: var(--danger);">Détruire</button>
-                </form>
+                <a href="<?php echo base_url('rr/'.$item->id); ?>" class="btn-icon btn-edit-sm"
+                    style="color: var(--success); font-weight: bold;">
+                    Restaurer
+                </a>
+                <a href="<?php echo base_url('rd/'.$item->id); ?>"
+                    onclick="return confirm('Êtes-vous sûr de vouloir détruire définitivement cette carte ?');"
+                    class="btn-icon btn-delete-sm" style="color: var(--danger);">
+                    Détruire
+                </a>
             </div>
         </div>
         <?php } ?>

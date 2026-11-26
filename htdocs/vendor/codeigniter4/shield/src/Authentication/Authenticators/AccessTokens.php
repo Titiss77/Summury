@@ -74,6 +74,7 @@ class AccessTokens implements AuthenticatorInterface
             return $result;
         }
 
+        /** @var User $user */
         $user  = $result->extraInfo();
         $token = $user->getAccessToken($this->getBearerToken());
 
@@ -126,7 +127,7 @@ class AccessTokens implements AuthenticatorInterface
      */
     public function check(array $credentials): Result
     {
-        if (! array_key_exists('token', $credentials) || empty($credentials['token'])) {
+        if (($credentials['token'] ?? '') === '') {
             return new Result([
                 'success' => false,
                 'reason'  => lang(
@@ -166,7 +167,7 @@ class AccessTokens implements AuthenticatorInterface
 
         // Hasn't been used in a long time
         if (
-            $token->last_used_at
+            $token->last_used_at !== null
             && $token->last_used_at->isBefore(
                 Time::now()->subSeconds(config('AuthToken')->unusedTokenLifetime),
             )
@@ -270,7 +271,7 @@ class AccessTokens implements AuthenticatorInterface
 
         $header = $request->getHeaderLine(config('AuthToken')->authenticatorHeader['tokens']);
 
-        if (empty($header)) {
+        if ($header === '') {
             return null;
         }
 

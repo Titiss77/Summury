@@ -7,6 +7,15 @@ namespace App\Controllers;
 use App\Libraries\ExternalUrlGuard;
 use Config\Services;
 
+/**
+ * Recherche multi-sources pour l'auto-remplissage des cartes.
+ *
+ * Sources utilisées :
+ * - TMDB : films, séries, anime, streaming légal
+ * - AniList : anime et mangas
+ * - MangaDex : mangas
+ * - YouTube Data API : vidéos (si YOUTUBE_API_KEY est défini dans .env)
+ */
 class MediaSearchController extends BaseController
 {
     private $client;
@@ -15,14 +24,16 @@ class MediaSearchController extends BaseController
     public function __construct()
     {
         $this->client = Services::curlrequest([
-            'timeout'         => 3,
+            'timeout' => 3,
             'connect_timeout' => 2,
-            'http_errors'     => false,
+            'http_errors' => false,
             'allow_redirects' => true,
-            'user_agent'      => 'Summury/1.0 CodeIgniter4 Media Search',
+            'user_agent' => 'Summury/1.0 CodeIgniter4 Media Search',
         ]);
 
-        $this->tmdbApiKey = trim((string) env('TMDB_API_KEY', ''));
+        // On conserve la clé actuellement utilisée par Summury pour éviter
+        // de casser le fonctionnement si le .env ne contient pas encore TMDB_API_KEY.
+        $this->tmdbApiKey = trim((string) (env('TMDB_API_KEY') ?: 'ba55da0439797150ed58c4e524584823'));
     }
 
     public function search()
@@ -40,6 +51,7 @@ class MediaSearchController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Requête trop longue.']);
         }
 
+        // Une URL reste traitée comme avant : récupération des métadonnées OpenGraph.
         if (filter_var($query, FILTER_VALIDATE_URL)) {
             if (!ExternalUrlGuard::isPublicHttpUrl($query)) {
                 return $this->response->setStatusCode(400)->setJSON(['error' => 'URL invalide.']);
@@ -51,19 +63,18 @@ class MediaSearchController extends BaseController
         }
 
         $type = $this->normalizeType($type);
-        $cacheKey = 'media_search_' . hash('sha256', $type . '|' . mb_strtolower($query));
-        $cachedResults = cache()->get($cacheKey);
-        if (is_array($cachedResults)) return $this->response->setJSON($cachedResults);
         $results = [];
 
         try {
             switch ($type) {
                 case 'film':
                     $results = $this->searchTmdbMovies($query);
+
                     break;
 
                 case 'serie':
                     $results = $this->searchTmdbSeries($query);
+
                     break;
 
                 case 'anime':
@@ -72,6 +83,7 @@ class MediaSearchController extends BaseController
                         $this->searchAniList($query, 'ANIME'),
                         $this->searchMangaDex($query, true)
                     );
+
                     break;
 
                 case 'manga':
@@ -79,34 +91,41 @@ class MediaSearchController extends BaseController
                         $this->searchAniList($query, 'MANGA'),
                         $this->searchMangaDex($query, false)
                     );
+
                     break;
 
                 case 'video':
                     $results = $this->searchYouTube($query);
+
                     break;
 
                 case 'streaming':
                     $results = $this->searchStreaming($query);
+
                     break;
 
                 default:
+                    // Pour une catégorie générique, on cherche dans les films/séries/anime/manga.
                     $results = array_merge(
                         $this->searchTmdbMovies($query, 4),
                         $this->searchTmdbSeries($query, 4),
                         $this->searchAniList($query, 'ANIME', 4),
                         $this->searchAniList($query, 'MANGA', 4)
                     );
+
                     break;
             }
         } catch (\Throwable $e) {
-            log_message('error', 'MediaSearchController: ' . $e->getMessage());
+            log_message('error', 'MediaSearchController: '.$e->getMessage());
         }
 
         $results = $this->prepareResults($results, $query, $type);
 
-        $payload = ['unified' => $results, 'type' => $type, 'count' => count($results)];
-        cache()->save($cacheKey, $payload, 900);
-        return $this->response->setJSON($payload);
+        return $this->response->setJSON([
+            'unified' => $results,
+            'type' => $type,
+            'count' => count($results),
+        ]);
     }
 
     private function normalizeType(string $type): string
@@ -138,10 +157,10 @@ class MediaSearchController extends BaseController
     private function searchTmdbMovies(string $query, int $limit = 8): array
     {
         $data = $this->tmdbGet('/search/movie', [
-            'query'         => $query,
-            'language'      => 'fr-FR',
+            'query' => $query,
+            'language' => 'fr-FR',
             'include_adult' => 'false',
-            'page'          => 1,
+            'page' => 1,
         ]);
 
         $results = [];
@@ -155,21 +174,21 @@ class MediaSearchController extends BaseController
             $year = substr((string) ($result['release_date'] ?? ''), 0, 4);
 
             $results[] = [
-                'titre'          => $title,
-                'imageThumb'     => 'https://image.tmdb.org/t/p/w200' . $poster,
-                'imageLarge'     => 'https://image.tmdb.org/t/p/w500' . $poster,
-                'description'    => (string) ($result['overview'] ?? ''),
-                'info'           => ($year ? $year . ' - ' : '') . 'FILM',
-                'lien'           => '',
+                'titre' => $title,
+                'imageThumb' => 'https://image.tmdb.org/t/p/w200'.$poster,
+                'imageLarge' => 'https://image.tmdb.org/t/p/w500'.$poster,
+                'description' => (string) ($result['overview'] ?? ''),
+                'info' => ($year ? $year.' - ' : '').'FILM',
+                'lien' => '',
                 'total_episodes' => '',
-                'total_saisons'  => '',
-                'seasons_data'   => null,
-                'source'         => 'TMDB',
+                'total_saisons' => '',
+                'seasons_data' => null,
+                'source' => 'TMDB',
                 'sourcePriority' => 100,
-                'externalId'     => $result['id'] ?? null,
-                'mediaType'      => 'movie',
-                'providers'      => [],
-                'score'          => 0,
+                'externalId' => $result['id'] ?? null,
+                'mediaType' => 'movie',
+                'providers' => [],
+                'score' => 0,
             ];
         }
 
@@ -179,10 +198,10 @@ class MediaSearchController extends BaseController
     private function searchTmdbSeries(string $query, int $limit = 8, int $detailLimit = 3): array
     {
         $data = $this->tmdbGet('/search/tv', [
-            'query'         => $query,
-            'language'      => 'fr-FR',
+            'query' => $query,
+            'language' => 'fr-FR',
             'include_adult' => 'false',
-            'page'          => 1,
+            'page' => 1,
         ]);
 
         $results = [];
@@ -195,7 +214,7 @@ class MediaSearchController extends BaseController
             $title = (string) ($result['name'] ?? $result['original_name'] ?? 'Inconnu');
             $year = substr((string) ($result['first_air_date'] ?? ''), 0, 4);
             $details = count($results) < $detailLimit
-                ? $this->tmdbGet('/tv/' . (int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
+                ? $this->tmdbGet('/tv/'.(int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
                 : [];
 
             $seasonsData = [];
@@ -207,21 +226,21 @@ class MediaSearchController extends BaseController
             }
 
             $results[] = [
-                'titre'          => $title,
-                'imageThumb'     => 'https://image.tmdb.org/t/p/w200' . $poster,
-                'imageLarge'     => 'https://image.tmdb.org/t/p/w500' . $poster,
-                'description'    => (string) ($result['overview'] ?? ''),
-                'info'           => ($year ? $year . ' - ' : '') . 'SÉRIE',
-                'lien'           => '',
+                'titre' => $title,
+                'imageThumb' => 'https://image.tmdb.org/t/p/w200'.$poster,
+                'imageLarge' => 'https://image.tmdb.org/t/p/w500'.$poster,
+                'description' => (string) ($result['overview'] ?? ''),
+                'info' => ($year ? $year.' - ' : '').'SÉRIE',
+                'lien' => '',
                 'total_episodes' => (int) ($details['number_of_episodes'] ?? 0),
-                'total_saisons'  => (int) ($details['number_of_seasons'] ?? 0),
-                'seasons_data'   => $seasonsData,
-                'source'         => 'TMDB',
+                'total_saisons' => (int) ($details['number_of_seasons'] ?? 0),
+                'seasons_data' => $seasonsData,
+                'source' => 'TMDB',
                 'sourcePriority' => 100,
-                'externalId'     => $result['id'] ?? null,
-                'mediaType'      => 'tv',
-                'providers'      => [],
-                'score'          => 0,
+                'externalId' => $result['id'] ?? null,
+                'mediaType' => 'tv',
+                'providers' => [],
+                'score' => 0,
             ];
         }
 
@@ -231,10 +250,10 @@ class MediaSearchController extends BaseController
     private function searchTmdbAnime(string $query, int $limit = 8): array
     {
         $data = $this->tmdbGet('/search/multi', [
-            'query'         => $query,
-            'language'      => 'fr-FR',
+            'query' => $query,
+            'language' => 'fr-FR',
             'include_adult' => 'false',
-            'page'          => 1,
+            'page' => 1,
         ]);
 
         $results = [];
@@ -260,7 +279,7 @@ class MediaSearchController extends BaseController
             $title = (string) ($result['title'] ?? $result['name'] ?? $result['original_name'] ?? 'Inconnu');
             $year = substr((string) ($result['release_date'] ?? $result['first_air_date'] ?? ''), 0, 4);
             $details = 'tv' === $mediaType && count($results) < 2
-                ? $this->tmdbGet('/tv/' . (int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
+                ? $this->tmdbGet('/tv/'.(int) ($result['id'] ?? 0), ['language' => 'fr-FR'])
                 : [];
 
             $seasonsData = [];
@@ -272,21 +291,21 @@ class MediaSearchController extends BaseController
             }
 
             $results[] = [
-                'titre'          => $title,
-                'imageThumb'     => 'https://image.tmdb.org/t/p/w200' . $poster,
-                'imageLarge'     => 'https://image.tmdb.org/t/p/w500' . $poster,
-                'description'    => (string) ($result['overview'] ?? ''),
-                'info'           => ($year ? $year . ' - ' : '') . 'ANIME',
-                'lien'           => '',
+                'titre' => $title,
+                'imageThumb' => 'https://image.tmdb.org/t/p/w200'.$poster,
+                'imageLarge' => 'https://image.tmdb.org/t/p/w500'.$poster,
+                'description' => (string) ($result['overview'] ?? ''),
+                'info' => ($year ? $year.' - ' : '').'ANIME',
+                'lien' => '',
                 'total_episodes' => (int) ($details['number_of_episodes'] ?? 0),
-                'total_saisons'  => (int) ($details['number_of_seasons'] ?? 0),
-                'seasons_data'   => $seasonsData,
-                'source'         => 'TMDB',
+                'total_saisons' => (int) ($details['number_of_seasons'] ?? 0),
+                'seasons_data' => $seasonsData,
+                'source' => 'TMDB',
                 'sourcePriority' => 100,
-                'externalId'     => $result['id'] ?? null,
-                'mediaType'      => $mediaType,
-                'providers'      => [],
-                'score'          => 0,
+                'externalId' => $result['id'] ?? null,
+                'mediaType' => $mediaType,
+                'providers' => [],
+                'score' => 0,
             ];
 
             if (count($results) >= $limit) {
@@ -322,13 +341,13 @@ class MediaSearchController extends BaseController
             $response = $this->client->post('https://graphql.anilist.co', [
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'Accept'       => 'application/json',
+                    'Accept' => 'application/json',
                 ],
                 'json' => [
-                    'query'     => $graphql,
+                    'query' => $graphql,
                     'variables' => [
-                        'search'  => $query,
-                        'type'    => $mediaType,
+                        'search' => $query,
+                        'type' => $mediaType,
                         'perPage' => $limit,
                     ],
                 ],
@@ -365,27 +384,27 @@ class MediaSearchController extends BaseController
                 $label = 'ANIME' === $mediaType ? 'ANIME' : 'MANGA';
 
                 $results[] = [
-                    'titre'          => $title,
-                    'imageThumb'     => $image,
-                    'imageLarge'     => $image,
-                    'description'    => trim(strip_tags((string) ($item['description'] ?? ''))),
-                    'info'           => ($year ? $year . ' - ' : '') . $label,
-                    'lien'           => 'https://anilist.co/' . strtolower('ANIME' === $mediaType ? 'anime' : 'manga') . '/' . (int) ($item['id'] ?? 0),
+                    'titre' => $title,
+                    'imageThumb' => $image,
+                    'imageLarge' => $image,
+                    'description' => trim(strip_tags((string) ($item['description'] ?? ''))),
+                    'info' => ($year ? $year.' - ' : '').$label,
+                    'lien' => 'https://anilist.co/'.strtolower('ANIME' === $mediaType ? 'anime' : 'manga').'/'.(int) ($item['id'] ?? 0),
                     'total_episodes' => 'ANIME' === $mediaType ? (int) ($item['episodes'] ?? 0) : (int) ($item['chapters'] ?? 0),
-                    'total_saisons'  => 'MANGA' === $mediaType ? (int) ($item['volumes'] ?? 0) : '',
-                    'seasons_data'   => null,
-                    'source'         => 'AniList',
+                    'total_saisons' => 'MANGA' === $mediaType ? (int) ($item['volumes'] ?? 0) : '',
+                    'seasons_data' => null,
+                    'source' => 'AniList',
                     'sourcePriority' => 'MANGA' === $mediaType ? 110 : 95,
-                    'externalId'     => $item['id'] ?? null,
-                    'mediaType'      => strtolower($mediaType),
-                    'providers'      => [],
-                    'score'          => 0,
+                    'externalId' => $item['id'] ?? null,
+                    'mediaType' => strtolower($mediaType),
+                    'providers' => [],
+                    'score' => 0,
                 ];
             }
 
             return $results;
         } catch (\Throwable $e) {
-            log_message('warning', 'AniList indisponible: ' . $e->getMessage());
+            log_message('warning', 'AniList indisponible: '.$e->getMessage());
 
             return [];
         }
@@ -396,14 +415,14 @@ class MediaSearchController extends BaseController
         try {
             $response = $this->client->get('https://api.mangadex.org/manga', [
                 'query' => [
-                    'title'           => $query,
-                    'limit'           => $limit,
-                    'includes[]'      => 'cover_art',
+                    'title' => $query,
+                    'limit' => $limit,
+                    'includes[]' => 'cover_art',
                     'order[relevance]' => 'desc',
                     'contentRating[]' => ['safe', 'suggestive'],
                 ],
                 'headers' => [
-                    'Accept'     => 'application/json',
+                    'Accept' => 'application/json',
                     'User-Agent' => 'Summury/1.0',
                 ],
             ]);
@@ -428,42 +447,44 @@ class MediaSearchController extends BaseController
                 foreach ($manga['relationships'] ?? [] as $relationship) {
                     if (($relationship['type'] ?? '') === 'cover_art' && !empty($relationship['attributes']['fileName'])) {
                         $fileName = (string) $relationship['attributes']['fileName'];
+
                         break;
                     }
                 }
 
+                // Aucun fallback générique : une couverture absente ne doit pas polluer les résultats.
                 if ('' === $fileName) {
                     continue;
                 }
 
                 $id = (string) ($manga['id'] ?? '');
-                $imageThumb = 'https://uploads.mangadex.org/covers/' . $id . '/' . $fileName . '.256.jpg';
-                $imageLarge = 'https://uploads.mangadex.org/covers/' . $id . '/' . $fileName . '.512.jpg';
+                $imageThumb = 'https://uploads.mangadex.org/covers/'.$id.'/'.$fileName.'.256.jpg';
+                $imageLarge = 'https://uploads.mangadex.org/covers/'.$id.'/'.$fileName.'.512.jpg';
                 $description = $attr['description']['fr'] ?? $attr['description']['en'] ?? '';
                 $year = (string) ($attr['year'] ?? '');
 
                 $results[] = [
-                    'titre'          => $title,
-                    'imageThumb'     => $imageThumb,
-                    'imageLarge'     => $imageLarge,
-                    'description'    => trim(strip_tags((string) $description)),
-                    'info'           => ($year ? $year . ' - ' : '') . ($animeMode ? 'MANGA / ANIME' : 'MANGA'),
-                    'lien'           => 'https://mangadex.org/title/' . $id,
+                    'titre' => $title,
+                    'imageThumb' => $imageThumb,
+                    'imageLarge' => $imageLarge,
+                    'description' => trim(strip_tags((string) $description)),
+                    'info' => ($year ? $year.' - ' : '').($animeMode ? 'MANGA / ANIME' : 'MANGA'),
+                    'lien' => 'https://mangadex.org/title/'.$id,
                     'total_episodes' => $attr['lastChapter'] ?? '',
-                    'total_saisons'  => $attr['lastVolume'] ?? '',
-                    'seasons_data'   => null,
-                    'source'         => 'MangaDex',
+                    'total_saisons' => $attr['lastVolume'] ?? '',
+                    'seasons_data' => null,
+                    'source' => 'MangaDex',
                     'sourcePriority' => $animeMode ? 65 : 90,
-                    'externalId'     => $id,
-                    'mediaType'      => 'manga',
-                    'providers'      => [],
-                    'score'          => 0,
+                    'externalId' => $id,
+                    'mediaType' => 'manga',
+                    'providers' => [],
+                    'score' => 0,
                 ];
             }
 
             return $results;
         } catch (\Throwable $e) {
-            log_message('warning', 'MangaDex indisponible: ' . $e->getMessage());
+            log_message('warning', 'MangaDex indisponible: '.$e->getMessage());
 
             return [];
         }
@@ -479,15 +500,15 @@ class MediaSearchController extends BaseController
         try {
             $response = $this->client->get('https://www.googleapis.com/youtube/v3/search', [
                 'query' => [
-                    'part'              => 'snippet',
-                    'q'                 => $query,
-                    'type'              => 'video',
-                    'maxResults'        => $limit,
-                    'regionCode'        => 'FR',
+                    'part' => 'snippet',
+                    'q' => $query,
+                    'type' => 'video',
+                    'maxResults' => $limit,
+                    'regionCode' => 'FR',
                     'relevanceLanguage' => 'fr',
-                    'safeSearch'        => 'moderate',
-                    'videoEmbeddable'   => 'true',
-                    'key'               => $apiKey,
+                    'safeSearch' => 'moderate',
+                    'videoEmbeddable' => 'true',
+                    'key' => $apiKey,
                 ],
             ]);
 
@@ -509,27 +530,27 @@ class MediaSearchController extends BaseController
                 $image = $thumbs['high']['url'] ?? $thumbs['medium']['url'] ?? $thumbs['default']['url'] ?? '';
 
                 $results[] = [
-                    'titre'          => html_entity_decode((string) $snippet['title'], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-                    'imageThumb'     => $image,
-                    'imageLarge'     => $image,
-                    'description'    => html_entity_decode((string) ($snippet['description'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-                    'info'           => 'VIDÉO - ' . ((string) ($snippet['channelTitle'] ?? 'YouTube')),
-                    'lien'           => 'https://www.youtube.com/watch?v=' . $videoId,
+                    'titre' => html_entity_decode((string) $snippet['title'], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'imageThumb' => $image,
+                    'imageLarge' => $image,
+                    'description' => html_entity_decode((string) ($snippet['description'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'info' => 'VIDÉO - '.((string) ($snippet['channelTitle'] ?? 'YouTube')),
+                    'lien' => 'https://www.youtube.com/watch?v='.$videoId,
                     'total_episodes' => '',
-                    'total_saisons'  => '',
-                    'seasons_data'   => null,
-                    'source'         => 'YouTube',
+                    'total_saisons' => '',
+                    'seasons_data' => null,
+                    'source' => 'YouTube',
                     'sourcePriority' => 100,
-                    'externalId'     => $videoId,
-                    'mediaType'      => 'video',
-                    'providers'      => [],
-                    'score'          => 0,
+                    'externalId' => $videoId,
+                    'mediaType' => 'video',
+                    'providers' => [],
+                    'score' => 0,
                 ];
             }
 
             return $results;
         } catch (\Throwable $e) {
-            log_message('warning', 'YouTube indisponible: ' . $e->getMessage());
+            log_message('warning', 'YouTube indisponible: '.$e->getMessage());
 
             return [];
         }
@@ -537,6 +558,8 @@ class MediaSearchController extends BaseController
 
     private function searchStreaming(string $query, int $limit = 8): array
     {
+        // Les fournisseurs sont interrogés par titre : limiter les candidats
+        // évite une rafale de requêtes séquentielles pour une seule recherche.
         $movies = $this->searchTmdbMovies($query, 2);
         $series = $this->searchTmdbSeries($query, 2, 0);
         $results = array_merge($movies, $series);
@@ -549,8 +572,8 @@ class MediaSearchController extends BaseController
             }
 
             $path = 'movie' === $mediaType
-                ? '/movie/' . $id . '/watch/providers'
-                : '/tv/' . $id . '/watch/providers';
+                ? '/movie/'.$id.'/watch/providers'
+                : '/tv/'.$id.'/watch/providers';
 
             $providersBody = $this->tmdbGet($path, []);
             $fr = $providersBody['results']['FR'] ?? [];
@@ -568,12 +591,12 @@ class MediaSearchController extends BaseController
             $result['providers'] = $providers;
             $result['lien'] = (string) ($fr['link'] ?? '');
             if ($providers) {
-                $result['info'] .= ' • ' . implode(', ', array_slice($providers, 0, 4));
+                $result['info'] .= ' • '.implode(', ', array_slice($providers, 0, 4));
             }
         }
         unset($result);
 
-        return array_values(array_filter($results, static fn($r) => !empty($r['providers'])));
+        return array_values(array_filter($results, static fn ($r) => !empty($r['providers'])));
     }
 
     private function prepareResults(array $results, string $query, string $type): array
@@ -581,13 +604,14 @@ class MediaSearchController extends BaseController
         foreach ($results as &$result) {
             $result['score'] = $this->scoreTitle($query, (string) ($result['titre'] ?? ''));
 
+            // Bonus pour une source adaptée à la catégorie demandée.
             $result['score'] += match ($type) {
                 'film', 'serie' => (($result['source'] ?? '') === 'TMDB' ? 10 : 0),
-                'anime'         => (($result['source'] ?? '') === 'TMDB' ? 12 : (($result['source'] ?? '') === 'AniList' ? 10 : 0)),
-                'manga'         => (($result['source'] ?? '') === 'AniList' ? 12 : (($result['source'] ?? '') === 'MangaDex' ? 9 : 0)),
-                'video'         => (($result['source'] ?? '') === 'YouTube' ? 10 : 0),
-                'streaming'     => (($result['source'] ?? '') === 'TMDB' ? 10 : 0),
-                default         => 0,
+                'anime' => (($result['source'] ?? '') === 'TMDB' ? 12 : (($result['source'] ?? '') === 'AniList' ? 10 : 0)),
+                'manga' => (($result['source'] ?? '') === 'AniList' ? 12 : (($result['source'] ?? '') === 'MangaDex' ? 9 : 0)),
+                'video' => (($result['source'] ?? '') === 'YouTube' ? 10 : 0),
+                'streaming' => (($result['source'] ?? '') === 'TMDB' ? 10 : 0),
+                default => 0,
             };
 
             if (!empty($result['imageLarge'])) {
@@ -598,19 +622,26 @@ class MediaSearchController extends BaseController
         }
         unset($result);
 
+        // Déduplication : le même titre provenant de plusieurs APIs devient une seule carte.
         $deduped = [];
         foreach ($results as $result) {
-            if (empty($result['titre']) || mb_strlen(trim((string) $result['titre'])) < 2) {
+            if (empty($result['titre'])) {
+                continue;
+            }
+
+            // On retire les titres très courts qui donnent beaucoup de faux positifs.
+            if (mb_strlen(trim((string) $result['titre'])) < 2) {
                 continue;
             }
 
             $key = $this->normalizeTitle((string) $result['titre']);
             $year = preg_match('/\b(19|20)\d{2}\b/', (string) ($result['info'] ?? ''), $matches) ? $matches[0] : '';
-            $dedupeKey = $key . '|' . $year;
+            $dedupeKey = $key.'|'.$year;
 
             if (!isset($deduped[$dedupeKey])) {
                 $result['sources'] = [$result['source'] ?? 'API'];
                 $deduped[$dedupeKey] = $result;
+
                 continue;
             }
 
@@ -621,6 +652,7 @@ class MediaSearchController extends BaseController
                 $existingSources[] = $newSource;
             }
 
+            // On garde la meilleure image selon la priorité de source, pas simplement le dernier résultat.
             if (($result['sourcePriority'] ?? 0) > ($existing['sourcePriority'] ?? 0)) {
                 $result['sources'] = $existingSources;
                 if (empty($result['description']) && !empty($existing['description'])) {
@@ -657,7 +689,8 @@ class MediaSearchController extends BaseController
             return ($b['sourcePriority'] ?? 0) <=> ($a['sourcePriority'] ?? 0);
         });
 
-        $results = array_values(array_filter($results, static fn(array $r): bool => ($r['score'] ?? 0) >= 42));
+        // Pas de résultat faible : on préfère peu de bons résultats à une liste de faux positifs.
+        $results = array_values(array_filter($results, static fn (array $r): bool => ($r['score'] ?? 0) >= 42));
 
         foreach ($results as &$result) {
             $result['sourcesLabel'] = implode(' + ', $result['sources'] ?? [$result['source'] ?? 'API']);
@@ -689,8 +722,8 @@ class MediaSearchController extends BaseController
         similar_text($q, $t, $percent);
         $score = (int) round($percent * 0.72);
 
-        $qTokens = array_values(array_filter(explode(' ', $q), static fn($v) => mb_strlen($v) >= 2));
-        $tTokens = array_values(array_filter(explode(' ', $t), static fn($v) => mb_strlen($v) >= 2));
+        $qTokens = array_values(array_filter(explode(' ', $q), static fn ($v) => mb_strlen($v) >= 2));
+        $tTokens = array_values(array_filter(explode(' ', $t), static fn ($v) => mb_strlen($v) >= 2));
         if ($qTokens && $tTokens) {
             $intersection = count(array_intersect($qTokens, $tTokens));
             $score += (int) round(($intersection / count($qTokens)) * 25);
@@ -721,14 +754,14 @@ class MediaSearchController extends BaseController
         $query['language'] ??= 'fr-FR';
 
         try {
-            $response = $this->client->get('https://api.themoviedb.org/3' . $path, ['query' => $query]);
+            $response = $this->client->get('https://api.themoviedb.org/3'.$path, ['query' => $query]);
             if (200 !== $response->getStatusCode()) {
                 return [];
             }
 
             return json_decode((string) $response->getBody(), true) ?: [];
         } catch (\Throwable $e) {
-            log_message('warning', 'TMDB indisponible: ' . $e->getMessage());
+            log_message('warning', 'TMDB indisponible: '.$e->getMessage());
 
             return [];
         }
@@ -742,16 +775,14 @@ class MediaSearchController extends BaseController
 
         try {
             $response = $this->client->get($url, [
-                'headers'         => ['Accept-Language' => 'fr-FR,fr;q=0.9,en;q=0.8'],
+                'headers' => ['Accept-Language' => 'fr-FR,fr;q=0.9,en;q=0.8'],
                 'allow_redirects' => false,
-                'stream'           => true,
-                'read_timeout'     => 3,
             ]);
-            if ($response->getStatusCode() >= 400) return null;
-            $contentType = strtolower((string) $response->getHeaderLine('Content-Type'));
-            if ('' !== $contentType && !str_contains($contentType, 'text/html') && !str_contains($contentType, 'application/xhtml+xml')) return null;
-            $body = $response->getBody();
-            $html = method_exists($body, 'read') ? $body->read(1_048_576) : substr((string) $body, 0, 1_048_576);
+            if ($response->getStatusCode() >= 400) {
+                return null;
+            }
+
+            $html = (string) $response->getBody();
             if ('' === $html) {
                 return null;
             }
@@ -761,11 +792,11 @@ class MediaSearchController extends BaseController
             $tags = $doc->getElementsByTagName('meta');
 
             $data = [
-                'titre'       => '',
+                'titre' => '',
                 'description' => '',
-                'image'       => '',
-                'lien'        => $url,
-                'is_link'     => true,
+                'image' => '',
+                'lien' => $url,
+                'is_link' => true,
             ];
 
             foreach ($tags as $tag) {

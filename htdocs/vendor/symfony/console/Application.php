@@ -832,9 +832,9 @@ class Application implements ResetInterface
                     return false;
                 }
 
-                $abbrev = str_pad($cmd, $maxLen, ' ').' '.$commandList[$cmd]->getDescription();
+                $abbrev = $cmd.str_repeat(' ', $maxLen - Helper::width($cmd)).' '.$commandList[$cmd]->getDescription();
 
-                return Helper::width($abbrev) > $usableWidth ? Helper::substr($abbrev, 0, $usableWidth - 3).'...' : $abbrev;
+                return Helper::width($abbrev) > $usableWidth ? Helper::substrToWidth($abbrev, $usableWidth - 3).'...' : $abbrev;
             }, array_values($commands));
 
             if (\count($commands) > 1) {
@@ -1072,7 +1072,9 @@ class Application implements ResetInterface
 
                 // We register application signals, so that we can dispatch the event
                 foreach ($this->signalsToDispatchEvent as $signal) {
-                    $signalEvent = new ConsoleSignalEvent($command, $input, $output, $signal);
+                    // When this application runs inside another application that handles the signal, the outer application decides if the process exits
+                    $previousHandler = pcntl_signal_get_handler($signal);
+                    $signalEvent = new ConsoleSignalEvent($command, $input, $output, $signal, \is_array($previousHandler) && $previousHandler[0] instanceof SignalRegistry ? false : 0);
                     $alarmEvent = \SIGALRM === $signal ? new ConsoleAlarmEvent($command, $input, $output) : null;
 
                     $signalRegistry->register($signal, function ($signal) use ($signalEvent, $alarmEvent, $command, $commandSignals, $input, $output) {

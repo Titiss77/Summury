@@ -24,7 +24,7 @@ use Symfony\Component\Mime\MimeTypes;
  */
 final class InputFile extends \SplFileInfo
 {
-    /** @var string[] */
+    /** @var array<string, int|false> */
     private static array $tempFiles = [];
     private static bool $shutdownRegistered = false;
 
@@ -46,7 +46,7 @@ final class InputFile extends \SplFileInfo
                 register_shutdown_function(self::cleanupAll(...));
                 self::$shutdownRegistered = true;
             }
-            self::$tempFiles[$path] = $path;
+            self::$tempFiles[$path] = getmypid();
         }
     }
 
@@ -80,7 +80,7 @@ final class InputFile extends \SplFileInfo
     }
 
     /**
-     * @throws InvalidFileException when the file does not exist
+     * @throws InvalidFileException when the file does not exist or is on a remote host
      */
     public static function fromPath(string $path): self
     {
@@ -104,12 +104,24 @@ final class InputFile extends \SplFileInfo
             $path = substr($path, 1, -1);
         }
 
-        if (str_starts_with($path, 'file://')) {
-            $path = urldecode(substr($path, 7));
+        if (0 === stripos($path, 'file://')) {
+            $uri = $path;
+            $path = substr($path, 7);
+
+            if (preg_match('#^localhost/#i', $path)) {
+                $path = substr($path, 9);
+            } elseif (preg_match('#^[^/]#', $path) && ('\\' !== \DIRECTORY_SEPARATOR || !preg_match('#^[a-zA-Z]:#', $path))) {
+                throw new InvalidFileException(\sprintf('Remote file URI "%s" is not supported.', $uri));
+            }
+
+            // "+" is a valid path character, so only decode percent-encoded bytes.
+            $path = rawurldecode($path);
 
             if ('\\' === \DIRECTORY_SEPARATOR && preg_match('#^/[a-zA-Z]:/#', $path)) {
                 $path = substr($path, 1);
             }
+
+            return $path;
         }
 
         // Remove backslash escapes (e.g., "\ " for escaped spaces) on non-Windows systems
@@ -221,8 +233,10 @@ final class InputFile extends \SplFileInfo
      */
     public static function cleanupAll(): void
     {
-        foreach (self::$tempFiles as $path) {
-            if (file_exists($path)) {
+        $pid = getmypid();
+
+        foreach (self::$tempFiles as $path => $ownerPid) {
+            if ($pid === $ownerPid && file_exists($path)) {
                 @unlink($path);
             }
         }

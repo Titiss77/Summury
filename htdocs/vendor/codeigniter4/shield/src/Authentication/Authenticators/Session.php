@@ -124,7 +124,7 @@ class Session implements AuthenticatorInterface
      * Attempts to authenticate a user with the given $credentials.
      * Logs the user in with a successful check.
      *
-     * @phpstan-param array{email?: string, username?: string, password?: string, ...<string, string>} $credentials
+     * @param array{email?: string, username?: string, password?: string, ...<string, string>} $credentials
      */
     public function attempt(array $credentials): Result
     {
@@ -245,7 +245,7 @@ class Session implements AuthenticatorInterface
             throw new LogicException('Cannot get the User.');
         }
 
-        if ($token === '' || $token !== $identity->secret) {
+        if ($token === '' || ! hash_equals((string) $identity->secret, $token)) {
             return false;
         }
 
@@ -345,12 +345,12 @@ class Session implements AuthenticatorInterface
      * Checks a user's $credentials to see if they match an
      * existing user.
      *
-     * @phpstan-param array{email?: string, username?: string, password?: string, ...<string, string>} $credentials
+     * @param array{email?: string, username?: string, password?: string, ...<string, string>} $credentials
      */
     public function check(array $credentials): Result
     {
         // Can't validate without a password.
-        if (empty($credentials['password']) || count($credentials) < 2) {
+        if (($credentials['password'] ?? '') === '' || count($credentials) < 2) {
             return new Result([
                 'success' => false,
                 'reason'  => lang('Auth.badAttempt'),
@@ -365,21 +365,25 @@ class Session implements AuthenticatorInterface
         // Find the existing user
         $user = $this->provider->findByCredentials($credentials);
 
+        /** @var Passwords $passwords */
+        $passwords = service('passwords');
+
         if ($user === null) {
+            // Verify against a fixed hash so an unknown identifier still does
+            // the expensive password check. The result is never accepted.
+            $passwords->verify($givenPassword, config('Auth')->dummyPasswordHash);
+
             return new Result([
                 'success' => false,
                 'reason'  => lang('Auth.badAttempt'),
             ]);
         }
 
-        /** @var Passwords $passwords */
-        $passwords = service('passwords');
-
         // Now, try matching the passwords.
         if (! $passwords->verify($givenPassword, $user->password_hash)) {
             return new Result([
                 'success' => false,
-                'reason'  => lang('Auth.invalidPassword'),
+                'reason'  => lang('Auth.badAttempt'),
             ]);
         }
 
@@ -436,7 +440,7 @@ class Session implements AuthenticatorInterface
             }
 
             // If having `auth_action`, it is pending.
-            if ($this->getSessionUserKey('auth_action')) {
+            if ($this->getSessionUserKey('auth_action') !== null) {
                 $this->userState = self::STATE_PENDING;
 
                 return;
@@ -485,7 +489,7 @@ class Session implements AuthenticatorInterface
         }
 
         // Check the Session
-        if ($this->getSessionUserKey('auth_action')) {
+        if ($this->getSessionUserKey('auth_action') !== null) {
             return true;
         }
 
@@ -618,7 +622,7 @@ class Session implements AuthenticatorInterface
     {
         $this->checkUserState();
 
-        return $this->getSessionUserKey('auth_action_message') ?? '';
+        return (string) ($this->getSessionUserKey('auth_action_message') ?? '');
     }
 
     /**
@@ -801,7 +805,7 @@ class Session implements AuthenticatorInterface
             );
         }
         // Check auth_action in Session
-        if ($this->getSessionUserKey('auth_action')) {
+        if ($this->getSessionUserKey('auth_action') !== null) {
             throw new LogicException(
                 'The user has auth action in session, so cannot complete login.'
                     . ' If you want to start to login with auth action, use startLogin() instead.'

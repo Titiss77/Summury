@@ -75,6 +75,7 @@ class HmacSha256 implements AuthenticatorInterface
             return $result;
         }
 
+        /** @var User $user */
         $user  = $result->extraInfo();
         $token = $user->getHmacToken($this->getHmacKeyFromToken());
 
@@ -141,8 +142,17 @@ class HmacSha256 implements AuthenticatorInterface
             $credentials['token'] = trim(substr((string) $credentials['token'], 11)); // HMAC-SHA256
         }
 
+        $authTokens = $this->getHmacAuthTokens($credentials['token']);
+
+        if ($authTokens === null || count($authTokens) !== 2) {
+            return new Result([
+                'success' => false,
+                'reason'  => lang('Auth.badToken'),
+            ]);
+        }
+
         // Extract UserToken and HMACSHA256 Signature from Authorization token
-        [$userToken, $signature] = $this->getHmacAuthTokens($credentials['token']);
+        [$userToken, $signature] = $authTokens;
 
         $identityModel = model(UserIdentityModel::class);
 
@@ -160,10 +170,20 @@ class HmacSha256 implements AuthenticatorInterface
 
         // Check signature...
         $hash = hash_hmac('sha256', (string) $credentials['body'], $secretKey);
-        if ($hash !== $signature) {
+        if (! hash_equals($hash, $signature)) {
             return new Result([
                 'success' => false,
                 'reason'  => lang('Auth.badToken'),
+            ]);
+        }
+
+        // Reject expired HMAC tokens
+        $user = $token->user();
+
+        if ($user->isHmacTokenExpired($token)) {
+            return new Result([
+                'success' => false,
+                'reason'  => lang('Auth.oldToken'),
             ]);
         }
 
@@ -187,7 +207,6 @@ class HmacSha256 implements AuthenticatorInterface
         }
 
         // Ensure the token is set as the current token
-        $user = $token->user();
         $user->setHmacToken($token);
 
         return new Result([
@@ -291,9 +310,7 @@ class HmacSha256 implements AuthenticatorInterface
      */
     public function getHmacAuthTokens(?string $fullToken = null): ?array
     {
-        if (! isset($fullToken)) {
-            $fullToken = $this->getFullHmacToken();
-        }
+        $fullToken ??= $this->getFullHmacToken();
 
         if (isset($fullToken)) {
             return preg_split('/:/', $fullToken, -1, PREG_SPLIT_NO_EMPTY);
@@ -309,7 +326,7 @@ class HmacSha256 implements AuthenticatorInterface
      */
     public function getHmacKeyFromToken(): ?string
     {
-        [$key, $secretKey] = $this->getHmacAuthTokens();
+        [$key] = $this->getHmacAuthTokens();
 
         return $key;
     }
@@ -321,7 +338,7 @@ class HmacSha256 implements AuthenticatorInterface
      */
     public function getHmacHashFromToken(): ?string
     {
-        [$key, $hash] = $this->getHmacAuthTokens();
+        [, $hash] = $this->getHmacAuthTokens();
 
         return $hash;
     }
