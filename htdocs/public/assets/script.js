@@ -1055,19 +1055,42 @@ window.addEventListener('load', function() {
 
     if (!cardsToCheck.length) return;
 
+    // Limite stricte à trois requêtes simultanées, même si plusieurs cartes
+    // entrent dans la zone visible au même moment.
+    const pendingChecks = [];
+    let activeChecks = 0;
+    const maxConcurrentChecks = 3;
+
+    function enqueueCheck(card) {
+        if (card.dataset.dispoChecking === '1' || card.dataset.dispoChecked === '1') return;
+        pendingChecks.push(card);
+        processCheckQueue();
+    }
+
+    function processCheckQueue() {
+        while (activeChecks < maxConcurrentChecks && pendingChecks.length) {
+            const card = pendingChecks.shift();
+            activeChecks++;
+            checkCardDispo(card).finally(() => {
+                activeChecks--;
+                processCheckQueue();
+            });
+        }
+    }
+
     if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
                 observer.unobserve(entry.target);
-                checkCardDispo(entry.target);
+                enqueueCheck(entry.target);
             });
-        }, { rootMargin: '180px 0px', threshold: 0.01 });
+        }, { rootMargin: '120px 0px', threshold: 0.01 });
 
         cardsToCheck.forEach(card => observer.observe(card));
     } else {
         // Fallback ancien navigateur : vérifier uniquement les 6 premières cartes.
-        cardsToCheck.slice(0, 6).forEach(card => checkCardDispo(card));
+        cardsToCheck.slice(0, 6).forEach(enqueueCheck);
     }
 });
 });
