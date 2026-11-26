@@ -7,12 +7,20 @@ namespace App\Libraries;
 final class ExternalUrlGuard
 {
     public static function isSafeHttpUrl(string $url): bool
+    public static function isSafeHttpUrl(string $url): bool
     {
+        if ('' === $url || strlen($url) > 2048 || !filter_var($url, FILTER_VALIDATE_URL)) return false;
         if ('' === $url || strlen($url) > 2048 || !filter_var($url, FILTER_VALIDATE_URL)) return false;
         $parts = parse_url($url);
         if (!is_array($parts)) return false;
+        if (!is_array($parts)) return false;
         $scheme = strtolower((string) ($parts['scheme'] ?? ''));
         $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
+        if (!in_array($scheme, ['http', 'https'], true) || '' === $host || isset($parts['user']) || isset($parts['pass'])) return false;
+        if (filter_var($host, FILTER_VALIDATE_IP)) return self::isPublicIp($host);
+        if (!str_contains($host, '.') || preg_match('/\.(?:localhost|local|localdomain|lan|internal|intranet|test)$/i', $host)) return false;
+        return true;
+    }
         if (!in_array($scheme, ['http', 'https'], true) || '' === $host || isset($parts['user']) || isset($parts['pass'])) return false;
         if (filter_var($host, FILTER_VALIDATE_IP)) return self::isPublicIp($host);
         if (!str_contains($host, '.') || preg_match('/\.(?:localhost|local|localdomain|lan|internal|intranet|test)$/i', $host)) return false;
