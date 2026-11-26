@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entities;
 
+use App\Libraries\ExternalUrlGuard;
 use CodeIgniter\Entity\Entity;
 
 /**
@@ -30,10 +31,12 @@ class Item extends Entity
         $ep3 = str_pad((string) $ep, 3, '0', STR_PAD_LEFT);
         $ep4 = str_pad((string) $ep, 4, '0', STR_PAD_LEFT);
 
-        return str_replace(
+        $finalLink = str_replace(
             ['{ep}', '{s}', '{ep2}', '{ep3}', '{ep4}'],
             [$ep, $saison, $ep2, $ep3, $ep4],
             $lien
         );
+
+        return ExternalUrlGuard::isSafeHttpUrl($finalLink) ? $finalLink : '#';
     }
 }

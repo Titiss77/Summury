@@ -518,12 +518,16 @@ class ItemController extends BaseController
                 'user_agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CodeIgniter4/Checker',
             ]);
 
-            $response = $client->get($urlCible);
+            $response = $client->get($urlCible, [
+                'stream' => true,
+                'read_timeout' => 3,
+            ]);
             if ($response->getStatusCode() === 404) {
                 return $this->response->setJSON(['success' => true, 'disponible' => false, 'details' => ['erreur' => 'Page 404']]);
             }
 
-            $html = (string) $response->getBody();
+            $body = $response->getBody();
+            $html = method_exists($body, 'read') ? $body->read(1_048_576) : substr((string) $body, 0, 1_048_576);
             $estSurFicheAnime = false;
             $lecteurPresent = false;
 

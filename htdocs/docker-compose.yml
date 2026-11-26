@@ -1,39 +1,49 @@
-version: '3.8'
-
 name: titiss.space
 
 services:
   web:
     build: .
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     volumes:
-      - .:/var/www/html # Synchronise ton code en temps réel avec le conteneur
+      - .:/var/www/html
       - /var/www/html/vendor
+    env_file:
+      - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   db:
     image: mysql:8.0
     command: --skip-name-resolve
     environment:
-      MYSQL_ROOT_PASSWORD: titiss.space
-      MYSQL_DATABASE: titiss.space
-      MYSQL_USER: titiss.space
-      MYSQL_PASSWORD: titiss.space
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD dans .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?Define MYSQL_DATABASE dans .env}
+      MYSQL_USER: ${MYSQL_USER:?Define MYSQL_USER dans .env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD dans .env}
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
-      - db_data:/var/lib/mysql # Permet de ne pas perdre les données quand on coupe Docker
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
+    profiles: ["tools"]
     ports:
-      - "8081:80"
+      - "127.0.0.1:8081:80"
     environment:
       PMA_HOST: db
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:

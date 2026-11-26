@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "fix/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  php-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: htdocs
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: intl, mbstring, sqlite3, dom, curl
+          coverage: pcov
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: PHP syntax checks
+        run: find app -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Run PHPUnit
+        run: php vendor/bin/phpunit

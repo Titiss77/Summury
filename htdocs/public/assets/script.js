@@ -686,15 +686,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         divItem.onmouseout = () => divItem.style.background = 'transparent';
 
                         const fallbackImg = 'https://via.placeholder.com/40x60?text=IMG';
-                        const imgSrc = res.imageThumb || fallbackImg;
+                        const image = document.createElement('img');
+                        const candidateImage = typeof res.imageThumb === 'string' ? res.imageThumb : '';
+                        image.src = /^https?:\/\//i.test(candidateImage) ? candidateImage : fallbackImg;
+                        image.alt = 'Affiche';
+                        image.loading = 'lazy';
+                        image.referrerPolicy = 'no-referrer';
+                        image.style.cssText = 'width: 40px; height: 60px; object-fit: cover; border-radius: var(--radius-md); margin-right: 15px;';
 
-                        divItem.innerHTML = `
-                            <img src="${imgSrc}" alt="Affiche" style="width: 40px; height: 60px; object-fit: cover; border-radius: var(--radius-md); margin-right: 15px;">
-                            <div style="flex-grow: 1; overflow: hidden;">
-                                <strong style="display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${res.titre}</strong>
-                                <small style="color: gray;">${res.info}</small>
-                            </div>
-                        `;
+                        const textContainer = document.createElement('div');
+                        textContainer.style.cssText = 'flex-grow: 1; overflow: hidden;';
+                        const title = document.createElement('strong');
+                        title.style.cssText = 'display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;';
+                        title.textContent = String(res.titre || '');
+                        const info = document.createElement('small');
+                        info.style.color = 'gray';
+                        info.textContent = String(res.info || '');
+                        textContainer.append(title, info);
+                        divItem.append(image, textContainer);
 
                         divItem.addEventListener('click', () => {
                             document.getElementById('titre').value = res.titre;
