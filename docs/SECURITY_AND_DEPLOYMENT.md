@@ -1,5 +1,9 @@
 # Durcissement et déploiement Summury
 
+## Version PHP requise
+
+Le fichier `composer.lock` verrouille des dépendances Symfony qui exigent PHP 8.4.1 ou supérieur. Le projet déclare donc PHP `^8.4`, et Docker ainsi que la CI utilisent PHP 8.4. Vérifier que l'hébergement web fournit PHP 8.4 avant déploiement.
+
 ## Avant déploiement
 
 1. Révoquer puis régénérer toute clé TMDB qui a été publiée dans le dépôt.
