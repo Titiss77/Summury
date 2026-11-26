@@ -131,8 +131,11 @@
         </a>
 
         <div class="card-actions-bottom">
-            <a href="<?php echo base_url('u/'.esc($item->id)); ?>" class="btn-icon btn-edit-sm">S'approprier la
-                carte (Admin)</a>
+            <form action="<?php echo base_url('u/'.esc($item->id)); ?>" method="post"
+                onsubmit="return confirm('Transférer cette carte à votre compte ?');">
+                <?php echo csrf_field(); ?>
+                <button type="submit" class="btn-icon btn-edit-sm">S'approprier la carte (Admin)</button>
+            </form>
         </div>
     </div>
     <?php } ?>
