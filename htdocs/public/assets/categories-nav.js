@@ -1,9 +1,40 @@
 (function () {
     'use strict';
 
-    const CACHE_PREFIX = 'cat_cache_v1_';
+    const CACHE_BASE_PREFIX = 'cat_cache_v1_';
+    const AUTH_STATE_KEY = 'nav_auth_state_v1';
     const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
     const pendingFetches = new Map();
+
+    function getAuthState() {
+        return document.querySelector('.btn-logout') ? 'auth' : 'guest';
+    }
+
+    function getCachePrefix() {
+        return `${CACHE_BASE_PREFIX}${getAuthState()}_`;
+    }
+
+    function clearAllNavCaches() {
+        try {
+            for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                const k = sessionStorage.key(i);
+                if (k && (k.startsWith(CACHE_BASE_PREFIX) || k.startsWith('prof_cache_v1_'))) {
+                    sessionStorage.removeItem(k);
+                }
+            }
+        } catch (_) {}
+    }
+
+    function syncAuthCacheState() {
+        const currentState = getAuthState();
+        try {
+            const previousState = sessionStorage.getItem(AUTH_STATE_KEY);
+            if (previousState !== currentState) {
+                clearAllNavCaches();
+                sessionStorage.setItem(AUTH_STATE_KEY, currentState);
+            }
+        } catch (_) {}
+    }
 
     function normalizeCategoryUrl(rawUrl) {
         const parsed = new URL(rawUrl, window.location.origin);
@@ -14,11 +45,11 @@
 
     function getCachedHtml(key) {
         try {
-            const raw = sessionStorage.getItem(CACHE_PREFIX + key);
+            const raw = sessionStorage.getItem(getCachePrefix() + key);
             if (!raw) return null;
             const entry = JSON.parse(raw);
             if (Date.now() - entry.ts > CACHE_TTL_MS) {
-                sessionStorage.removeItem(CACHE_PREFIX + key);
+                sessionStorage.removeItem(getCachePrefix() + key);
                 return null;
             }
             return entry.html;
@@ -29,27 +60,15 @@
 
     function setCachedHtml(key, html) {
         try {
-            sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ html, ts: Date.now() }));
+            sessionStorage.setItem(getCachePrefix() + key, JSON.stringify({ html, ts: Date.now() }));
         } catch (_) {
-            // Si sessionStorage est plein, on vide l'ancien cache des catégories
-            clearAllCategoryCache();
+            clearAllNavCaches();
         }
     }
 
     function removeCachedHtml(key) {
         try {
-            sessionStorage.removeItem(CACHE_PREFIX + key);
-        } catch (_) {}
-    }
-
-    function clearAllCategoryCache() {
-        try {
-            for (let i = sessionStorage.length - 1; i >= 0; i--) {
-                const k = sessionStorage.key(i);
-                if (k && k.startsWith(CACHE_PREFIX)) {
-                    sessionStorage.removeItem(k);
-                }
-            }
+            sessionStorage.removeItem(getCachePrefix() + key);
         } catch (_) {}
     }
 
@@ -371,7 +390,7 @@
                         badge.title = 'En attente de vérification par l’administration.';
                         badge.textContent = '⚠️ Signalé';
                         button.replaceWith(badge);
-                        clearAllCategoryCache();
+                        clearAllNavCaches();
                         if (typeof window.showToast === 'function') {
                             window.showToast(data.message || 'Signalement enregistré.', 'success');
                         }
@@ -497,17 +516,24 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Synchronise le cache avec l'état de connexion actuel (vide automatiquement après login/logout)
+        syncAuthCacheState();
+
+        // Vide le cache dès le clic sur Déconnexion
+        const logoutBtn = document.querySelector('.btn-logout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', clearAllNavCaches);
+        }
+
         const navTabs = document.querySelectorAll('nav.category-nav .nav-tab');
         const mainEl = document.querySelector('main.container');
 
         if (!navTabs.length || !mainEl) return;
 
-        // Si on revient d'une création/édition/suppression (?open=...), on vide le cache pour repartir sur des données fraîches
         if (new URL(window.location.href).searchParams.has('open')) {
-            clearAllCategoryCache();
+            clearAllNavCaches();
         }
 
-        // Met la catégorie courante en cache dans sessionStorage
         const currentKey = normalizeCategoryUrl(window.location.href);
         setCachedHtml(currentKey, mainEl.innerHTML);
 
@@ -525,7 +551,6 @@
             });
         });
 
-        // Précharge les autres onglets un par un (séquentiel) pour ne pas saturer le serveur
         const prefetchQueue = Array.from(navTabs)
             .map((tab) => normalizeCategoryUrl(tab.href))
             .filter((key) => getCachedHtml(key) === null);
@@ -547,7 +572,6 @@
             setTimeout(prefetchNext, 500);
         }
 
-        // Support des boutons Précédent / Suivant du navigateur
         window.addEventListener('popstate', () => {
             if (document.querySelector('nav.category-nav .nav-tab')) {
                 switchCategory(window.location.href, false);

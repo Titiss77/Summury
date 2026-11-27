@@ -19,6 +19,40 @@
     const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
     const pendingFetches = new Map();
 
+    // Barre de progression discrète lors des navigations complètes
+    function startTopProgressBar() {
+        let bar = document.getElementById('nav-progress-bar');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'nav-progress-bar';
+            document.body.appendChild(bar);
+        }
+        bar.classList.remove('active');
+        void bar.offsetWidth;
+        bar.classList.add('active');
+    }
+
+    // Met à jour le href réel des boutons "Retour aux cartes" pour activer le pré-rendu au survol
+    function enhanceReturnToCardsLinks() {
+        let lastCards = null;
+        try {
+            lastCards = sessionStorage.getItem('last_cards_url');
+        } catch (_) {}
+
+        document.querySelectorAll('a[onclick*="retourAuxCartes"]').forEach((link) => {
+            if (lastCards) {
+                link.href = lastCards;
+            }
+            // Supprime le onclick inline pour laisser le navigateur utiliser le pré-rendu natif
+            link.removeAttribute('onclick');
+            link.addEventListener('click', (e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                link.classList.add('is-navigating');
+                startTopProgressBar();
+            });
+        });
+    }
+
     function getCachedTab(key) {
         try {
             const raw = sessionStorage.getItem(CACHE_PREFIX + key);
@@ -277,6 +311,34 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         applyTheme(getSavedTheme());
+        enhanceReturnToCardsLinks();
+
+        // Feedback visuel discret sur les liens qui rechargent une nouvelle page
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            if (
+                e.defaultPrevented ||
+                e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0 ||
+                link.target === '_blank' ||
+                link.hasAttribute('download') ||
+                link.classList.contains('nav-tab') ||
+                link.classList.contains('profile-nav-item')
+            ) {
+                return;
+            }
+            const href = link.getAttribute('href') || '';
+            if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('javascript:')) {
+                return;
+            }
+            try {
+                const url = new URL(link.href, window.location.origin);
+                if (url.origin === window.location.origin) {
+                    link.classList.add('is-navigating');
+                    startTopProgressBar();
+                }
+            } catch (_) {}
+        });
 
         const headerToggle = document.getElementById('theme-toggle');
         if (headerToggle) {
@@ -349,7 +411,6 @@
                 });
             });
 
-            // Préchargement séquentiel des onglets du profil
             const prefetchQueue = Array.from(navItems)
                 .map((link) => normalizeTabUrl(link.href))
                 .filter((key) => getCachedTab(key) === null);

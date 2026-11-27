@@ -78,30 +78,42 @@ $isFormPage = ($currentPath === 'm' || str_starts_with($currentPath, 'm/'));
     <script src="<?php echo base_url('assets/media-autofill.js?v=' . $mediaAutofillVersion); ?>" defer></script>
     <?php } ?>
 
+    <?php
+    $basePath = rtrim((string) parse_url(base_url(), PHP_URL_PATH), '/');
+    $currentUri = trim((string) uri_string(), '/');
+    $isOnCategoryPage = ($currentUri === '' || str_starts_with($currentUri, 'c/'));
+    ?>
     <script type="speculationrules">
         {
-  "prerender": [
-    {
-      "where": {
-        "and": [
-          { "href_matches": "/*" },
-          { "not": { "href_matches": "/c/*" } },
-          { "not": { "href_matches": "/p*" } },
-          { "not": { "href_matches": "/x" } },
-          { "not": { "href_matches": "/d/*" } },
-          { "not": { "href_matches": "/u/*" } },
-          { "not": { "href_matches": "/rr/*" } },
-          { "not": { "href_matches": "/rd/*" } },
-          { "not": { "href_matches": "/ra" } },
-          { "not": { "href_matches": "/re" } },
-          { "not": { "href_matches": "/a/*" } }
-        ]
-      },
-      "eagerness": "moderate"
+      "prerender": [
+        {
+          "where": {
+            "and": [
+              { "href_matches": "<?php echo $basePath; ?>/*" },
+              <?php if ($isOnCategoryPage) { ?>
+              { "not": { "href_matches": "<?php echo $basePath; ?>/c/*" } },
+              <?php } ?>
+              { "not": { "href_matches": "<?php echo $basePath; ?>/x" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/d/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/u/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/rr/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/rd/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/ra" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/re" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/p/export/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/i/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/v/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/u/*/x" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/u/*/b" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/sc/delete/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/fnd*" } }
+            ]
+          },
+          "eagerness": "moderate"
+        }
+      ]
     }
-  ]
-}
-</script>
+    </script>
 </head>
 
 <body>

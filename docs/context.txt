@@ -1338,23 +1338,34 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\CronLogModel;
 use App\Models\ItemModel;
 use App\Models\ItemRevisionModel;
-use App\Models\CronLogModel;
 use App\Models\SiteConfigModel;
 use App\Models\WhitelistModel;
 
 class HomeController extends BaseController
 {
+    public function __construct()
+    {
+        helper('auth');
+    }
+
     private function reportDomainStates(): array
     {
         $states = [];
         $db = db_connect();
         $normalizeHost = static function (string $url): ?string {
-            if (! preg_match('~^https?://~i', $url) && ! str_starts_with($url, '//')) $url = 'https://' . $url;
-            elseif (str_starts_with($url, '//')) $url = 'https:' . $url;
+            if (!preg_match('~^https?://~i', $url) && !str_starts_with($url, '//')) {
+                $url = 'https://' . $url;
+            } elseif (str_starts_with($url, '//')) {
+                $url = 'https:' . $url;
+            }
             $host = parse_url($url, PHP_URL_HOST);
-            if (! is_string($host) || $host === '') return null;
+            if (!is_string($host) || $host === '') {
+                return null;
+            }
+
             return (string) preg_replace('/^www\./i', '', strtolower(rtrim($host, '.')));
         };
 
@@ -1363,31 +1374,40 @@ class HomeController extends BaseController
             ->get()->getResultArray();
         foreach ($logs as $log) {
             $host = $normalizeHost((string) ($log['url_testee'] ?? ''));
-            if ($host === null) continue;
+            if ($host === null) {
+                continue;
+            }
             $state = $log['task_name'] === CronLogModel::TASK_PENDING_USER_REPORT ? 'pending' : 'confirmed';
-            if (! isset($states[$host]) || $state === 'confirmed') $states[$host] = $state;
+            if (!isset($states[$host]) || $state === 'confirmed') {
+                $states[$host] = $state;
+            }
         }
 
-        $reportedItems = $db->table('item')->select('lien, link_status')->where('deleted_at', null)->whereIn('link_status', ['reported', 'dead'])->get()->getResultArray();
+        $reportedItems = $db->table('item')->select('lien, link_status')
+            ->where('deleted_at', null)
+            ->whereIn('link_status', ['reported', 'dead'])
+            ->get()->getResultArray();
         foreach ($reportedItems as $item) {
             $host = $normalizeHost((string) ($item['lien'] ?? ''));
-            if ($host === null) continue;
+            if ($host === null) {
+                continue;
+            }
             $state = $item['link_status'] === 'reported' ? 'pending' : 'confirmed';
-            if (! isset($states[$host]) || $state === 'confirmed') $states[$host] = $state;
+            if (!isset($states[$host]) || $state === 'confirmed') {
+                $states[$host] = $state;
+            }
         }
 
         $whitelistCutoff = date('Y-m-d H:i:s', time() - (WhitelistModel::PROTECTION_DAYS * 86400));
         $whitelist = (new WhitelistModel())->where('created_at >=', $whitelistCutoff)->findAll();
         foreach ($whitelist as $entry) {
             $host = $normalizeHost((string) ($entry['domain'] ?? ''));
-            if ($host !== null && ! isset($states[$host])) $states[$host] = 'whitelist';
+            if ($host !== null && !isset($states[$host])) {
+                $states[$host] = 'whitelist';
+            }
         }
-        return $states;
-    }
 
-    public function __construct()
-    {
-        helper('auth');
+        return $states;
     }
 
     /**
@@ -1396,22 +1416,18 @@ class HomeController extends BaseController
     public function index()
     {
         $model = new ItemModel();
-        $userId = auth()->loggedIn() ? auth()->id() : null;
+        $isLoggedIn = auth()->loggedIn();
+        $userId = $isLoggedIn ? auth()->id() : null;
         $this->response->noCache();
 
-        $headersWithNoLogin = $model->getActiveHeaders($userId);
-        $headersWithLogin = $model->getHeaders();
+        $headersWithLogin = $isLoggedIn ? $model->getHeaders() : [];
+        $headersWithNoLogin = $isLoggedIn ? $headersWithLogin : $model->getActiveHeaders(null);
 
-        // Évite la boucle infinie de redirection si un paramètre "i" est présent
         if (!empty($headersWithNoLogin) && !$this->request->getGet('i')) {
             return redirect()->to('c/' . $headersWithNoLogin[0]['id']);
         }
 
-        if (!empty($headersWithLogin) && !$this->request->getGet('i') && empty($headersWithNoLogin)) {
-            return redirect()->to('c/' . $headersWithLogin[0]['id']);
-        }
-
-        $headerId = !empty($headersWithNoLogin) ? $headersWithNoLogin[0]['id'] : (!empty($headersWithLogin) ? $headersWithLogin[0]['id'] : null);
+        $headerId = !empty($headersWithNoLogin) ? $headersWithNoLogin[0]['id'] : null;
         $groupedItems = $headerId ? $model->getItemsGroupedByHeaderAndDivision($userId, $headerId) : [];
 
         return view('home', [
@@ -1432,11 +1448,23 @@ class HomeController extends BaseController
     public function categorie($headerId)
     {
         $model = new ItemModel();
-        $userId = auth()->loggedIn() ? auth()->id() : null;
+        $isLoggedIn = auth()->loggedIn();
+        $userId = $isLoggedIn ? auth()->id() : null;
+        $isAjax = $this->request->isAJAX();
         $this->response->noCache();
 
-        $headersWithNoLogin = $model->getActiveHeaders($userId);
-        $headersWithLogin = $model->getHeaders();
+        // Inutile de charger les onglets de navigation lors d'un swap AJAX
+        $headersWithLogin = [];
+        $headersWithNoLogin = [];
+        if (!$isAjax) {
+            if ($isLoggedIn) {
+                $headersWithLogin = $model->getHeaders();
+                $headersWithNoLogin = $headersWithLogin;
+            } else {
+                $headersWithNoLogin = $model->getActiveHeaders(null);
+            }
+        }
+
         $groupedItems = $model->getItemsGroupedByHeaderAndDivision($userId, $headerId);
 
         $pendingTotal = 0;
@@ -1444,21 +1472,20 @@ class HomeController extends BaseController
         $pendingRevisionIds = [];
         $passedReleases = [];
 
-        if (auth()->loggedIn()) {
+        if ($isLoggedIn) {
             $revModel = new ItemRevisionModel();
             $pendingRevisionIds = array_fill_keys(
                 array_map('intval', $revModel->where('revision_status', 'pending')->findColumn('original_item_id') ?? []),
                 true,
             );
 
-            $passedReleases = $model->select('item.*, d.nom')
+            $passedReleases = $model->select('item.id, item.titre, item.date_sortie, d.nom')
                 ->join('division d', 'item.id_division = d.id')
                 ->where('item.id_user', $userId)
                 ->where('item.date_sortie IS NOT NULL')
                 ->where('item.date_sortie <=', date('Y-m-d H:i:s'))
                 ->where('item.date_sortie >=', date('Y-m-d H:i:s', strtotime('-7 days')))
-                ->findAll()
-            ;
+                ->findAll();
 
             if (auth()->user()->inGroup('admin', 'superadmin')) {
                 $pendingItemsCount = $model->where('is_public', 2)->countAllResults();
@@ -1468,13 +1495,11 @@ class HomeController extends BaseController
                 $toAdminCount = $model->where('id_division <=', 11)
                     ->where('is_public', 1)
                     ->where('id_user !=', 1)
-                    ->countAllResults()
-                ;
+                    ->countAllResults();
             }
         }
 
-        $siteConfigModel = new SiteConfigModel();
-        $supportedDomains = $siteConfigModel->where('is_active', 1)->findColumn('domain') ?? [];
+        $supportedDomains = (new SiteConfigModel())->where('is_active', 1)->findColumn('domain') ?? [];
 
         return view('home', [
             'headersWithNoLogin' => $headersWithNoLogin,
@@ -7356,11 +7381,6 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <link rel="dns-prefetch" href="https://image.tmdb.org">
     <link rel="dns-prefetch" href="https://cdn.myanimelist.net">
 
-    <!-- Choices.js CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-    <!-- Choices.js JS -->
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js" defer></script>
-
     <!-- Restauration du thème avant le rendu pour éviter les flashs visuels -->
     <script>
     (function() {
@@ -7377,14 +7397,16 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     })();
     </script>
 
-    <!-- Gestion du cache des assets (force le rechargement si le fichier a été modifié) -->
+    <!-- Gestion du cache des assets -->
     <?php
-    $rootCssVersion = file_exists(FCPATH . 'assets/root.css') ? filemtime(FCPATH . 'assets/root.css') : '1';
-    $styleCssVersion = file_exists(FCPATH . 'assets/style.css') ? filemtime(FCPATH . 'assets/style.css') : '1';
-    $scriptJsVersion = file_exists(FCPATH . 'assets/script.js') ? filemtime(FCPATH . 'assets/script.js') : '1';
-    $mediaAutofillVersion = file_exists(FCPATH . 'assets/media-autofill.js') ? filemtime(FCPATH . 'assets/media-autofill.js') : '1';
-    $profileJsVersion = file_exists(FCPATH . 'assets/profile.js') ? filemtime(FCPATH . 'assets/profile.js') : '1';
-    ?>
+$rootCssVersion = file_exists(FCPATH . 'assets/root.css') ? filemtime(FCPATH . 'assets/root.css') : '1';
+$styleCssVersion = file_exists(FCPATH . 'assets/style.css') ? filemtime(FCPATH . 'assets/style.css') : '1';
+$scriptJsVersion = file_exists(FCPATH . 'assets/script.js') ? filemtime(FCPATH . 'assets/script.js') : '1';
+$profileJsVersion = file_exists(FCPATH . 'assets/profile.js') ? filemtime(FCPATH . 'assets/profile.js') : '1';
+$categoriesNavVersion = file_exists(FCPATH . 'assets/categories-nav.js') ? filemtime(FCPATH . 'assets/categories-nav.js') : '1';
+$currentPath = trim((string) uri_string(), '/');
+$isFormPage = ($currentPath === 'm' || str_starts_with($currentPath, 'm/'));
+?>
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v=' . $rootCssVersion); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v=' . $styleCssVersion); ?>">
 
@@ -7393,7 +7415,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <meta name="csrf-header" content="<?php echo csrf_header(); ?>">
     <meta id="meta-theme-color" name="theme-color" content="#fcfcfd" media="(prefers-color-scheme: light)">
 
-    <!-- Variables globales exposées pour les scripts JS (ex: Drag & Drop, API) -->
+    <!-- Variables globales exposées pour les scripts JS -->
     <script>
     window.siteConfig = {
         "baseUrl": "<?php echo rtrim(base_url(), '/') . '/'; ?>",
@@ -7403,31 +7425,54 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     };
     </script>
 
+    <?php if (auth()->loggedIn()) { ?>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
-        defer></script>
+    <?php } ?>
     <script src="<?php echo base_url('assets/script.js?v=' . $scriptJsVersion); ?>" defer></script>
-    <script src="<?php echo base_url('assets/media-autofill.js?v=' . $mediaAutofillVersion); ?>" defer></script>
     <script src="<?php echo base_url('assets/profile.js?v=' . $profileJsVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/categories-nav.js?v=' . $categoriesNavVersion); ?>" defer></script>
+    <?php if ($isFormPage) {
+    $mediaAutofillVersion = file_exists(FCPATH . 'assets/media-autofill.js') ? filemtime(FCPATH . 'assets/media-autofill.js') : '1';
+    ?>
+    <script src="<?php echo base_url('assets/media-autofill.js?v=' . $mediaAutofillVersion); ?>" defer></script>
+    <?php } ?>
 
+    <?php
+    $basePath = rtrim((string) parse_url(base_url(), PHP_URL_PATH), '/');
+    $currentUri = trim((string) uri_string(), '/');
+    $isOnCategoryPage = ($currentUri === '' || str_starts_with($currentUri, 'c/'));
+    ?>
     <script type="speculationrules">
         {
-  "prerender": [
-    {
-      "where": {
-        "and": [
-          { "href_matches": "/*" },
-          { "not": { "href_matches": "/x" } },
-          { "not": { "href_matches": "/d/*" } },
-          { "not": { "href_matches": "/p/export/*" } }
-        ]
-      },
-      "eagerness": "moderate"
+      "prerender": [
+        {
+          "where": {
+            "and": [
+              { "href_matches": "<?php echo $basePath; ?>/*" },
+              <?php if ($isOnCategoryPage) { ?>
+              { "not": { "href_matches": "<?php echo $basePath; ?>/c/*" } },
+              <?php } ?>
+              { "not": { "href_matches": "<?php echo $basePath; ?>/x" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/d/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/u/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/rr/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/rd/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/ra" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/re" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/p/export/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/i/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/v/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/u/*/x" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/u/*/b" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/sc/delete/*" } },
+              { "not": { "href_matches": "<?php echo $basePath; ?>/a/fnd*" } }
+            ]
+          },
+          "eagerness": "moderate"
+        }
+      ]
     }
-  ]
-}
-</script>
+    </script>
 </head>
 
 <body>
@@ -8553,6 +8598,591 @@ Options -Indexes
 ServerSignature Off
 ```
 
+## public/assets/categories-nav.js
+```javascript
+(function () {
+    'use strict';
+
+    const CACHE_BASE_PREFIX = 'cat_cache_v1_';
+    const AUTH_STATE_KEY = 'nav_auth_state_v1';
+    const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+    const pendingFetches = new Map();
+
+    function getAuthState() {
+        return document.querySelector('.btn-logout') ? 'auth' : 'guest';
+    }
+
+    function getCachePrefix() {
+        return `${CACHE_BASE_PREFIX}${getAuthState()}_`;
+    }
+
+    function clearAllNavCaches() {
+        try {
+            for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                const k = sessionStorage.key(i);
+                if (k && (k.startsWith(CACHE_BASE_PREFIX) || k.startsWith('prof_cache_v1_'))) {
+                    sessionStorage.removeItem(k);
+                }
+            }
+        } catch (_) {}
+    }
+
+    function syncAuthCacheState() {
+        const currentState = getAuthState();
+        try {
+            const previousState = sessionStorage.getItem(AUTH_STATE_KEY);
+            if (previousState !== currentState) {
+                clearAllNavCaches();
+                sessionStorage.setItem(AUTH_STATE_KEY, currentState);
+            }
+        } catch (_) {}
+    }
+
+    function normalizeCategoryUrl(rawUrl) {
+        const parsed = new URL(rawUrl, window.location.origin);
+        parsed.search = '';
+        parsed.hash = '';
+        return parsed.toString();
+    }
+
+    function getCachedHtml(key) {
+        try {
+            const raw = sessionStorage.getItem(getCachePrefix() + key);
+            if (!raw) return null;
+            const entry = JSON.parse(raw);
+            if (Date.now() - entry.ts > CACHE_TTL_MS) {
+                sessionStorage.removeItem(getCachePrefix() + key);
+                return null;
+            }
+            return entry.html;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function setCachedHtml(key, html) {
+        try {
+            sessionStorage.setItem(getCachePrefix() + key, JSON.stringify({ html, ts: Date.now() }));
+        } catch (_) {
+            clearAllNavCaches();
+        }
+    }
+
+    function removeCachedHtml(key) {
+        try {
+            sessionStorage.removeItem(getCachePrefix() + key);
+        } catch (_) {}
+    }
+
+    function getBaseUrl() {
+        const base = (window.siteConfig && window.siteConfig.baseUrl) ? window.siteConfig.baseUrl : '/';
+        return base.endsWith('/') ? base : base + '/';
+    }
+
+    function updateNavActive(targetUrl) {
+        const targetKey = normalizeCategoryUrl(targetUrl);
+        document.querySelectorAll('nav.category-nav .nav-tab').forEach((tab) => {
+            tab.classList.toggle('active', normalizeCategoryUrl(tab.href) === targetKey);
+        });
+    }
+
+    async function fetchCategoryHtml(url) {
+        const key = normalizeCategoryUrl(url);
+        const cached = getCachedHtml(key);
+        if (cached !== null) {
+            return cached;
+        }
+        if (pendingFetches.has(key)) {
+            return pendingFetches.get(key);
+        }
+
+        const promise = fetch(key, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.text();
+            })
+            .then((html) => {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const main = doc.querySelector('main.container');
+                if (!main) throw new Error('Contenu introuvable');
+                const inner = main.innerHTML;
+                setCachedHtml(key, inner);
+                return inner;
+            })
+            .finally(() => {
+                pendingFetches.delete(key);
+            });
+
+        pendingFetches.set(key, promise);
+        return promise;
+    }
+
+    // --- Ré-initialisation des fonctionnalités après injection du HTML ---
+
+    function initReleaseBadges(container) {
+        let dismissed = [];
+        try {
+            dismissed = JSON.parse(localStorage.getItem('dismissedReleases') || '[]');
+        } catch (_) {}
+
+        container.querySelectorAll('.release-badge').forEach((badge) => {
+            const key = badge.getAttribute('data-key');
+            if (!dismissed.includes(key)) {
+                badge.style.display = 'inline-block';
+                badge.classList.add('fade-in');
+                badge.addEventListener('click', function () {
+                    this.style.display = 'none';
+                    dismissed.push(key);
+                    try {
+                        localStorage.setItem('dismissedReleases', JSON.stringify(dismissed));
+                    } catch (_) {}
+                });
+            }
+        });
+    }
+
+    function initSearchAndFilters(container) {
+        const searchInput = container.querySelector('#liveSearch');
+        if (!searchInput) return;
+
+        const cards = Array.from(container.querySelectorAll('.searchable-card'));
+        const statusFilter = container.querySelector('#statusFilter');
+        const categoryFilter = container.querySelector('#categoryFilter');
+        const resultCount = container.querySelector('#cardResultCount');
+        const filterKey = 'cardFilters';
+
+        const categories = [...new Set(cards.map((c) => c.dataset.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+        categories.forEach((category) => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilter?.appendChild(option);
+        });
+
+        const statuses = [...new Set(cards.map((c) => c.dataset.status).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+        statuses.forEach((value) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            statusFilter?.appendChild(option);
+        });
+
+        try {
+            const saved = JSON.parse(localStorage.getItem(filterKey) || '{}');
+            searchInput.value = saved.query || '';
+            if (statusFilter) statusFilter.value = saved.status || '';
+            if (categoryFilter) categoryFilter.value = saved.category || '';
+
+            if (categoryFilter && !Array.from(categoryFilter.options).some((o) => o.value === categoryFilter.value)) {
+                categoryFilter.value = '';
+            }
+            if (statusFilter && !Array.from(statusFilter.options).some((o) => o.value === statusFilter.value)) {
+                statusFilter.value = '';
+            }
+        } catch (_) {}
+
+        const applyFilters = () => {
+            const query = searchInput.value.trim().toLocaleLowerCase('fr');
+            const status = statusFilter?.value || '';
+            const category = categoryFilter?.value || '';
+            let visible = 0;
+
+            cards.forEach((card) => {
+                const title = card.querySelector('.card-title, .search-target-title')?.innerText.toLocaleLowerCase('fr') || '';
+                const desc = card.querySelector('.card-desc, .search-target-desc')?.innerText.toLocaleLowerCase('fr') || '';
+                const match =
+                    (!query || title.includes(query) || desc.includes(query)) &&
+                    (!status || card.dataset.status === status) &&
+                    (!category || card.dataset.category === category);
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            let openByDefault = false;
+            try {
+                openByDefault = localStorage.getItem('defaultOpenDivisions') === 'true';
+            } catch (_) {}
+
+            const hasFilter = Boolean(query || status || category);
+
+            container.querySelectorAll('details.division-section, details.subcategory-details').forEach((detail) => {
+                const hasVisible = Array.from(detail.querySelectorAll('.searchable-card')).some((c) => c.style.display !== 'none');
+                detail.hidden = !hasVisible;
+                if (hasFilter) {
+                    detail.open = hasVisible;
+                } else if (openByDefault && detail.classList.contains('division-section')) {
+                    detail.open = hasVisible;
+                }
+            });
+
+            if (resultCount) resultCount.textContent = `${visible} carte${visible > 1 ? 's' : ''}`;
+
+            try {
+                localStorage.setItem(filterKey, JSON.stringify({ query: searchInput.value, status, category }));
+            } catch (_) {}
+        };
+
+        searchInput.addEventListener('input', applyFilters);
+        statusFilter?.addEventListener('change', applyFilters);
+        categoryFilter?.addEventListener('change', applyFilters);
+        applyFilters();
+        window.applyCardFilters = applyFilters;
+    }
+
+    async function checkCardDispo(itemId, targetUrl) {
+        const liveStatus = document.getElementById(`live-status-${itemId}`);
+        if (!liveStatus || !targetUrl) return;
+
+        const domains = Array.isArray(window.siteSupportedDomains) ? window.siteSupportedDomains : [];
+        if (!domains.some((domain) => targetUrl.includes(domain))) return;
+
+        liveStatus.style.color = 'var(--info)';
+        liveStatus.textContent = 'Vérification...';
+
+        try {
+            const resp = await fetch(`${getBaseUrl()}q?urlCible=${encodeURIComponent(targetUrl)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            const data = await resp.json();
+            if (data.success) {
+                liveStatus.style.color = data.disponible ? 'var(--success)' : 'var(--danger)';
+                liveStatus.textContent = data.disponible ? '✔ Disponible' : '✖ Indisponible';
+            } else {
+                liveStatus.style.color = 'var(--text-muted)';
+                liveStatus.textContent = 'Indisponible';
+            }
+        } catch (_) {
+            liveStatus.style.color = 'var(--text-muted)';
+            liveStatus.textContent = 'Vérif. impossible';
+        }
+    }
+
+    function initLiveDispoChecks(container) {
+        container.querySelectorAll('.card.needs-dispo-check').forEach((card) => {
+            const itemId = card.dataset.id;
+            const url = card.dataset.url;
+            if (itemId && url && document.getElementById(`live-status-${itemId}`)) {
+                checkCardDispo(itemId, url);
+            }
+        });
+    }
+
+    function initIncrementButtons(container) {
+        container.querySelectorAll('.btn-increment-episode').forEach((button) => {
+            button.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (button.disabled) return;
+                button.disabled = true;
+
+                const itemId = button.getAttribute('data-id');
+                const card = document.getElementById(`card-${itemId}`);
+                const epSpan = document.getElementById(`ep-count-${itemId}`);
+                const epTotalSpan = document.getElementById(`ep-total-${itemId}`);
+                const seasonSpan = document.getElementById(`s-count-${itemId}`);
+                const statusSpan = document.getElementById(`status-text-${itemId}`);
+
+                try {
+                    const response = await fetch(`${getBaseUrl()}e/${itemId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            [window.siteConfig.csrfHeader]: window.siteConfig.csrfToken,
+                        },
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+
+                    if (data.csrf_token) {
+                        window.siteConfig.csrfToken = data.csrf_token;
+                    }
+
+                    if (data.success) {
+                        if (epSpan) {
+                            epSpan.innerText = data.new_episode;
+                            epSpan.style.color = 'var(--success)';
+                            epSpan.style.transform = 'scale(1.2)';
+                            setTimeout(() => {
+                                epSpan.style.color = '';
+                                epSpan.style.transform = 'scale(1)';
+                            }, 400);
+                        }
+                        if (seasonSpan && data.new_saison) seasonSpan.innerText = data.new_saison;
+                        if (epTotalSpan && 'new_total_episodes' in data) {
+                            epTotalSpan.innerText = data.new_total_episodes ? ` / ${data.new_total_episodes}` : '';
+                        }
+                        if (data.status) {
+                            if (statusSpan) statusSpan.innerText = data.status;
+                            if (card) {
+                                card.dataset.status = data.status;
+                                if (data.status === 'Terminé') {
+                                    card.classList.add('status-completed');
+                                    card.classList.remove('needs-dispo-check');
+                                    const liveStatus = document.getElementById(`live-status-${itemId}`);
+                                    if (liveStatus) liveStatus.style.display = 'none';
+                                }
+                            }
+                        }
+                        if (card && data.new_link) {
+                            card.dataset.url = data.new_link;
+                            const linkEl = card.querySelector('.card-link-block');
+                            if (linkEl) linkEl.href = data.new_link;
+                            if (data.status !== 'Terminé') {
+                                checkCardDispo(itemId, data.new_link);
+                            }
+                        }
+
+                        removeCachedHtml(normalizeCategoryUrl(window.location.href));
+
+                        if (typeof window.showToast === 'function') {
+                            window.showToast(
+                                data.status === 'Terminé' ? 'Série marquée comme terminée !' : 'Épisode ajouté avec succès !',
+                                'success'
+                            );
+                        }
+                    } else if (typeof window.showToast === 'function') {
+                        window.showToast(data.error || 'Erreur lors de la mise à jour.', 'danger');
+                    }
+                } catch (_) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Erreur réseau lors de la mise à jour.', 'danger');
+                    }
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
+    }
+
+    function initReportButtons(container) {
+        container.querySelectorAll('.btn-report-link-inline').forEach((button) => {
+            button.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!window.confirm('Signaler ce domaine comme lien mort ?')) return;
+                if (button.disabled) return;
+                button.disabled = true;
+
+                const itemId = button.getAttribute('data-id');
+                try {
+                    const response = await fetch(`${getBaseUrl()}report-link`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            [window.siteConfig.csrfHeader]: window.siteConfig.csrfToken,
+                        },
+                        body: JSON.stringify({ id: itemId }),
+                    });
+                    const data = await response.json();
+
+                    if (data.csrf_token) {
+                        window.siteConfig.csrfToken = data.csrf_token;
+                    }
+
+                    if (data.success) {
+                        const badge = document.createElement('span');
+                        badge.className = 'dead-link-badge-inline';
+                        badge.title = 'En attente de vérification par l’administration.';
+                        badge.textContent = '⚠️ Signalé';
+                        button.replaceWith(badge);
+                        clearAllNavCaches();
+                        if (typeof window.showToast === 'function') {
+                            window.showToast(data.message || 'Signalement enregistré.', 'success');
+                        }
+                    } else {
+                        button.disabled = false;
+                        if (typeof window.showToast === 'function') {
+                            window.showToast(data.message || 'Impossible de signaler ce lien.', 'danger');
+                        }
+                    }
+                } catch (_) {
+                    button.disabled = false;
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Erreur réseau lors du signalement.', 'danger');
+                    }
+                }
+            });
+        });
+    }
+
+    function initSortable(container) {
+        if (typeof Sortable === 'undefined') return;
+
+        async function updateOrderBackend(newOrder) {
+            try {
+                const response = await fetch(window.siteConfig.updateOrderUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [window.siteConfig.csrfHeader]: window.siteConfig.csrfToken,
+                    },
+                    body: JSON.stringify({ order: newOrder }),
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'Sauvegarde impossible');
+                if (data.csrf_token) window.siteConfig.csrfToken = data.csrf_token;
+                removeCachedHtml(normalizeCategoryUrl(window.location.href));
+                if (typeof window.showToast === 'function') window.showToast('Ordre mis à jour !', 'success');
+            } catch (_) {
+                if (typeof window.showToast === 'function') {
+                    window.showToast("Erreur lors de la sauvegarde de l'ordre", 'danger');
+                }
+            }
+        }
+
+        container.querySelectorAll('.sortable-grid').forEach((el) => {
+            Sortable.create(el, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                handle: '.drag-handle',
+                delay: 200,
+                delayOnTouchOnly: true,
+                onEnd: (evt) => {
+                    if (evt.oldIndex === evt.newIndex) return;
+                    const divisionBody = el.closest('.sortable-division');
+                    if (!divisionBody) return;
+                    const newOrder = Array.from(divisionBody.querySelectorAll('.card'))
+                        .map((item) => item.getAttribute('data-id'))
+                        .filter(Boolean);
+                    updateOrderBackend(newOrder);
+                },
+            });
+        });
+
+        container.querySelectorAll('.sortable-division').forEach((el) => {
+            Sortable.create(el, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                handle: '.drag-handle-sub',
+                delay: 150,
+                delayOnTouchOnly: true,
+                onEnd: (evt) => {
+                    if (evt.oldIndex === evt.newIndex) return;
+                    const newOrder = Array.from(el.querySelectorAll('.card'))
+                        .map((item) => item.getAttribute('data-id'))
+                        .filter(Boolean);
+                    updateOrderBackend(newOrder);
+                },
+            });
+        });
+    }
+
+    function bindCategoryEvents(container) {
+        initReleaseBadges(container);
+        initSearchAndFilters(container);
+        initIncrementButtons(container);
+        initReportButtons(container);
+        initSortable(container);
+        initLiveDispoChecks(container);
+    }
+
+    let activeNavToken = 0;
+
+    async function switchCategory(url, pushHistory = true) {
+        const mainEl = document.querySelector('main.container');
+        if (!mainEl) {
+            window.location.href = url;
+            return;
+        }
+
+        const key = normalizeCategoryUrl(url);
+        const token = ++activeNavToken;
+
+        updateNavActive(key);
+        if (pushHistory && normalizeCategoryUrl(window.location.href) !== key) {
+            window.history.pushState({ categoryUrl: key }, '', key);
+        }
+
+        try {
+            const html = await fetchCategoryHtml(key);
+            if (token !== activeNavToken) return;
+
+            mainEl.innerHTML = html;
+            try {
+                sessionStorage.setItem('last_cards_url', key);
+            } catch (_) {}
+            bindCategoryEvents(mainEl);
+        } catch (_) {
+            if (token === activeNavToken) {
+                window.location.href = url;
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Synchronise le cache avec l'état de connexion actuel (vide automatiquement après login/logout)
+        syncAuthCacheState();
+
+        // Vide le cache dès le clic sur Déconnexion
+        const logoutBtn = document.querySelector('.btn-logout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', clearAllNavCaches);
+        }
+
+        const navTabs = document.querySelectorAll('nav.category-nav .nav-tab');
+        const mainEl = document.querySelector('main.container');
+
+        if (!navTabs.length || !mainEl) return;
+
+        if (new URL(window.location.href).searchParams.has('open')) {
+            clearAllNavCaches();
+        }
+
+        const currentKey = normalizeCategoryUrl(window.location.href);
+        setCachedHtml(currentKey, mainEl.innerHTML);
+
+        navTabs.forEach((tab) => {
+            tab.addEventListener('mouseenter', () => {
+                fetchCategoryHtml(tab.href).catch(() => {});
+            });
+            tab.addEventListener('focus', () => {
+                fetchCategoryHtml(tab.href).catch(() => {});
+            });
+            tab.addEventListener('click', (e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                switchCategory(tab.href, true);
+            });
+        });
+
+        const prefetchQueue = Array.from(navTabs)
+            .map((tab) => normalizeCategoryUrl(tab.href))
+            .filter((key) => getCachedHtml(key) === null);
+
+        const prefetchNext = async () => {
+            while (prefetchQueue.length > 0) {
+                const nextKey = prefetchQueue.shift();
+                if (!nextKey || getCachedHtml(nextKey) !== null) continue;
+                try {
+                    await fetchCategoryHtml(nextKey);
+                } catch (_) {}
+                await new Promise((r) => setTimeout(r, 150));
+            }
+        };
+
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(() => prefetchNext(), { timeout: 1500 });
+        } else {
+            setTimeout(prefetchNext, 500);
+        }
+
+        window.addEventListener('popstate', () => {
+            if (document.querySelector('nav.category-nav .nav-tab')) {
+                switchCategory(window.location.href, false);
+            }
+        });
+    });
+})();
+```
+
 ## public/assets/loginregister.css
 ```css
 /* Base & Reset */
@@ -9054,6 +9684,80 @@ a:hover {
 
     const SVG_SUN = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>';
     const SVG_MOON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg>';
+    const SVG_EYE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';
+    const SVG_EYE_SLASH = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';
+
+    const CACHE_PREFIX = 'prof_cache_v1_';
+    const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+    const pendingFetches = new Map();
+
+    // Barre de progression discrète lors des navigations complètes
+    function startTopProgressBar() {
+        let bar = document.getElementById('nav-progress-bar');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'nav-progress-bar';
+            document.body.appendChild(bar);
+        }
+        bar.classList.remove('active');
+        void bar.offsetWidth;
+        bar.classList.add('active');
+    }
+
+    // Met à jour le href réel des boutons "Retour aux cartes" pour activer le pré-rendu au survol
+    function enhanceReturnToCardsLinks() {
+        let lastCards = null;
+        try {
+            lastCards = sessionStorage.getItem('last_cards_url');
+        } catch (_) {}
+
+        document.querySelectorAll('a[onclick*="retourAuxCartes"]').forEach((link) => {
+            if (lastCards) {
+                link.href = lastCards;
+            }
+            // Supprime le onclick inline pour laisser le navigateur utiliser le pré-rendu natif
+            link.removeAttribute('onclick');
+            link.addEventListener('click', (e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                link.classList.add('is-navigating');
+                startTopProgressBar();
+            });
+        });
+    }
+
+    function getCachedTab(key) {
+        try {
+            const raw = sessionStorage.getItem(CACHE_PREFIX + key);
+            if (!raw) return null;
+            const entry = JSON.parse(raw);
+            if (Date.now() - entry.ts > CACHE_TTL_MS) {
+                sessionStorage.removeItem(CACHE_PREFIX + key);
+                return null;
+            }
+            return entry.html;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function setCachedTab(key, html) {
+        try {
+            sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ html, ts: Date.now() }));
+        } catch (_) {
+            clearProfileCache();
+        }
+    }
+
+    function clearProfileCache() {
+        try {
+            for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                const k = sessionStorage.key(i);
+                if (k && k.startsWith(CACHE_PREFIX)) {
+                    sessionStorage.removeItem(k);
+                }
+            }
+        } catch (_) {}
+    }
 
     function getSavedTheme() {
         try {
@@ -9102,11 +9806,212 @@ a:hover {
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        // Réapplique le thème exact (y compris obsidian/midnight/emerald) après script.js
-        applyTheme(getSavedTheme());
+    function normalizeTabUrl(rawUrl) {
+        const parsed = new URL(rawUrl, window.location.origin);
+        const tab = parsed.searchParams.get('tab');
+        parsed.search = tab && tab !== 'profile' ? `?tab=${encodeURIComponent(tab)}` : '';
+        parsed.hash = '';
+        return parsed.toString();
+    }
 
-        // Synchronise le bouton du header avec le dernier thème sombre choisi
+    function bindProfileContentEvents(container) {
+        if (!container) return;
+
+        // 1. Sélecteur de thèmes (?tab=display)
+        const currentTheme = getSavedTheme();
+        container.querySelectorAll('.theme-option-card').forEach((card) => {
+            const active = card.getAttribute('data-theme-choice') === currentTheme;
+            card.classList.toggle('is-active', active);
+            card.setAttribute('aria-checked', active ? 'true' : 'false');
+
+            card.addEventListener('click', function () {
+                const chosen = this.getAttribute('data-theme-choice');
+                applyTheme(chosen);
+                notify('Thème mis à jour !', 'success');
+            });
+        });
+
+        // 2. Option : ouvrir les catégories par défaut
+        const openDivisionsToggle = container.querySelector('#toggle-open-divisions');
+        if (openDivisionsToggle) {
+            let enabled = false;
+            try {
+                enabled = localStorage.getItem('defaultOpenDivisions') === 'true';
+            } catch (_) {}
+            openDivisionsToggle.checked = enabled;
+
+            openDivisionsToggle.addEventListener('change', function () {
+                try {
+                    localStorage.setItem('defaultOpenDivisions', this.checked ? 'true' : 'false');
+                } catch (_) {}
+                notify(
+                    this.checked
+                        ? 'Les catégories seront ouvertes par défaut.'
+                        : 'Les catégories resteront repliées par défaut.',
+                    'info'
+                );
+            });
+        }
+
+        // 3. Nettoyage : réinitialiser les filtres mémorisés
+        const resetFiltersBtn = container.querySelector('#btn-reset-filters');
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function () {
+                try {
+                    localStorage.removeItem('cardFilters');
+                } catch (_) {}
+                notify('Filtres de recherche réinitialisés.', 'success');
+            });
+        }
+
+        // 4. Nettoyage : réafficher les notifications de sorties masquées
+        const resetReleasesBtn = container.querySelector('#btn-reset-releases');
+        if (resetReleasesBtn) {
+            resetReleasesBtn.addEventListener('click', function () {
+                try {
+                    localStorage.removeItem('dismissedReleases');
+                } catch (_) {}
+                notify('Les notifications de sorties seront de nouveau visibles.', 'success');
+            });
+        }
+
+        // 5. Ré-attache les boutons "Afficher le mot de passe"
+        container.querySelectorAll('.password-toggle').forEach((btn) => {
+            if (btn.dataset.bound === '1') return;
+            btn.dataset.bound = '1';
+            btn.innerHTML = SVG_EYE;
+            btn.addEventListener('click', function () {
+                const wrapper = this.closest('.password-wrapper');
+                const input = wrapper ? wrapper.querySelector('input') : null;
+                if (!input) return;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.innerHTML = SVG_EYE_SLASH;
+                } else {
+                    input.type = 'password';
+                    this.innerHTML = SVG_EYE;
+                }
+            });
+        });
+
+        // 6. Vide le cache du profil lors de la soumission d'un formulaire
+        container.querySelectorAll('form').forEach((form) => {
+            form.addEventListener('submit', clearProfileCache);
+        });
+
+        // 7. Liens internes vers un autre onglet du profil
+        container.querySelectorAll('a[href*="?tab="]').forEach((link) => {
+            link.addEventListener('click', function (e) {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                switchProfileTab(this.href, true);
+            });
+        });
+    }
+
+    async function fetchTabHtml(url) {
+        const key = normalizeTabUrl(url);
+        const cached = getCachedTab(key);
+        if (cached !== null) {
+            return cached;
+        }
+        if (pendingFetches.has(key)) {
+            return pendingFetches.get(key);
+        }
+
+        const promise = fetch(key, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.text();
+            })
+            .then((html) => {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const content = doc.querySelector('.profile-content');
+                if (!content) throw new Error('Contenu profil introuvable');
+                const inner = content.innerHTML;
+                setCachedTab(key, inner);
+                return inner;
+            })
+            .finally(() => {
+                pendingFetches.delete(key);
+            });
+
+        pendingFetches.set(key, promise);
+        return promise;
+    }
+
+    function updateSidebarActive(targetUrl) {
+        const targetKey = normalizeTabUrl(targetUrl);
+        document.querySelectorAll('.profile-sidebar .profile-nav-item').forEach((item) => {
+            const itemKey = normalizeTabUrl(item.href);
+            item.classList.toggle('active', itemKey === targetKey);
+        });
+    }
+
+    let activeNavToken = 0;
+
+    async function switchProfileTab(url, pushHistory = true) {
+        const contentEl = document.querySelector('.profile-content');
+        if (!contentEl) {
+            window.location.href = url;
+            return;
+        }
+
+        const key = normalizeTabUrl(url);
+        const token = ++activeNavToken;
+
+        updateSidebarActive(key);
+        if (pushHistory && normalizeTabUrl(window.location.href) !== key) {
+            window.history.pushState({ profileTabUrl: key }, '', key);
+        }
+
+        try {
+            const html = await fetchTabHtml(key);
+            if (token !== activeNavToken) return;
+
+            contentEl.innerHTML = html;
+            bindProfileContentEvents(contentEl);
+        } catch (_) {
+            if (token === activeNavToken) {
+                window.location.href = url;
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        applyTheme(getSavedTheme());
+        enhanceReturnToCardsLinks();
+
+        // Feedback visuel discret sur les liens qui rechargent une nouvelle page
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            if (
+                e.defaultPrevented ||
+                e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0 ||
+                link.target === '_blank' ||
+                link.hasAttribute('download') ||
+                link.classList.contains('nav-tab') ||
+                link.classList.contains('profile-nav-item')
+            ) {
+                return;
+            }
+            const href = link.getAttribute('href') || '';
+            if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('javascript:')) {
+                return;
+            }
+            try {
+                const url = new URL(link.href, window.location.origin);
+                if (url.origin === window.location.origin) {
+                    link.classList.add('is-navigating');
+                    startTopProgressBar();
+                }
+            } catch (_) {}
+        });
+
         const headerToggle = document.getElementById('theme-toggle');
         if (headerToggle) {
             headerToggle.addEventListener('click', function () {
@@ -9128,38 +10033,6 @@ a:hover {
             });
         }
 
-        // Cartes de sélection de thème (?tab=display)
-        document.querySelectorAll('.theme-option-card').forEach((card) => {
-            card.addEventListener('click', function () {
-                const chosen = this.getAttribute('data-theme-choice');
-                applyTheme(chosen);
-                notify('Thème mis à jour !', 'success');
-            });
-        });
-
-        // Option : ouvrir les catégories par défaut
-        const openDivisionsToggle = document.getElementById('toggle-open-divisions');
-        if (openDivisionsToggle) {
-            let enabled = false;
-            try {
-                enabled = localStorage.getItem('defaultOpenDivisions') === 'true';
-            } catch (_) {}
-            openDivisionsToggle.checked = enabled;
-
-            openDivisionsToggle.addEventListener('change', function () {
-                try {
-                    localStorage.setItem('defaultOpenDivisions', this.checked ? 'true' : 'false');
-                } catch (_) {}
-                notify(
-                    this.checked
-                        ? 'Les catégories seront ouvertes par défaut.'
-                        : 'Les catégories resteront repliées par défaut.',
-                    'info'
-                );
-            });
-        }
-
-        // Applique l'ouverture par défaut sur la page des cartes si aucun filtre n'est actif
         let openByDefault = false;
         try {
             openByDefault = localStorage.getItem('defaultOpenDivisions') === 'true';
@@ -9183,25 +10056,58 @@ a:hover {
             }
         }
 
-        // Nettoyage : réinitialiser les filtres mémorisés
-        const resetFiltersBtn = document.getElementById('btn-reset-filters');
-        if (resetFiltersBtn) {
-            resetFiltersBtn.addEventListener('click', function () {
-                try {
-                    localStorage.removeItem('cardFilters');
-                } catch (_) {}
-                notify('Filtres de recherche réinitialisés.', 'success');
-            });
-        }
+        const profileContent = document.querySelector('.profile-content');
+        const navItems = document.querySelectorAll('.profile-sidebar .profile-nav-item');
 
-        // Nettoyage : réafficher les notifications de sorties masquées
-        const resetReleasesBtn = document.getElementById('btn-reset-releases');
-        if (resetReleasesBtn) {
-            resetReleasesBtn.addEventListener('click', function () {
-                try {
-                    localStorage.removeItem('dismissedReleases');
-                } catch (_) {}
-                notify('Les notifications de sorties seront de nouveau visibles.', 'success');
+        if (profileContent && navItems.length > 0) {
+            const currentKey = normalizeTabUrl(window.location.href);
+            setCachedTab(currentKey, profileContent.innerHTML);
+
+            profileContent.querySelectorAll('.password-toggle').forEach((btn) => {
+                btn.dataset.bound = '1';
+            });
+
+            bindProfileContentEvents(profileContent);
+
+            navItems.forEach((link) => {
+                link.addEventListener('mouseenter', () => {
+                    fetchTabHtml(link.href).catch(() => {});
+                });
+                link.addEventListener('focus', () => {
+                    fetchTabHtml(link.href).catch(() => {});
+                });
+                link.addEventListener('click', (e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                    e.preventDefault();
+                    switchProfileTab(link.href, true);
+                });
+            });
+
+            const prefetchQueue = Array.from(navItems)
+                .map((link) => normalizeTabUrl(link.href))
+                .filter((key) => getCachedTab(key) === null);
+
+            const prefetchNext = async () => {
+                while (prefetchQueue.length > 0) {
+                    const nextKey = prefetchQueue.shift();
+                    if (!nextKey || getCachedTab(nextKey) !== null) continue;
+                    try {
+                        await fetchTabHtml(nextKey);
+                    } catch (_) {}
+                    await new Promise((r) => setTimeout(r, 120));
+                }
+            };
+
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(() => prefetchNext(), { timeout: 1200 });
+            } else {
+                setTimeout(prefetchNext, 300);
+            }
+
+            window.addEventListener('popstate', () => {
+                if (document.querySelector('.profile-content')) {
+                    switchProfileTab(window.location.href, false);
+                }
             });
         }
     });
@@ -9528,8 +10434,13 @@ window.copierLien = function(lien) {
 
 window.retourAuxCartes = function(event, fallbackUrl) {
     if (event) event.preventDefault();
-    
-    if (document.referrer && document.referrer.includes(window.location.host)) {
+
+    // Si on a navigué entre les onglets du profil via pushState,
+    // history.back() ne ferait que revenir à l'onglet précédent :
+    // on redirige donc directement vers la dernière page de cartes.
+    const isProfileTabNavigation = Boolean(window.history.state && window.history.state.profileTabUrl);
+
+    if (!isProfileTabNavigation && document.referrer && document.referrer.includes(window.location.host)) {
         let refUrl = new URL(document.referrer);
         let path = refUrl.pathname;
 
@@ -9539,20 +10450,18 @@ window.retourAuxCartes = function(event, fallbackUrl) {
         }
         path = path.replace(/\/\/+/g, '/');
 
-        // Si la page EXACTE précédente est l'accueil (/) ou une catégorie (/p/1, /p/2...)
+        // Si la page EXACTE précédente est l'accueil (/) ou une catégorie (/c/1, /c/2...)
         // On fait un "retour arrière" natif pour conserver le défilement
         if (path === '/' || /^\/[pc]\/\d+$/.test(path)) {
             window.history.back();
             return false;
         }
     }
-    
-    // Sinon (ex: on vient de Profil, Logs, etc.), on casse la chaîne d'historique 
-    // et on redirige de force vers la dernière page de cartes sauvegardée
+
     let lastCards = sessionStorage.getItem('last_cards_url');
     window.location.href = lastCards ? lastCards : fallbackUrl;
     return false;
-}
+};
 
 // ==========================================
 // INITIALISATION DES ELEMENTS DU DOM
@@ -10500,6 +11409,11 @@ window.addEventListener('load', function() {
 
 @view-transition {
     navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 120ms;
 }
 
 body {
@@ -12308,6 +13222,55 @@ select.form-control[hidden] {
 
 .profile-card-danger {
     border: 1px solid var(--danger);
+}
+
+/* =========================================
+   TRANSITIONS & BARRE DE CHARGEMENT
+   ========================================= */
+
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 120ms;
+}
+
+#nav-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: var(--primary);
+    z-index: 99999;
+    pointer-events: none;
+    opacity: 0;
+}
+
+#nav-progress-bar.active {
+    opacity: 1;
+    animation: navProgressFill 1.8s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+}
+
+@keyframes navProgressFill {
+    0% {
+        width: 0;
+    }
+
+    35% {
+        width: 65%;
+    }
+
+    100% {
+        width: 92%;
+    }
+}
+
+a.is-navigating {
+    opacity: 0.65;
+    pointer-events: none;
 }
 
 @media (max-width: 820px) {
