@@ -477,20 +477,26 @@
             });
         });
 
-        // Précharge discrètement les autres onglets en arrière-plan
-        const prefetchAll = () => {
-            navTabs.forEach((tab) => {
-                const key = normalizeCategoryUrl(tab.href);
-                if (!categoryCache.has(key)) {
-                    fetchCategoryHtml(key).catch(() => {});
-                }
-            });
+        // Précharge les autres onglets un par un (séquentiel) pour ne pas saturer le serveur
+        const prefetchQueue = Array.from(navTabs)
+            .map((tab) => normalizeCategoryUrl(tab.href))
+            .filter((key) => !categoryCache.has(key));
+
+        const prefetchNext = async () => {
+            while (prefetchQueue.length > 0) {
+                const nextKey = prefetchQueue.shift();
+                if (!nextKey || categoryCache.has(nextKey)) continue;
+                try {
+                    await fetchCategoryHtml(nextKey);
+                } catch (_) {}
+                await new Promise((r) => setTimeout(r, 150));
+            }
         };
 
         if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(prefetchAll, { timeout: 1500 });
+            window.requestIdleCallback(() => prefetchNext(), { timeout: 1500 });
         } else {
-            setTimeout(prefetchAll, 400);
+            setTimeout(prefetchNext, 500);
         }
 
         // Support des boutons Précédent / Suivant du navigateur
