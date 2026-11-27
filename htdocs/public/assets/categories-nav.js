@@ -235,7 +235,22 @@
         if (!liveStatus || !targetUrl) return;
 
         const domains = Array.isArray(window.siteSupportedDomains) ? window.siteSupportedDomains : [];
-        if (!domains.some((domain) => targetUrl.includes(domain))) return;
+        if (!domains.some((domain) => targetUrl.includes(domain))) {
+            liveStatus.style.display = 'none';
+            return;
+        }
+
+        const cacheKey = `dispo_check_${itemId}_${targetUrl}`;
+        try {
+            const cachedResult = sessionStorage.getItem(cacheKey);
+            if (cachedResult) {
+                const cacheData = JSON.parse(cachedResult);
+                if ((Date.now() - cacheData.timestamp) / 60000 < 60) {
+                    liveStatus.style.display = 'none';
+                    return;
+                }
+            }
+        } catch (_) {}
 
         liveStatus.style.color = 'var(--info)';
         liveStatus.textContent = 'Vérification...';
@@ -243,18 +258,34 @@
         try {
             const resp = await fetch(`${getBaseUrl()}q?urlCible=${encodeURIComponent(targetUrl)}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
             });
+
+            if (!resp.ok) {
+                liveStatus.style.display = 'none';
+                return;
+            }
+
             const data = await resp.json();
-            if (data.success) {
-                liveStatus.style.color = data.disponible ? 'var(--success)' : 'var(--danger)';
-                liveStatus.textContent = data.disponible ? '✔ Disponible' : '✖ Indisponible';
+            if (data && data.success) {
+                try {
+                    sessionStorage.setItem(cacheKey, JSON.stringify({
+                        timestamp: Date.now(),
+                        disponible: Boolean(data.disponible),
+                    }));
+                } catch (_) {}
+
+                if (data.disponible) {
+                    liveStatus.style.color = 'var(--success)';
+                    liveStatus.textContent = '✔ Disponible';
+                } else {
+                    liveStatus.style.display = 'none';
+                }
             } else {
-                liveStatus.style.color = 'var(--text-muted)';
-                liveStatus.textContent = 'Indisponible';
+                liveStatus.style.display = 'none';
             }
         } catch (_) {
-            liveStatus.style.color = 'var(--text-muted)';
-            liveStatus.textContent = 'Vérif. impossible';
+            liveStatus.style.display = 'none';
         }
     }
 

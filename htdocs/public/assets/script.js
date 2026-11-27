@@ -925,99 +925,92 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-// ==========================================
-// 11. VERIFICATION DE DISPONIBILITE EN DIRECT
-// ==========================================
-window.addEventListener('load', function() {
-    
-    const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));
-    const supportedDomains = window.siteSupportedDomains || [];
-    
-    async function processBatch(cards, batchSize = 5) {
-        for (let i = 0; i < cards.length; i += batchSize) {
-            const batch = cards.slice(i, i + batchSize);
-            
-            await Promise.all(batch.map(card => checkCardDispo(card, supportedDomains)));
-            
-            if (i + batchSize < cards.length) {
-                await new Promise(resolve => setTimeout(resolve, 150));
-            }
-        }
-    }
-    
-    async function checkCardDispo(card, supportedDomains) {
-        const itemId = card.getAttribute('data-id');
-        const url = card.getAttribute('data-url');
-        const statusDiv = document.getElementById(`live-status-${itemId}`);
-        const dateContainer = document.getElementById(`date-container-${itemId}`);
+    // ==========================================
+    // 11. VERIFICATION DE DISPONIBILITE EN DIRECT
+    // ==========================================
+    window.addEventListener('load', function() {
+        const cardsToCheck = Array.from(document.querySelectorAll('.needs-dispo-check'));
+        const supportedDomains = window.siteSupportedDomains || [];
 
-        const isSupported = url && supportedDomains.some(domain => url.includes(domain));
-        
-        if (!isSupported) {
-            if (statusDiv) statusDiv.style.display = 'none';
-            return;
-        }
-        
-        const cacheKey = `dispo_check_${itemId}_${url}`;
-        
-        try {
-            const cachedResult = sessionStorage.getItem(cacheKey);
-            if (cachedResult) {
-                const cacheData = JSON.parse(cachedResult);
-                const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;
-
-                if (ageInMinutes < 60) {
-                    applyDispoResult(cacheData.disponible, statusDiv, dateContainer);
-                    return;
+        async function processBatch(cards, batchSize = 5) {
+            for (let i = 0; i < cards.length; i += batchSize) {
+                const batch = cards.slice(i, i + batchSize);
+                await Promise.all(batch.map(card => checkCardDispo(card, supportedDomains)));
+                if (i + batchSize < cards.length) {
+                    await new Promise(resolve => setTimeout(resolve, 150));
                 }
             }
-        } catch (e) {
-            console.warn("sessionStorage bloqué par le navigateur");
         }
 
-        try {
-            const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
-            const response = await fetch(`${baseUrl}q?urlCible=${encodeURIComponent(url)}`, {
-                method: 'GET',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            
-            if (!response.ok) return;
+        async function checkCardDispo(card, supportedDomains) {
+            const itemId = card.getAttribute('data-id');
+            const url = card.getAttribute('data-url');
+            const statusDiv = document.getElementById(`live-status-${itemId}`);
+            const dateContainer = document.getElementById(`date-container-${itemId}`);
 
-            const data = await response.json();
-            if (!data.success) return;
+            const isSupported = url && supportedDomains.some(domain => url.includes(domain));
+            if (!isSupported) {
+                if (statusDiv) statusDiv.style.display = 'none';
+                return;
+            }
+
+            const cacheKey = `dispo_check_${itemId}_${url}`;
+            try {
+                const cachedResult = sessionStorage.getItem(cacheKey);
+                if (cachedResult) {
+                    const cacheData = JSON.parse(cachedResult);
+                    const ageInMinutes = (Date.now() - cacheData.timestamp) / 60000;
+                    if (ageInMinutes < 60) {
+                        applyDispoResult(cacheData.disponible, statusDiv, dateContainer);
+                        return;
+                    }
+                }
+            } catch (_) {}
 
             try {
-                sessionStorage.setItem(cacheKey, JSON.stringify({
-                    timestamp: Date.now(),
-                    disponible: data.disponible
-                }));
-            } catch (e) {
+                const baseUrl = siteConfig.baseUrl.endsWith('/') ? siteConfig.baseUrl : siteConfig.baseUrl + '/';
+                const response = await fetch(`${baseUrl}q?urlCible=${encodeURIComponent(url)}`, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    if (statusDiv) statusDiv.style.display = 'none';
+                    return;
+                }
+
+                const data = await response.json();
+                if (!data || !data.success) {
+                    if (statusDiv) statusDiv.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    sessionStorage.setItem(cacheKey, JSON.stringify({
+                        timestamp: Date.now(),
+                        disponible: Boolean(data.disponible)
+                    }));
+                } catch (_) {}
+
+                applyDispoResult(Boolean(data.disponible), statusDiv, dateContainer);
+            } catch (_) {
+                if (statusDiv) statusDiv.style.display = 'none';
             }
+        }
 
-            applyDispoResult(data.disponible, statusDiv, dateContainer);
-
-        } catch (err) {
+        function applyDispoResult(disponible, statusDiv, dateContainer) {
             if (statusDiv) statusDiv.style.display = 'none';
-        }
-    }
-    
-    function applyDispoResult(disponible, statusDiv, dateContainer) {
-        
-        if (statusDiv) statusDiv.style.display = 'none';
-        
-        if (!disponible && dateContainer) {
-            
-            dateContainer.style.display = 'block';
-            
-            if (dateContainer.innerHTML.trim() === '') {
-                dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Épisode non disponible.</p>`;
+            if (!disponible && dateContainer) {
+                dateContainer.style.display = 'block';
+                if (dateContainer.innerHTML.trim() === '') {
+                    dateContainer.innerHTML = `<p class="card-date" style="color: var(--danger);">Épisode non disponible.</p>`;
+                }
             }
         }
-    }
-    
-    if (cardsToCheck.length > 0) {
-        setTimeout(() => processBatch(cardsToCheck, 5), 500);
-    }
-});
+
+        if (cardsToCheck.length > 0) {
+            setTimeout(() => processBatch(cardsToCheck, 5), 500);
+        }
+    });
 });
