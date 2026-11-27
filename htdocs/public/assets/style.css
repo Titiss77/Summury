@@ -1559,6 +1559,18 @@ textarea.form-control {
     background: linear-gradient(135deg, #0b1411 45%, #34d399 100%);
 }
 
+.theme-swatch-ruby {
+    background: linear-gradient(135deg, #160c0e 45%, #f87171 100%);
+}
+
+.theme-swatch-rose {
+    background: linear-gradient(135deg, #160c12 45%, #f472b6 100%);
+}
+
+.theme-swatch-lime {
+    background: linear-gradient(135deg, #0f150a 45%, #a3e635 100%);
+}
+
 html[data-mode="dark"] .theme-swatch-gold {
     background: linear-gradient(135deg, #111318 45%, #d6b477 100%);
 }
@@ -1573,6 +1585,18 @@ html[data-mode="light"] .theme-swatch-midnight {
 
 html[data-mode="light"] .theme-swatch-emerald {
     background: linear-gradient(135deg, #f0f7f4 45%, #059669 100%);
+}
+
+html[data-mode="light"] .theme-swatch-ruby {
+    background: linear-gradient(135deg, #faf3f3 45%, #dc2626 100%);
+}
+
+html[data-mode="light"] .theme-swatch-rose {
+    background: linear-gradient(135deg, #fcf4f8 45%, #db2777 100%);
+}
+
+html[data-mode="light"] .theme-swatch-lime {
+    background: linear-gradient(135deg, #f5f9f0 45%, #65a30d 100%);
 }
 
 .theme-option-body {

@@ -461,6 +461,39 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
                             <span class="theme-option-desc">Nuances végétales et accent vert émeraude.</span>
                         </span>
                     </button>
+
+                    <button type="button" class="theme-option-card" data-palette-choice="ruby">
+                        <span class="theme-swatch theme-swatch-ruby" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Rouge</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Ambiance intense avec accent rubis.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-palette-choice="rose">
+                        <span class="theme-swatch theme-swatch-rose" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Rose</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Tons doux et accent rose vif.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-palette-choice="lime">
+                        <span class="theme-swatch theme-swatch-lime" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Vert clair</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Fraîcheur citronnée et accent vert lime.</span>
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>

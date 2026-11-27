@@ -26,7 +26,7 @@
     <!-- Restauration du thème avant le rendu pour éviter les flashs visuels -->
     <script>
     (function() {
-        var palettes = ['gold', 'obsidian', 'midnight', 'emerald'];
+        var palettes = ['gold', 'obsidian', 'midnight', 'emerald', 'ruby', 'rose', 'lime'];
         var modes = ['light', 'dark'];
         var palette = 'gold';
         var mode = 'dark';

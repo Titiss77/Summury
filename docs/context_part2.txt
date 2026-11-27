@@ -463,6 +463,39 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
                             <span class="theme-option-desc">Nuances végétales et accent vert émeraude.</span>
                         </span>
                     </button>
+
+                    <button type="button" class="theme-option-card" data-palette-choice="ruby">
+                        <span class="theme-swatch theme-swatch-ruby" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Rouge</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Ambiance intense avec accent rubis.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-palette-choice="rose">
+                        <span class="theme-swatch theme-swatch-rose" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Rose</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Tons doux et accent rose vif.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-palette-choice="lime">
+                        <span class="theme-swatch theme-swatch-lime" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Vert clair</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Fraîcheur citronnée et accent vert lime.</span>
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -2062,8 +2095,8 @@ a:hover {
 (function () {
     'use strict';
 
-    const ALLOWED_PALETTES = ['gold', 'obsidian', 'midnight', 'emerald'];
     const ALLOWED_MODES = ['light', 'dark'];
+    const ALLOWED_PALETTES = ['gold', 'obsidian', 'midnight', 'emerald', 'ruby', 'rose', 'lime'];
     const THEME_COLORS = {
         'gold-light': '#f3f5f8',
         'gold-dark': '#111318',
@@ -2073,6 +2106,12 @@ a:hover {
         'midnight-dark': '#0b1120',
         'emerald-light': '#f0f7f4',
         'emerald-dark': '#0b1411',
+        'ruby-light': '#faf3f3',
+        'ruby-dark': '#160c0e',
+        'rose-light': '#fcf4f8',
+        'rose-dark': '#160c12',
+        'lime-light': '#f5f9f0',
+        'lime-dark': '#0f150a',
     };
 
     const SVG_EYE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';
@@ -2775,6 +2814,162 @@ a:hover {
     --danger-text: #f87171;
     --success-text: #6ee7b7;
     --info-text: #6ee7b7;
+}
+
+/* =========================================
+   5. ROUGE (CLAIR & SOMBRE)
+   ========================================= */
+
+[data-theme="ruby-light"] {
+    color-scheme: light;
+    --primary: #dc2626;
+    --primary-hover: #b91c1c;
+    --primary-light: rgba(220, 38, 38, 0.11);
+
+    --bg-body: #faf3f3;
+    --bg-card: #ffffff;
+
+    --text-main: #2a1215;
+    --text-muted: #6e4f53;
+    --text-subtle: #8f6d72;
+
+    --border-color: #ebd5d8;
+    --border-hover: #d6b2b7;
+
+    --shadow-color: rgba(42, 18, 21, 0.06);
+    --shadow-hover-color: rgba(42, 18, 21, 0.13);
+
+    --danger-text: #b91c1c;
+    --success-text: #047857;
+    --info-text: #b91c1c;
+}
+
+[data-theme="ruby-dark"] {
+    color-scheme: dark;
+    --primary: #f87171;
+    --primary-hover: #fca5a5;
+    --primary-light: rgba(248, 113, 113, 0.14);
+
+    --bg-body: #160c0e;
+    --bg-card: #211215;
+
+    --text-main: #fdf2f4;
+    --text-muted: #b8989e;
+    --text-subtle: #8c6c72;
+
+    --border-color: #381e23;
+    --border-hover: #542d35;
+
+    --shadow-color: rgba(0, 0, 0, 0.32);
+    --shadow-hover-color: rgba(0, 0, 0, 0.52);
+
+    --danger-text: #fca5a5;
+    --success-text: #4ade80;
+    --info-text: #fca5a5;
+}
+
+/* =========================================
+   6. ROSE (CLAIR & SOMBRE)
+   ========================================= */
+
+[data-theme="rose-light"] {
+    color-scheme: light;
+    --primary: #db2777;
+    --primary-hover: #be185d;
+    --primary-light: rgba(219, 39, 119, 0.11);
+
+    --bg-body: #fcf4f8;
+    --bg-card: #ffffff;
+
+    --text-main: #29121e;
+    --text-muted: #6d4f5f;
+    --text-subtle: #8f6e80;
+
+    --border-color: #edd6e2;
+    --border-hover: #d8b4c7;
+
+    --shadow-color: rgba(41, 18, 30, 0.06);
+    --shadow-hover-color: rgba(41, 18, 30, 0.13);
+
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #be185d;
+}
+
+[data-theme="rose-dark"] {
+    color-scheme: dark;
+    --primary: #f472b6;
+    --primary-hover: #f9a8d4;
+    --primary-light: rgba(244, 114, 182, 0.14);
+
+    --bg-body: #160c12;
+    --bg-card: #22121c;
+
+    --text-main: #fdf2f8;
+    --text-muted: #b898aa;
+    --text-subtle: #8d6c7e;
+
+    --border-color: #381e2e;
+    --border-hover: #542d45;
+
+    --shadow-color: rgba(0, 0, 0, 0.32);
+    --shadow-hover-color: rgba(0, 0, 0, 0.52);
+
+    --danger-text: #f87171;
+    --success-text: #4ade80;
+    --info-text: #f9a8d4;
+}
+
+/* =========================================
+   7. VERT CLAIR (CLAIR & SOMBRE)
+   ========================================= */
+
+[data-theme="lime-light"] {
+    color-scheme: light;
+    --primary: #65a30d;
+    --primary-hover: #4d7c0f;
+    --primary-light: rgba(101, 163, 13, 0.12);
+
+    --bg-body: #f5f9f0;
+    --bg-card: #ffffff;
+
+    --text-main: #1a260c;
+    --text-muted: #556642;
+    --text-subtle: #758760;
+
+    --border-color: #dce7cf;
+    --border-hover: #bdd1a6;
+
+    --shadow-color: rgba(26, 38, 12, 0.06);
+    --shadow-hover-color: rgba(26, 38, 12, 0.12);
+
+    --danger-text: #dc2626;
+    --success-text: #3f6212;
+    --info-text: #4d7c0f;
+}
+
+[data-theme="lime-dark"] {
+    color-scheme: dark;
+    --primary: #a3e635;
+    --primary-hover: #bef264;
+    --primary-light: rgba(163, 230, 53, 0.14);
+
+    --bg-body: #0f150a;
+    --bg-card: #17210f;
+
+    --text-main: #f7fee7;
+    --text-muted: #a3b88e;
+    --text-subtle: #778c62;
+
+    --border-color: #29381b;
+    --border-hover: #3d5228;
+
+    --shadow-color: rgba(0, 0, 0, 0.30);
+    --shadow-hover-color: rgba(0, 0, 0, 0.48);
+
+    --danger-text: #f87171;
+    --success-text: #bef264;
+    --info-text: #bef264;
 }
 ```
 
@@ -5361,6 +5556,18 @@ textarea.form-control {
     background: linear-gradient(135deg, #0b1411 45%, #34d399 100%);
 }
 
+.theme-swatch-ruby {
+    background: linear-gradient(135deg, #160c0e 45%, #f87171 100%);
+}
+
+.theme-swatch-rose {
+    background: linear-gradient(135deg, #160c12 45%, #f472b6 100%);
+}
+
+.theme-swatch-lime {
+    background: linear-gradient(135deg, #0f150a 45%, #a3e635 100%);
+}
+
 html[data-mode="dark"] .theme-swatch-gold {
     background: linear-gradient(135deg, #111318 45%, #d6b477 100%);
 }
@@ -5375,6 +5582,18 @@ html[data-mode="light"] .theme-swatch-midnight {
 
 html[data-mode="light"] .theme-swatch-emerald {
     background: linear-gradient(135deg, #f0f7f4 45%, #059669 100%);
+}
+
+html[data-mode="light"] .theme-swatch-ruby {
+    background: linear-gradient(135deg, #faf3f3 45%, #dc2626 100%);
+}
+
+html[data-mode="light"] .theme-swatch-rose {
+    background: linear-gradient(135deg, #fcf4f8 45%, #db2777 100%);
+}
+
+html[data-mode="light"] .theme-swatch-lime {
+    background: linear-gradient(135deg, #f5f9f0 45%, #65a30d 100%);
 }
 
 .theme-option-body {

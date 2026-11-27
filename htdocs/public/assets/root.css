@@ -264,3 +264,159 @@
     --success-text: #6ee7b7;
     --info-text: #6ee7b7;
 }
+
+/* =========================================
+   5. ROUGE (CLAIR & SOMBRE)
+   ========================================= */
+
+[data-theme="ruby-light"] {
+    color-scheme: light;
+    --primary: #dc2626;
+    --primary-hover: #b91c1c;
+    --primary-light: rgba(220, 38, 38, 0.11);
+
+    --bg-body: #faf3f3;
+    --bg-card: #ffffff;
+
+    --text-main: #2a1215;
+    --text-muted: #6e4f53;
+    --text-subtle: #8f6d72;
+
+    --border-color: #ebd5d8;
+    --border-hover: #d6b2b7;
+
+    --shadow-color: rgba(42, 18, 21, 0.06);
+    --shadow-hover-color: rgba(42, 18, 21, 0.13);
+
+    --danger-text: #b91c1c;
+    --success-text: #047857;
+    --info-text: #b91c1c;
+}
+
+[data-theme="ruby-dark"] {
+    color-scheme: dark;
+    --primary: #f87171;
+    --primary-hover: #fca5a5;
+    --primary-light: rgba(248, 113, 113, 0.14);
+
+    --bg-body: #160c0e;
+    --bg-card: #211215;
+
+    --text-main: #fdf2f4;
+    --text-muted: #b8989e;
+    --text-subtle: #8c6c72;
+
+    --border-color: #381e23;
+    --border-hover: #542d35;
+
+    --shadow-color: rgba(0, 0, 0, 0.32);
+    --shadow-hover-color: rgba(0, 0, 0, 0.52);
+
+    --danger-text: #fca5a5;
+    --success-text: #4ade80;
+    --info-text: #fca5a5;
+}
+
+/* =========================================
+   6. ROSE (CLAIR & SOMBRE)
+   ========================================= */
+
+[data-theme="rose-light"] {
+    color-scheme: light;
+    --primary: #db2777;
+    --primary-hover: #be185d;
+    --primary-light: rgba(219, 39, 119, 0.11);
+
+    --bg-body: #fcf4f8;
+    --bg-card: #ffffff;
+
+    --text-main: #29121e;
+    --text-muted: #6d4f5f;
+    --text-subtle: #8f6e80;
+
+    --border-color: #edd6e2;
+    --border-hover: #d8b4c7;
+
+    --shadow-color: rgba(41, 18, 30, 0.06);
+    --shadow-hover-color: rgba(41, 18, 30, 0.13);
+
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #be185d;
+}
+
+[data-theme="rose-dark"] {
+    color-scheme: dark;
+    --primary: #f472b6;
+    --primary-hover: #f9a8d4;
+    --primary-light: rgba(244, 114, 182, 0.14);
+
+    --bg-body: #160c12;
+    --bg-card: #22121c;
+
+    --text-main: #fdf2f8;
+    --text-muted: #b898aa;
+    --text-subtle: #8d6c7e;
+
+    --border-color: #381e2e;
+    --border-hover: #542d45;
+
+    --shadow-color: rgba(0, 0, 0, 0.32);
+    --shadow-hover-color: rgba(0, 0, 0, 0.52);
+
+    --danger-text: #f87171;
+    --success-text: #4ade80;
+    --info-text: #f9a8d4;
+}
+
+/* =========================================
+   7. VERT CLAIR (CLAIR & SOMBRE)
+   ========================================= */
+
+[data-theme="lime-light"] {
+    color-scheme: light;
+    --primary: #65a30d;
+    --primary-hover: #4d7c0f;
+    --primary-light: rgba(101, 163, 13, 0.12);
+
+    --bg-body: #f5f9f0;
+    --bg-card: #ffffff;
+
+    --text-main: #1a260c;
+    --text-muted: #556642;
+    --text-subtle: #758760;
+
+    --border-color: #dce7cf;
+    --border-hover: #bdd1a6;
+
+    --shadow-color: rgba(26, 38, 12, 0.06);
+    --shadow-hover-color: rgba(26, 38, 12, 0.12);
+
+    --danger-text: #dc2626;
+    --success-text: #3f6212;
+    --info-text: #4d7c0f;
+}
+
+[data-theme="lime-dark"] {
+    color-scheme: dark;
+    --primary: #a3e635;
+    --primary-hover: #bef264;
+    --primary-light: rgba(163, 230, 53, 0.14);
+
+    --bg-body: #0f150a;
+    --bg-card: #17210f;
+
+    --text-main: #f7fee7;
+    --text-muted: #a3b88e;
+    --text-subtle: #778c62;
+
+    --border-color: #29381b;
+    --border-hover: #3d5228;
+
+    --shadow-color: rgba(0, 0, 0, 0.30);
+    --shadow-hover-color: rgba(0, 0, 0, 0.48);
+
+    --danger-text: #f87171;
+    --success-text: #bef264;
+    --info-text: #bef264;
+}
