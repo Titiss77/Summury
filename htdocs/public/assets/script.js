@@ -188,40 +188,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // 2. THEME SOMBRE (Dark Mode)
-    // ==========================================
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    let currentTheme = 'light';
-    try { currentTheme = localStorage.getItem('theme') || 'light'; } catch (_) {}
-    const metaThemeColor = document.getElementById('meta-theme-color');
-
-    if (currentTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.setAttribute('data-bs-theme', 'dark');
-        if(themeToggleBtn) themeToggleBtn.innerHTML = svgWithColor('Clair');
-        if(metaThemeColor) metaThemeColor.setAttribute('content', '#09090b');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.documentElement.setAttribute('data-bs-theme', 'light');
-        if(metaThemeColor) metaThemeColor.setAttribute('content', '#fcfcfd');
-    }
-
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            let theme = document.documentElement.getAttribute('data-theme');
-            let switchToTheme = theme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', switchToTheme);
-            document.documentElement.setAttribute('data-bs-theme', switchToTheme);
-            try { localStorage.setItem('theme', switchToTheme); } catch (_) {}
-            themeToggleBtn.innerHTML = switchToTheme === 'dark' ? svgWithColor('Clair') : svgWithColor('Sombre');
-            
-            if(metaThemeColor) {
-                metaThemeColor.setAttribute('content', switchToTheme === 'dark' ? '#09090b' : '#fcfcfd');
-            }
-        });
-    }
-
-    // ==========================================
     // 3. COMPTEUR DE CARACTERES (Description)
     // ==========================================
     const textarea = document.getElementById('description');

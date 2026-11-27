@@ -21,6 +21,7 @@
     <link rel="preconnect" href="https://cdn.myanimelist.net" crossorigin>
     <link rel="dns-prefetch" href="https://image.tmdb.org">
     <link rel="dns-prefetch" href="https://cdn.myanimelist.net">
+    <meta id="meta-theme-color" name="theme-color" content="#111318">
 
     <!-- Restauration du thème avant le rendu pour éviter les flashs visuels -->
     <script>
@@ -28,7 +29,7 @@
         var palettes = ['gold', 'obsidian', 'midnight', 'emerald'];
         var modes = ['light', 'dark'];
         var palette = 'gold';
-        var mode = 'light';
+        var mode = 'dark';
         try {
             var storedPalette = localStorage.getItem('theme_palette');
             var storedMode = localStorage.getItem('theme_mode');
@@ -38,11 +39,10 @@
             if (modes.indexOf(storedMode) !== -1) {
                 mode = storedMode;
             } else {
-                // Compatibilité avec l'ancienne clé localStorage "theme"
                 var legacy = localStorage.getItem('theme');
-                if (legacy === 'dark') {
+                if (legacy === 'light') {
                     palette = 'gold';
-                    mode = 'dark';
+                    mode = 'light';
                 } else if (legacy === 'obsidian') {
                     palette = 'obsidian';
                     mode = 'dark';

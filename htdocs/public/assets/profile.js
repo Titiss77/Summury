@@ -88,7 +88,7 @@
 
     function getSavedThemeConfig() {
         let palette = 'gold';
-        let mode = 'light';
+        let mode = 'dark';
         try {
             const storedPalette = localStorage.getItem('theme_palette');
             const storedMode = localStorage.getItem('theme_mode');
@@ -99,7 +99,7 @@
                 mode = storedMode;
             } else {
                 const legacy = localStorage.getItem('theme');
-                if (legacy === 'dark') { palette = 'gold'; mode = 'dark'; }
+                if (legacy === 'light') { palette = 'gold'; mode = 'light'; }
                 else if (legacy === 'obsidian') { palette = 'obsidian'; mode = 'dark'; }
                 else if (legacy === 'midnight') { palette = 'midnight'; mode = 'dark'; }
                 else if (legacy === 'emerald') { palette = 'emerald'; mode = 'dark'; }
@@ -110,7 +110,7 @@
 
     function applyTheme(palette, mode) {
         const finalPalette = ALLOWED_PALETTES.includes(palette) ? palette : 'gold';
-        const finalMode = ALLOWED_MODES.includes(mode) ? mode : 'light';
+        const finalMode = ALLOWED_MODES.includes(mode) ? mode : 'dark';
         const themeKey = `${finalPalette}-${finalMode}`;
 
         document.documentElement.setAttribute('data-theme', themeKey);
@@ -125,7 +125,7 @@
 
         const metaThemeColor = document.getElementById('meta-theme-color');
         if (metaThemeColor) {
-            metaThemeColor.setAttribute('content', THEME_COLORS[themeKey] || '#f3f5f8');
+            metaThemeColor.setAttribute('content', THEME_COLORS[themeKey] || '#111318');
         }
 
         document.querySelectorAll('.theme-mode-btn').forEach((btn) => {
