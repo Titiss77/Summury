@@ -89,8 +89,13 @@ window.copierLien = function(lien) {
 
 window.retourAuxCartes = function(event, fallbackUrl) {
     if (event) event.preventDefault();
-    
-    if (document.referrer && document.referrer.includes(window.location.host)) {
+
+    // Si on a navigué entre les onglets du profil via pushState,
+    // history.back() ne ferait que revenir à l'onglet précédent :
+    // on redirige donc directement vers la dernière page de cartes.
+    const isProfileTabNavigation = Boolean(window.history.state && window.history.state.profileTabUrl);
+
+    if (!isProfileTabNavigation && document.referrer && document.referrer.includes(window.location.host)) {
         let refUrl = new URL(document.referrer);
         let path = refUrl.pathname;
 
@@ -100,20 +105,18 @@ window.retourAuxCartes = function(event, fallbackUrl) {
         }
         path = path.replace(/\/\/+/g, '/');
 
-        // Si la page EXACTE précédente est l'accueil (/) ou une catégorie (/p/1, /p/2...)
+        // Si la page EXACTE précédente est l'accueil (/) ou une catégorie (/c/1, /c/2...)
         // On fait un "retour arrière" natif pour conserver le défilement
         if (path === '/' || /^\/[pc]\/\d+$/.test(path)) {
             window.history.back();
             return false;
         }
     }
-    
-    // Sinon (ex: on vient de Profil, Logs, etc.), on casse la chaîne d'historique 
-    // et on redirige de force vers la dernière page de cartes sauvegardée
+
     let lastCards = sessionStorage.getItem('last_cards_url');
     window.location.href = lastCards ? lastCards : fallbackUrl;
     return false;
-}
+};
 
 // ==========================================
 // INITIALISATION DES ELEMENTS DU DOM
