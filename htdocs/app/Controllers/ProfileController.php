@@ -8,8 +8,10 @@ use App\Models\ItemRevisionModel;
 
 class ProfileController extends BaseController
 {
+    private const ALLOWED_TABS = ['profile', 'email', 'password', 'danger'];
+
     /**
-     * Affiche le profil de l'utilisateur connecté.
+     * Affiche le profil de l'utilisateur connecté avec gestion par onglets (?tab=...).
      */
     public function index()
     {
@@ -17,11 +19,15 @@ class ProfileController extends BaseController
         $itemModel = new ItemModel();
         $userId = (int) $user->id;
 
+        $requestedTab = (string) ($this->request->getGet('tab') ?? 'profile');
+        $activeTab = in_array($requestedTab, self::ALLOWED_TABS, true) ? $requestedTab : 'profile';
+
         $stats = $itemModel->getUserProfileStats($userId);
         $series = $itemModel->getUserProfileSeries($userId);
 
         $data = [
             'user' => $user,
+            'activeTab' => $activeTab,
             'totalItems' => $stats['total_items'],
             'publicItems' => $stats['public_items'],
             'statusAVoir' => $stats['status_a_voir'],
@@ -52,7 +58,7 @@ class ProfileController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('errors', $this->validator->getErrors());
+            return redirect()->to('p?tab=password')->with('errors', $this->validator->getErrors());
         }
 
         $users = auth()->getProvider();
@@ -66,7 +72,7 @@ class ProfileController extends BaseController
         $result = $authenticator->check($credentials);
 
         if (!$result->isOK()) {
-            return redirect()->back()->with('error', 'Le mot de passe actuel est incorrect.');
+            return redirect()->to('p?tab=password')->with('error', 'Le mot de passe actuel est incorrect.');
         }
 
         $user->password = $this->request->getPost('new_password');
@@ -75,7 +81,7 @@ class ProfileController extends BaseController
         $audit = new AuditLogModel();
         $audit->logAction('Modification Profil', "L'utilisateur ID {$user->id} a modifié son mot de passe.");
 
-        return redirect()->to('p')->with('message', 'Votre mot de passe a été mis à jour avec succès.');
+        return redirect()->to('p?tab=password')->with('message', 'Votre mot de passe a été mis à jour avec succès.');
     }
 
     /**
@@ -87,7 +93,7 @@ class ProfileController extends BaseController
         $newEmail = $this->request->getPost('new_email');
 
         if ($newEmail === $user->email) {
-            return redirect()->back()->with('message', 'Cette adresse e-mail est déjà la vôtre.');
+            return redirect()->to('p?tab=email')->with('message', 'Cette adresse e-mail est déjà la vôtre.');
         }
 
         $rules = [
@@ -96,7 +102,7 @@ class ProfileController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('errors', $this->validator->getErrors());
+            return redirect()->to('p?tab=email')->with('errors', $this->validator->getErrors());
         }
 
         $users = auth()->getProvider();
@@ -108,7 +114,7 @@ class ProfileController extends BaseController
         $result = $authenticator->check($credentials);
 
         if (!$result->isOK()) {
-            return redirect()->back()->with('error', 'Le mot de passe actuel est incorrect.');
+            return redirect()->to('p?tab=email')->with('error', 'Le mot de passe actuel est incorrect.');
         }
 
         $oldEmail = $user->email;
@@ -118,7 +124,7 @@ class ProfileController extends BaseController
         $audit = new AuditLogModel();
         $audit->logAction('Modification Profil', "L'utilisateur ID {$user->id} a modifié son adresse e-mail ('{$oldEmail}' -> '{$newEmail}').");
 
-        return redirect()->to('p')->with('message', 'Votre adresse e-mail a été mise à jour avec succès.');
+        return redirect()->to('p?tab=email')->with('message', 'Votre adresse e-mail a été mise à jour avec succès.');
     }
 
     /**
@@ -135,7 +141,7 @@ class ProfileController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('error', 'Le mot de passe est requis pour supprimer le compte.');
+            return redirect()->to('p?tab=danger')->with('error', 'Le mot de passe est requis pour supprimer le compte.');
         }
 
         $credentials = [
@@ -146,21 +152,21 @@ class ProfileController extends BaseController
         $result = $authenticator->check($credentials);
 
         if (!$result->isOK()) {
-            return redirect()->back()->with('error', 'Mot de passe incorrect. Suppression annulée.');
+            return redirect()->to('p?tab=danger')->with('error', 'Mot de passe incorrect. Suppression annulée.');
         }
 
         $itemModel = new ItemModel();
-        
+
         // 1. Sauvegarde des contributions : Transfert des cartes publiques (is_public = 1) au Super Admin (ID = 1)
         $itemModel->builder()
-                  ->where('id_user', $userId)
-                  ->where('is_public', 1)
-                  ->update(['id_user' => 1]);
+            ->where('id_user', $userId)
+            ->where('is_public', 1)
+            ->update(['id_user' => 1]);
 
         // 2. Suppression forte des cartes restantes (privées ou en attente d'approbation)
         $itemModel->builder()
-                  ->where('id_user', $userId)
-                  ->delete();
+            ->where('id_user', $userId)
+            ->delete();
 
         // 3. Suppression des propositions de modifications (brouillons) en attente
         $revisionModel = new ItemRevisionModel();
