@@ -27,19 +27,20 @@
     <!-- Choices.js JS -->
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js" defer></script>
 
-    <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
+    <!-- Restauration du thème avant le rendu pour éviter les flashs visuels -->
     <script>
-    let initialTheme = 'light';
-    try {
-        initialTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
-    } catch (_) {}
-    if (initialTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.setAttribute('data-bs-theme', 'dark');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.documentElement.setAttribute('data-bs-theme', 'light');
-    }
+    (function() {
+        var allowed = ['light', 'dark', 'obsidian', 'midnight', 'emerald'];
+        var initialTheme = 'light';
+        try {
+            var stored = localStorage.getItem('theme');
+            if (allowed.indexOf(stored) !== -1) {
+                initialTheme = stored;
+            }
+        } catch (_) {}
+        document.documentElement.setAttribute('data-theme', initialTheme);
+        document.documentElement.setAttribute('data-bs-theme', initialTheme === 'light' ? 'light' : 'dark');
+    })();
     </script>
 
     <!-- Gestion du cache des assets (force le rechargement si le fichier a été modifié) -->
@@ -48,6 +49,7 @@
     $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
     $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
     $mediaAutofillVersion = file_exists(FCPATH.'assets/media-autofill.js') ? filemtime(FCPATH.'assets/media-autofill.js') : '1';
+    $profileJsVersion = file_exists(FCPATH.'assets/profile.js') ? filemtime(FCPATH.'assets/profile.js') : '1';
     ?>
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v='.$rootCssVersion); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v='.$styleCssVersion); ?>">
@@ -73,6 +75,7 @@
         defer></script>
     <script src="<?php echo base_url('assets/script.js?v='.$scriptJsVersion); ?>" defer></script>
     <script src="<?php echo base_url('assets/media-autofill.js?v='.$mediaAutofillVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/profile.js?v='.$profileJsVersion); ?>" defer></script>
 </head>
 
 <body>

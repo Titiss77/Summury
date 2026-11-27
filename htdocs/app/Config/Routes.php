@@ -38,10 +38,11 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->get('ra', 'ItemController::restoreAll');
     $routes->get('re', 'ItemController::emptyTrash');
     $routes->get('p', 'ProfileController::index');
+    $routes->get('p/export/(:alpha)', 'ProfileController::exportData/$1');
     $routes->post('pw', 'ProfileController::updatePassword');
     $routes->post('delete-account', 'ProfileController::deleteAccount');
 
-    // NOUVELLE ROUTE : Signalement de lien mort
+    // Signalement de lien mort
     $routes->post('report-link', 'ItemController::reportLink');
 
     // Anciennes URL : elles restent utilisables sans redirection des formulaires POST.

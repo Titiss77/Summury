@@ -1,7 +1,10 @@
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
 
-<?php $activeTab = $activeTab ?? 'profile'; ?>
+<?php
+$activeTab = $activeTab ?? 'profile';
+$userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1));
+?>
 
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" onclick="return retourAuxCartes(event, this.href);"
@@ -22,30 +25,48 @@
                 </svg>
                 <span>Profil &amp; Suivi</span>
             </a>
+            <a href="<?php echo base_url('p?tab=contributions'); ?>"
+                class="profile-nav-item <?php echo 'contributions' === $activeTab ? 'active' : ''; ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z" />
+                </svg>
+                <span>Contributions</span>
+            </a>
         </div>
 
         <div class="profile-nav-group">
-            <span class="profile-nav-group-title">Sécurité du compte</span>
-            <a href="<?php echo base_url('p?tab=email'); ?>"
-                class="profile-nav-item <?php echo 'email' === $activeTab ? 'active' : ''; ?>">
+            <span class="profile-nav-group-title">Préférences &amp; Données</span>
+            <a href="<?php echo base_url('p?tab=display'); ?>"
+                class="profile-nav-item <?php echo 'display' === $activeTab ? 'active' : ''; ?>">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path
-                        d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z" />
+                        d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z" />
                 </svg>
-                <span>Adresse e-mail</span>
+                <span>Affichage</span>
             </a>
-            <a href="<?php echo base_url('p?tab=password'); ?>"
-                class="profile-nav-item <?php echo 'password' === $activeTab ? 'active' : ''; ?>">
+            <a href="<?php echo base_url('p?tab=data'); ?>"
+                class="profile-nav-item <?php echo 'data' === $activeTab ? 'active' : ''; ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                    <path
+                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                </svg>
+                <span>Bibliothèque &amp; Données</span>
+            </a>
+        </div>
+
+        <div class="profile-nav-group">
+            <span class="profile-nav-group-title">Compte</span>
+            <a href="<?php echo base_url('p?tab=security'); ?>"
+                class="profile-nav-item <?php echo 'security' === $activeTab ? 'active' : ''; ?>">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path
                         d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2" />
                 </svg>
-                <span>Mot de passe</span>
+                <span>Sécurité &amp; Activité</span>
             </a>
-        </div>
-
-        <div class="profile-nav-group">
-            <span class="profile-nav-group-title">Données &amp; RGPD</span>
             <a href="<?php echo base_url('p?tab=danger'); ?>"
                 class="profile-nav-item profile-nav-item-danger <?php echo 'danger' === $activeTab ? 'active' : ''; ?>">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -57,7 +78,7 @@
         </div>
     </aside>
 
-    <!-- CONTENU PRINCIPAL DE L'ONGLET ACTIF -->
+    <!-- CONTENU PRINCIPAL -->
     <div class="profile-content">
         <?php if (session()->has('message')) { ?>
         <div class="alert alert-success">
@@ -82,38 +103,100 @@
         <?php } ?>
 
         <?php if ('profile' === $activeTab) { ?>
-        <!-- ONGLET 1 : PROFIL & SUIVI (PAR DÉFAUT) -->
+        <!-- =========================================
+             ONGLET 1 : PROFIL & SUIVI (PAR DÉFAUT)
+             ========================================= -->
         <div class="profile-section-header">
             <h2 class="profile-section-title">Profil</h2>
-            <p class="profile-section-subtitle">Informations du compte, statistiques et suivi de vos séries.</p>
+            <p class="profile-section-subtitle">Carte de membre, répartition de votre collection et suivi des séries.
+            </p>
         </div>
 
+        <!-- CARTE DE MEMBRE -->
+        <div class="card shadow-card profile-member-card">
+            <div class="card-body">
+                <span class="profile-member-kicker">Carte de membre</span>
+                <div class="profile-member-top">
+                    <div class="profile-member-identity">
+                        <div class="profile-avatar" aria-hidden="true"><?php echo esc($userInitial); ?></div>
+                        <div>
+                            <div class="profile-member-name"><?php echo esc($user->username); ?></div>
+                            <div class="profile-member-role"><?php echo esc($roleLabel ?? 'Membre'); ?></div>
+                        </div>
+                    </div>
+                    <div class="profile-member-number">
+                        <span class="profile-member-number-prefix">n°</span>
+                        <strong><?php echo esc(str_pad((string) $user->id, 4, '0', STR_PAD_LEFT)); ?></strong>
+                    </div>
+                </div>
+                <div class="profile-member-footer">
+                    <span><?php echo esc($memberSince ?? 'Membre vérifié'); ?></span>
+                    <span class="profile-member-sep">•</span>
+                    <span><?php echo esc($totalItems); ?> carte(s) en collection</span>
+                    <span class="profile-member-sep">•</span>
+                    <span><?php echo esc($publicItems); ?> publique(s)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFORMATIONS DU COMPTE -->
         <div class="card shadow-card profile-card">
             <div class="card-body">
                 <h3>Informations du compte</h3>
                 <div class="profile-info-grid">
                     <div class="profile-info-field">
-                        <span class="profile-info-label">Nom d'utilisateur</span>
+                        <span class="profile-info-label">Pseudo</span>
                         <div class="profile-info-value"><?php echo esc($user->username); ?></div>
                     </div>
                     <div class="profile-info-field">
-                        <span class="profile-info-label">Adresse e-mail</span>
+                        <span class="profile-info-label">E-mail</span>
                         <div class="profile-info-value"><?php echo esc($user->email); ?></div>
                         <small class="profile-info-hint">
-                            À modifier depuis <a href="<?php echo base_url('p?tab=email'); ?>">Adresse e-mail</a>.
+                            À changer depuis <a href="<?php echo base_url('p?tab=security'); ?>">Sécurité &amp;
+                                Activité</a>.
                         </small>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="profile-stats">
-            <p><strong>Total de cartes en ligne :</strong> <span
-                    class="badge badge-episode"><?php echo esc($totalItems); ?></span></p>
-            <p><strong>Vos cartes publiques :</strong> <span
-                    class="badge badge-season"><?php echo esc($publicItems); ?></span></p>
+        <!-- RÉPARTITION PAR STATUT -->
+        <?php
+        $statusBreakdown = [
+            ['label' => 'En cours', 'count' => (int) $statusEnCours, 'class' => 'status-bar-encours'],
+            ['label' => 'À voir', 'count' => (int) $statusAVoir, 'class' => 'status-bar-avoir'],
+            ['label' => 'En pause', 'count' => (int) $statusEnPause, 'class' => 'status-bar-pause'],
+            ['label' => 'Terminé', 'count' => (int) $statusTermine, 'class' => 'status-bar-termine'],
+            ['label' => 'Aucun', 'count' => (int) $statusAucun, 'class' => 'status-bar-aucun'],
+        ];
+        $statusTotal = max(1, (int) $totalItems);
+        ?>
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Répartition de la collection</h3>
+                <div class="profile-status-bar" aria-label="Répartition visuelle des statuts">
+                    <?php foreach ($statusBreakdown as $st) {
+                        if ($st['count'] > 0) {
+                            $pct = round(($st['count'] / $statusTotal) * 100, 2); ?>
+                    <span class="profile-status-segment <?php echo $st['class']; ?>"
+                        style="width: <?php echo $pct; ?>%;"
+                        title="<?php echo esc($st['label'] . ' : ' . $st['count']); ?>"></span>
+                    <?php }
+                    } ?>
+                </div>
+                <div class="profile-status-grid">
+                    <?php foreach ($statusBreakdown as $st) { ?>
+                    <div class="profile-status-tile">
+                        <span class="profile-status-dot <?php echo $st['class']; ?>"></span>
+                        <span class="profile-status-label"><?php echo esc($st['label']); ?></span>
+                        <strong class="profile-status-count"><?php echo esc($st['count']); ?></strong>
+                    </div>
+                    <?php } ?>
+                </div>
+            </div>
         </div>
 
+        <!-- SÉRIES EN COURS & EN PAUSE -->
         <?php $hasSeries = !empty($inProgressEnCoursSeries) || !empty($inProgressEnPauseSeries); ?>
         <div class="card shadow-card profile-card">
             <div class="card-body">
@@ -177,13 +260,296 @@
             </div>
         </div>
 
-        <?php } elseif ('email' === $activeTab) { ?>
-        <!-- ONGLET 2 : ADRESSE E-MAIL -->
+        <?php } elseif ('contributions' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 2 : CONTRIBUTIONS & SUIVI
+             ========================================= -->
         <div class="profile-section-header">
-            <h2 class="profile-section-title">Adresse e-mail</h2>
-            <p class="profile-section-subtitle">Mettez à jour l'adresse e-mail associée à votre compte.</p>
+            <h2 class="profile-section-title">Contributions</h2>
+            <p class="profile-section-subtitle">Vos cartes partagées, propositions de modifications et signalements.</p>
         </div>
 
+        <!-- MES CARTES PUBLIQUES / EN ATTENTE -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Mes cartes publiques (<?php echo count($userPublicItems); ?>)</h3>
+                <?php if (empty($userPublicItems)) { ?>
+                <p class="profile-empty">Vous n'avez pas encore partagé de carte publiquement.</p>
+                <?php } else { ?>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>État</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($userPublicItems as $pubItem) { ?>
+                            <tr>
+                                <td><strong><?php echo esc($pubItem->titre); ?></strong></td>
+                                <td>
+                                    <?php if (1 === (int) $pubItem->is_public) { ?>
+                                    <span class="profile-pill profile-pill-success">Publiée</span>
+                                    <?php } else { ?>
+                                    <span class="profile-pill profile-pill-warning">En inspection</span>
+                                    <?php } ?>
+                                </td>
+                                <td>
+                                    <a href="<?php echo base_url('m/' . $pubItem->id); ?>"
+                                        class="btn-icon btn-edit-sm">Modifier</a>
+                                </td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php } ?>
+            </div>
+        </div>
+
+        <!-- MES PROPOSITIONS DE MODIFICATIONS -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Mes propositions de modifications (<?php echo count($userRevisions); ?>)</h3>
+                <?php if (empty($userRevisions)) { ?>
+                <p class="profile-empty">Aucune proposition de modification soumise pour le moment.</p>
+                <?php } else { ?>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Carte concernée</th>
+                                <th>Titre proposé</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($userRevisions as $rev) { ?>
+                            <tr>
+                                <td><strong><?php echo esc($rev['original_titre'] ?? ('Carte #' . $rev['original_item_id'])); ?></strong>
+                                </td>
+                                <td><?php echo esc($rev['titre']); ?></td>
+                                <td>
+                                    <?php if ('approved' === $rev['revision_status']) { ?>
+                                    <span class="profile-pill profile-pill-success">Approuvée</span>
+                                    <?php } elseif ('rejected' === $rev['revision_status']) { ?>
+                                    <span class="profile-pill profile-pill-danger">Refusée</span>
+                                    <?php } else { ?>
+                                    <span class="profile-pill profile-pill-warning">En attente</span>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php } ?>
+            </div>
+        </div>
+
+        <!-- MES SIGNALEMENTS -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Mes signalements de liens (<?php echo count($userReports); ?>)</h3>
+                <?php if (empty($userReports)) { ?>
+                <p class="profile-empty">Vous n'avez signalé aucun lien mort.</p>
+                <?php } else { ?>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($userReports as $rep) { ?>
+                            <tr>
+                                <td style="white-space: nowrap; color: var(--text-muted);">
+                                    <?php echo esc(date('d/m/Y H:i', strtotime($rep['created_at']))); ?>
+                                </td>
+                                <td><?php echo esc($rep['details']); ?></td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php } ?>
+            </div>
+        </div>
+
+        <?php } elseif ('display' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 3 : AFFICHAGE & PRÉFÉRENCES
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title">Affichage</h2>
+            <p class="profile-section-subtitle">Thème visuel, comportement des catégories et nettoyage local.</p>
+        </div>
+
+        <!-- SÉLECTEUR DE THÈMES -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Thème</h3>
+                <div class="theme-picker-list" role="radiogroup" aria-label="Choisir un thème">
+                    <button type="button" class="theme-option-card" data-theme-choice="light">
+                        <span class="theme-swatch theme-swatch-light" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Clair Doré</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Fond clair lumineux et accent doré.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-theme-choice="dark">
+                        <span class="theme-swatch theme-swatch-dark" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Sombre Doré</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Anthracite profond et or champagne.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-theme-choice="obsidian">
+                        <span class="theme-swatch theme-swatch-obsidian" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Obsidienne</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Gris neutre très sombre et accent argenté.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-theme-choice="midnight">
+                        <span class="theme-swatch theme-swatch-midnight" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Bleu nuit</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Bleu nuit profond et accent bleu ciel.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-theme-choice="emerald">
+                        <span class="theme-swatch theme-swatch-emerald" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Émeraude</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Forêt sombre et accent vert émeraude.</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRÉFÉRENCES & NETTOYAGE LOCAL -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Interface &amp; Nettoyage</h3>
+                <div class="profile-pref-list">
+                    <div class="profile-pref-row">
+                        <div>
+                            <strong>Ouvrir les catégories par défaut</strong>
+                            <p class="profile-pref-desc">Déplie automatiquement toutes les sections sur la page des
+                                cartes.</p>
+                        </div>
+                        <label class="profile-switch">
+                            <input type="checkbox" id="toggle-open-divisions">
+                            <span class="profile-switch-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="profile-pref-row">
+                        <div>
+                            <strong>Filtres de recherche mémorisés</strong>
+                            <p class="profile-pref-desc">Efface la recherche, le statut et la catégorie enregistrés dans
+                                ce navigateur.</p>
+                        </div>
+                        <button type="button" id="btn-reset-filters" class="btn btn-cancel">Réinitialiser</button>
+                    </div>
+
+                    <div class="profile-pref-row">
+                        <div>
+                            <strong>Notifications de sorties masquées</strong>
+                            <p class="profile-pref-desc">Réaffiche les badges de sorties récentes que vous avez fermés.
+                            </p>
+                        </div>
+                        <button type="button" id="btn-reset-releases" class="btn btn-cancel">Réafficher</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php } elseif ('data' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 4 : BIBLIOTHÈQUE & DONNÉES
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title">Bibliothèque &amp; Données</h2>
+            <p class="profile-section-subtitle">Exportez votre collection et gérez votre corbeille.</p>
+        </div>
+
+        <!-- EXPORT -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Exporter ma collection</h3>
+                <p class="profile-current-meta">
+                    Téléchargez l'ensemble de vos <strong><?php echo esc($totalItems); ?></strong> carte(s) active(s)
+                    pour les sauvegarder ou les consulter hors-ligne.
+                </p>
+                <div class="profile-action-row">
+                    <a href="<?php echo base_url('p/export/json'); ?>" class="btn btn-primary">Télécharger en JSON</a>
+                    <a href="<?php echo base_url('p/export/csv'); ?>" class="btn btn-cancel">Télécharger en CSV
+                        (Excel)</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CORBEILLE -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Corbeille</h3>
+                <p class="profile-current-meta">
+                    Vous avez actuellement <span
+                        class="badge badge-episode"><?php echo esc($deletedItemsCount); ?></span> carte(s) dans la
+                    corbeille.
+                </p>
+                <div class="profile-action-row">
+                    <a href="<?php echo base_url('r'); ?>" class="btn btn-cancel">Ouvrir la corbeille</a>
+                    <?php if ($deletedItemsCount > 0) { ?>
+                    <a href="<?php echo base_url('ra'); ?>" class="btn btn-success"
+                        onclick="return confirm('Restaurer toutes les cartes présentes dans votre corbeille ?');">Tout
+                        restaurer</a>
+                    <a href="<?php echo base_url('re'); ?>" class="btn"
+                        style="background-color: var(--danger); color: #fff;"
+                        onclick="return confirm('ACTION IRRÉVERSIBLE : vider définitivement toute la corbeille ?');">Vider
+                        la corbeille</a>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+
+        <?php } elseif ('security' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 5 : SÉCURITÉ & ACTIVITÉ
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title">Sécurité &amp; Activité</h2>
+            <p class="profile-section-subtitle">Gérez votre adresse e-mail, votre mot de passe et consultez vos
+                dernières actions.</p>
+        </div>
+
+        <!-- ADRESSE E-MAIL -->
         <div class="card shadow-card profile-card">
             <div class="card-body">
                 <h3>Changer mon adresse e-mail</h3>
@@ -210,14 +576,7 @@
             </div>
         </div>
 
-        <?php } elseif ('password' === $activeTab) { ?>
-        <!-- ONGLET 3 : MOT DE PASSE -->
-        <div class="profile-section-header">
-            <h2 class="profile-section-title">Mot de passe</h2>
-            <p class="profile-section-subtitle">Modifiez votre mot de passe pour renforcer la sécurité de votre compte.
-            </p>
-        </div>
-
+        <!-- MOT DE PASSE -->
         <div class="card shadow-card profile-card">
             <div class="card-body">
                 <h3>Changer mon mot de passe</h3>
@@ -251,8 +610,44 @@
             </div>
         </div>
 
+        <!-- JOURNAL D'ACTIVITÉ PERSONNEL -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Activité récente (15 dernières actions)</h3>
+                <?php if (empty($recentLogs)) { ?>
+                <p class="profile-empty">Aucune activité enregistrée pour le moment.</p>
+                <?php } else { ?>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recentLogs as $log) { ?>
+                            <tr>
+                                <td style="white-space: nowrap; color: var(--text-muted); font-size: 0.85rem;">
+                                    <?php echo esc(date('d/m/Y H:i', strtotime($log['created_at']))); ?>
+                                </td>
+                                <td><strong><?php echo esc($log['action']); ?></strong></td>
+                                <td style="color: var(--text-muted); font-size: 0.9rem;">
+                                    <?php echo esc($log['details']); ?></td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php } ?>
+            </div>
+        </div>
+
         <?php } elseif ('danger' === $activeTab) { ?>
-        <!-- ONGLET 4 : ZONE DE DANGER (RGPD) -->
+        <!-- =========================================
+             ONGLET 6 : ZONE DE DANGER (RGPD)
+             ========================================= -->
         <div class="profile-section-header">
             <h2 class="profile-section-title profile-section-title-danger">Zone de danger</h2>
             <p class="profile-section-subtitle">Suppression définitive de votre compte et de vos données personnelles.

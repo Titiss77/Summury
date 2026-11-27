@@ -68,75 +68,156 @@
 }
 
 /* =========================================
-   THÈME CLAIR
+   THÈME CLAIR DORÉ
    ========================================= */
 
 [data-theme="light"] {
     color-scheme: light;
 
-    /* Accent doré */
     --primary: #98733d;
     --primary-hover: #79582b;
     --primary-light: rgba(152, 115, 61, 0.12);
 
-    /* Surfaces */
     --bg-body: #f3f5f8;
     --bg-card: #ffffff;
     --bg-elevated: #ffffff;
     --bg-input: #ffffff;
 
-    /* Texte */
     --text-main: #182131;
     --text-muted: #657084;
     --text-subtle: #8791a1;
 
-    /* Bordures */
     --border-color: #e1e5ec;
     --border-hover: #c7ced9;
 
-    /* Ombres */
     --shadow-color: rgba(24, 33, 49, 0.055);
     --shadow-hover-color: rgba(24, 33, 49, 0.12);
 
-    /* Statuts : lisibles sur fond clair */
     --danger-text: #dc2626;
     --success-text: #047857;
     --info-text: #79582b;
 }
 
 /* =========================================
-   THÈME SOMBRE
+   THÈME SOMBRE DORÉ
    ========================================= */
 
 [data-theme="dark"] {
     color-scheme: dark;
 
-    /* Accent doré */
     --primary: #d6b477;
     --primary-hover: #e7c994;
     --primary-light: rgba(214, 180, 119, 0.13);
 
-    /* Surfaces */
     --bg-body: #111318;
     --bg-card: #191c23;
     --bg-elevated: #20242d;
     --bg-input: #151820;
 
-    /* Texte */
     --text-main: #f1f3f7;
     --text-muted: #a0a8b7;
     --text-subtle: #7f899a;
 
-    /* Bordures */
     --border-color: #2b303b;
     --border-hover: #414959;
 
-    /* Ombres */
     --shadow-color: rgba(0, 0, 0, 0.20);
     --shadow-hover-color: rgba(0, 0, 0, 0.38);
 
-    /* Statuts */
     --danger-text: #ff7777;
     --success-text: #4adea6;
     --info-text: #e2c18b;
+}
+
+/* =========================================
+   THÈME OBSIDIENNE
+   ========================================= */
+
+[data-theme="obsidian"] {
+    color-scheme: dark;
+
+    --primary: #d4d4d8;
+    --primary-hover: #f4f4f5;
+    --primary-light: rgba(212, 212, 216, 0.12);
+
+    --bg-body: #09090b;
+    --bg-card: #121215;
+    --bg-elevated: #1a1a1f;
+    --bg-input: #0e0e11;
+
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --text-subtle: #71717a;
+
+    --border-color: #27272a;
+    --border-hover: #3f3f46;
+
+    --shadow-color: rgba(0, 0, 0, 0.30);
+    --shadow-hover-color: rgba(0, 0, 0, 0.50);
+
+    --danger-text: #f87171;
+    --success-text: #4ade80;
+    --info-text: #d4d4d8;
+}
+
+/* =========================================
+   THÈME BLEU NUIT
+   ========================================= */
+
+[data-theme="midnight"] {
+    color-scheme: dark;
+
+    --primary: #60a5fa;
+    --primary-hover: #93c5fd;
+    --primary-light: rgba(96, 165, 250, 0.14);
+
+    --bg-body: #0b1120;
+    --bg-card: #111a2e;
+    --bg-elevated: #17233d;
+    --bg-input: #0e1628;
+
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --text-subtle: #64748b;
+
+    --border-color: #1e293b;
+    --border-hover: #334155;
+
+    --shadow-color: rgba(2, 6, 23, 0.35);
+    --shadow-hover-color: rgba(2, 6, 23, 0.55);
+
+    --danger-text: #f87171;
+    --success-text: #34d399;
+    --info-text: #93c5fd;
+}
+
+/* =========================================
+   THÈME ÉMERAUDE
+   ========================================= */
+
+[data-theme="emerald"] {
+    color-scheme: dark;
+
+    --primary: #34d399;
+    --primary-hover: #6ee7b7;
+    --primary-light: rgba(52, 211, 153, 0.14);
+
+    --bg-body: #0b1411;
+    --bg-card: #111f1a;
+    --bg-elevated: #172a23;
+    --bg-input: #0e1a16;
+
+    --text-main: #ecfdf5;
+    --text-muted: #94b3a7;
+    --text-subtle: #648276;
+
+    --border-color: #1f352c;
+    --border-hover: #2d4d40;
+
+    --shadow-color: rgba(0, 0, 0, 0.30);
+    --shadow-hover-color: rgba(0, 0, 0, 0.48);
+
+    --danger-text: #f87171;
+    --success-text: #6ee7b7;
+    --info-text: #6ee7b7;
 }
