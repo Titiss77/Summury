@@ -276,7 +276,8 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
             <div class="card-body">
                 <h3>Mes cartes publiques (<?php echo count($userPublicItems); ?>)</h3>
                 <?php if (empty($userPublicItems)) { ?>
-                <p class="profile-empty">Vous n'avez pas encore partagé de carte publiquement.</p>
+                <p class="profile-empty">Vous n'avez pas partagé de carte publiquement, ou alors elles ont été
+                    transférées à l'administrateur.</p>
                 <?php } else { ?>
                 <div class="admin-table-container">
                     <table class="admin-table">
@@ -316,7 +317,7 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
             <div class="card-body">
                 <h3>Mes propositions de modifications (<?php echo count($userRevisions); ?>)</h3>
                 <?php if (empty($userRevisions)) { ?>
-                <p class="profile-empty">Aucune proposition de modification soumise pour le moment.</p>
+                <p class="profile-empty">Aucune proposition de modification en étude pour le moment.</p>
                 <?php } else { ?>
                 <div class="admin-table-container">
                     <table class="admin-table">
