@@ -253,12 +253,14 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
                                         <?php } else { ?><span class="profile-not-synced">-</span><?php } ?>
                                     </td>
                                 </tr>
-                                <?php } } ?>
+                                <?php }
+            } ?>
                             </tbody>
                         </table>
                     </div>
                 </section>
-                <?php } } ?>
+                <?php }
+    } ?>
             </div>
         </div>
 
@@ -388,66 +390,76 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
              ========================================= -->
         <div class="profile-section-header">
             <h2 class="profile-section-title">Affichage</h2>
-            <p class="profile-section-subtitle">Thème visuel, comportement des catégories et nettoyage local.</p>
+            <p class="profile-section-subtitle">Mode clair/sombre, palette de couleurs et nettoyage local.</p>
         </div>
 
-        <!-- SÉLECTEUR DE THÈMES -->
+        <!-- MODE CLAIR / SOMBRE & SÉLECTEUR DE THÈMES -->
         <div class="card shadow-card profile-card">
             <div class="card-body">
-                <h3>Thème</h3>
-                <div class="theme-picker-list" role="radiogroup" aria-label="Choisir un thème">
-                    <button type="button" class="theme-option-card" data-theme-choice="light">
-                        <span class="theme-swatch theme-swatch-light" aria-hidden="true"></span>
+                <div class="theme-header-row">
+                    <h3>Apparence</h3>
+                    <div class="theme-mode-switcher" role="radiogroup" aria-label="Mode d'affichage">
+                        <button type="button" class="theme-mode-btn" data-mode-choice="light">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708" />
+                            </svg>
+                            <span>Clair</span>
+                        </button>
+                        <button type="button" class="theme-mode-btn" data-mode-choice="dark">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278" />
+                            </svg>
+                            <span>Sombre</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="theme-picker-list" role="radiogroup" aria-label="Choisir une palette">
+                    <button type="button" class="theme-option-card" data-palette-choice="gold">
+                        <span class="theme-swatch theme-swatch-gold" aria-hidden="true"></span>
                         <span class="theme-option-body">
                             <span class="theme-option-title">
-                                <strong>Clair Doré</strong>
+                                <strong>Doré</strong>
                                 <span class="theme-active-badge">ACTIF</span>
                             </span>
-                            <span class="theme-option-desc">Fond clair lumineux et accent doré.</span>
+                            <span class="theme-option-desc">Classique élégant avec accent or champagne.</span>
                         </span>
                     </button>
 
-                    <button type="button" class="theme-option-card" data-theme-choice="dark">
-                        <span class="theme-swatch theme-swatch-dark" aria-hidden="true"></span>
-                        <span class="theme-option-body">
-                            <span class="theme-option-title">
-                                <strong>Sombre Doré</strong>
-                                <span class="theme-active-badge">ACTIF</span>
-                            </span>
-                            <span class="theme-option-desc">Anthracite profond et or champagne.</span>
-                        </span>
-                    </button>
-
-                    <button type="button" class="theme-option-card" data-theme-choice="obsidian">
+                    <button type="button" class="theme-option-card" data-palette-choice="obsidian">
                         <span class="theme-swatch theme-swatch-obsidian" aria-hidden="true"></span>
                         <span class="theme-option-body">
                             <span class="theme-option-title">
                                 <strong>Obsidienne</strong>
                                 <span class="theme-active-badge">ACTIF</span>
                             </span>
-                            <span class="theme-option-desc">Gris neutre très sombre et accent argenté.</span>
+                            <span class="theme-option-desc">Gris neutre minimaliste et accent monochrome.</span>
                         </span>
                     </button>
 
-                    <button type="button" class="theme-option-card" data-theme-choice="midnight">
+                    <button type="button" class="theme-option-card" data-palette-choice="midnight">
                         <span class="theme-swatch theme-swatch-midnight" aria-hidden="true"></span>
                         <span class="theme-option-body">
                             <span class="theme-option-title">
                                 <strong>Bleu nuit</strong>
                                 <span class="theme-active-badge">ACTIF</span>
                             </span>
-                            <span class="theme-option-desc">Bleu nuit profond et accent bleu ciel.</span>
+                            <span class="theme-option-desc">Teintes ardoise et accent bleu lumineux.</span>
                         </span>
                     </button>
 
-                    <button type="button" class="theme-option-card" data-theme-choice="emerald">
+                    <button type="button" class="theme-option-card" data-palette-choice="emerald">
                         <span class="theme-swatch theme-swatch-emerald" aria-hidden="true"></span>
                         <span class="theme-option-body">
                             <span class="theme-option-title">
                                 <strong>Émeraude</strong>
                                 <span class="theme-active-badge">ACTIF</span>
                             </span>
-                            <span class="theme-option-desc">Forêt sombre et accent vert émeraude.</span>
+                            <span class="theme-option-desc">Nuances végétales et accent vert émeraude.</span>
                         </span>
                     </button>
                 </div>
@@ -491,7 +503,6 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
                 </div>
             </div>
         </div>
-
         <?php } elseif ('data' === $activeTab) { ?>
         <!-- =========================================
              ONGLET 4 : BIBLIOTHÈQUE & DONNÉES
@@ -2019,17 +2030,19 @@ a:hover {
 (function () {
     'use strict';
 
-    const ALLOWED_THEMES = ['light', 'dark', 'obsidian', 'midnight', 'emerald'];
+    const ALLOWED_PALETTES = ['gold', 'obsidian', 'midnight', 'emerald'];
+    const ALLOWED_MODES = ['light', 'dark'];
     const THEME_COLORS = {
-        light: '#fcfcfd',
-        dark: '#111318',
-        obsidian: '#09090b',
-        midnight: '#0b1120',
-        emerald: '#0b1411',
+        'gold-light': '#f3f5f8',
+        'gold-dark': '#111318',
+        'obsidian-light': '#f4f4f5',
+        'obsidian-dark': '#09090b',
+        'midnight-light': '#f1f5f9',
+        'midnight-dark': '#0b1120',
+        'emerald-light': '#f0f7f4',
+        'emerald-dark': '#0b1411',
     };
 
-    const SVG_SUN = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>';
-    const SVG_MOON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg>';
     const SVG_EYE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';
     const SVG_EYE_SLASH = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';
 
@@ -2037,7 +2050,6 @@ a:hover {
     const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
     const pendingFetches = new Map();
 
-    // Barre de progression discrète lors des navigations complètes
     function startTopProgressBar() {
         let bar = document.getElementById('nav-progress-bar');
         if (!bar) {
@@ -2050,7 +2062,6 @@ a:hover {
         bar.classList.add('active');
     }
 
-    // Met à jour le href réel des boutons "Retour aux cartes" pour activer le pré-rendu au survol
     function enhanceReturnToCardsLinks() {
         let lastCards = null;
         try {
@@ -2061,7 +2072,6 @@ a:hover {
             if (lastCards) {
                 link.href = lastCards;
             }
-            // Supprime le onclick inline pour laisser le navigateur utiliser le pré-rendu natif
             link.removeAttribute('onclick');
             link.addEventListener('click', (e) => {
                 if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
@@ -2105,42 +2115,56 @@ a:hover {
         } catch (_) {}
     }
 
-    function getSavedTheme() {
+    function getSavedThemeConfig() {
+        let palette = 'gold';
+        let mode = 'light';
         try {
-            const stored = localStorage.getItem('theme');
-            if (ALLOWED_THEMES.includes(stored)) {
-                return stored;
+            const storedPalette = localStorage.getItem('theme_palette');
+            const storedMode = localStorage.getItem('theme_mode');
+            if (ALLOWED_PALETTES.includes(storedPalette)) {
+                palette = storedPalette;
+            }
+            if (ALLOWED_MODES.includes(storedMode)) {
+                mode = storedMode;
+            } else {
+                const legacy = localStorage.getItem('theme');
+                if (legacy === 'dark') { palette = 'gold'; mode = 'dark'; }
+                else if (legacy === 'obsidian') { palette = 'obsidian'; mode = 'dark'; }
+                else if (legacy === 'midnight') { palette = 'midnight'; mode = 'dark'; }
+                else if (legacy === 'emerald') { palette = 'emerald'; mode = 'dark'; }
             }
         } catch (_) {}
-        return 'light';
+        return { palette, mode };
     }
 
-    function applyTheme(theme) {
-        const finalTheme = ALLOWED_THEMES.includes(theme) ? theme : 'light';
-        const isDark = finalTheme !== 'light';
+    function applyTheme(palette, mode) {
+        const finalPalette = ALLOWED_PALETTES.includes(palette) ? palette : 'gold';
+        const finalMode = ALLOWED_MODES.includes(mode) ? mode : 'light';
+        const themeKey = `${finalPalette}-${finalMode}`;
 
-        document.documentElement.setAttribute('data-theme', finalTheme);
-        document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', themeKey);
+        document.documentElement.setAttribute('data-mode', finalMode);
+        document.documentElement.setAttribute('data-bs-theme', finalMode);
 
         try {
-            localStorage.setItem('theme', finalTheme);
-            if (isDark) {
-                localStorage.setItem('lastDarkTheme', finalTheme);
-            }
+            localStorage.setItem('theme_palette', finalPalette);
+            localStorage.setItem('theme_mode', finalMode);
+            localStorage.setItem('theme', finalMode);
         } catch (_) {}
 
         const metaThemeColor = document.getElementById('meta-theme-color');
         if (metaThemeColor) {
-            metaThemeColor.setAttribute('content', THEME_COLORS[finalTheme] || '#fcfcfd');
+            metaThemeColor.setAttribute('content', THEME_COLORS[themeKey] || '#f3f5f8');
         }
 
-        const headerToggle = document.getElementById('theme-toggle');
-        if (headerToggle) {
-            headerToggle.innerHTML = isDark ? SVG_SUN : SVG_MOON;
-        }
+        document.querySelectorAll('.theme-mode-btn').forEach((btn) => {
+            const active = btn.getAttribute('data-mode-choice') === finalMode;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-checked', active ? 'true' : 'false');
+        });
 
         document.querySelectorAll('.theme-option-card').forEach((card) => {
-            const active = card.getAttribute('data-theme-choice') === finalTheme;
+            const active = card.getAttribute('data-palette-choice') === finalPalette;
             card.classList.toggle('is-active', active);
             card.setAttribute('aria-checked', active ? 'true' : 'false');
         });
@@ -2163,17 +2187,30 @@ a:hover {
     function bindProfileContentEvents(container) {
         if (!container) return;
 
-        // 1. Sélecteur de thèmes (?tab=display)
-        const currentTheme = getSavedTheme();
+        // 1. Mode Clair / Sombre + 4 Palettes (?tab=display)
+        const { palette: currentPalette, mode: currentMode } = getSavedThemeConfig();
+
+        container.querySelectorAll('.theme-mode-btn').forEach((btn) => {
+            const active = btn.getAttribute('data-mode-choice') === currentMode;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-checked', active ? 'true' : 'false');
+
+            btn.addEventListener('click', function () {
+                const chosenMode = this.getAttribute('data-mode-choice');
+                const { palette } = getSavedThemeConfig();
+                applyTheme(palette, chosenMode);
+            });
+        });
+
         container.querySelectorAll('.theme-option-card').forEach((card) => {
-            const active = card.getAttribute('data-theme-choice') === currentTheme;
+            const active = card.getAttribute('data-palette-choice') === currentPalette;
             card.classList.toggle('is-active', active);
             card.setAttribute('aria-checked', active ? 'true' : 'false');
 
             card.addEventListener('click', function () {
-                const chosen = this.getAttribute('data-theme-choice');
-                applyTheme(chosen);
-                notify('Thème mis à jour !', 'success');
+                const chosenPalette = this.getAttribute('data-palette-choice');
+                const { mode } = getSavedThemeConfig();
+                applyTheme(chosenPalette, mode);
             });
         });
 
@@ -2328,10 +2365,10 @@ a:hover {
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        applyTheme(getSavedTheme());
+        const { palette, mode } = getSavedThemeConfig();
+        applyTheme(palette, mode);
         enhanceReturnToCardsLinks();
 
-        // Feedback visuel discret sur les liens qui rechargent une nouvelle page
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a[href]');
             if (!link) return;
@@ -2357,27 +2394,6 @@ a:hover {
                 }
             } catch (_) {}
         });
-
-        const headerToggle = document.getElementById('theme-toggle');
-        if (headerToggle) {
-            headerToggle.addEventListener('click', function () {
-                setTimeout(() => {
-                    const current = document.documentElement.getAttribute('data-theme');
-                    if (current === 'dark') {
-                        let preferredDark = 'dark';
-                        try {
-                            const savedDark = localStorage.getItem('lastDarkTheme');
-                            if (savedDark && savedDark !== 'light' && ALLOWED_THEMES.includes(savedDark)) {
-                                preferredDark = savedDark;
-                            }
-                        } catch (_) {}
-                        applyTheme(preferredDark);
-                    } else {
-                        applyTheme('light');
-                    }
-                }, 0);
-            });
-        }
 
         let openByDefault = false;
         try {
@@ -2523,7 +2539,7 @@ a:hover {
     /* Focus clavier */
     --focus-ring: 0 0 0 3px rgba(181, 139, 74, 0.28);
 
-    /* Ombres : valeurs par défaut */
+    /* Ombres */
     --shadow-xs: 0 1px 2px var(--shadow-color);
     --shadow-sm: 0 2px 6px var(--shadow-color);
     --shadow-md: 0 5px 14px var(--shadow-color);
@@ -2532,12 +2548,11 @@ a:hover {
 }
 
 /* =========================================
-   THÈME CLAIR DORÉ
+   1. DORÉ (CLAIR & SOMBRE)
    ========================================= */
 
-[data-theme="light"] {
+[data-theme="gold-light"] {
     color-scheme: light;
-
     --primary: #98733d;
     --primary-hover: #79582b;
     --primary-light: rgba(152, 115, 61, 0.12);
@@ -2562,13 +2577,8 @@ a:hover {
     --info-text: #79582b;
 }
 
-/* =========================================
-   THÈME SOMBRE DORÉ
-   ========================================= */
-
-[data-theme="dark"] {
+[data-theme="gold-dark"] {
     color-scheme: dark;
-
     --primary: #d6b477;
     --primary-hover: #e7c994;
     --primary-light: rgba(214, 180, 119, 0.13);
@@ -2594,12 +2604,37 @@ a:hover {
 }
 
 /* =========================================
-   THÈME OBSIDIENNE
+   2. OBSIDIENNE (CLAIR & SOMBRE)
    ========================================= */
 
-[data-theme="obsidian"] {
-    color-scheme: dark;
+[data-theme="obsidian-light"] {
+    color-scheme: light;
+    --primary: #3f3f46;
+    --primary-hover: #18181b;
+    --primary-light: rgba(63, 63, 70, 0.10);
 
+    --bg-body: #f4f4f5;
+    --bg-card: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-input: #ffffff;
+
+    --text-main: #18181b;
+    --text-muted: #52525b;
+    --text-subtle: #71717a;
+
+    --border-color: #e4e4e7;
+    --border-hover: #d4d4d8;
+
+    --shadow-color: rgba(24, 24, 27, 0.06);
+    --shadow-hover-color: rgba(24, 24, 27, 0.12);
+
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #3f3f46;
+}
+
+[data-theme="obsidian-dark"] {
+    color-scheme: dark;
     --primary: #d4d4d8;
     --primary-hover: #f4f4f5;
     --primary-light: rgba(212, 212, 216, 0.12);
@@ -2625,12 +2660,37 @@ a:hover {
 }
 
 /* =========================================
-   THÈME BLEU NUIT
+   3. BLEU NUIT (CLAIR & SOMBRE)
    ========================================= */
 
-[data-theme="midnight"] {
-    color-scheme: dark;
+[data-theme="midnight-light"] {
+    color-scheme: light;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: rgba(37, 99, 235, 0.11);
 
+    --bg-body: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-input: #ffffff;
+
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --text-subtle: #64748b;
+
+    --border-color: #cbd5e1;
+    --border-hover: #94a3b8;
+
+    --shadow-color: rgba(15, 23, 42, 0.06);
+    --shadow-hover-color: rgba(15, 23, 42, 0.13);
+
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #1d4ed8;
+}
+
+[data-theme="midnight-dark"] {
+    color-scheme: dark;
     --primary: #60a5fa;
     --primary-hover: #93c5fd;
     --primary-light: rgba(96, 165, 250, 0.14);
@@ -2656,12 +2716,37 @@ a:hover {
 }
 
 /* =========================================
-   THÈME ÉMERAUDE
+   4. ÉMERAUDE (CLAIR & SOMBRE)
    ========================================= */
 
-[data-theme="emerald"] {
-    color-scheme: dark;
+[data-theme="emerald-light"] {
+    color-scheme: light;
+    --primary: #059669;
+    --primary-hover: #047857;
+    --primary-light: rgba(5, 150, 105, 0.11);
 
+    --bg-body: #f0f7f4;
+    --bg-card: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-input: #ffffff;
+
+    --text-main: #06281e;
+    --text-muted: #4b6b60;
+    --text-subtle: #6b8a7f;
+
+    --border-color: #d1e3dc;
+    --border-hover: #a7cbbd;
+
+    --shadow-color: rgba(6, 40, 30, 0.06);
+    --shadow-hover-color: rgba(6, 40, 30, 0.13);
+
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #047857;
+}
+
+[data-theme="emerald-dark"] {
+    color-scheme: dark;
     --primary: #34d399;
     --primary-hover: #6ee7b7;
     --primary-light: rgba(52, 211, 153, 0.14);
@@ -3579,14 +3664,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // INITIALISATION DE CHOICES.JS (Menus déroulants)
     // ==========================================
-    const selects = document.querySelectorAll('select.form-control');
-    selects.forEach(select => {
-        new Choices(select, {
-            searchEnabled: false, 
-            itemSelectText: '',   
-            shouldSort: false     
+    if (typeof Choices !== 'undefined') {
+        const selects = document.querySelectorAll('select.form-control');
+        selects.forEach(select => {
+            new Choices(select, {
+                searchEnabled: false,
+                itemSelectText: '',
+                shouldSort: false
+            });
         });
-    });
+    }
 
     // ==========================================
     // 14. GESTION DU SIGNALEMENT DE LIEN MORT
@@ -3837,7 +3924,8 @@ a:hover {
     filter: grayscale(100%) contrast(1000%) brightness(0);
 }
 
-html[data-theme="dark"] .logo-site {
+html:not([data-theme="light"]) .logo-site,
+html:not([data-theme="light"]) .logo-footer {
     filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
 }
 
@@ -4682,9 +4770,6 @@ textarea.form-control {
     filter: grayscale(100%) contrast(1000%) brightness(0);
 }
 
-html[data-theme="dark"] .logo-footer {
-    filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
-}
 
 /* Utilitaires & Animations */
 @keyframes fadeInUp {
@@ -5574,15 +5659,6 @@ select.form-control[hidden] {
    TRANSITIONS & BARRE DE CHARGEMENT
    ========================================= */
 
-@view-transition {
-    navigation: auto;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-    animation-duration: 120ms;
-}
-
 #nav-progress-bar {
     position: fixed;
     top: 0;
@@ -5617,6 +5693,82 @@ select.form-control[hidden] {
 a.is-navigating {
     opacity: 0.65;
     pointer-events: none;
+}
+
+/* =========================================
+   MODE CLAIR/SOMBRE & LOGO SUR THÈMES SOMBRES
+   ========================================= */
+
+html[data-mode="dark"] .logo-site,
+html[data-mode="dark"] .logo-footer {
+    filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
+}
+
+.theme-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+}
+
+.theme-header-row h3 {
+    margin: 0 !important;
+}
+
+.theme-mode-switcher {
+    display: inline-flex;
+    padding: 3px;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    gap: 4px;
+}
+
+.theme-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.4rem 0.9rem;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.theme-mode-btn:hover {
+    color: var(--text-main);
+}
+
+.theme-mode-btn.is-active {
+    background-color: var(--primary);
+    color: var(--bg-body);
+}
+
+.theme-swatch-gold {
+    background: linear-gradient(135deg, #f3f5f8 45%, #98733d 100%);
+}
+
+html[data-mode="dark"] .theme-swatch-gold {
+    background: linear-gradient(135deg, #111318 45%, #d6b477 100%);
+}
+
+html[data-mode="light"] .theme-swatch-obsidian {
+    background: linear-gradient(135deg, #f4f4f5 45%, #3f3f46 100%);
+}
+
+html[data-mode="light"] .theme-swatch-midnight {
+    background: linear-gradient(135deg, #f1f5f9 45%, #2563eb 100%);
+}
+
+html[data-mode="light"] .theme-swatch-emerald {
+    background: linear-gradient(135deg, #f0f7f4 45%, #059669 100%);
 }
 
 @media (max-width: 820px) {

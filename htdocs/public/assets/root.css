@@ -59,7 +59,7 @@
     /* Focus clavier */
     --focus-ring: 0 0 0 3px rgba(181, 139, 74, 0.28);
 
-    /* Ombres : valeurs par défaut */
+    /* Ombres */
     --shadow-xs: 0 1px 2px var(--shadow-color);
     --shadow-sm: 0 2px 6px var(--shadow-color);
     --shadow-md: 0 5px 14px var(--shadow-color);
@@ -68,12 +68,11 @@
 }
 
 /* =========================================
-   THÈME CLAIR DORÉ
+   1. DORÉ (CLAIR & SOMBRE)
    ========================================= */
 
-[data-theme="light"] {
+[data-theme="gold-light"] {
     color-scheme: light;
-
     --primary: #98733d;
     --primary-hover: #79582b;
     --primary-light: rgba(152, 115, 61, 0.12);
@@ -98,13 +97,8 @@
     --info-text: #79582b;
 }
 
-/* =========================================
-   THÈME SOMBRE DORÉ
-   ========================================= */
-
-[data-theme="dark"] {
+[data-theme="gold-dark"] {
     color-scheme: dark;
-
     --primary: #d6b477;
     --primary-hover: #e7c994;
     --primary-light: rgba(214, 180, 119, 0.13);
@@ -130,12 +124,37 @@
 }
 
 /* =========================================
-   THÈME OBSIDIENNE
+   2. OBSIDIENNE (CLAIR & SOMBRE)
    ========================================= */
 
-[data-theme="obsidian"] {
-    color-scheme: dark;
+[data-theme="obsidian-light"] {
+    color-scheme: light;
+    --primary: #3f3f46;
+    --primary-hover: #18181b;
+    --primary-light: rgba(63, 63, 70, 0.10);
 
+    --bg-body: #f4f4f5;
+    --bg-card: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-input: #ffffff;
+
+    --text-main: #18181b;
+    --text-muted: #52525b;
+    --text-subtle: #71717a;
+
+    --border-color: #e4e4e7;
+    --border-hover: #d4d4d8;
+
+    --shadow-color: rgba(24, 24, 27, 0.06);
+    --shadow-hover-color: rgba(24, 24, 27, 0.12);
+
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #3f3f46;
+}
+
+[data-theme="obsidian-dark"] {
+    color-scheme: dark;
     --primary: #d4d4d8;
     --primary-hover: #f4f4f5;
     --primary-light: rgba(212, 212, 216, 0.12);
@@ -161,12 +180,37 @@
 }
 
 /* =========================================
-   THÈME BLEU NUIT
+   3. BLEU NUIT (CLAIR & SOMBRE)
    ========================================= */
 
-[data-theme="midnight"] {
-    color-scheme: dark;
+[data-theme="midnight-light"] {
+    color-scheme: light;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: rgba(37, 99, 235, 0.11);
 
+    --bg-body: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-input: #ffffff;
+
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --text-subtle: #64748b;
+
+    --border-color: #cbd5e1;
+    --border-hover: #94a3b8;
+
+    --shadow-color: rgba(15, 23, 42, 0.06);
+    --shadow-hover-color: rgba(15, 23, 42, 0.13);
+
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #1d4ed8;
+}
+
+[data-theme="midnight-dark"] {
+    color-scheme: dark;
     --primary: #60a5fa;
     --primary-hover: #93c5fd;
     --primary-light: rgba(96, 165, 250, 0.14);
@@ -192,12 +236,37 @@
 }
 
 /* =========================================
-   THÈME ÉMERAUDE
+   4. ÉMERAUDE (CLAIR & SOMBRE)
    ========================================= */
 
-[data-theme="emerald"] {
-    color-scheme: dark;
+[data-theme="emerald-light"] {
+    color-scheme: light;
+    --primary: #059669;
+    --primary-hover: #047857;
+    --primary-light: rgba(5, 150, 105, 0.11);
 
+    --bg-body: #f0f7f4;
+    --bg-card: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-input: #ffffff;
+
+    --text-main: #06281e;
+    --text-muted: #4b6b60;
+    --text-subtle: #6b8a7f;
+
+    --border-color: #d1e3dc;
+    --border-hover: #a7cbbd;
+
+    --shadow-color: rgba(6, 40, 30, 0.06);
+    --shadow-hover-color: rgba(6, 40, 30, 0.13);
+
+    --danger-text: #dc2626;
+    --success-text: #047857;
+    --info-text: #047857;
+}
+
+[data-theme="emerald-dark"] {
+    color-scheme: dark;
     --primary: #34d399;
     --primary-hover: #6ee7b7;
     --primary-light: rgba(52, 211, 153, 0.14);

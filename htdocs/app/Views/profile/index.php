@@ -251,12 +251,14 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
                                         <?php } else { ?><span class="profile-not-synced">-</span><?php } ?>
                                     </td>
                                 </tr>
-                                <?php } } ?>
+                                <?php }
+            } ?>
                             </tbody>
                         </table>
                     </div>
                 </section>
-                <?php } } ?>
+                <?php }
+    } ?>
             </div>
         </div>
 
@@ -386,66 +388,76 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
              ========================================= -->
         <div class="profile-section-header">
             <h2 class="profile-section-title">Affichage</h2>
-            <p class="profile-section-subtitle">Thème visuel, comportement des catégories et nettoyage local.</p>
+            <p class="profile-section-subtitle">Mode clair/sombre, palette de couleurs et nettoyage local.</p>
         </div>
 
-        <!-- SÉLECTEUR DE THÈMES -->
+        <!-- MODE CLAIR / SOMBRE & SÉLECTEUR DE THÈMES -->
         <div class="card shadow-card profile-card">
             <div class="card-body">
-                <h3>Thème</h3>
-                <div class="theme-picker-list" role="radiogroup" aria-label="Choisir un thème">
-                    <button type="button" class="theme-option-card" data-theme-choice="light">
-                        <span class="theme-swatch theme-swatch-light" aria-hidden="true"></span>
+                <div class="theme-header-row">
+                    <h3>Apparence</h3>
+                    <div class="theme-mode-switcher" role="radiogroup" aria-label="Mode d'affichage">
+                        <button type="button" class="theme-mode-btn" data-mode-choice="light">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708" />
+                            </svg>
+                            <span>Clair</span>
+                        </button>
+                        <button type="button" class="theme-mode-btn" data-mode-choice="dark">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278" />
+                            </svg>
+                            <span>Sombre</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="theme-picker-list" role="radiogroup" aria-label="Choisir une palette">
+                    <button type="button" class="theme-option-card" data-palette-choice="gold">
+                        <span class="theme-swatch theme-swatch-gold" aria-hidden="true"></span>
                         <span class="theme-option-body">
                             <span class="theme-option-title">
-                                <strong>Clair Doré</strong>
+                                <strong>Doré</strong>
                                 <span class="theme-active-badge">ACTIF</span>
                             </span>
-                            <span class="theme-option-desc">Fond clair lumineux et accent doré.</span>
+                            <span class="theme-option-desc">Classique élégant avec accent or champagne.</span>
                         </span>
                     </button>
 
-                    <button type="button" class="theme-option-card" data-theme-choice="dark">
-                        <span class="theme-swatch theme-swatch-dark" aria-hidden="true"></span>
-                        <span class="theme-option-body">
-                            <span class="theme-option-title">
-                                <strong>Sombre Doré</strong>
-                                <span class="theme-active-badge">ACTIF</span>
-                            </span>
-                            <span class="theme-option-desc">Anthracite profond et or champagne.</span>
-                        </span>
-                    </button>
-
-                    <button type="button" class="theme-option-card" data-theme-choice="obsidian">
+                    <button type="button" class="theme-option-card" data-palette-choice="obsidian">
                         <span class="theme-swatch theme-swatch-obsidian" aria-hidden="true"></span>
                         <span class="theme-option-body">
                             <span class="theme-option-title">
                                 <strong>Obsidienne</strong>
                                 <span class="theme-active-badge">ACTIF</span>
                             </span>
-                            <span class="theme-option-desc">Gris neutre très sombre et accent argenté.</span>
+                            <span class="theme-option-desc">Gris neutre minimaliste et accent monochrome.</span>
                         </span>
                     </button>
 
-                    <button type="button" class="theme-option-card" data-theme-choice="midnight">
+                    <button type="button" class="theme-option-card" data-palette-choice="midnight">
                         <span class="theme-swatch theme-swatch-midnight" aria-hidden="true"></span>
                         <span class="theme-option-body">
                             <span class="theme-option-title">
                                 <strong>Bleu nuit</strong>
                                 <span class="theme-active-badge">ACTIF</span>
                             </span>
-                            <span class="theme-option-desc">Bleu nuit profond et accent bleu ciel.</span>
+                            <span class="theme-option-desc">Teintes ardoise et accent bleu lumineux.</span>
                         </span>
                     </button>
 
-                    <button type="button" class="theme-option-card" data-theme-choice="emerald">
+                    <button type="button" class="theme-option-card" data-palette-choice="emerald">
                         <span class="theme-swatch theme-swatch-emerald" aria-hidden="true"></span>
                         <span class="theme-option-body">
                             <span class="theme-option-title">
                                 <strong>Émeraude</strong>
                                 <span class="theme-active-badge">ACTIF</span>
                             </span>
-                            <span class="theme-option-desc">Forêt sombre et accent vert émeraude.</span>
+                            <span class="theme-option-desc">Nuances végétales et accent vert émeraude.</span>
                         </span>
                     </button>
                 </div>
@@ -489,7 +501,6 @@ $userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1))
                 </div>
             </div>
         </div>
-
         <?php } elseif ('data' === $activeTab) { ?>
         <!-- =========================================
              ONGLET 4 : BIBLIOTHÈQUE & DONNÉES

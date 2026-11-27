@@ -1,17 +1,19 @@
 (function () {
     'use strict';
 
-    const ALLOWED_THEMES = ['light', 'dark', 'obsidian', 'midnight', 'emerald'];
+    const ALLOWED_PALETTES = ['gold', 'obsidian', 'midnight', 'emerald'];
+    const ALLOWED_MODES = ['light', 'dark'];
     const THEME_COLORS = {
-        light: '#fcfcfd',
-        dark: '#111318',
-        obsidian: '#09090b',
-        midnight: '#0b1120',
-        emerald: '#0b1411',
+        'gold-light': '#f3f5f8',
+        'gold-dark': '#111318',
+        'obsidian-light': '#f4f4f5',
+        'obsidian-dark': '#09090b',
+        'midnight-light': '#f1f5f9',
+        'midnight-dark': '#0b1120',
+        'emerald-light': '#f0f7f4',
+        'emerald-dark': '#0b1411',
     };
 
-    const SVG_SUN = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>';
-    const SVG_MOON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg>';
     const SVG_EYE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';
     const SVG_EYE_SLASH = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';
 
@@ -19,7 +21,6 @@
     const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
     const pendingFetches = new Map();
 
-    // Barre de progression discrète lors des navigations complètes
     function startTopProgressBar() {
         let bar = document.getElementById('nav-progress-bar');
         if (!bar) {
@@ -32,7 +33,6 @@
         bar.classList.add('active');
     }
 
-    // Met à jour le href réel des boutons "Retour aux cartes" pour activer le pré-rendu au survol
     function enhanceReturnToCardsLinks() {
         let lastCards = null;
         try {
@@ -43,7 +43,6 @@
             if (lastCards) {
                 link.href = lastCards;
             }
-            // Supprime le onclick inline pour laisser le navigateur utiliser le pré-rendu natif
             link.removeAttribute('onclick');
             link.addEventListener('click', (e) => {
                 if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
@@ -87,42 +86,56 @@
         } catch (_) {}
     }
 
-    function getSavedTheme() {
+    function getSavedThemeConfig() {
+        let palette = 'gold';
+        let mode = 'light';
         try {
-            const stored = localStorage.getItem('theme');
-            if (ALLOWED_THEMES.includes(stored)) {
-                return stored;
+            const storedPalette = localStorage.getItem('theme_palette');
+            const storedMode = localStorage.getItem('theme_mode');
+            if (ALLOWED_PALETTES.includes(storedPalette)) {
+                palette = storedPalette;
+            }
+            if (ALLOWED_MODES.includes(storedMode)) {
+                mode = storedMode;
+            } else {
+                const legacy = localStorage.getItem('theme');
+                if (legacy === 'dark') { palette = 'gold'; mode = 'dark'; }
+                else if (legacy === 'obsidian') { palette = 'obsidian'; mode = 'dark'; }
+                else if (legacy === 'midnight') { palette = 'midnight'; mode = 'dark'; }
+                else if (legacy === 'emerald') { palette = 'emerald'; mode = 'dark'; }
             }
         } catch (_) {}
-        return 'light';
+        return { palette, mode };
     }
 
-    function applyTheme(theme) {
-        const finalTheme = ALLOWED_THEMES.includes(theme) ? theme : 'light';
-        const isDark = finalTheme !== 'light';
+    function applyTheme(palette, mode) {
+        const finalPalette = ALLOWED_PALETTES.includes(palette) ? palette : 'gold';
+        const finalMode = ALLOWED_MODES.includes(mode) ? mode : 'light';
+        const themeKey = `${finalPalette}-${finalMode}`;
 
-        document.documentElement.setAttribute('data-theme', finalTheme);
-        document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', themeKey);
+        document.documentElement.setAttribute('data-mode', finalMode);
+        document.documentElement.setAttribute('data-bs-theme', finalMode);
 
         try {
-            localStorage.setItem('theme', finalTheme);
-            if (isDark) {
-                localStorage.setItem('lastDarkTheme', finalTheme);
-            }
+            localStorage.setItem('theme_palette', finalPalette);
+            localStorage.setItem('theme_mode', finalMode);
+            localStorage.setItem('theme', finalMode);
         } catch (_) {}
 
         const metaThemeColor = document.getElementById('meta-theme-color');
         if (metaThemeColor) {
-            metaThemeColor.setAttribute('content', THEME_COLORS[finalTheme] || '#fcfcfd');
+            metaThemeColor.setAttribute('content', THEME_COLORS[themeKey] || '#f3f5f8');
         }
 
-        const headerToggle = document.getElementById('theme-toggle');
-        if (headerToggle) {
-            headerToggle.innerHTML = isDark ? SVG_SUN : SVG_MOON;
-        }
+        document.querySelectorAll('.theme-mode-btn').forEach((btn) => {
+            const active = btn.getAttribute('data-mode-choice') === finalMode;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-checked', active ? 'true' : 'false');
+        });
 
         document.querySelectorAll('.theme-option-card').forEach((card) => {
-            const active = card.getAttribute('data-theme-choice') === finalTheme;
+            const active = card.getAttribute('data-palette-choice') === finalPalette;
             card.classList.toggle('is-active', active);
             card.setAttribute('aria-checked', active ? 'true' : 'false');
         });
@@ -145,17 +158,30 @@
     function bindProfileContentEvents(container) {
         if (!container) return;
 
-        // 1. Sélecteur de thèmes (?tab=display)
-        const currentTheme = getSavedTheme();
+        // 1. Mode Clair / Sombre + 4 Palettes (?tab=display)
+        const { palette: currentPalette, mode: currentMode } = getSavedThemeConfig();
+
+        container.querySelectorAll('.theme-mode-btn').forEach((btn) => {
+            const active = btn.getAttribute('data-mode-choice') === currentMode;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-checked', active ? 'true' : 'false');
+
+            btn.addEventListener('click', function () {
+                const chosenMode = this.getAttribute('data-mode-choice');
+                const { palette } = getSavedThemeConfig();
+                applyTheme(palette, chosenMode);
+            });
+        });
+
         container.querySelectorAll('.theme-option-card').forEach((card) => {
-            const active = card.getAttribute('data-theme-choice') === currentTheme;
+            const active = card.getAttribute('data-palette-choice') === currentPalette;
             card.classList.toggle('is-active', active);
             card.setAttribute('aria-checked', active ? 'true' : 'false');
 
             card.addEventListener('click', function () {
-                const chosen = this.getAttribute('data-theme-choice');
-                applyTheme(chosen);
-                notify('Thème mis à jour !', 'success');
+                const chosenPalette = this.getAttribute('data-palette-choice');
+                const { mode } = getSavedThemeConfig();
+                applyTheme(chosenPalette, mode);
             });
         });
 
@@ -310,10 +336,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        applyTheme(getSavedTheme());
+        const { palette, mode } = getSavedThemeConfig();
+        applyTheme(palette, mode);
         enhanceReturnToCardsLinks();
 
-        // Feedback visuel discret sur les liens qui rechargent une nouvelle page
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a[href]');
             if (!link) return;
@@ -339,27 +365,6 @@
                 }
             } catch (_) {}
         });
-
-        const headerToggle = document.getElementById('theme-toggle');
-        if (headerToggle) {
-            headerToggle.addEventListener('click', function () {
-                setTimeout(() => {
-                    const current = document.documentElement.getAttribute('data-theme');
-                    if (current === 'dark') {
-                        let preferredDark = 'dark';
-                        try {
-                            const savedDark = localStorage.getItem('lastDarkTheme');
-                            if (savedDark && savedDark !== 'light' && ALLOWED_THEMES.includes(savedDark)) {
-                                preferredDark = savedDark;
-                            }
-                        } catch (_) {}
-                        applyTheme(preferredDark);
-                    } else {
-                        applyTheme('light');
-                    }
-                }, 0);
-            });
-        }
 
         let openByDefault = false;
         try {
