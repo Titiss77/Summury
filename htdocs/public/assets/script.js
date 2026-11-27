@@ -888,14 +888,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // INITIALISATION DE CHOICES.JS (Menus déroulants)
     // ==========================================
-    const selects = document.querySelectorAll('select.form-control');
-    selects.forEach(select => {
-        new Choices(select, {
-            searchEnabled: false, 
-            itemSelectText: '',   
-            shouldSort: false     
+    if (typeof Choices !== 'undefined') {
+        const selects = document.querySelectorAll('select.form-control');
+        selects.forEach(select => {
+            new Choices(select, {
+                searchEnabled: false,
+                itemSelectText: '',
+                shouldSort: false
+            });
         });
-    });
+    }
 
     // ==========================================
     // 14. GESTION DU SIGNALEMENT DE LIEN MORT

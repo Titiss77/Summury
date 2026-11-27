@@ -87,7 +87,8 @@ a:hover {
     filter: grayscale(100%) contrast(1000%) brightness(0);
 }
 
-html[data-theme="dark"] .logo-site {
+html:not([data-theme="light"]) .logo-site,
+html:not([data-theme="light"]) .logo-footer {
     filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
 }
 
@@ -932,9 +933,6 @@ textarea.form-control {
     filter: grayscale(100%) contrast(1000%) brightness(0);
 }
 
-html[data-theme="dark"] .logo-footer {
-    filter: grayscale(100%) contrast(1000%) brightness(0) invert(1);
-}
 
 /* Utilitaires & Animations */
 @keyframes fadeInUp {
@@ -1823,15 +1821,6 @@ select.form-control[hidden] {
 /* =========================================
    TRANSITIONS & BARRE DE CHARGEMENT
    ========================================= */
-
-@view-transition {
-    navigation: auto;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-    animation-duration: 120ms;
-}
 
 #nav-progress-bar {
     position: fixed;
