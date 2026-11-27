@@ -298,10 +298,11 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
     $routes->get('ra', 'ItemController::restoreAll');
     $routes->get('re', 'ItemController::emptyTrash');
     $routes->get('p', 'ProfileController::index');
+    $routes->get('p/export/(:alpha)', 'ProfileController::exportData/$1');
     $routes->post('pw', 'ProfileController::updatePassword');
     $routes->post('delete-account', 'ProfileController::deleteAccount');
 
-    // NOUVELLE ROUTE : Signalement de lien mort
+    // Signalement de lien mort
     $routes->post('report-link', 'ItemController::reportLink');
 
     // Anciennes URL : elles restent utilisables sans redirection des formulaires POST.
@@ -3584,36 +3585,207 @@ use App\Models\ItemRevisionModel;
 
 class ProfileController extends BaseController
 {
+    private const ALLOWED_TABS = ['profile', 'contributions', 'display', 'data', 'security', 'danger'];
+
     /**
-     * Affiche le profil de l'utilisateur connecté.
+     * Affiche le profil de l'utilisateur connecté avec gestion par onglets (?tab=...).
      */
     public function index()
     {
         $user = auth()->user();
-        $itemModel = new ItemModel();
         $userId = (int) $user->id;
+        $itemModel = new ItemModel();
 
-        $stats = $itemModel->getUserProfileStats($userId);
-        $series = $itemModel->getUserProfileSeries($userId);
+        $requestedTab = (string) ($this->request->getGet('tab') ?? 'profile');
+        $activeTab = in_array($requestedTab, self::ALLOWED_TABS, true) ? $requestedTab : 'profile';
+
+        $roleLabel = 'Membre';
+        if ($user->inGroup('superadmin')) {
+            $roleLabel = 'Super Administrateur';
+        } elseif ($user->inGroup('admin')) {
+            $roleLabel = 'Administrateur';
+        }
 
         $data = [
             'user' => $user,
-            'totalItems' => $stats['total_items'],
-            'publicItems' => $stats['public_items'],
-            'statusAVoir' => $stats['status_a_voir'],
-            'statusEnCours' => $stats['status_en_cours'],
-            'statusEnPause' => $stats['status_en_pause'],
-            'statusTermine' => $stats['status_termine'],
-            'statusAucun' => $stats['status_aucun'],
-            'totalSeriesEnCours' => $stats['total_series_en_cours'],
-            'totalEpisodesEnCours' => $stats['total_episodes_en_cours'],
-            'inProgressEnCoursSeries' => $series['en_cours'],
-            'totalSeriesEnPause' => $stats['total_series_en_pause'],
-            'totalEpisodesEnPause' => $stats['total_episodes_en_pause'],
-            'inProgressEnPauseSeries' => $series['en_pause'],
+            'activeTab' => $activeTab,
+            'roleLabel' => $roleLabel,
+            'memberSince' => $this->formatMemberSince($user->created_at ?? null),
+            'totalItems' => 0,
+            'publicItems' => 0,
+            'statusAVoir' => 0,
+            'statusEnCours' => 0,
+            'statusEnPause' => 0,
+            'statusTermine' => 0,
+            'statusAucun' => 0,
+            'totalSeriesEnCours' => 0,
+            'totalEpisodesEnCours' => 0,
+            'inProgressEnCoursSeries' => [],
+            'totalSeriesEnPause' => 0,
+            'totalEpisodesEnPause' => 0,
+            'inProgressEnPauseSeries' => [],
+            'userPublicItems' => [],
+            'userRevisions' => [],
+            'userReports' => [],
+            'deletedItemsCount' => 0,
+            'recentLogs' => [],
         ];
 
+        if ('profile' === $activeTab) {
+            $stats = $itemModel->getUserProfileStats($userId);
+            $series = $itemModel->getUserProfileSeries($userId);
+
+            $data['totalItems'] = $stats['total_items'];
+            $data['publicItems'] = $stats['public_items'];
+            $data['statusAVoir'] = $stats['status_a_voir'];
+            $data['statusEnCours'] = $stats['status_en_cours'];
+            $data['statusEnPause'] = $stats['status_en_pause'];
+            $data['statusTermine'] = $stats['status_termine'];
+            $data['statusAucun'] = $stats['status_aucun'];
+            $data['totalSeriesEnCours'] = $stats['total_series_en_cours'];
+            $data['totalEpisodesEnCours'] = $stats['total_episodes_en_cours'];
+            $data['inProgressEnCoursSeries'] = $series['en_cours'];
+            $data['totalSeriesEnPause'] = $stats['total_series_en_pause'];
+            $data['totalEpisodesEnPause'] = $stats['total_episodes_en_pause'];
+            $data['inProgressEnPauseSeries'] = $series['en_pause'];
+        } elseif ('contributions' === $activeTab) {
+            $data['userPublicItems'] = $itemModel
+                ->where('id_user', $userId)
+                ->whereIn('is_public', [1, 2])
+                ->orderBy('updated_at', 'DESC')
+                ->findAll();
+
+            $data['userRevisions'] = db_connect()->table('item_revisions ir')
+                ->select('ir.id, ir.original_item_id, ir.titre, ir.revision_status, i.titre AS original_titre')
+                ->join('item i', 'ir.original_item_id = i.id', 'left')
+                ->where('ir.id_user', $userId)
+                ->orderBy('ir.id', 'DESC')
+                ->limit(25)
+                ->get()
+                ->getResultArray();
+
+            $data['userReports'] = (new AuditLogModel())
+                ->where('user_id', $userId)
+                ->where('action', 'Signalement Utilisateur')
+                ->orderBy('created_at', 'DESC')
+                ->findAll(20);
+        } elseif ('data' === $activeTab) {
+            $data['totalItems'] = $itemModel
+                ->where('id_user', $userId)
+                ->countAllResults();
+
+            $data['deletedItemsCount'] = (new ItemModel())
+                ->onlyDeleted()
+                ->where('id_user', $userId)
+                ->countAllResults();
+        } elseif ('security' === $activeTab) {
+            $data['recentLogs'] = (new AuditLogModel())
+                ->where('user_id', $userId)
+                ->orderBy('created_at', 'DESC')
+                ->findAll(15);
+        }
+
         return view('profile/index', $data);
+    }
+
+    /**
+     * Exporte la collection de l'utilisateur connecté au format JSON ou CSV.
+     */
+    public function exportData(string $format)
+    {
+        $format = strtolower(trim($format));
+        if (!in_array($format, ['json', 'csv'], true)) {
+            return redirect()->to('p?tab=data')->with('error', "Format d'export non pris en charge.");
+        }
+
+        $userId = (int) auth()->id();
+        $rows = db_connect()->table('item i')
+            ->select('i.id, d.nom AS division, i.sous_categorie, i.titre, i.status, i.is_public, i.saison, i.total_saisons, i.episode, i.total_episodes, i.date_sortie, i.lien, i.image, i.description, i.created_at, i.updated_at')
+            ->join('division d', 'i.id_division = d.id', 'left')
+            ->where('i.id_user', $userId)
+            ->where('i.deleted_at IS NULL', null, false)
+            ->orderBy('i.id_division', 'ASC')
+            ->orderBy('i.position', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        (new AuditLogModel())->logAction('Export Données', 'Export de la collection au format ' . strtoupper($format) . ' (' . count($rows) . ' carte(s)).');
+
+        $dateSuffix = date('Y-m-d');
+
+        if ('json' === $format) {
+            $payload = json_encode([
+                'exported_at' => date('c'),
+                'username' => auth()->user()->username,
+                'count' => count($rows),
+                'items' => $rows,
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            return $this->response
+                ->setHeader('Content-Type', 'application/json; charset=UTF-8')
+                ->setHeader('Content-Disposition', "attachment; filename=\"collection-{$dateSuffix}.json\"")
+                ->setBody((string) $payload);
+        }
+
+        $stream = fopen('php://temp', 'r+');
+        // BOM UTF-8 pour une ouverture propre sous Excel
+        fwrite($stream, "\xEF\xBB\xBF");
+
+        $headers = [
+            'ID',
+            'Division',
+            'Sous-catégorie',
+            'Titre',
+            'Statut',
+            'Visibilité',
+            'Saison',
+            'Total saisons',
+            'Épisode',
+            'Total épisodes',
+            'Date de sortie',
+            'Lien',
+            'Image',
+            'Description',
+            'Créée le',
+            'Modifiée le',
+        ];
+        fputcsv($stream, $headers, ';');
+
+        foreach ($rows as $row) {
+            $visibility = match ((int) ($row['is_public'] ?? 0)) {
+                1 => 'Publique',
+                2 => 'En attente',
+                default => 'Privée',
+            };
+
+            fputcsv($stream, [
+                $row['id'] ?? '',
+                $row['division'] ?? '',
+                $row['sous_categorie'] ?? '',
+                $row['titre'] ?? '',
+                $row['status'] ?? '',
+                $visibility,
+                $row['saison'] ?? '',
+                $row['total_saisons'] ?? '',
+                $row['episode'] ?? '',
+                $row['total_episodes'] ?? '',
+                $row['date_sortie'] ?? '',
+                $row['lien'] ?? '',
+                $row['image'] ?? '',
+                $row['description'] ?? '',
+                $row['created_at'] ?? '',
+                $row['updated_at'] ?? '',
+            ], ';');
+        }
+
+        rewind($stream);
+        $csvContent = stream_get_contents($stream);
+        fclose($stream);
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', "attachment; filename=\"collection-{$dateSuffix}.csv\"")
+            ->setBody((string) $csvContent);
     }
 
     /**
@@ -3628,7 +3800,7 @@ class ProfileController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('errors', $this->validator->getErrors());
+            return redirect()->to('p?tab=security')->with('errors', $this->validator->getErrors());
         }
 
         $users = auth()->getProvider();
@@ -3642,7 +3814,7 @@ class ProfileController extends BaseController
         $result = $authenticator->check($credentials);
 
         if (!$result->isOK()) {
-            return redirect()->back()->with('error', 'Le mot de passe actuel est incorrect.');
+            return redirect()->to('p?tab=security')->with('error', 'Le mot de passe actuel est incorrect.');
         }
 
         $user->password = $this->request->getPost('new_password');
@@ -3651,7 +3823,7 @@ class ProfileController extends BaseController
         $audit = new AuditLogModel();
         $audit->logAction('Modification Profil', "L'utilisateur ID {$user->id} a modifié son mot de passe.");
 
-        return redirect()->to('p')->with('message', 'Votre mot de passe a été mis à jour avec succès.');
+        return redirect()->to('p?tab=security')->with('message', 'Votre mot de passe a été mis à jour avec succès.');
     }
 
     /**
@@ -3663,7 +3835,7 @@ class ProfileController extends BaseController
         $newEmail = $this->request->getPost('new_email');
 
         if ($newEmail === $user->email) {
-            return redirect()->back()->with('message', 'Cette adresse e-mail est déjà la vôtre.');
+            return redirect()->to('p?tab=security')->with('message', 'Cette adresse e-mail est déjà la vôtre.');
         }
 
         $rules = [
@@ -3672,7 +3844,7 @@ class ProfileController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('errors', $this->validator->getErrors());
+            return redirect()->to('p?tab=security')->with('errors', $this->validator->getErrors());
         }
 
         $users = auth()->getProvider();
@@ -3684,7 +3856,7 @@ class ProfileController extends BaseController
         $result = $authenticator->check($credentials);
 
         if (!$result->isOK()) {
-            return redirect()->back()->with('error', 'Le mot de passe actuel est incorrect.');
+            return redirect()->to('p?tab=security')->with('error', 'Le mot de passe actuel est incorrect.');
         }
 
         $oldEmail = $user->email;
@@ -3694,7 +3866,7 @@ class ProfileController extends BaseController
         $audit = new AuditLogModel();
         $audit->logAction('Modification Profil', "L'utilisateur ID {$user->id} a modifié son adresse e-mail ('{$oldEmail}' -> '{$newEmail}').");
 
-        return redirect()->to('p')->with('message', 'Votre adresse e-mail a été mise à jour avec succès.');
+        return redirect()->to('p?tab=security')->with('message', 'Votre adresse e-mail a été mise à jour avec succès.');
     }
 
     /**
@@ -3711,7 +3883,7 @@ class ProfileController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('error', 'Le mot de passe est requis pour supprimer le compte.');
+            return redirect()->to('p?tab=danger')->with('error', 'Le mot de passe est requis pour supprimer le compte.');
         }
 
         $credentials = [
@@ -3722,21 +3894,21 @@ class ProfileController extends BaseController
         $result = $authenticator->check($credentials);
 
         if (!$result->isOK()) {
-            return redirect()->back()->with('error', 'Mot de passe incorrect. Suppression annulée.');
+            return redirect()->to('p?tab=danger')->with('error', 'Mot de passe incorrect. Suppression annulée.');
         }
 
         $itemModel = new ItemModel();
-        
+
         // 1. Sauvegarde des contributions : Transfert des cartes publiques (is_public = 1) au Super Admin (ID = 1)
         $itemModel->builder()
-                  ->where('id_user', $userId)
-                  ->where('is_public', 1)
-                  ->update(['id_user' => 1]);
+            ->where('id_user', $userId)
+            ->where('is_public', 1)
+            ->update(['id_user' => 1]);
 
         // 2. Suppression forte des cartes restantes (privées ou en attente d'approbation)
         $itemModel->builder()
-                  ->where('id_user', $userId)
-                  ->delete();
+            ->where('id_user', $userId)
+            ->delete();
 
         // 3. Suppression des propositions de modifications (brouillons) en attente
         $revisionModel = new ItemRevisionModel();
@@ -3753,6 +3925,43 @@ class ProfileController extends BaseController
         auth()->logout();
 
         return redirect()->to('/')->with('message', 'Votre compte a été définitivement supprimé. Vos cartes publiques ont été conservées et anonymisées.');
+    }
+
+    /**
+     * Formate la date d'inscription en français (ex: "septembre 2026").
+     */
+    private function formatMemberSince(mixed $createdAt): string
+    {
+        if (empty($createdAt)) {
+            return 'Membre vérifié';
+        }
+
+        $timestamp = is_object($createdAt) && method_exists($createdAt, 'getTimestamp')
+            ? $createdAt->getTimestamp()
+            : strtotime((string) $createdAt);
+
+        if (false === $timestamp) {
+            return 'Membre vérifié';
+        }
+
+        $months = [
+            1 => 'janvier',
+            2 => 'février',
+            3 => 'mars',
+            4 => 'avril',
+            5 => 'mai',
+            6 => 'juin',
+            7 => 'juillet',
+            8 => 'août',
+            9 => 'septembre',
+            10 => 'octobre',
+            11 => 'novembre',
+            12 => 'décembre',
+        ];
+
+        $monthName = $months[(int) date('n', $timestamp)] ?? '';
+
+        return 'Depuis ' . $monthName . ' ' . date('Y', $timestamp);
     }
 }
 ```
@@ -7152,30 +7361,32 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <!-- Choices.js JS -->
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js" defer></script>
 
-    <!-- Restauration du thème (Dark/Light) avant le rendu pour éviter les flashs visuels -->
+    <!-- Restauration du thème avant le rendu pour éviter les flashs visuels -->
     <script>
-    let initialTheme = 'light';
-    try {
-        initialTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
-    } catch (_) {}
-    if (initialTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.setAttribute('data-bs-theme', 'dark');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.documentElement.setAttribute('data-bs-theme', 'light');
-    }
+    (function() {
+        var allowed = ['light', 'dark', 'obsidian', 'midnight', 'emerald'];
+        var initialTheme = 'light';
+        try {
+            var stored = localStorage.getItem('theme');
+            if (allowed.indexOf(stored) !== -1) {
+                initialTheme = stored;
+            }
+        } catch (_) {}
+        document.documentElement.setAttribute('data-theme', initialTheme);
+        document.documentElement.setAttribute('data-bs-theme', initialTheme === 'light' ? 'light' : 'dark');
+    })();
     </script>
 
     <!-- Gestion du cache des assets (force le rechargement si le fichier a été modifié) -->
     <?php
-    $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
-    $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
-    $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
-    $mediaAutofillVersion = file_exists(FCPATH.'assets/media-autofill.js') ? filemtime(FCPATH.'assets/media-autofill.js') : '1';
+    $rootCssVersion = file_exists(FCPATH . 'assets/root.css') ? filemtime(FCPATH . 'assets/root.css') : '1';
+    $styleCssVersion = file_exists(FCPATH . 'assets/style.css') ? filemtime(FCPATH . 'assets/style.css') : '1';
+    $scriptJsVersion = file_exists(FCPATH . 'assets/script.js') ? filemtime(FCPATH . 'assets/script.js') : '1';
+    $mediaAutofillVersion = file_exists(FCPATH . 'assets/media-autofill.js') ? filemtime(FCPATH . 'assets/media-autofill.js') : '1';
+    $profileJsVersion = file_exists(FCPATH . 'assets/profile.js') ? filemtime(FCPATH . 'assets/profile.js') : '1';
     ?>
-    <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v='.$rootCssVersion); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v='.$styleCssVersion); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v=' . $rootCssVersion); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v=' . $styleCssVersion); ?>">
 
     <!-- Sécurité CSRF pour les requêtes AJAX -->
     <meta name="csrf-token" content="<?php echo csrf_hash(); ?>">
@@ -7185,7 +7396,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <!-- Variables globales exposées pour les scripts JS (ex: Drag & Drop, API) -->
     <script>
     window.siteConfig = {
-        "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
+        "baseUrl": "<?php echo rtrim(base_url(), '/') . '/'; ?>",
         "updateOrderUrl": "<?php echo base_url('o'); ?>",
         "csrfHeader": "<?php echo csrf_header(); ?>",
         "csrfToken": "<?php echo csrf_hash(); ?>"
@@ -7196,8 +7407,27 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
         defer></script>
-    <script src="<?php echo base_url('assets/script.js?v='.$scriptJsVersion); ?>" defer></script>
-    <script src="<?php echo base_url('assets/media-autofill.js?v='.$mediaAutofillVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/script.js?v=' . $scriptJsVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/media-autofill.js?v=' . $mediaAutofillVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/profile.js?v=' . $profileJsVersion); ?>" defer></script>
+
+    <script type="speculationrules">
+        {
+  "prerender": [
+    {
+      "where": {
+        "and": [
+          { "href_matches": "/*" },
+          { "not": { "href_matches": "/x" } },
+          { "not": { "href_matches": "/d/*" } },
+          { "not": { "href_matches": "/p/export/*" } }
+        ]
+      },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
 </head>
 
 <body>
@@ -7250,7 +7480,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <?php if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithLogin as $h) { ?>
-        <a href="<?php echo base_url('c/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/' . $h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
@@ -7259,7 +7489,7 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
     <?php } else { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithNoLogin as $h) { ?>
-        <a href="<?php echo base_url('c/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/' . $h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
@@ -7381,199 +7611,689 @@ $maxLimitAttr = ($descLen > 250) ? '' : 'maxlength="250"';
 ```php
 <?php echo $this->extend('layout'); ?>
 <?php echo $this->section('content'); ?>
+
+<?php
+$activeTab = $activeTab ?? 'profile';
+$userInitial = mb_strtoupper(mb_substr((string) ($user->username ?? 'U'), 0, 1));
+?>
+
 <div class="actions-container">
     <a href="<?php echo base_url('/'); ?>" onclick="return retourAuxCartes(event, this.href);"
         class="btn btn-cancel">Retour aux cartes</a>
 </div>
 
-<div class="container profile-container">
-    <h2 class="header-title">Mon Profil</h2>
-
-    <?php if (session()->has('message')) { ?>
-    <div class="alert alert-success">
-        <?php echo esc(session('message')); ?>
-    </div>
-    <?php } ?>
-
-    <?php if (session()->has('error')) { ?>
-    <div class="alert alert-danger">
-        <?php echo esc(session('error')); ?>
-    </div>
-    <?php } ?>
-
-    <?php if (session()->has('errors')) { ?>
-    <div class="alert alert-danger">
-        <ul>
-            <?php foreach (session('errors') as $error) { ?>
-            <li><?php echo esc($error); ?></li>
-            <?php } ?>
-        </ul>
-    </div>
-    <?php } ?>
-
-    <!-- INFORMATIONS DU COMPTE -->
-    <div class="card shadow-card profile-card">
-        <div class="card-body">
-            <h3>Informations du compte</h3>
-            <p><strong>Nom d'utilisateur :</strong> <?php echo esc($user->username); ?></p>
-            <p><strong>Adresse e-mail :</strong> <?php echo esc($user->email); ?></p>
+<div class="container profile-settings-layout fade-in">
+    <!-- SIDEBAR DE NAVIGATION -->
+    <aside class="profile-sidebar" aria-label="Navigation du profil">
+        <div class="profile-nav-group">
+            <span class="profile-nav-group-title">Général</span>
+            <a href="<?php echo base_url('p'); ?>"
+                class="profile-nav-item <?php echo 'profile' === $activeTab ? 'active' : ''; ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                    <path fill-rule="evenodd"
+                        d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+                </svg>
+                <span>Profil &amp; Suivi</span>
+            </a>
+            <a href="<?php echo base_url('p?tab=contributions'); ?>"
+                class="profile-nav-item <?php echo 'contributions' === $activeTab ? 'active' : ''; ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z" />
+                </svg>
+                <span>Contributions</span>
+            </a>
         </div>
-    </div>
 
-    <!-- STATISTIQUES DES CARTES -->
-    <div class="profile-stats">
-        <p><strong>Total de cartes en ligne :</strong> <span
-                class="badge badge-episode"><?php echo esc($totalItems); ?></span></p>
-        <p><strong>Vos cartes publiques :</strong> <span
-                class="badge badge-season"><?php echo esc($publicItems); ?></span></p>
-    </div>
+        <div class="profile-nav-group">
+            <span class="profile-nav-group-title">Préférences &amp; Données</span>
+            <a href="<?php echo base_url('p?tab=display'); ?>"
+                class="profile-nav-item <?php echo 'display' === $activeTab ? 'active' : ''; ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z" />
+                </svg>
+                <span>Affichage</span>
+            </a>
+            <a href="<?php echo base_url('p?tab=data'); ?>"
+                class="profile-nav-item <?php echo 'data' === $activeTab ? 'active' : ''; ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                    <path
+                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                </svg>
+                <span>Bibliothèque &amp; Données</span>
+            </a>
+        </div>
 
-    <!-- SÉRIES -->
-    <?php $hasSeries = !empty($inProgressEnCoursSeries) || !empty($inProgressEnPauseSeries); ?>
-    <div class="card shadow-card profile-card">
-        <div class="card-body">
-            <?php if (!$hasSeries) { ?>
-            <p class="profile-empty">Aucune série ou animé en cours de visionnage avec un total d'épisodes défini.</p>
-            <?php } else { ?>
-            <?php
-            $seriesSections = [
-                ['title' => 'Séries en cours', 'series' => $inProgressEnCoursSeries, 'episodes' => $totalEpisodesEnCours, 'seasons' => $totalSeriesEnCours, 'empty' => 'Aucune série en cours'],
-                ['title' => 'Séries en pause', 'series' => $inProgressEnPauseSeries, 'episodes' => $totalEpisodesEnPause, 'seasons' => $totalSeriesEnPause, 'empty' => 'Aucune série en pause'],
-            ];
-            ?>
-            <?php foreach ($seriesSections as $section) { ?>
-            <section class="profile-series-section">
-                <h3><?php echo esc($section['title']); ?></h3>
-                <div class="profile-summary">
-                    <p>Épisodes restants : <span
-                            class="badge badge-episode"><?php echo esc($section['episodes']); ?></span></p>
-                    <p>Saisons restantes : <span
-                            class="badge badge-season"><?php echo esc($section['seasons']); ?></span></p>
+        <div class="profile-nav-group">
+            <span class="profile-nav-group-title">Compte</span>
+            <a href="<?php echo base_url('p?tab=security'); ?>"
+                class="profile-nav-item <?php echo 'security' === $activeTab ? 'active' : ''; ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2" />
+                </svg>
+                <span>Sécurité &amp; Activité</span>
+            </a>
+            <a href="<?php echo base_url('p?tab=danger'); ?>"
+                class="profile-nav-item profile-nav-item-danger <?php echo 'danger' === $activeTab ? 'active' : ''; ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2" />
+                </svg>
+                <span>Zone de danger</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- CONTENU PRINCIPAL -->
+    <div class="profile-content">
+        <?php if (session()->has('message')) { ?>
+        <div class="alert alert-success">
+            <?php echo esc(session('message')); ?>
+        </div>
+        <?php } ?>
+
+        <?php if (session()->has('error')) { ?>
+        <div class="alert alert-danger">
+            <?php echo esc(session('error')); ?>
+        </div>
+        <?php } ?>
+
+        <?php if (session()->has('errors')) { ?>
+        <div class="alert alert-danger">
+            <ul>
+                <?php foreach (session('errors') as $error) { ?>
+                <li><?php echo esc($error); ?></li>
+                <?php } ?>
+            </ul>
+        </div>
+        <?php } ?>
+
+        <?php if ('profile' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 1 : PROFIL & SUIVI (PAR DÉFAUT)
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title">Profil</h2>
+            <p class="profile-section-subtitle">Carte de membre, répartition de votre collection et suivi des séries.
+            </p>
+        </div>
+
+        <!-- CARTE DE MEMBRE -->
+        <div class="card shadow-card profile-member-card">
+            <div class="card-body">
+                <span class="profile-member-kicker">Carte de membre</span>
+                <div class="profile-member-top">
+                    <div class="profile-member-identity">
+                        <div class="profile-avatar" aria-hidden="true"><?php echo esc($userInitial); ?></div>
+                        <div>
+                            <div class="profile-member-name"><?php echo esc($user->username); ?></div>
+                            <div class="profile-member-role"><?php echo esc($roleLabel ?? 'Membre'); ?></div>
+                        </div>
+                    </div>
+                    <div class="profile-member-number">
+                        <span class="profile-member-number-prefix">n°</span>
+                        <strong><?php echo esc(str_pad((string) $user->id, 4, '0', STR_PAD_LEFT)); ?></strong>
+                    </div>
                 </div>
-                <div class="admin-table-container fade-in">
-                    <table class="admin-table profile-series-table">
+                <div class="profile-member-footer">
+                    <span><?php echo esc($memberSince ?? 'Membre vérifié'); ?></span>
+                    <span class="profile-member-sep">•</span>
+                    <span><?php echo esc($totalItems); ?> carte(s) en collection</span>
+                    <span class="profile-member-sep">•</span>
+                    <span><?php echo esc($publicItems); ?> publique(s)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFORMATIONS DU COMPTE -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Informations du compte</h3>
+                <div class="profile-info-grid">
+                    <div class="profile-info-field">
+                        <span class="profile-info-label">Pseudo</span>
+                        <div class="profile-info-value"><?php echo esc($user->username); ?></div>
+                    </div>
+                    <div class="profile-info-field">
+                        <span class="profile-info-label">E-mail</span>
+                        <div class="profile-info-value"><?php echo esc($user->email); ?></div>
+                        <small class="profile-info-hint">
+                            À changer depuis <a href="<?php echo base_url('p?tab=security'); ?>">Sécurité &amp;
+                                Activité</a>.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RÉPARTITION PAR STATUT -->
+        <?php
+        $statusBreakdown = [
+            ['label' => 'En cours', 'count' => (int) $statusEnCours, 'class' => 'status-bar-encours'],
+            ['label' => 'À voir', 'count' => (int) $statusAVoir, 'class' => 'status-bar-avoir'],
+            ['label' => 'En pause', 'count' => (int) $statusEnPause, 'class' => 'status-bar-pause'],
+            ['label' => 'Terminé', 'count' => (int) $statusTermine, 'class' => 'status-bar-termine'],
+            ['label' => 'Aucun', 'count' => (int) $statusAucun, 'class' => 'status-bar-aucun'],
+        ];
+        $statusTotal = max(1, (int) $totalItems);
+        ?>
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Répartition de la collection</h3>
+                <div class="profile-status-bar" aria-label="Répartition visuelle des statuts">
+                    <?php foreach ($statusBreakdown as $st) {
+                        if ($st['count'] > 0) {
+                            $pct = round(($st['count'] / $statusTotal) * 100, 2); ?>
+                    <span class="profile-status-segment <?php echo $st['class']; ?>"
+                        style="width: <?php echo $pct; ?>%;"
+                        title="<?php echo esc($st['label'] . ' : ' . $st['count']); ?>"></span>
+                    <?php }
+                    } ?>
+                </div>
+                <div class="profile-status-grid">
+                    <?php foreach ($statusBreakdown as $st) { ?>
+                    <div class="profile-status-tile">
+                        <span class="profile-status-dot <?php echo $st['class']; ?>"></span>
+                        <span class="profile-status-label"><?php echo esc($st['label']); ?></span>
+                        <strong class="profile-status-count"><?php echo esc($st['count']); ?></strong>
+                    </div>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- SÉRIES EN COURS & EN PAUSE -->
+        <?php $hasSeries = !empty($inProgressEnCoursSeries) || !empty($inProgressEnPauseSeries); ?>
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <?php if (!$hasSeries) { ?>
+                <p class="profile-empty">Aucune série ou animé en cours de visionnage avec un total d'épisodes défini.
+                </p>
+                <?php } else { ?>
+                <?php
+                $seriesSections = [
+                    ['title' => 'Séries en cours', 'series' => $inProgressEnCoursSeries, 'episodes' => $totalEpisodesEnCours, 'seasons' => $totalSeriesEnCours, 'empty' => 'Aucune série en cours'],
+                    ['title' => 'Séries en pause', 'series' => $inProgressEnPauseSeries, 'episodes' => $totalEpisodesEnPause, 'seasons' => $totalSeriesEnPause, 'empty' => 'Aucune série en pause'],
+                ];
+                ?>
+                <?php foreach ($seriesSections as $section) { ?>
+                <section class="profile-series-section">
+                    <h3><?php echo esc($section['title']); ?></h3>
+                    <div class="profile-summary">
+                        <p>Épisodes restants : <span
+                                class="badge badge-episode"><?php echo esc($section['episodes']); ?></span></p>
+                        <p>Saisons restantes : <span
+                                class="badge badge-season"><?php echo esc($section['seasons']); ?></span></p>
+                    </div>
+                    <div class="admin-table-container fade-in">
+                        <table class="admin-table profile-series-table">
+                            <thead>
+                                <tr>
+                                    <th>Titre</th>
+                                    <th>Épisodes restants</th>
+                                    <th>Saisons restantes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($section['series'])) { ?>
+                                <tr>
+                                    <td colspan="3" class="profile-table-empty"><?php echo esc($section['empty']); ?>
+                                    </td>
+                                </tr>
+                                <?php } else { ?>
+                                <?php foreach ($section['series'] as $series) { ?>
+                                <tr>
+                                    <td><strong><?php echo esc($series->titre); ?></strong></td>
+                                    <td class="profile-table-center">
+                                        <?php if (null !== $series->reste_global) { ?>
+                                        <span class="badge badge-episode">Reste :
+                                            <?php echo esc($series->reste_global); ?></span>
+                                        <?php } else { ?><span class="profile-not-synced">Non
+                                            synchronisé</span><?php } ?>
+                                    </td>
+                                    <td class="profile-table-center">
+                                        <?php if (null !== $series->reste_s) { ?>
+                                        <span class="badge badge-season"><?php echo esc($series->reste_s); ?></span>
+                                        <?php } else { ?><span class="profile-not-synced">-</span><?php } ?>
+                                    </td>
+                                </tr>
+                                <?php } } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <?php } } ?>
+            </div>
+        </div>
+
+        <?php } elseif ('contributions' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 2 : CONTRIBUTIONS & SUIVI
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title">Contributions</h2>
+            <p class="profile-section-subtitle">Vos cartes partagées, propositions de modifications et signalements.</p>
+        </div>
+
+        <!-- MES CARTES PUBLIQUES / EN ATTENTE -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Mes cartes publiques (<?php echo count($userPublicItems); ?>)</h3>
+                <?php if (empty($userPublicItems)) { ?>
+                <p class="profile-empty">Vous n'avez pas encore partagé de carte publiquement.</p>
+                <?php } else { ?>
+                <div class="admin-table-container">
+                    <table class="admin-table">
                         <thead>
                             <tr>
                                 <th>Titre</th>
-                                <th>Épisodes restants</th>
-                                <th>Saisons restantes</th>
+                                <th>État</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (empty($section['series'])) { ?>
+                            <?php foreach ($userPublicItems as $pubItem) { ?>
                             <tr>
-                                <td colspan="3" class="profile-table-empty"><?php echo esc($section['empty']); ?></td>
-                            </tr>
-                            <?php } else { ?>
-                            <?php foreach ($section['series'] as $series) { ?>
-                            <tr>
-                                <td><strong><?php echo esc($series->titre); ?></strong></td>
-                                <td class="profile-table-center">
-                                    <?php if (null !== $series->reste_global) { ?>
-                                    <span class="badge badge-episode">Reste :
-                                        <?php echo esc($series->reste_global); ?></span>
-                                    <?php } else { ?><span class="profile-not-synced">Non synchronisé</span><?php } ?>
+                                <td><strong><?php echo esc($pubItem->titre); ?></strong></td>
+                                <td>
+                                    <?php if (1 === (int) $pubItem->is_public) { ?>
+                                    <span class="profile-pill profile-pill-success">Publiée</span>
+                                    <?php } else { ?>
+                                    <span class="profile-pill profile-pill-warning">En inspection</span>
+                                    <?php } ?>
                                 </td>
-                                <td class="profile-table-center">
-                                    <?php if (null !== $series->reste_s) { ?>
-                                    <span class="badge badge-season"><?php echo esc($series->reste_s); ?></span>
-                                    <?php } else { ?><span class="profile-not-synced">-</span><?php } ?>
+                                <td>
+                                    <a href="<?php echo base_url('m/' . $pubItem->id); ?>"
+                                        class="btn-icon btn-edit-sm">Modifier</a>
                                 </td>
                             </tr>
-                            <?php } } ?>
+                            <?php } ?>
                         </tbody>
                     </table>
                 </div>
-            </section>
-            <?php } } ?>
+                <?php } ?>
+            </div>
         </div>
-    </div>
 
-    <!-- ADRESSE E-MAIL -->
-    <div class="card shadow-card profile-card">
-        <div class="card-body">
-            <h3>Changer mon adresse e-mail</h3>
-            <form action="<?php echo base_url('update-email'); ?>" method="POST" class="profile-password-form"
-                autocomplete="off">
-                <?php echo csrf_field(); ?>
-                <div class="form-group">
-                    <label for="new_email" class="form-label">Nouvelle adresse e-mail</label>
-                    <input type="email" id="new_email" name="new_email" class="form-control"
-                        placeholder="nom@exemple.com" required>
+        <!-- MES PROPOSITIONS DE MODIFICATIONS -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Mes propositions de modifications (<?php echo count($userRevisions); ?>)</h3>
+                <?php if (empty($userRevisions)) { ?>
+                <p class="profile-empty">Aucune proposition de modification soumise pour le moment.</p>
+                <?php } else { ?>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Carte concernée</th>
+                                <th>Titre proposé</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($userRevisions as $rev) { ?>
+                            <tr>
+                                <td><strong><?php echo esc($rev['original_titre'] ?? ('Carte #' . $rev['original_item_id'])); ?></strong>
+                                </td>
+                                <td><?php echo esc($rev['titre']); ?></td>
+                                <td>
+                                    <?php if ('approved' === $rev['revision_status']) { ?>
+                                    <span class="profile-pill profile-pill-success">Approuvée</span>
+                                    <?php } elseif ('rejected' === $rev['revision_status']) { ?>
+                                    <span class="profile-pill profile-pill-danger">Refusée</span>
+                                    <?php } else { ?>
+                                    <span class="profile-pill profile-pill-warning">En attente</span>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="form-group password-wrapper">
-                    <label for="password_for_email" class="form-label">Mot de passe actuel (pour sécurité)</label>
-                    <input type="password" id="password_for_email" name="password_for_email" class="form-control"
-                        placeholder="Votre mot de passe actuel" autocomplete="new-password" data-bwignore="true"
-                        data-lpignore="true" data-1p-ignore="true" required>
-                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Mettre à jour l'e-mail</button>
-                </div>
-            </form>
+                <?php } ?>
+            </div>
         </div>
-    </div>
 
-    <!-- MOT DE PASSE -->
-    <div class="card shadow-card profile-card">
-        <div class="card-body">
-            <h3>Changer mon mot de passe</h3>
-            <form action="<?php echo base_url('pw'); ?>" method="POST" class="profile-password-form" autocomplete="off">
-                <?php echo csrf_field(); ?>
-                <div class="form-group password-wrapper">
-                    <label for="current_password" class="form-label">Mot de passe actuel</label>
-                    <input type="password" id="current_password" name="current_password" class="form-control" required>
-                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+        <!-- MES SIGNALEMENTS -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Mes signalements de liens (<?php echo count($userReports); ?>)</h3>
+                <?php if (empty($userReports)) { ?>
+                <p class="profile-empty">Vous n'avez signalé aucun lien mort.</p>
+                <?php } else { ?>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($userReports as $rep) { ?>
+                            <tr>
+                                <td style="white-space: nowrap; color: var(--text-muted);">
+                                    <?php echo esc(date('d/m/Y H:i', strtotime($rep['created_at']))); ?>
+                                </td>
+                                <td><?php echo esc($rep['details']); ?></td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="form-group password-wrapper">
-                    <label for="new_password" class="form-label">Nouveau mot de passe</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" minlength="12"
-                        placeholder="12 caractères minimum" autocomplete="new-password" data-bwignore="true"
-                        data-lpignore="true" data-1p-ignore="true" required>
-                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
-                </div>
-                <div class="form-group password-wrapper">
-                    <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
-                        minlength="12" placeholder="12 caractères minimum" autocomplete="new-password"
-                        data-bwignore="true" data-lpignore="true" data-1p-ignore="true" required>
-                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Mettre à jour le mot de passe</button>
-                </div>
-            </form>
+                <?php } ?>
+            </div>
         </div>
-    </div>
 
-    <!-- ZONE DE DANGER (Droit à l'effacement RGPD) -->
-    <div class="card shadow-card profile-card" style="border: 1px solid var(--danger);">
-        <div class="card-body">
-            <h3 style="color: var(--danger);">Zone de Danger</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">
-                Conformément au RGPD, vous disposez d'un droit d'effacement. La suppression de votre compte effacera
-                définitivement toutes vos cartes, brouillons, et données personnelles de nos serveurs. <strong>Cette
-                    action est irréversible.</strong>
+        <?php } elseif ('display' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 3 : AFFICHAGE & PRÉFÉRENCES
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title">Affichage</h2>
+            <p class="profile-section-subtitle">Thème visuel, comportement des catégories et nettoyage local.</p>
+        </div>
+
+        <!-- SÉLECTEUR DE THÈMES -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Thème</h3>
+                <div class="theme-picker-list" role="radiogroup" aria-label="Choisir un thème">
+                    <button type="button" class="theme-option-card" data-theme-choice="light">
+                        <span class="theme-swatch theme-swatch-light" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Clair Doré</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Fond clair lumineux et accent doré.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-theme-choice="dark">
+                        <span class="theme-swatch theme-swatch-dark" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Sombre Doré</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Anthracite profond et or champagne.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-theme-choice="obsidian">
+                        <span class="theme-swatch theme-swatch-obsidian" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Obsidienne</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Gris neutre très sombre et accent argenté.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-theme-choice="midnight">
+                        <span class="theme-swatch theme-swatch-midnight" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Bleu nuit</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Bleu nuit profond et accent bleu ciel.</span>
+                        </span>
+                    </button>
+
+                    <button type="button" class="theme-option-card" data-theme-choice="emerald">
+                        <span class="theme-swatch theme-swatch-emerald" aria-hidden="true"></span>
+                        <span class="theme-option-body">
+                            <span class="theme-option-title">
+                                <strong>Émeraude</strong>
+                                <span class="theme-active-badge">ACTIF</span>
+                            </span>
+                            <span class="theme-option-desc">Forêt sombre et accent vert émeraude.</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRÉFÉRENCES & NETTOYAGE LOCAL -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Interface &amp; Nettoyage</h3>
+                <div class="profile-pref-list">
+                    <div class="profile-pref-row">
+                        <div>
+                            <strong>Ouvrir les catégories par défaut</strong>
+                            <p class="profile-pref-desc">Déplie automatiquement toutes les sections sur la page des
+                                cartes.</p>
+                        </div>
+                        <label class="profile-switch">
+                            <input type="checkbox" id="toggle-open-divisions">
+                            <span class="profile-switch-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="profile-pref-row">
+                        <div>
+                            <strong>Filtres de recherche mémorisés</strong>
+                            <p class="profile-pref-desc">Efface la recherche, le statut et la catégorie enregistrés dans
+                                ce navigateur.</p>
+                        </div>
+                        <button type="button" id="btn-reset-filters" class="btn btn-cancel">Réinitialiser</button>
+                    </div>
+
+                    <div class="profile-pref-row">
+                        <div>
+                            <strong>Notifications de sorties masquées</strong>
+                            <p class="profile-pref-desc">Réaffiche les badges de sorties récentes que vous avez fermés.
+                            </p>
+                        </div>
+                        <button type="button" id="btn-reset-releases" class="btn btn-cancel">Réafficher</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php } elseif ('data' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 4 : BIBLIOTHÈQUE & DONNÉES
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title">Bibliothèque &amp; Données</h2>
+            <p class="profile-section-subtitle">Exportez votre collection et gérez votre corbeille.</p>
+        </div>
+
+        <!-- EXPORT -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Exporter ma collection</h3>
+                <p class="profile-current-meta">
+                    Téléchargez l'ensemble de vos <strong><?php echo esc($totalItems); ?></strong> carte(s) active(s)
+                    pour les sauvegarder ou les consulter hors-ligne.
+                </p>
+                <div class="profile-action-row">
+                    <a href="<?php echo base_url('p/export/json'); ?>" class="btn btn-primary">Télécharger en JSON</a>
+                    <a href="<?php echo base_url('p/export/csv'); ?>" class="btn btn-cancel">Télécharger en CSV
+                        (Excel)</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CORBEILLE -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Corbeille</h3>
+                <p class="profile-current-meta">
+                    Vous avez actuellement <span
+                        class="badge badge-episode"><?php echo esc($deletedItemsCount); ?></span> carte(s) dans la
+                    corbeille.
+                </p>
+                <div class="profile-action-row">
+                    <a href="<?php echo base_url('r'); ?>" class="btn btn-cancel">Ouvrir la corbeille</a>
+                    <?php if ($deletedItemsCount > 0) { ?>
+                    <a href="<?php echo base_url('ra'); ?>" class="btn btn-success"
+                        onclick="return confirm('Restaurer toutes les cartes présentes dans votre corbeille ?');">Tout
+                        restaurer</a>
+                    <a href="<?php echo base_url('re'); ?>" class="btn"
+                        style="background-color: var(--danger); color: #fff;"
+                        onclick="return confirm('ACTION IRRÉVERSIBLE : vider définitivement toute la corbeille ?');">Vider
+                        la corbeille</a>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+
+        <?php } elseif ('security' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 5 : SÉCURITÉ & ACTIVITÉ
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title">Sécurité &amp; Activité</h2>
+            <p class="profile-section-subtitle">Gérez votre adresse e-mail, votre mot de passe et consultez vos
+                dernières actions.</p>
+        </div>
+
+        <!-- ADRESSE E-MAIL -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Changer mon adresse e-mail</h3>
+                <p class="profile-current-meta">Adresse actuelle : <strong><?php echo esc($user->email); ?></strong></p>
+                <form action="<?php echo base_url('update-email'); ?>" method="POST" class="profile-password-form"
+                    autocomplete="off">
+                    <?php echo csrf_field(); ?>
+                    <div class="form-group">
+                        <label for="new_email" class="form-label">Nouvelle adresse e-mail</label>
+                        <input type="email" id="new_email" name="new_email" class="form-control"
+                            placeholder="nom@exemple.com" required>
+                    </div>
+                    <div class="form-group password-wrapper">
+                        <label for="password_for_email" class="form-label">Mot de passe actuel (pour sécurité)</label>
+                        <input type="password" id="password_for_email" name="password_for_email" class="form-control"
+                            placeholder="Votre mot de passe actuel" autocomplete="new-password" data-bwignore="true"
+                            data-lpignore="true" data-1p-ignore="true" required>
+                        <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Mettre à jour l'e-mail</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MOT DE PASSE -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Changer mon mot de passe</h3>
+                <form action="<?php echo base_url('pw'); ?>" method="POST" class="profile-password-form"
+                    autocomplete="off">
+                    <?php echo csrf_field(); ?>
+                    <div class="form-group password-wrapper">
+                        <label for="current_password" class="form-label">Mot de passe actuel</label>
+                        <input type="password" id="current_password" name="current_password" class="form-control"
+                            required>
+                        <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+                    </div>
+                    <div class="form-group password-wrapper">
+                        <label for="new_password" class="form-label">Nouveau mot de passe</label>
+                        <input type="password" id="new_password" name="new_password" class="form-control" minlength="12"
+                            placeholder="12 caractères minimum" autocomplete="new-password" data-bwignore="true"
+                            data-lpignore="true" data-1p-ignore="true" required>
+                        <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+                    </div>
+                    <div class="form-group password-wrapper">
+                        <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                            minlength="12" placeholder="12 caractères minimum" autocomplete="new-password"
+                            data-bwignore="true" data-lpignore="true" data-1p-ignore="true" required>
+                        <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Mettre à jour le mot de passe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- JOURNAL D'ACTIVITÉ PERSONNEL -->
+        <div class="card shadow-card profile-card">
+            <div class="card-body">
+                <h3>Activité récente (15 dernières actions)</h3>
+                <?php if (empty($recentLogs)) { ?>
+                <p class="profile-empty">Aucune activité enregistrée pour le moment.</p>
+                <?php } else { ?>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recentLogs as $log) { ?>
+                            <tr>
+                                <td style="white-space: nowrap; color: var(--text-muted); font-size: 0.85rem;">
+                                    <?php echo esc(date('d/m/Y H:i', strtotime($log['created_at']))); ?>
+                                </td>
+                                <td><strong><?php echo esc($log['action']); ?></strong></td>
+                                <td style="color: var(--text-muted); font-size: 0.9rem;">
+                                    <?php echo esc($log['details']); ?></td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php } ?>
+            </div>
+        </div>
+
+        <?php } elseif ('danger' === $activeTab) { ?>
+        <!-- =========================================
+             ONGLET 6 : ZONE DE DANGER (RGPD)
+             ========================================= -->
+        <div class="profile-section-header">
+            <h2 class="profile-section-title profile-section-title-danger">Zone de danger</h2>
+            <p class="profile-section-subtitle">Suppression définitive de votre compte et de vos données personnelles.
             </p>
-            <form action="<?php echo base_url('delete-account'); ?>" method="POST" class="profile-password-form"
-                autocomplete="off"
-                onsubmit="return confirm('Êtes-vous absolument sûr de vouloir supprimer définitivement votre compte et vos données ?');">
-                <?php echo csrf_field(); ?>
-                <div class="form-group password-wrapper">
-                    <label for="password_for_deletion" class="form-label">Confirmez votre mot de passe pour
-                        continuer</label>
-                    <input type="password" id="password_for_deletion" name="password_for_deletion" class="form-control"
-                        placeholder="Votre mot de passe" autocomplete="new-password" data-bwignore="true"
-                        data-lpignore="true" data-1p-ignore="true" required>
-                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn" style="background-color: var(--danger); color: #fff;">Supprimer
-                        définitivement mon compte</button>
-                </div>
-            </form>
         </div>
+
+        <div class="card shadow-card profile-card profile-card-danger">
+            <div class="card-body">
+                <h3 style="color: var(--danger);">Supprimer mon compte</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Conformément au RGPD, vous disposez d'un droit d'effacement. La suppression de votre compte effacera
+                    définitivement toutes vos cartes privées, brouillons et données personnelles de nos serveurs.
+                    <strong>Cette action est irréversible.</strong>
+                </p>
+                <form action="<?php echo base_url('delete-account'); ?>" method="POST" class="profile-password-form"
+                    autocomplete="off"
+                    onsubmit="return confirm('Êtes-vous absolument sûr de vouloir supprimer définitivement votre compte et vos données ?');">
+                    <?php echo csrf_field(); ?>
+                    <div class="form-group password-wrapper">
+                        <label for="password_for_deletion" class="form-label">Confirmez votre mot de passe pour
+                            continuer</label>
+                        <input type="password" id="password_for_deletion" name="password_for_deletion"
+                            class="form-control" placeholder="Votre mot de passe" autocomplete="new-password"
+                            data-bwignore="true" data-lpignore="true" data-1p-ignore="true" required>
+                        <button type="button" class="password-toggle" aria-label="Afficher le mot de passe"></button>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn"
+                            style="background-color: var(--danger); color: #fff;">Supprimer
+                            définitivement mon compte</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <?php } ?>
     </div>
 </div>
 <?php echo $this->endSection(); ?>
@@ -8318,6 +9038,176 @@ a:hover {
 })();
 ```
 
+## public/assets/profile.js
+```javascript
+(function () {
+    'use strict';
+
+    const ALLOWED_THEMES = ['light', 'dark', 'obsidian', 'midnight', 'emerald'];
+    const THEME_COLORS = {
+        light: '#fcfcfd',
+        dark: '#111318',
+        obsidian: '#09090b',
+        midnight: '#0b1120',
+        emerald: '#0b1411',
+    };
+
+    const SVG_SUN = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>';
+    const SVG_MOON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg>';
+
+    function getSavedTheme() {
+        try {
+            const stored = localStorage.getItem('theme');
+            if (ALLOWED_THEMES.includes(stored)) {
+                return stored;
+            }
+        } catch (_) {}
+        return 'light';
+    }
+
+    function applyTheme(theme) {
+        const finalTheme = ALLOWED_THEMES.includes(theme) ? theme : 'light';
+        const isDark = finalTheme !== 'light';
+
+        document.documentElement.setAttribute('data-theme', finalTheme);
+        document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+
+        try {
+            localStorage.setItem('theme', finalTheme);
+            if (isDark) {
+                localStorage.setItem('lastDarkTheme', finalTheme);
+            }
+        } catch (_) {}
+
+        const metaThemeColor = document.getElementById('meta-theme-color');
+        if (metaThemeColor) {
+            metaThemeColor.setAttribute('content', THEME_COLORS[finalTheme] || '#fcfcfd');
+        }
+
+        const headerToggle = document.getElementById('theme-toggle');
+        if (headerToggle) {
+            headerToggle.innerHTML = isDark ? SVG_SUN : SVG_MOON;
+        }
+
+        document.querySelectorAll('.theme-option-card').forEach((card) => {
+            const active = card.getAttribute('data-theme-choice') === finalTheme;
+            card.classList.toggle('is-active', active);
+            card.setAttribute('aria-checked', active ? 'true' : 'false');
+        });
+    }
+
+    function notify(message, type = 'success') {
+        if (typeof window.showToast === 'function') {
+            window.showToast(message, type);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Réapplique le thème exact (y compris obsidian/midnight/emerald) après script.js
+        applyTheme(getSavedTheme());
+
+        // Synchronise le bouton du header avec le dernier thème sombre choisi
+        const headerToggle = document.getElementById('theme-toggle');
+        if (headerToggle) {
+            headerToggle.addEventListener('click', function () {
+                setTimeout(() => {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    if (current === 'dark') {
+                        let preferredDark = 'dark';
+                        try {
+                            const savedDark = localStorage.getItem('lastDarkTheme');
+                            if (savedDark && savedDark !== 'light' && ALLOWED_THEMES.includes(savedDark)) {
+                                preferredDark = savedDark;
+                            }
+                        } catch (_) {}
+                        applyTheme(preferredDark);
+                    } else {
+                        applyTheme('light');
+                    }
+                }, 0);
+            });
+        }
+
+        // Cartes de sélection de thème (?tab=display)
+        document.querySelectorAll('.theme-option-card').forEach((card) => {
+            card.addEventListener('click', function () {
+                const chosen = this.getAttribute('data-theme-choice');
+                applyTheme(chosen);
+                notify('Thème mis à jour !', 'success');
+            });
+        });
+
+        // Option : ouvrir les catégories par défaut
+        const openDivisionsToggle = document.getElementById('toggle-open-divisions');
+        if (openDivisionsToggle) {
+            let enabled = false;
+            try {
+                enabled = localStorage.getItem('defaultOpenDivisions') === 'true';
+            } catch (_) {}
+            openDivisionsToggle.checked = enabled;
+
+            openDivisionsToggle.addEventListener('change', function () {
+                try {
+                    localStorage.setItem('defaultOpenDivisions', this.checked ? 'true' : 'false');
+                } catch (_) {}
+                notify(
+                    this.checked
+                        ? 'Les catégories seront ouvertes par défaut.'
+                        : 'Les catégories resteront repliées par défaut.',
+                    'info'
+                );
+            });
+        }
+
+        // Applique l'ouverture par défaut sur la page des cartes si aucun filtre n'est actif
+        let openByDefault = false;
+        try {
+            openByDefault = localStorage.getItem('defaultOpenDivisions') === 'true';
+        } catch (_) {}
+
+        if (openByDefault) {
+            const searchInput = document.getElementById('liveSearch');
+            const statusFilter = document.getElementById('statusFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const hasActiveFilter = Boolean(
+                (searchInput && searchInput.value.trim()) ||
+                (statusFilter && statusFilter.value) ||
+                (categoryFilter && categoryFilter.value)
+            );
+            if (!hasActiveFilter) {
+                document.querySelectorAll('details.division-section').forEach((detail) => {
+                    if (!detail.hidden) {
+                        detail.open = true;
+                    }
+                });
+            }
+        }
+
+        // Nettoyage : réinitialiser les filtres mémorisés
+        const resetFiltersBtn = document.getElementById('btn-reset-filters');
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function () {
+                try {
+                    localStorage.removeItem('cardFilters');
+                } catch (_) {}
+                notify('Filtres de recherche réinitialisés.', 'success');
+            });
+        }
+
+        // Nettoyage : réafficher les notifications de sorties masquées
+        const resetReleasesBtn = document.getElementById('btn-reset-releases');
+        if (resetReleasesBtn) {
+            resetReleasesBtn.addEventListener('click', function () {
+                try {
+                    localStorage.removeItem('dismissedReleases');
+                } catch (_) {}
+                notify('Les notifications de sorties seront de nouveau visibles.', 'success');
+            });
+        }
+    });
+})();
+```
+
 ## public/assets/root.css
 ```css
 :root {
@@ -8390,77 +9280,158 @@ a:hover {
 }
 
 /* =========================================
-   THÈME CLAIR
+   THÈME CLAIR DORÉ
    ========================================= */
 
 [data-theme="light"] {
     color-scheme: light;
 
-    /* Accent doré */
     --primary: #98733d;
     --primary-hover: #79582b;
     --primary-light: rgba(152, 115, 61, 0.12);
 
-    /* Surfaces */
     --bg-body: #f3f5f8;
     --bg-card: #ffffff;
     --bg-elevated: #ffffff;
     --bg-input: #ffffff;
 
-    /* Texte */
     --text-main: #182131;
     --text-muted: #657084;
     --text-subtle: #8791a1;
 
-    /* Bordures */
     --border-color: #e1e5ec;
     --border-hover: #c7ced9;
 
-    /* Ombres */
     --shadow-color: rgba(24, 33, 49, 0.055);
     --shadow-hover-color: rgba(24, 33, 49, 0.12);
 
-    /* Statuts : lisibles sur fond clair */
     --danger-text: #dc2626;
     --success-text: #047857;
     --info-text: #79582b;
 }
 
 /* =========================================
-   THÈME SOMBRE
+   THÈME SOMBRE DORÉ
    ========================================= */
 
 [data-theme="dark"] {
     color-scheme: dark;
 
-    /* Accent doré */
     --primary: #d6b477;
     --primary-hover: #e7c994;
     --primary-light: rgba(214, 180, 119, 0.13);
 
-    /* Surfaces */
     --bg-body: #111318;
     --bg-card: #191c23;
     --bg-elevated: #20242d;
     --bg-input: #151820;
 
-    /* Texte */
     --text-main: #f1f3f7;
     --text-muted: #a0a8b7;
     --text-subtle: #7f899a;
 
-    /* Bordures */
     --border-color: #2b303b;
     --border-hover: #414959;
 
-    /* Ombres */
     --shadow-color: rgba(0, 0, 0, 0.20);
     --shadow-hover-color: rgba(0, 0, 0, 0.38);
 
-    /* Statuts */
     --danger-text: #ff7777;
     --success-text: #4adea6;
     --info-text: #e2c18b;
+}
+
+/* =========================================
+   THÈME OBSIDIENNE
+   ========================================= */
+
+[data-theme="obsidian"] {
+    color-scheme: dark;
+
+    --primary: #d4d4d8;
+    --primary-hover: #f4f4f5;
+    --primary-light: rgba(212, 212, 216, 0.12);
+
+    --bg-body: #09090b;
+    --bg-card: #121215;
+    --bg-elevated: #1a1a1f;
+    --bg-input: #0e0e11;
+
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --text-subtle: #71717a;
+
+    --border-color: #27272a;
+    --border-hover: #3f3f46;
+
+    --shadow-color: rgba(0, 0, 0, 0.30);
+    --shadow-hover-color: rgba(0, 0, 0, 0.50);
+
+    --danger-text: #f87171;
+    --success-text: #4ade80;
+    --info-text: #d4d4d8;
+}
+
+/* =========================================
+   THÈME BLEU NUIT
+   ========================================= */
+
+[data-theme="midnight"] {
+    color-scheme: dark;
+
+    --primary: #60a5fa;
+    --primary-hover: #93c5fd;
+    --primary-light: rgba(96, 165, 250, 0.14);
+
+    --bg-body: #0b1120;
+    --bg-card: #111a2e;
+    --bg-elevated: #17233d;
+    --bg-input: #0e1628;
+
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --text-subtle: #64748b;
+
+    --border-color: #1e293b;
+    --border-hover: #334155;
+
+    --shadow-color: rgba(2, 6, 23, 0.35);
+    --shadow-hover-color: rgba(2, 6, 23, 0.55);
+
+    --danger-text: #f87171;
+    --success-text: #34d399;
+    --info-text: #93c5fd;
+}
+
+/* =========================================
+   THÈME ÉMERAUDE
+   ========================================= */
+
+[data-theme="emerald"] {
+    color-scheme: dark;
+
+    --primary: #34d399;
+    --primary-hover: #6ee7b7;
+    --primary-light: rgba(52, 211, 153, 0.14);
+
+    --bg-body: #0b1411;
+    --bg-card: #111f1a;
+    --bg-elevated: #172a23;
+    --bg-input: #0e1a16;
+
+    --text-main: #ecfdf5;
+    --text-muted: #94b3a7;
+    --text-subtle: #648276;
+
+    --border-color: #1f352c;
+    --border-hover: #2d4d40;
+
+    --shadow-color: rgba(0, 0, 0, 0.30);
+    --shadow-hover-color: rgba(0, 0, 0, 0.48);
+
+    --danger-text: #f87171;
+    --success-text: #6ee7b7;
+    --info-text: #6ee7b7;
 }
 ```
 
@@ -9525,6 +10496,10 @@ window.addEventListener('load', function() {
 /* Base & Container */
 * {
     box-sizing: border-box;
+}
+
+@view-transition {
+    navigation: auto;
 }
 
 body {
@@ -10820,6 +11795,554 @@ select.form-control[hidden] {
 .btn-report-link-inline:hover {
     color: var(--danger);
     background: var(--danger-bg);
+}
+
+/* =========================================
+   PROFIL : LAYOUT AVEC SIDEBAR (?tab=...)
+   ========================================= */
+
+.profile-settings-layout {
+    display: grid;
+    grid-template-columns: 245px minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+.profile-sidebar {
+    position: sticky;
+    top: 90px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.profile-nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.profile-nav-group-title {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-subtle);
+    padding: 0 var(--space-3) var(--space-1);
+}
+
+.profile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.65rem 0.9rem;
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    text-decoration: none;
+    transition: var(--transition);
+    border: 1px solid transparent;
+}
+
+.profile-nav-item:hover {
+    color: var(--text-main);
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+.profile-nav-item.active {
+    color: var(--primary);
+    background-color: var(--primary-light);
+    border-color: var(--primary);
+    font-weight: 600;
+}
+
+.profile-nav-item-danger:hover,
+.profile-nav-item-danger.active {
+    color: var(--danger-text);
+    background-color: var(--danger-bg);
+    border-color: rgba(239, 68, 68, 0.35);
+    font-weight: 600;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    min-width: 0;
+}
+
+.profile-section-header {
+    margin-bottom: var(--space-1);
+}
+
+.profile-section-title {
+    margin: 0;
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    color: var(--text-main);
+    display: inline-block;
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 4px;
+}
+
+.profile-section-title-danger {
+    border-bottom-color: var(--danger);
+}
+
+.profile-section-subtitle {
+    margin: var(--space-2) 0 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* Carte de membre */
+.profile-member-card {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-card) 60%);
+    border: 1px solid var(--border-color);
+}
+
+.profile-member-kicker {
+    display: block;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-3);
+}
+
+.profile-member-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.profile-member-identity {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.profile-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-lg);
+    background-color: var(--primary);
+    color: var(--bg-body);
+    font-size: 1.4rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.profile-member-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.profile-member-role {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.profile-member-number {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+
+.profile-member-number-prefix {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.profile-member-number strong {
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.profile-member-footer {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.profile-member-sep {
+    opacity: 0.5;
+}
+
+/* Infos compte */
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+}
+
+.profile-info-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.profile-info-label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.profile-info-value {
+    padding: 0.65rem 0.9rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.profile-info-hint {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.profile-info-hint a {
+    color: var(--primary);
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.profile-current-meta {
+    margin: 0 0 var(--space-4);
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* Répartition par statut */
+.profile-status-bar {
+    display: flex;
+    width: 100%;
+    height: 10px;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    margin: var(--space-3) 0 var(--space-4);
+}
+
+.profile-status-segment {
+    height: 100%;
+    display: block;
+}
+
+.profile-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: var(--space-3);
+}
+
+.profile-status-tile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.65rem 0.85rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.profile-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.profile-status-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    flex-grow: 1;
+}
+
+.profile-status-count {
+    font-size: var(--font-size-md);
+    color: var(--text-main);
+}
+
+.status-bar-encours {
+    background-color: var(--primary);
+}
+
+.status-bar-avoir {
+    background-color: #3b82f6;
+}
+
+.status-bar-pause {
+    background-color: var(--warning);
+}
+
+.status-bar-termine {
+    background-color: var(--success);
+}
+
+.status-bar-aucun {
+    background-color: var(--text-subtle);
+}
+
+/* Badges de statut Contributions */
+.profile-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+}
+
+.profile-pill-success {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+}
+
+.profile-pill-warning {
+    background-color: var(--warning-bg);
+    color: var(--warning);
+}
+
+.profile-pill-danger {
+    background-color: var(--danger-bg);
+    color: var(--danger-text);
+}
+
+/* Sélecteur de thèmes (?tab=display) */
+.theme-picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+}
+
+.theme-option-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: 0.9rem 1.1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.theme-option-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+}
+
+.theme-option-card.is-active {
+    background-color: var(--primary-light);
+    border-color: var(--primary);
+}
+
+.theme-swatch {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.theme-swatch-light {
+    background: linear-gradient(135deg, #f3f5f8 45%, #98733d 100%);
+}
+
+.theme-swatch-dark {
+    background: linear-gradient(135deg, #111318 45%, #d6b477 100%);
+}
+
+.theme-swatch-obsidian {
+    background: linear-gradient(135deg, #09090b 45%, #d4d4d8 100%);
+}
+
+.theme-swatch-midnight {
+    background: linear-gradient(135deg, #0b1120 45%, #60a5fa 100%);
+}
+
+.theme-swatch-emerald {
+    background: linear-gradient(135deg, #0b1411 45%, #34d399 100%);
+}
+
+.theme-option-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.theme-option-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-main);
+    font-size: var(--font-size-md);
+}
+
+.theme-option-desc {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.theme-active-badge {
+    display: none;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background-color: var(--primary);
+    color: var(--bg-body);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.theme-option-card.is-active .theme-active-badge {
+    display: inline-block;
+}
+
+/* Préférences & nettoyage */
+.profile-pref-list {
+    display: flex;
+    flex-direction: column;
+    margin-top: var(--space-2);
+}
+
+.profile-pref-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-pref-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.profile-pref-desc {
+    margin: 4px 0 0;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+/* Switch toggle */
+.profile-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+.profile-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.profile-switch-slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background-color: var(--border-color);
+    border-radius: var(--radius-pill);
+    transition: var(--transition);
+}
+
+.profile-switch-slider::before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.profile-switch input:checked+.profile-switch-slider {
+    background-color: var(--primary);
+}
+
+.profile-switch input:checked+.profile-switch-slider::before {
+    transform: translateX(20px);
+}
+
+.profile-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.profile-card-danger {
+    border: 1px solid var(--danger);
+}
+
+@media (max-width: 820px) {
+    .profile-settings-layout {
+        grid-template-columns: 1fr;
+        gap: var(--space-5);
+    }
+
+    .profile-sidebar {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .profile-nav-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .profile-nav-group-title {
+        display: none;
+    }
+
+    .profile-nav-item {
+        padding: 0.5rem 0.8rem;
+    }
+
+    .profile-pref-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 @media (max-width: 576px) {

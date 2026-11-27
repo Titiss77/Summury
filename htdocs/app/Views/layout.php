@@ -45,14 +45,14 @@
 
     <!-- Gestion du cache des assets (force le rechargement si le fichier a été modifié) -->
     <?php
-    $rootCssVersion = file_exists(FCPATH.'assets/root.css') ? filemtime(FCPATH.'assets/root.css') : '1';
-    $styleCssVersion = file_exists(FCPATH.'assets/style.css') ? filemtime(FCPATH.'assets/style.css') : '1';
-    $scriptJsVersion = file_exists(FCPATH.'assets/script.js') ? filemtime(FCPATH.'assets/script.js') : '1';
-    $mediaAutofillVersion = file_exists(FCPATH.'assets/media-autofill.js') ? filemtime(FCPATH.'assets/media-autofill.js') : '1';
-    $profileJsVersion = file_exists(FCPATH.'assets/profile.js') ? filemtime(FCPATH.'assets/profile.js') : '1';
+    $rootCssVersion = file_exists(FCPATH . 'assets/root.css') ? filemtime(FCPATH . 'assets/root.css') : '1';
+    $styleCssVersion = file_exists(FCPATH . 'assets/style.css') ? filemtime(FCPATH . 'assets/style.css') : '1';
+    $scriptJsVersion = file_exists(FCPATH . 'assets/script.js') ? filemtime(FCPATH . 'assets/script.js') : '1';
+    $mediaAutofillVersion = file_exists(FCPATH . 'assets/media-autofill.js') ? filemtime(FCPATH . 'assets/media-autofill.js') : '1';
+    $profileJsVersion = file_exists(FCPATH . 'assets/profile.js') ? filemtime(FCPATH . 'assets/profile.js') : '1';
     ?>
-    <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v='.$rootCssVersion); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v='.$styleCssVersion); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v=' . $rootCssVersion); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v=' . $styleCssVersion); ?>">
 
     <!-- Sécurité CSRF pour les requêtes AJAX -->
     <meta name="csrf-token" content="<?php echo csrf_hash(); ?>">
@@ -62,7 +62,7 @@
     <!-- Variables globales exposées pour les scripts JS (ex: Drag & Drop, API) -->
     <script>
     window.siteConfig = {
-        "baseUrl": "<?php echo rtrim(base_url(), '/').'/'; ?>",
+        "baseUrl": "<?php echo rtrim(base_url(), '/') . '/'; ?>",
         "updateOrderUrl": "<?php echo base_url('o'); ?>",
         "csrfHeader": "<?php echo csrf_header(); ?>",
         "csrfToken": "<?php echo csrf_hash(); ?>"
@@ -73,9 +73,27 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"
         defer></script>
-    <script src="<?php echo base_url('assets/script.js?v='.$scriptJsVersion); ?>" defer></script>
-    <script src="<?php echo base_url('assets/media-autofill.js?v='.$mediaAutofillVersion); ?>" defer></script>
-    <script src="<?php echo base_url('assets/profile.js?v='.$profileJsVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/script.js?v=' . $scriptJsVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/media-autofill.js?v=' . $mediaAutofillVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/profile.js?v=' . $profileJsVersion); ?>" defer></script>
+
+    <script type="speculationrules">
+        {
+  "prerender": [
+    {
+      "where": {
+        "and": [
+          { "href_matches": "/*" },
+          { "not": { "href_matches": "/x" } },
+          { "not": { "href_matches": "/d/*" } },
+          { "not": { "href_matches": "/p/export/*" } }
+        ]
+      },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
 </head>
 
 <body>
@@ -128,7 +146,7 @@
     <?php if (auth()->loggedIn() && isset($headersWithLogin) && !empty($headersWithLogin)) { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithLogin as $h) { ?>
-        <a href="<?php echo base_url('c/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/' . $h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
@@ -137,7 +155,7 @@
     <?php } else { ?>
     <nav class="category-nav container">
         <?php foreach ($headersWithNoLogin as $h) { ?>
-        <a href="<?php echo base_url('c/'.$h['id']); ?>"
+        <a href="<?php echo base_url('c/' . $h['id']); ?>"
             class="nav-tab <?php echo (isset($currentHeaderId) && $currentHeaderId == $h['id']) ? 'active' : ''; ?>">
             <?php echo esc($h['nom']); ?>
         </a>
