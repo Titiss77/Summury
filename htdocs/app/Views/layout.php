@@ -50,6 +50,7 @@
     $scriptJsVersion = file_exists(FCPATH . 'assets/script.js') ? filemtime(FCPATH . 'assets/script.js') : '1';
     $mediaAutofillVersion = file_exists(FCPATH . 'assets/media-autofill.js') ? filemtime(FCPATH . 'assets/media-autofill.js') : '1';
     $profileJsVersion = file_exists(FCPATH . 'assets/profile.js') ? filemtime(FCPATH . 'assets/profile.js') : '1';
+    $categoriesNavVersion = file_exists(FCPATH . 'assets/categories-nav.js') ? filemtime(FCPATH . 'assets/categories-nav.js') : '1';
     ?>
     <link rel="stylesheet" href="<?php echo base_url('assets/root.css?v=' . $rootCssVersion); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/style.css?v=' . $styleCssVersion); ?>">
@@ -76,6 +77,7 @@
     <script src="<?php echo base_url('assets/script.js?v=' . $scriptJsVersion); ?>" defer></script>
     <script src="<?php echo base_url('assets/media-autofill.js?v=' . $mediaAutofillVersion); ?>" defer></script>
     <script src="<?php echo base_url('assets/profile.js?v=' . $profileJsVersion); ?>" defer></script>
+    <script src="<?php echo base_url('assets/categories-nav.js?v=' . $categoriesNavVersion); ?>" defer></script>
 
     <script type="speculationrules">
         {
