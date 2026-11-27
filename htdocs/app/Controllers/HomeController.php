@@ -19,12 +19,6 @@ class HomeController extends BaseController
 
     private function reportDomainStates(): array
     {
-        $cacheKey = 'home_report_domain_states';
-        $cached = cache($cacheKey);
-        if (is_array($cached)) {
-            return $cached;
-        }
-
         $states = [];
         $db = db_connect();
         $normalizeHost = static function (string $url): ?string {
@@ -79,33 +73,7 @@ class HomeController extends BaseController
             }
         }
 
-        cache()->save($cacheKey, $states, 60);
-
         return $states;
-    }
-
-    private function getCachedHeaders(ItemModel $model): array
-    {
-        $cacheKey = 'home_all_headers';
-        $headers = cache($cacheKey);
-        if (!is_array($headers)) {
-            $headers = $model->getHeaders();
-            cache()->save($cacheKey, $headers, 3600);
-        }
-
-        return $headers;
-    }
-
-    private function getCachedSupportedDomains(): array
-    {
-        $cacheKey = 'home_supported_domains';
-        $domains = cache($cacheKey);
-        if (!is_array($domains)) {
-            $domains = (new SiteConfigModel())->where('is_active', 1)->findColumn('domain') ?? [];
-            cache()->save($cacheKey, $domains, 3600);
-        }
-
-        return $domains;
     }
 
     /**
@@ -118,7 +86,7 @@ class HomeController extends BaseController
         $userId = $isLoggedIn ? auth()->id() : null;
         $this->response->noCache();
 
-        $headersWithLogin = $isLoggedIn ? $this->getCachedHeaders($model) : [];
+        $headersWithLogin = $isLoggedIn ? $model->getHeaders() : [];
         $headersWithNoLogin = $isLoggedIn ? $headersWithLogin : $model->getActiveHeaders(null);
 
         if (!empty($headersWithNoLogin) && !$this->request->getGet('i')) {
@@ -156,7 +124,7 @@ class HomeController extends BaseController
         $headersWithNoLogin = [];
         if (!$isAjax) {
             if ($isLoggedIn) {
-                $headersWithLogin = $this->getCachedHeaders($model);
+                $headersWithLogin = $model->getHeaders();
                 $headersWithNoLogin = $headersWithLogin;
             } else {
                 $headersWithNoLogin = $model->getActiveHeaders(null);
@@ -186,24 +154,18 @@ class HomeController extends BaseController
                 ->findAll();
 
             if (auth()->user()->inGroup('admin', 'superadmin')) {
-                $adminCounts = cache('home_admin_counts');
-                if (!is_array($adminCounts)) {
-                    $pendingItemsCount = $model->where('is_public', 2)->countAllResults();
-                    $pendingRevisionsCount = $revModel->where('revision_status', 'pending')->countAllResults();
-                    $toAdmin = $model->where('id_division <=', 11)
-                        ->where('is_public', 1)
-                        ->where('id_user !=', 1)
-                        ->countAllResults();
-                    $adminCounts = [
-                        'pendingTotal' => $pendingItemsCount + $pendingRevisionsCount,
-                        'toAdminCount' => $toAdmin,
-                    ];
-                    cache()->save('home_admin_counts', $adminCounts, 60);
-                }
-                $pendingTotal = $adminCounts['pendingTotal'];
-                $toAdminCount = $adminCounts['toAdminCount'];
+                $pendingItemsCount = $model->where('is_public', 2)->countAllResults();
+                $pendingRevisionsCount = $revModel->where('revision_status', 'pending')->countAllResults();
+                $pendingTotal = $pendingItemsCount + $pendingRevisionsCount;
+
+                $toAdminCount = $model->where('id_division <=', 11)
+                    ->where('is_public', 1)
+                    ->where('id_user !=', 1)
+                    ->countAllResults();
             }
         }
+
+        $supportedDomains = (new SiteConfigModel())->where('is_active', 1)->findColumn('domain') ?? [];
 
         return view('home', [
             'headersWithNoLogin' => $headersWithNoLogin,
@@ -212,7 +174,7 @@ class HomeController extends BaseController
             'currentHeaderId' => $headerId,
             'pendingTotal' => $pendingTotal,
             'toAdminCount' => $toAdminCount,
-            'supportedDomains' => $this->getCachedSupportedDomains(),
+            'supportedDomains' => $supportedDomains,
             'pendingRevisionIds' => $pendingRevisionIds,
             'passedReleases' => $passedReleases,
             'reportDomainStates' => $this->reportDomainStates(),

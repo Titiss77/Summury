@@ -1,13 +1,56 @@
 (function () {
     'use strict';
 
-    const categoryCache = new Map();
+    const CACHE_PREFIX = 'cat_cache_v1_';
+    const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
     const pendingFetches = new Map();
 
     function normalizeCategoryUrl(rawUrl) {
         const parsed = new URL(rawUrl, window.location.origin);
+        parsed.search = '';
         parsed.hash = '';
         return parsed.toString();
+    }
+
+    function getCachedHtml(key) {
+        try {
+            const raw = sessionStorage.getItem(CACHE_PREFIX + key);
+            if (!raw) return null;
+            const entry = JSON.parse(raw);
+            if (Date.now() - entry.ts > CACHE_TTL_MS) {
+                sessionStorage.removeItem(CACHE_PREFIX + key);
+                return null;
+            }
+            return entry.html;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function setCachedHtml(key, html) {
+        try {
+            sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ html, ts: Date.now() }));
+        } catch (_) {
+            // Si sessionStorage est plein, on vide l'ancien cache des catégories
+            clearAllCategoryCache();
+        }
+    }
+
+    function removeCachedHtml(key) {
+        try {
+            sessionStorage.removeItem(CACHE_PREFIX + key);
+        } catch (_) {}
+    }
+
+    function clearAllCategoryCache() {
+        try {
+            for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                const k = sessionStorage.key(i);
+                if (k && k.startsWith(CACHE_PREFIX)) {
+                    sessionStorage.removeItem(k);
+                }
+            }
+        } catch (_) {}
     }
 
     function getBaseUrl() {
@@ -24,8 +67,9 @@
 
     async function fetchCategoryHtml(url) {
         const key = normalizeCategoryUrl(url);
-        if (categoryCache.has(key)) {
-            return categoryCache.get(key);
+        const cached = getCachedHtml(key);
+        if (cached !== null) {
+            return cached;
         }
         if (pendingFetches.has(key)) {
             return pendingFetches.get(key);
@@ -44,7 +88,7 @@
                 const main = doc.querySelector('main.container');
                 if (!main) throw new Error('Contenu introuvable');
                 const inner = main.innerHTML;
-                categoryCache.set(key, inner);
+                setCachedHtml(key, inner);
                 return inner;
             })
             .finally(() => {
@@ -272,8 +316,7 @@
                             }
                         }
 
-                        // Invalide le cache de la page courante pour refléter la nouvelle progression
-                        categoryCache.delete(normalizeCategoryUrl(window.location.href));
+                        removeCachedHtml(normalizeCategoryUrl(window.location.href));
 
                         if (typeof window.showToast === 'function') {
                             window.showToast(
@@ -328,7 +371,7 @@
                         badge.title = 'En attente de vérification par l’administration.';
                         badge.textContent = '⚠️ Signalé';
                         button.replaceWith(badge);
-                        categoryCache.clear();
+                        clearAllCategoryCache();
                         if (typeof window.showToast === 'function') {
                             window.showToast(data.message || 'Signalement enregistré.', 'success');
                         }
@@ -365,7 +408,7 @@
                 const data = await response.json();
                 if (!response.ok || !data.success) throw new Error(data.error || 'Sauvegarde impossible');
                 if (data.csrf_token) window.siteConfig.csrfToken = data.csrf_token;
-                categoryCache.delete(normalizeCategoryUrl(window.location.href));
+                removeCachedHtml(normalizeCategoryUrl(window.location.href));
                 if (typeof window.showToast === 'function') window.showToast('Ordre mis à jour !', 'success');
             } catch (_) {
                 if (typeof window.showToast === 'function') {
@@ -459,9 +502,14 @@
 
         if (!navTabs.length || !mainEl) return;
 
-        // Met la catégorie courante en cache mémoire
+        // Si on revient d'une création/édition/suppression (?open=...), on vide le cache pour repartir sur des données fraîches
+        if (new URL(window.location.href).searchParams.has('open')) {
+            clearAllCategoryCache();
+        }
+
+        // Met la catégorie courante en cache dans sessionStorage
         const currentKey = normalizeCategoryUrl(window.location.href);
-        categoryCache.set(currentKey, mainEl.innerHTML);
+        setCachedHtml(currentKey, mainEl.innerHTML);
 
         navTabs.forEach((tab) => {
             tab.addEventListener('mouseenter', () => {
@@ -480,12 +528,12 @@
         // Précharge les autres onglets un par un (séquentiel) pour ne pas saturer le serveur
         const prefetchQueue = Array.from(navTabs)
             .map((tab) => normalizeCategoryUrl(tab.href))
-            .filter((key) => !categoryCache.has(key));
+            .filter((key) => getCachedHtml(key) === null);
 
         const prefetchNext = async () => {
             while (prefetchQueue.length > 0) {
                 const nextKey = prefetchQueue.shift();
-                if (!nextKey || categoryCache.has(nextKey)) continue;
+                if (!nextKey || getCachedHtml(nextKey) !== null) continue;
                 try {
                     await fetchCategoryHtml(nextKey);
                 } catch (_) {}
